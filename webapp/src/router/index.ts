@@ -17,6 +17,7 @@ import NtpInfoView from '@/views/NtpInfoView.vue';
 import SecurityAdminView from '@/views/SecurityAdminView.vue';
 import SystemInfoView from '@/views/SystemInfoView.vue';
 import { createRouter, createWebHistory } from 'vue-router';
+import TostAdminView from "@/views/TostAdminView.vue";
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -76,6 +77,11 @@ const router = createRouter({
         path: '/settings/mqtt',
         name: 'MqTT Settings',
         component: MqttAdminView
+    },
+    {
+        path: '/settings/tost',
+        name: 'tost Settings',
+        component: TostAdminView
     },
     {
         path: '/settings/inverter',

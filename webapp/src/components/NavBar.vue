@@ -38,6 +38,9 @@
                                 <router-link @click="onClick" class="dropdown-item" to="/settings/mqtt">{{ $t('menu.MQTTSettings') }}</router-link>
                             </li>
                             <li>
+                              <router-link @click="onClick" class="dropdown-item" to="/settings/tost">{{ $t('menu.TostSettings') }}</router-link>
+                            </li>
+                            <li>
                                 <router-link @click="onClick" class="dropdown-item" to="/settings/inverter">{{ $t('menu.InverterSettings') }}
                                 </router-link>
                             </li>

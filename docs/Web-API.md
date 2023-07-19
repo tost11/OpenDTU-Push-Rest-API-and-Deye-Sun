@@ -5,33 +5,35 @@ Information in JSON format can be obtained through the web API
 ## List of URLs
 may be incomplete
 
-| GET/POST | Auth required | URL |
-| -------- | --- | -- |
-| Get      | yes | /api/config/get |
-| Post     | yes | /api/config/delete |
-| Post     | yes | /api/config/upload |
-| Get      | no  | /api/devinfo/status |
-| Get+Post | yes | /api/dtu/config |
+| GET/POST | Auth required | URL                                            |
+| -------- | --- |------------------------------------------------|
+| Get      | yes | /api/config/get                                |
+| Post     | yes | /api/config/delete                             |
+| Post     | yes | /api/config/upload                             |
+| Get      | no  | /api/devinfo/status                            |
+| Get+Post | yes | /api/dtu/config                                |
 | Get      | no  | /api/eventlog/status?inv=inverter-serialnumber |
-| Post     | yes | /api/firmware/update |
-| Get      | yes | /api/inverter/list |
-| Post     | yes | /api/inverter/add |
-| Post     | yes | /api/inverter/del |
-| Post     | yes | /api/inverter/edit |
-| Post     | yes | /api/limit/config |
-| Get      | no  | /api/limit/status |
-| Get      | no  | /api/livedata/status |
-| Get+Post | yes | /api/mqtt/config |
-| Get      | no  | /api/mqtt/status |
-| Get+Post | yes | /api/network/config |
-| Get      | no  | /api/network/status |
-| Get+Post | yes | /api/ntp/config |
-| Get      | no  | /api/ntp/status |
-| Get+Post | yes | /api/ntp/time |
-| Get      | no  | /api/power/status |
-| Post     | yes | /api/power/config |
-| Get+Post | yes | /api/security/password |
-| Get      | no  | /api/system/status |
+| Post     | yes | /api/firmware/update                           |
+| Get      | yes | /api/inverter/list                             |
+| Post     | yes | /api/inverter/add                              |
+| Post     | yes | /api/inverter/del                              |
+| Post     | yes | /api/inverter/edit                             |
+| Post     | yes | /api/limit/config                              |
+| Get      | no  | /api/limit/status                              |
+| Get      | no  | /api/livedata/status                           |
+| Get+Post | yes | /api/mqtt/config                               |
+| Get      | no  | /api/mqtt/status                               |
+| Get+Post | yes | /api/tost/config                               |
+| Get      | no  | /api/tost/status                               |
+| Get+Post | yes | /api/network/config                            |
+| Get      | no  | /api/network/status                            |
+| Get+Post | yes | /api/ntp/config                                |
+| Get      | no  | /api/ntp/status                                |
+| Get+Post | yes | /api/ntp/time                                  |
+| Get      | no  | /api/power/status                              |
+| Post     | yes | /api/power/config                              |
+| Get+Post | yes | /api/security/password                         |
+| Get      | no  | /api/system/status                             |
 
 
 ## Examples of Use

@@ -5,6 +5,7 @@
         "NetworkSettings": "Network Settings",
         "NTPSettings": "NTP Settings",
         "MQTTSettings": "MQTT Settings",
+        "TostSettings": "Tost's Solar Monitoring Settings",
         "InverterSettings": "Inverter Settings",
         "SecuritySettings": "Security Settings",
         "DTUSettings": "DTU Settings",
@@ -385,6 +386,9 @@
         "HassIndividual": "Individual Panels",
         "Save": "@:dtuadmin.Save"
     },
+    "tostadmin": {
+        "TostSettings": "Tost's Solar Monitoring Settings"
+    },
     "inverteradmin": {
         "InverterSettings": "Inverter Settings",
         "AddInverter": "Add a new Inverter",
@@ -494,5 +498,19 @@
         "Number": "Number",
         "ValueSelected": "Selected",
         "ValueActive": "Active"
+    },
+    "tostadmin": {
+        "TostSettings": "Tost's Solar Monitoring Settings",
+        "TostConfiguration": "Tost's Solar Monitoring Configuration",
+        "EnableTost": "Enable push data to Tost's Solar Monitoring",
+        "TostParameter": "Client Push Parameter",
+        "Url": "Url:",
+        "UrlHint": "Url or IP address with protocol and port",
+        "SystemId": "System Id:",
+        "SystemIdHint": "System Id (looks like UUID)",
+        "Token": "Token:",
+        "TokenHint": "Token (looks like UUID)",
+        "Duration": "Time to push data (in Seconds)",
+        "Save": "@:dtuadmin.Save"
     }
 }

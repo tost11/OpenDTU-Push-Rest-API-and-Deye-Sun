@@ -24,6 +24,12 @@
 #define NTP_TIMEZONE "CET-1CEST,M3.5.0,M10.5.0/3"
 #define NTP_TIMEZONEDESCR "Europe/Berlin"
 
+#define TOST_ENABLED false
+#define TOST_URL "https://solar.pihost.org"
+#define TOST_SYSTEM_ID ""
+#define TOST_TOKEN ""
+#define TOST_DURATION 30
+
 #define MQTT_ENABLED false
 #define MQTT_HOST ""
 #define MQTT_PORT 1883

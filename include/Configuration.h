@@ -14,6 +14,10 @@
 #define NTP_MAX_TIMEZONE_STRLEN 50
 #define NTP_MAX_TIMEZONEDESCR_STRLEN 50
 
+#define TOST_MAX_URL_STRLEN 128
+#define TOST_MAX_SYSTEM_ID_STRLEN 64
+#define TOST_MAX_TOKEN_STRLEN 64
+
 #define MQTT_MAX_HOSTNAME_STRLEN 128
 #define MQTT_MAX_USERNAME_STRLEN 64
 #define MQTT_MAX_PASSWORD_STRLEN 64
@@ -60,6 +64,13 @@ struct CONFIG_T {
     char Ntp_Server[NTP_MAX_SERVER_STRLEN + 1];
     char Ntp_Timezone[NTP_MAX_TIMEZONE_STRLEN + 1];
     char Ntp_TimezoneDescr[NTP_MAX_TIMEZONEDESCR_STRLEN + 1];
+
+    bool Tost_Enabled;
+    uint Tost_Duration;
+    char Tost_System_Id[TOST_MAX_SYSTEM_ID_STRLEN + 1];
+    char Tost_Token[TOST_MAX_TOKEN_STRLEN + 1];
+
+    char Tost_Url[TOST_MAX_URL_STRLEN + 1];
 
     bool Mqtt_Enabled;
     uint Mqtt_Port;
