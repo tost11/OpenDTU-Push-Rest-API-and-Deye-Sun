@@ -391,7 +391,6 @@
         "Save": "@:dtuadmin.Save"
     },
     "mqttadmin": {
-        "MqttConfiguration": "MQTT Konfiguration",
         "MqttSettings": "MQTT-Einstellungen",
         "TostSettings": "Tost's Solar Monitoring Einstellungen",
         "MqttConfiguration": "MQTT-Konfiguration",
