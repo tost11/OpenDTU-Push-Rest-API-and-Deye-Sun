@@ -3,6 +3,7 @@
  * Copyright (C) 2022 Thomas Basler and others
  */
 #include "RealTimeRunDataCommand.h"
+#include "Hoymiles.h"
 #include "inverters/InverterAbstract.h"
 
 RealTimeRunDataCommand::RealTimeRunDataCommand(uint64_t target_address, uint64_t router_address, time_t time)
@@ -10,7 +11,7 @@ RealTimeRunDataCommand::RealTimeRunDataCommand(uint64_t target_address, uint64_t
 {
     setTime(time);
     setDataType(0x0b);
-    setTimeout(200);
+    setTimeout(500);
 }
 
 String RealTimeRunDataCommand::getCommandName()
@@ -22,6 +23,18 @@ bool RealTimeRunDataCommand::handleResponse(InverterAbstract* inverter, fragment
 {
     // Check CRC of whole payload
     if (!MultiDataCommand::handleResponse(inverter, fragment, max_fragment_id)) {
+        return false;
+    }
+
+    // Check if at least all required bytes are received
+    // In case of low power in the inverter it occours that some incomplete fragments
+    // with a valid CRC are received.
+    uint8_t fragmentsSize = getTotalFragmentSize(fragment, max_fragment_id);
+    uint8_t expectedSize = inverter->Statistics()->getExpectedByteCount();
+    if (fragmentsSize < expectedSize) {
+        Hoymiles.getMessageOutput()->printf("ERROR in %s: Received fragment size: %d, min expected size: %d\r\n",
+            getCommandName().c_str(), fragmentsSize, expectedSize);
+
         return false;
     }
 

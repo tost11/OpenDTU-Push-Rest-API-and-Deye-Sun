@@ -1,5 +1,5 @@
 <template>
-    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+    <nav class="navbar navbar-expand-md fixed-top bg-body-tertiary" data-bs-theme="dark">
         <div class="container-fluid">
             <router-link @click="onClick" class="navbar-brand" to="/">
                 <span v-if="isXmas" class="text-success">
@@ -98,11 +98,14 @@
                         <router-link @click="onClick" class="nav-link" to="/about">{{ $t('menu.About') }}</router-link>
                     </li>
                 </ul>
-                <form class="d-flex" role="search">
-                    <LocaleSwitcher class="me-2" />
-                    <button v-if="isLogged" class="btn btn-outline-danger" @click="signout">{{ $t('menu.Logout') }}</button>
-                    <button v-if="!isLogged" class="btn btn-outline-success" @click="signin">{{ $t('menu.Login') }}</button>
-                </form>
+                <ul class="navbar-nav flex-row flex-wrap ms-md-auto">
+                    <ThemeSwitcher class="me-2" />
+                    <form class="d-flex" role="search">
+                        <LocaleSwitcher class="me-2" />
+                        <button v-if="isLogged" class="btn btn-outline-danger" @click="signout">{{ $t('menu.Logout') }}</button>
+                        <button v-if="!isLogged" class="btn btn-outline-success" @click="signin">{{ $t('menu.Login') }}</button>
+                    </form>
+                </ul>
             </div>
         </div>
     </nav>
@@ -113,6 +116,7 @@ import { isLoggedIn, logout } from '@/utils/authentication';
 import { BIconEgg, BIconSun, BIconTree } from 'bootstrap-icons-vue';
 import { defineComponent } from 'vue';
 import LocaleSwitcher from './LocaleSwitcher.vue';
+import ThemeSwitcher from './ThemeSwitcher.vue';
 
 export default defineComponent({
     components: {
@@ -120,6 +124,7 @@ export default defineComponent({
         BIconSun,
         BIconTree,
         LocaleSwitcher,
+        ThemeSwitcher,
     },
     data() {
         return {

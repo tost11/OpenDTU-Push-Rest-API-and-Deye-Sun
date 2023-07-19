@@ -16,7 +16,7 @@ void MqttHandleDtuClass::init()
 
 void MqttHandleDtuClass::loop()
 {
-    if (!MqttSettings.getConnected() || !Hoymiles.getRadio()->isIdle()) {
+    if (!MqttSettings.getConnected() || !Hoymiles.isAllRadioIdle()) {
         return;
     }
 
@@ -28,6 +28,7 @@ void MqttHandleDtuClass::loop()
         MqttSettings.publish("dtu/hostname", NetworkSettings.getHostname());
         if (NetworkSettings.NetworkMode() == network_mode::WiFi) {
             MqttSettings.publish("dtu/rssi", String(WiFi.RSSI()));
+            MqttSettings.publish("dtu/bssid", String(WiFi.BSSIDstr()));
         }
 
         _lastPublish = millis();

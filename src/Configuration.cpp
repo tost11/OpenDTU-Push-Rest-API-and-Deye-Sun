@@ -44,6 +44,9 @@ bool ConfigurationClass::write()
     ntp["server"] = config.Ntp_Server;
     ntp["timezone"] = config.Ntp_Timezone;
     ntp["timezone_descr"] = config.Ntp_TimezoneDescr;
+    ntp["latitude"] = config.Ntp_Latitude;
+    ntp["longitude"] = config.Ntp_Longitude;
+    ntp["sunsettype"] = config.Ntp_SunsetType;
 
     JsonObject tost = doc.createNestedObject("tost");
     tost["enabled"] = config.Tost_Enabled;
@@ -60,7 +63,7 @@ bool ConfigurationClass::write()
     mqtt["password"] = config.Mqtt_Password;
     mqtt["topic"] = config.Mqtt_Topic;
     mqtt["retain"] = config.Mqtt_Retain;
-    mqtt["publish_invterval"] = config.Mqtt_PublishInterval;
+    mqtt["publish_interval"] = config.Mqtt_PublishInterval;
 
     JsonObject mqtt_lwt = mqtt.createNestedObject("lwt");
     mqtt_lwt["topic"] = config.Mqtt_LwtTopic;
@@ -70,6 +73,9 @@ bool ConfigurationClass::write()
     JsonObject mqtt_tls = mqtt.createNestedObject("tls");
     mqtt_tls["enabled"] = config.Mqtt_Tls;
     mqtt_tls["root_ca_cert"] = config.Mqtt_RootCaCert;
+    mqtt_tls["certlogin"] = config.Mqtt_TlsCertLogin;
+    mqtt_tls["client_cert"] = config.Mqtt_ClientCert;
+    mqtt_tls["client_key"] = config.Mqtt_ClientKey;
 
     JsonObject mqtt_hass = mqtt.createNestedObject("hass");
     mqtt_hass["enabled"] = config.Mqtt_Hass_Enabled;
@@ -81,7 +87,9 @@ bool ConfigurationClass::write()
     JsonObject dtu = doc.createNestedObject("dtu");
     dtu["serial"] = config.Dtu_Serial;
     dtu["poll_interval"] = config.Dtu_PollInterval;
-    dtu["pa_level"] = config.Dtu_PaLevel;
+    dtu["nrf_pa_level"] = config.Dtu_NrfPaLevel;
+    dtu["cmt_pa_level"] = config.Dtu_CmtPaLevel;
+    dtu["cmt_frequency"] = config.Dtu_CmtFrequency;
 
     JsonObject security = doc.createNestedObject("security");
     security["password"] = config.Security_Password;
@@ -93,14 +101,20 @@ bool ConfigurationClass::write()
     JsonObject display = device.createNestedObject("display");
     display["powersafe"] = config.Display_PowerSafe;
     display["screensaver"] = config.Display_ScreenSaver;
-    display["showlogo"] = config.Display_ShowLogo;
+    display["rotation"] = config.Display_Rotation;
     display["contrast"] = config.Display_Contrast;
+    display["language"] = config.Display_Language;
 
     JsonArray inverters = doc.createNestedArray("inverters");
     for (uint8_t i = 0; i < INV_MAX_COUNT; i++) {
         JsonObject inv = inverters.createNestedObject();
         inv["serial"] = config.Inverter[i].Serial;
         inv["name"] = config.Inverter[i].Name;
+        inv["order"] = config.Inverter[i].Order;
+        inv["poll_enable"] = config.Inverter[i].Poll_Enable;
+        inv["poll_enable_night"] = config.Inverter[i].Poll_Enable_Night;
+        inv["command_enable"] = config.Inverter[i].Command_Enable;
+        inv["command_enable_night"] = config.Inverter[i].Command_Enable_Night;
 
         JsonArray channel = inv.createNestedArray("channel");
         for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
@@ -129,7 +143,7 @@ bool ConfigurationClass::read()
     // Deserialize the JSON document
     DeserializationError error = deserializeJson(doc, f);
     if (error) {
-        MessageOutput.println(F("Failed to read file, using default configuration"));
+        MessageOutput.println("Failed to read file, using default configuration");
     }
 
     JsonObject cfg = doc["cfg"];
@@ -182,6 +196,9 @@ bool ConfigurationClass::read()
     strlcpy(config.Ntp_Server, ntp["server"] | NTP_SERVER, sizeof(config.Ntp_Server));
     strlcpy(config.Ntp_Timezone, ntp["timezone"] | NTP_TIMEZONE, sizeof(config.Ntp_Timezone));
     strlcpy(config.Ntp_TimezoneDescr, ntp["timezone_descr"] | NTP_TIMEZONEDESCR, sizeof(config.Ntp_TimezoneDescr));
+    config.Ntp_Latitude = ntp["latitude"] | NTP_LATITUDE;
+    config.Ntp_Longitude = ntp["longitude"] | NTP_LONGITUDE;
+    config.Ntp_SunsetType = ntp["sunsettype"] | NTP_SUNSETTYPE;
 
     JsonObject tost = doc["tost"];
     config.Tost_Enabled = tost["enabled"] | TOST_ENABLED;
@@ -198,7 +215,7 @@ bool ConfigurationClass::read()
     strlcpy(config.Mqtt_Password, mqtt["password"] | MQTT_PASSWORD, sizeof(config.Mqtt_Password));
     strlcpy(config.Mqtt_Topic, mqtt["topic"] | MQTT_TOPIC, sizeof(config.Mqtt_Topic));
     config.Mqtt_Retain = mqtt["retain"] | MQTT_RETAIN;
-    config.Mqtt_PublishInterval = mqtt["publish_invterval"] | MQTT_PUBLISH_INTERVAL;
+    config.Mqtt_PublishInterval = mqtt["publish_interval"] | MQTT_PUBLISH_INTERVAL;
 
     JsonObject mqtt_lwt = mqtt["lwt"];
     strlcpy(config.Mqtt_LwtTopic, mqtt_lwt["topic"] | MQTT_LWT_TOPIC, sizeof(config.Mqtt_LwtTopic));
@@ -208,6 +225,9 @@ bool ConfigurationClass::read()
     JsonObject mqtt_tls = mqtt["tls"];
     config.Mqtt_Tls = mqtt_tls["enabled"] | MQTT_TLS;
     strlcpy(config.Mqtt_RootCaCert, mqtt_tls["root_ca_cert"] | MQTT_ROOT_CA_CERT, sizeof(config.Mqtt_RootCaCert));
+    config.Mqtt_TlsCertLogin = mqtt_tls["certlogin"] | MQTT_TLSCERTLOGIN;
+    strlcpy(config.Mqtt_ClientCert, mqtt_tls["client_cert"] | MQTT_TLSCLIENTCERT, sizeof(config.Mqtt_ClientCert));
+    strlcpy(config.Mqtt_ClientKey, mqtt_tls["client_key"] | MQTT_TLSCLIENTKEY, sizeof(config.Mqtt_ClientKey));
 
     JsonObject mqtt_hass = mqtt["hass"];
     config.Mqtt_Hass_Enabled = mqtt_hass["enabled"] | MQTT_HASS_ENABLED;
@@ -219,7 +239,9 @@ bool ConfigurationClass::read()
     JsonObject dtu = doc["dtu"];
     config.Dtu_Serial = dtu["serial"] | DTU_SERIAL;
     config.Dtu_PollInterval = dtu["poll_interval"] | DTU_POLL_INTERVAL;
-    config.Dtu_PaLevel = dtu["pa_level"] | DTU_PA_LEVEL;
+    config.Dtu_NrfPaLevel = dtu["nrf_pa_level"] | DTU_NRF_PA_LEVEL;
+    config.Dtu_CmtPaLevel = dtu["cmt_pa_level"] | DTU_CMT_PA_LEVEL;
+    config.Dtu_CmtFrequency = dtu["cmt_frequency"] | DTU_CMT_FREQUENCY;
 
     JsonObject security = doc["security"];
     strlcpy(config.Security_Password, security["password"] | ACCESS_POINT_PASSWORD, sizeof(config.Security_Password));
@@ -231,14 +253,21 @@ bool ConfigurationClass::read()
     JsonObject display = device["display"];
     config.Display_PowerSafe = display["powersafe"] | DISPLAY_POWERSAFE;
     config.Display_ScreenSaver = display["screensaver"] | DISPLAY_SCREENSAVER;
-    config.Display_ShowLogo = display["showlogo"] | DISPLAY_SHOWLOGO;
+    config.Display_Rotation = display["rotation"] | DISPLAY_ROTATION;
     config.Display_Contrast = display["contrast"] | DISPLAY_CONTRAST;
+    config.Display_Language = display["language"] | DISPLAY_LANGUAGE;
 
     JsonArray inverters = doc["inverters"];
     for (uint8_t i = 0; i < INV_MAX_COUNT; i++) {
         JsonObject inv = inverters[i].as<JsonObject>();
         config.Inverter[i].Serial = inv["serial"] | 0ULL;
         strlcpy(config.Inverter[i].Name, inv["name"] | "", sizeof(config.Inverter[i].Name));
+        config.Inverter[i].Order = inv["order"] | 0;
+
+        config.Inverter[i].Poll_Enable = inv["poll_enable"] | true;
+        config.Inverter[i].Poll_Enable_Night = inv["poll_enable_night"] | true;
+        config.Inverter[i].Command_Enable = inv["command_enable"] | true;
+        config.Inverter[i].Command_Enable_Night = inv["command_enable_night"] | true;
 
         JsonArray channel = inv["channel"];
         for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
@@ -254,21 +283,21 @@ bool ConfigurationClass::read()
 
 void ConfigurationClass::migrate()
 {
+    File f = LittleFS.open(CONFIG_FILENAME, "r", false);
+    if (!f) {
+        MessageOutput.println("Failed to open file, cancel migration");
+        return;
+    }
+
+    DynamicJsonDocument doc(JSON_BUFFER_SIZE);
+    // Deserialize the JSON document
+    DeserializationError error = deserializeJson(doc, f);
+    if (error) {
+        MessageOutput.printf("Failed to read file, cancel migration: %s\r\n", error.c_str());
+        return;
+    }
+
     if (config.Cfg_Version < 0x00011700) {
-        File f = LittleFS.open(CONFIG_FILENAME, "r", false);
-        if (!f) {
-            MessageOutput.println(F("Failed to open file, cancel migration"));
-            return;
-        }
-
-        DynamicJsonDocument doc(JSON_BUFFER_SIZE);
-        // Deserialize the JSON document
-        DeserializationError error = deserializeJson(doc, f);
-        if (error) {
-            MessageOutput.println(F("Failed to read file, cancel migration"));
-            return;
-        }
-
         JsonArray inverters = doc["inverters"];
         for (uint8_t i = 0; i < INV_MAX_COUNT; i++) {
             JsonObject inv = inverters[i].as<JsonObject>();
@@ -279,6 +308,18 @@ void ConfigurationClass::migrate()
             }
         }
     }
+
+    if (config.Cfg_Version < 0x00011800) {
+        JsonObject mqtt = doc["mqtt"];
+        config.Mqtt_PublishInterval = mqtt["publish_invterval"];
+    }
+
+    if  (config.Cfg_Version < 0x00011900) {
+        JsonObject dtu = doc["dtu"];
+        config.Dtu_NrfPaLevel = dtu["pa_level"];
+    }
+
+    f.close();
 
     config.Cfg_Version = CONFIG_VERSION;
     write();

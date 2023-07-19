@@ -5,6 +5,8 @@
 .vscode/ipch
 .vscode/settings.json
 platformio-device-monitor*.log
+logs/device-monitor*.log
 platformio_override.ini
 get-platformio.py
 .idea
+.DS_Store

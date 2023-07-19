@@ -23,6 +23,9 @@
 #define NTP_SERVER "pool.ntp.org"
 #define NTP_TIMEZONE "CET-1CEST,M3.5.0,M10.5.0/3"
 #define NTP_TIMEZONEDESCR "Europe/Berlin"
+#define NTP_LONGITUDE 10.4515f
+#define NTP_LATITUDE 51.1657f
+#define NTP_SUNSETTYPE 1
 
 #define TOST_ENABLED false
 #define TOST_URL "https://solar.pihost.org"
@@ -70,6 +73,9 @@
                           "mRGunUHBcnWEvgJBQl9nJEiU0Zsnvgc/ubhPgXRR4Xq37Z0j4r7g1SgEEzwxA57d\n" \
                           "emyPxgcYxn/eR44/KJ4EBs+lVDR3veyJm+kXQ99b21/+jh5Xos1AnX5iItreGCc=\n" \
                           "-----END CERTIFICATE-----\n"
+#define MQTT_TLSCERTLOGIN false
+#define MQTT_TLSCLIENTCERT ""
+#define MQTT_TLSCLIENTKEY ""
 #define MQTT_LWT_TOPIC "dtu/status"
 #define MQTT_LWT_ONLINE "online"
 #define MQTT_LWT_OFFLINE "offline"
@@ -77,7 +83,9 @@
 
 #define DTU_SERIAL 0x99978563412
 #define DTU_POLL_INTERVAL 5
-#define DTU_PA_LEVEL 0
+#define DTU_NRF_PA_LEVEL 0
+#define DTU_CMT_PA_LEVEL 0
+#define DTU_CMT_FREQUENCY 865000
 
 #define MQTT_HASS_ENABLED false
 #define MQTT_HASS_EXPIRE true
@@ -89,5 +97,6 @@
 
 #define DISPLAY_POWERSAFE true
 #define DISPLAY_SCREENSAVER true
-#define DISPLAY_SHOWLOGO true
+#define DISPLAY_ROTATION 2
 #define DISPLAY_CONTRAST 60
+#define DISPLAY_LANGUAGE 0
