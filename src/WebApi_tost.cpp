@@ -4,12 +4,11 @@
  */
 #include "WebApi_tost.h"
 #include "Configuration.h"
-//#include "MqttHandleHass.h"
-//#include "MqttSettings.h"
 #include "WebApi.h"
 #include "WebApi_errors.h"
 #include "helper.h"
 #include <AsyncJson.h>
+#include "TostHandle.h"
 
 void WebApiTostClass::init(AsyncWebServer* server)
 {
@@ -39,8 +38,9 @@ void WebApiTostClass::onTostStatus(AsyncWebServerRequest* request)
     root[F("tost_enabled")] = config.Tost_Enabled;
     root[F("tost_url")] = config.Tost_Url;
     root[F("tost_system_id")] = config.Tost_System_Id;
-    root[F("tost_token")] = config.Tost_Token;
     root[F("tost_duration")] = config.Tost_Duration;
+    root[F("tost_status_successfully_timestamp")] = TostHandle.getLastSuccessfullyTimestamp();
+    root[F("tost_status_error_static_code")] = TostHandle.getLastErrorStatusCode();
 
     response->setLength();
     request->send(response);

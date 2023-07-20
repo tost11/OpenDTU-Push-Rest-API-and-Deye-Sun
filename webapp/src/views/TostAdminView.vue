@@ -51,9 +51,10 @@ import InputElement from "@/components/InputElement.vue";
 
 export default defineComponent({
     components: {
-      InputElement, CardElement,
-        BasePage,
-        BootstrapAlert
+      InputElement,
+      CardElement,
+      BasePage,
+      BootstrapAlert
     },
     data() {
         return {

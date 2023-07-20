@@ -13,6 +13,7 @@
 #include "MqttHandleInverter.h"
 #include "MqttHandleInverterTotal.h"
 #include "MqttSettings.h"
+#include "TostHandle.h"
 #include "NetworkSettings.h"
 #include "NtpSettings.h"
 #include "PinMapping.h"
@@ -94,6 +95,11 @@ void setup()
     SunPosition.init();
     MessageOutput.println("done");
 
+    // Initialize Tost
+    MessageOutput.print("Initialize Tost... ");
+    TostHandle.init();
+    MessageOutput.println("done");
+
     // Initialize MqTT
     MessageOutput.print("Initialize MqTT... ");
     MqttSettings.init();
@@ -154,6 +160,8 @@ void loop()
     InverterSettings.loop();
     yield();
     Datastore.loop();
+    yield();
+    TostHandle.loop();
     yield();
     MqttHandleDtu.loop();
     yield();

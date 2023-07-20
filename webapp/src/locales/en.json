@@ -18,6 +18,7 @@
         "Network": "Network",
         "NTP": "NTP",
         "MQTT": "MQTT",
+        "Tost": "Tost's Solar Monitoring",
         "Console": "Console",
         "About": "About",
         "Logout": "Logout",

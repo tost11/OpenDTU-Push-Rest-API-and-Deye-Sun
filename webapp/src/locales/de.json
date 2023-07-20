@@ -392,7 +392,6 @@
     },
     "mqttadmin": {
         "MqttSettings": "MQTT-Einstellungen",
-        "TostSettings": "Tost's Solar Monitoring Einstellungen",
         "MqttConfiguration": "MQTT-Konfiguration",
         "EnableMqtt": "MQTT aktivieren",
         "EnableHass": "Home Assistant MQTT-Auto-Discovery aktivieren",
