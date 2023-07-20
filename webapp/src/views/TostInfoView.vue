@@ -32,12 +32,20 @@
                 <table class="table table-hover table-condensed">
                     <tbody>
                         <tr>
-                            <th>{{ $t('tostinfo.LastSuccesTimestamp') }}</th>
-                            <td>{{ tostDataList.tost_status_successfully_timestamp }}</td>
+                          <th>{{ $t('tostinfo.LastTimestamp') }}</th>
+                          <td>{{ tostDataList.tost_status_timesstamp }}</td>
+                        </tr>
+                        <tr>
+                          <th>{{ $t('tostinfo.LastSuccesTimestamp') }}</th>
+                          <td>{{ tostDataList.tost_status_successfully_timestamp }}</td>
                         </tr>
                         <tr>
                           <th>{{ $t('tostinfo.LastErrorCode') }}</th>
-                          <td>{{ tostDataList.tost_status_error_static_code }}</td>
+                          <td>{{ tostDataList.tost_status_error_code }}</td>
+                        </tr>
+                        <tr>
+                          <th>{{ $t('tostinfo.LastErrorMessage') }}</th>
+                          <td>{{ tostDataList.tost_status_error_message }}</td>
                         </tr>
                     </tbody>
                 </table>

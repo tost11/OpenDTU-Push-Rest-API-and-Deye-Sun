@@ -13,13 +13,16 @@ private:
     TimeoutHelper _lastPublish;
 
     int lastErrorStatusCode;
+    std::string lastErrorMessage;
+
     long lastTimestamp;
     long lastSuccessfullyTimestamp;
-    std::string lastMessage;
 
 public:
+    int getLastTimestamp()const{return lastTimestamp;}
     int getLastSuccessfullyTimestamp()const{return lastSuccessfullyTimestamp;}
     int getLastErrorStatusCode()const{return lastErrorStatusCode;}
+    const std::string & getLastErrorMessage()const{return lastErrorMessage;}
 
 };
 

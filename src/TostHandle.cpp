@@ -9,16 +9,17 @@
 #include "MessageOutput.h"
 #include <HTTPClient.h>
 #include <ctime>
+#include <ArduinoJson.h>
 
 TostHandleClass TostHandle;
 
 void TostHandleClass::init()
 {
     _lastPublish.set(Configuration.get().Tost_Duration * 1000);
-    lastErrorStatusCode = -1;
+    lastErrorStatusCode = 0;
     lastTimestamp = 0;
     lastSuccessfullyTimestamp = 0;
-    lastMessage = "";
+    lastErrorMessage = "";
 }
 
 void TostHandleClass::loop()
@@ -44,18 +45,37 @@ void TostHandleClass::loop()
         //http.setAuthorization("REPLACE_WITH_SERVER_USERNAME", "REPLACE_WITH_SERVER_PASSWORD");
 
         // Send HTTP GET request
-        int httpResponseCode = http.GET();
-
+        int statusCode = http.GET();
         lastTimestamp = millis();
-
-        if (httpResponseCode == 200) {
-            lastSuccessfullyTimestamp = lastTimestamp;
+        MessageOutput.printf("Status code: %d\n\r",lastErrorStatusCode);
+        if(statusCode <= 0){
+            lastErrorMessage = "Connection to server not possible";
+            lastErrorStatusCode = statusCode;
+        }else{
             String payload = http.getString();
-            MessageOutput.printf("Result: %s\n\r", payload.c_str());
-        }
-        else {
-            lastErrorStatusCode = httpResponseCode;
-            MessageOutput.printf("Error code: %d\n\r",httpResponseCode);
+            MessageOutput.printf("Full Status: %s\n\r", payload.c_str());
+            if (statusCode == 200) {
+                lastSuccessfullyTimestamp = lastTimestamp;
+            }else {
+                lastErrorMessage == payload.c_str();
+                lastErrorStatusCode = statusCode;
+                MessageOutput.printf("Error: %s\n\r",lastErrorMessage.c_str());
+
+                // ArduinoJson 6
+                DynamicJsonDocument doc(1024);
+                // ArduinoJson 6
+                DeserializationError error = deserializeJson(doc, payload);
+                if (error){
+                    lastErrorMessage = std::string("Error on serializing response from Server. Data is: ")+payload.c_str();
+                }else{
+                    if(!doc.containsKey("error")){
+                        lastErrorMessage = std::string("Error json response missing 'error' key Data is: ")+payload.c_str();
+                    }else{
+                        const char* err = doc["error"];
+                        lastErrorMessage = err;
+                    }
+                }
+            }
         }
 
 

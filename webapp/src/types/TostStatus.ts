@@ -5,5 +5,7 @@ export interface TostStatus {
     tost_token: string;
     tost_duration: number;
     tost_status_successfully_timestamp: number;
-    tost_status_error_static_code: number;
+    tost_status_error_code: number;
+    tost_status_error_message: string;
+    tost_status_timesstamp: string;
 }

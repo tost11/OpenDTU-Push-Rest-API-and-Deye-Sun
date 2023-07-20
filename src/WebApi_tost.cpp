@@ -40,7 +40,9 @@ void WebApiTostClass::onTostStatus(AsyncWebServerRequest* request)
     root[F("tost_system_id")] = config.Tost_System_Id;
     root[F("tost_duration")] = config.Tost_Duration;
     root[F("tost_status_successfully_timestamp")] = TostHandle.getLastSuccessfullyTimestamp();
-    root[F("tost_status_error_static_code")] = TostHandle.getLastErrorStatusCode();
+    root[F("tost_status_error_code")] = TostHandle.getLastErrorStatusCode();
+    root[F("tost_status_error_message")] = TostHandle.getLastErrorMessage();
+    root[F("tost_status_timestamp")] = TostHandle.getLastTimestamp();
 
     response->setLength();
     request->send(response);
