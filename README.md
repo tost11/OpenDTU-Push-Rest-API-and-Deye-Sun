@@ -4,6 +4,17 @@
 [![cpplint](https://github.com/tbnobody/OpenDTU/actions/workflows/cpplint.yml/badge.svg)](https://github.com/tbnobody/OpenDTU/actions/workflows/cpplint.yml)
 [![Yarn Linting](https://github.com/tbnobody/OpenDTU/actions/workflows/yarnlint.yml/badge.svg)](https://github.com/tbnobody/OpenDTU/actions/workflows/yarnlint.yml)
 
+## Whats this fork about ?
+
+I have implemented an application that monitors solar systems on a server
+with graphs, statistics and all the cool stuff!
+
+For getting data on this application this fork has a new feature
+that sends the current inverter data via rest to the application.
+
+If you are interested in the application or the rest definition for your own application
+check out the [project](https://github.com/tost11/solar-monitoring).
+
 ## !! IMPORTANT UPGRADE NOTES !!
 
 If you are upgrading from a version before 15.03.2023 you have to upgrade the partition table of the ESP32. Please follow the [this](docs/UpgradePartition.md) documentation!

@@ -3,6 +3,8 @@
 
 #include <TimeoutHelper.h>
 #include <iostream>
+#include <Hoymiles.h>
+#include "Configuration.h"
 
 class TostHandleClass {
 public:
@@ -12,15 +14,34 @@ public:
 private:
     TimeoutHelper _lastPublish;
 
+    uint32_t _lastPublishStats[INV_MAX_COUNT];
+
     int lastErrorStatusCode;
     std::string lastErrorMessage;
 
-    long lastTimestamp;
+    long lastErrorTimestamp;
     long lastSuccessfullyTimestamp;
 
+    FieldId_t _publishFields[14] = {
+            FLD_UDC,
+            FLD_IDC,
+            FLD_PDC,
+            FLD_YD,
+            FLD_YT,
+            FLD_UAC,
+            FLD_IAC,
+            FLD_PAC,
+            FLD_F,
+            FLD_T,
+            FLD_PF,
+            FLD_EFF,
+            FLD_IRR,
+            FLD_Q
+        };
+
 public:
-    int getLastTimestamp()const{return lastTimestamp;}
-    int getLastSuccessfullyTimestamp()const{return lastSuccessfullyTimestamp;}
+    unsigned long getLastErrorTimestamp()const{return lastErrorTimestamp;}
+    unsigned long getLastSuccessfullyTimestamp()const{return lastSuccessfullyTimestamp;}
     int getLastErrorStatusCode()const{return lastErrorStatusCode;}
     const std::string & getLastErrorMessage()const{return lastErrorMessage;}
 

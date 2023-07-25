@@ -252,6 +252,24 @@
         "Day": "Tag",
         "Night": "Nacht"
     },
+    "tostinfo": {
+        "tostInformation": "Tost's Solar Monitoring Informationen",
+        "ConfigurationSummary": "Konfigurationszusammenfassung",
+        "Status": "@:ntpinfo.Status",
+        "Enabled": "aktiv",
+        "Disabled": "nicht aktiv",
+        "Url": "Host und Protocol",
+        "SystemId": "System Id",
+        "Duration": "Veröffentlichungsintervall",
+        "Seconds": "{sec} Sekunden",
+        "LastSuccessTimestamp": "Letztes erfolgreiches Senden",
+        "LastErrorTimestamp": "Letztes fehlerhaftes Senden",
+        "LastErrorCode": "Letzter Http Fehler Code",
+        "LastErrorMessage": "Letzter Http Fehler Message",
+        "never": "nie",
+        "Summary": "Statussusammenfassung",
+        "Error": "Errorsusammenfassung"
+    },
     "mqttinfo": {
         "MqttInformation": "MQTT-Informationen",
         "ConfigurationSummary": "@:ntpinfo.ConfigurationSummary",
@@ -389,6 +407,21 @@
         "DefaultGateway": "Standardgateway:",
         "Dns": "DNS-Server {num}:",
         "Save": "@:dtuadmin.Save"
+    },
+    "tostadmin": {
+        "TostSettings": "Tost's Solar Monitoring Einstellungen",
+        "TostConfiguration": "Tost's Solar Monitoring Einstellungen",
+        "EnableTost": "Daten senden aktivieren:",
+        "TostParameters": "Client Parameter",
+        "Url": "Host und Protocol:",
+        "UrlHint": "Url und IP Adresse mit Protokol und Port",
+        "SystemId": "System Id:",
+        "SystemIdHint": "System Id (sieht aus wie UUID)",
+        "Token": "Token:",
+        "TokenHint": "Token (looks like UUID)",
+        "Duration": "Veröffentlichungsintervall:",
+        "Save": "@:dtuadmin.Save",
+        "Seconds": "Sekunden"
     },
     "mqttadmin": {
         "MqttSettings": "MQTT-Einstellungen",

@@ -11,7 +11,7 @@
 
         </CardElement>
 
-        <CardElement :text="$t('tostadmin.TostParamters')" textVariant="text-bg-primary" add-space
+        <CardElement :text="$t('tostadmin.TostParameters')" textVariant="text-bg-primary" add-space
                      v-show="tostConfigList.tost_enabled"
         >
           <InputElement :label="$t('tostadmin.Url')"
@@ -31,7 +31,8 @@
 
           <InputElement :label="$t('tostadmin.Duration')"
                         v-model="tostConfigList.tost_duration"
-                        type="number" min="1" max="1000"/>
+                        type="number" min="10" max="120"
+                        :postfix="$t('tostadmin.Seconds')"/>
 
         </CardElement>
 
@@ -72,11 +73,11 @@ export default defineComponent({
       getTostConfig() {
         this.dataLoading = true;
         fetch("/api/tost/config", { headers: authHeader() })
-            .then((response) => handleResponse(response, this.$emitter, this.$router))
-            .then((data) => {
-              this.tostConfigList = data;
-              this.dataLoading = false;
-            });
+          .then((response) => handleResponse(response, this.$emitter, this.$router))
+          .then((data) => {
+            this.tostConfigList = data;
+            this.dataLoading = false;
+          });
       },
       saveTostConfig(e: Event) {
         e.preventDefault();
@@ -89,14 +90,14 @@ export default defineComponent({
           headers: authHeader(),
           body: formData,
         })
-            .then((response) => handleResponse(response, this.$emitter, this.$router))
-            .then(
-                (response) => {
-                  this.alertMessage = this.$t('apiresponse.' + response.code, response.param);
-                  this.alertType = response.type;
-                  this.showAlert = true;
-                }
-            );
+          .then((response) => handleResponse(response, this.$emitter, this.$router))
+          .then(
+              (response) => {
+                this.alertMessage = this.$t('apiresponse.' + response.code, response.param);
+                this.alertType = response.type;
+                this.showAlert = true;
+              }
+          );
       },
     },
 });

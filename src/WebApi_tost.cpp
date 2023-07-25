@@ -9,6 +9,7 @@
 #include "helper.h"
 #include <AsyncJson.h>
 #include "TostHandle.h"
+#include "MessageOutput.h"
 
 void WebApiTostClass::init(AsyncWebServer* server)
 {
@@ -35,14 +36,17 @@ void WebApiTostClass::onTostStatus(AsyncWebServerRequest* request)
     JsonObject root = response->getRoot();
     const CONFIG_T& config = Configuration.get();
 
+    unsigned long errorStamp = TostHandle.getLastErrorTimestamp();
+    unsigned long successStamp = TostHandle.getLastSuccessfullyTimestamp();
+
     root[F("tost_enabled")] = config.Tost_Enabled;
     root[F("tost_url")] = config.Tost_Url;
     root[F("tost_system_id")] = config.Tost_System_Id;
     root[F("tost_duration")] = config.Tost_Duration;
-    root[F("tost_status_successfully_timestamp")] = TostHandle.getLastSuccessfullyTimestamp();
+    root[F("tost_status_successfully_timestamp")] = successStamp == 0 ? successStamp : millis() - successStamp;
     root[F("tost_status_error_code")] = TostHandle.getLastErrorStatusCode();
     root[F("tost_status_error_message")] = TostHandle.getLastErrorMessage();
-    root[F("tost_status_timestamp")] = TostHandle.getLastTimestamp();
+    root[F("tost_status_error_timestamp")] = errorStamp == 0 ? errorStamp : millis() - errorStamp;
 
     response->setLength();
     request->send(response);

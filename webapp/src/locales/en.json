@@ -254,6 +254,24 @@
         "Day": "Day",
         "Night": "Night"
     },
+    "tostinfo": {
+        "tostInformation": "Tost's Solar Monitoring Information",
+        "ConfigurationSummary": "@:ntpinfo.ConfigurationSummary",
+        "Status": "@:ntpinfo.Status",
+        "Enabled": "Enabled",
+        "Disabled": "Disabled",
+        "Url": "Host and Protocol",
+        "SystemId": "System Id",
+        "Duration": "Publish Interval",
+        "Seconds": "{sec} seconds",
+        "LastSuccessTimestamp": "Last Time Send Successfull",
+        "LastErrorTimestamp": "Last Time Send Failed",
+        "LastErrorCode": "Last Http Error Code",
+        "LastErrorMessage": "Last Http Error Message",
+        "never": "never",
+        "Summary": "Status Summary",
+        "Error": "Error Summary"
+    },
     "mqttinfo": {
         "MqttInformation": "MQTT Information",
         "ConfigurationSummary": "@:ntpinfo.ConfigurationSummary",
@@ -392,6 +410,21 @@
         "Dns": "DNS Server {num}:",
         "Save": "@:dtuadmin.Save"
     },
+    "tostadmin": {
+        "TostSettings": "Tost's Solar Monitoring Settings",
+        "TostConfiguration": "Tost's Solar Monitoring Configuration",
+        "EnableTost": "Enable sending data:",
+        "TostParameters": "Client Push Parameter",
+        "Url": "Host and Protocol:",
+        "UrlHint": "Url or IP address with protocol and port",
+        "SystemId": "System Id:",
+        "SystemIdHint": "System Id (looks like UUID)",
+        "Token": "Token:",
+        "TokenHint": "Token (looks like UUID)",
+        "Duration": "Zeit",
+        "Save": "@:dtuadmin.Save",
+        "Seconds": "seconds"
+    },
     "mqttadmin": {
         "MqttSettings": "MQTT Settings",
         "MqttConfiguration": "MQTT Configuration",
@@ -429,9 +462,6 @@
         "HassExpire": "Enable Expiration",
         "HassIndividual": "Individual Panels",
         "Save": "@:dtuadmin.Save"
-    },
-    "tostadmin": {
-        "TostSettings": "Tost's Solar Monitoring Settings"
     },
     "inverteradmin": {
         "InverterSettings": "Inverter Settings",
@@ -560,19 +590,5 @@
         "Number": "Number",
         "ValueSelected": "Selected",
         "ValueActive": "Active"
-    },
-    "tostadmin": {
-        "TostSettings": "Tost's Solar Monitoring Settings",
-        "TostConfiguration": "Tost's Solar Monitoring Configuration",
-        "EnableTost": "Enable push data to Tost's Solar Monitoring",
-        "TostParameter": "Client Push Parameter",
-        "Url": "Url:",
-        "UrlHint": "Url or IP address with protocol and port",
-        "SystemId": "System Id:",
-        "SystemIdHint": "System Id (looks like UUID)",
-        "Token": "Token:",
-        "TokenHint": "Token (looks like UUID)",
-        "Duration": "Time to push data (in Seconds)",
-        "Save": "@:dtuadmin.Save"
     }
 }
