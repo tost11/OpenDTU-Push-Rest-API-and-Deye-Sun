@@ -4,7 +4,7 @@
 [![cpplint](https://github.com/tbnobody/OpenDTU/actions/workflows/cpplint.yml/badge.svg)](https://github.com/tbnobody/OpenDTU/actions/workflows/cpplint.yml)
 [![Yarn Linting](https://github.com/tbnobody/OpenDTU/actions/workflows/yarnlint.yml/badge.svg)](https://github.com/tbnobody/OpenDTU/actions/workflows/yarnlint.yml)
 
-## Whats this fork about ?
+## What's this fork about ?
 
 I have implemented an application that monitors solar systems on a server
 with graphs, statistics and all the cool stuff!
