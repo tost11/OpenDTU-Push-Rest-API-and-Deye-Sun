@@ -10,6 +10,7 @@
 #include <HTTPClient.h>
 #include <ctime>
 #include <ArduinoJson.h>
+#include <Hoymiles.h>
 
 TostHandleClass TostHandle;
 
@@ -25,8 +26,43 @@ void TostHandleClass::init()
 void TostHandleClass::loop()
 {
 
-    if (Configuration.get().Tost_Enabled == false || !Hoymiles.isAllRadioIdle()) {
-        MessageOutput.println("tost skip");
+    //channel 0 -> inverter
+    //5: voltage
+    //6: ampere
+    //8: frequenz
+    //2: watt solar
+    //7: watt output
+    //3: tagesertrag wh
+    //4: gesamtertrag kwh
+
+    //chanel 1 -> dc input
+    //0: voltage
+    //2: watt
+    //4: geamtertrag
+    //1: ampere
+
+    //channel 2 -> temperature
+    //9: temperature
+
+    FieldId_t _publishFields[14] = {
+        FLD_UDC,
+        FLD_IDC,
+        FLD_PDC,
+        FLD_YD,
+        FLD_YT,
+        FLD_UAC,
+        FLD_IAC,
+        FLD_PAC,
+        FLD_F,
+        FLD_T,
+        FLD_PF,
+        FLD_EFF,
+        FLD_IRR,
+        FLD_Q
+    };
+
+    if (!Configuration.get().Tost_Enabled || !Hoymiles.isAllRadioIdle()) {
+        //MessageOutput.println("tost skip");
         return;
     }
 
@@ -34,18 +70,93 @@ void TostHandleClass::loop()
 
         MessageOutput.println("tost timer");
 
+        DynamicJsonDocument data(2048);
+        data["duration"] = 10;
+        JsonArray devices = data.createNestedArray("devices");
+
+        for (uint8_t i = 0; i < Hoymiles.getNumInverters(); i++) {
+
+            auto inv = Hoymiles.getInverterByPos(i);
+            if (inv->DevInfo()->getLastUpdate() <= 0) {
+                continue;
+            }
+
+            int id = inv->DevInfo()->getHwPartNumber();
+
+            DynamicJsonDocument device(1024);
+            device["id"] = id;
+
+            JsonArray inputs = device.createNestedArray("inputsDC");
+            JsonArray outputs = device.createNestedArray("outputsAC");
+
+            MessageOutput.printf("-> Inverter %d\n\r", id);
+
+            uint32_t lastUpdate = inv->Statistics()->getLastUpdate();
+
+            int inputCount = 0;
+            int outputCount = 0;
+            if (lastUpdate > 0) {
+                //_lastPublishStats[i] = lastUpdate;
+
+                // Loop all channels
+                for (auto& channelType : inv->Statistics()->getChannelTypes()) {
+                    for (auto& c : inv->Statistics()->getChannelsByType(channelType)) {
+
+                        MessageOutput.printf("Next Channel: %d\n\r",channelType);
+
+                        if(channelType == 0){//inverter
+                            DynamicJsonDocument output(256);
+                            output["id"] = outputCount++;
+                            output["voltage"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_UAC);
+                            output["ampere"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_IAC);
+                            output["watt"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_PAC);
+                            output["frequency"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_F);
+                            output["totalKWH"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_YT);
+                            outputs.add(output);
+                        }else if(channelType == 1){
+                            DynamicJsonDocument input(256);
+                            input["id"] = inputCount++;
+                            input["voltage"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_UDC);
+                            input["ampere"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_IDC);
+                            input["watt"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_PDC);
+                            input["totalKWH"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_YT);
+                            inputs.add(input);
+                        }else if(channelType == 2){
+                            device["temperature"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_F);
+                        }
+
+                        for (uint8_t f = 0; f < sizeof(_publishFields) / sizeof(FieldId_t); f++) {
+                            MessageOutput.printf("%d: %f\n\r",_publishFields[f],inv->Statistics()->getChannelFieldValue(channelType, c, _publishFields[f]));
+
+                        }
+                    }
+                }
+            }
+
+            devices.add(device);
+
+        }
+
+        String output;
+        serializeJson(data, output);
+        MessageOutput.println(output.c_str());
+
 
         HTTPClient http;
 
-        // Your Domain name with URL path or IP address with path
-        http.begin("http://192.168.66.249:8050/api/solar/data?system=whatever");
-        //http.begin("https://solar.pihost.org");
+        std::string url = Configuration.get().Tost_Url;
+        url+="/api/solar/data?systemId=";
+        url+=Configuration.get().Tost_System_Id;
 
-        // If your need Node-RED/server authentication, insert user and password below
-        //http.setAuthorization("REPLACE_WITH_SERVER_USERNAME", "REPLACE_WITH_SERVER_PASSWORD");
 
-        // Send HTTP GET request
-        int statusCode = http.GET();
+        http.begin(url.c_str());
+        http.addHeader("clientToken",Configuration.get().Tost_Token);
+        http.addHeader("Content-Type", "application/json");
+
+        MessageOutput.printf("Request: %s\n\r",url.c_str());
+        MessageOutput.printf("Token: %s\n\r",Configuration.get().Tost_Token);
+
+        int statusCode = http.POST(output);
         lastTimestamp = millis();
         MessageOutput.printf("Status code: %d\n\r",lastErrorStatusCode);
         if(statusCode <= 0){
