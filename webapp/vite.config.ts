@@ -52,15 +52,15 @@ export default defineConfig({
   server: {
     proxy: {
       '^/api': {
-        target: 'http://192.168.66.187/'
+        target: 'http://opendtu/'
       },
       '^/livedata': {
-        target: 'ws://192.168.66.187/',
+        target: 'ws://opendtu/',
         ws: true,
         changeOrigin: true
       },
       '^/console': {
-        target: 'ws://192.168.66.187/',
+        target: 'ws://opendtu/',
         ws: true,
         changeOrigin: true
       }

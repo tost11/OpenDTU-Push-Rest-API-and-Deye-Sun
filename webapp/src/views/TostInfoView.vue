@@ -88,7 +88,7 @@ export default defineComponent({
         this.gettostinfo();
     },
     methods: {
-        secondsToDhms(seconds){
+        secondsToDhms(seconds:number){
           seconds = Number(seconds);
           if(seconds == 0){
             return this.$t('tostinfo.never')
