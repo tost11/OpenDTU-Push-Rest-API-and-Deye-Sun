@@ -107,7 +107,7 @@ void TostHandleClass::loop()
                             inputs.add(input);
                         }else if(channelType == 2){
                             isData = true;
-                            device["temperature"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_F);
+                            device["temperature"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_T);
                         }
 
                         /*for (uint8_t f = 0; f < sizeof(_publishFields) / sizeof(FieldId_t); f++) {
