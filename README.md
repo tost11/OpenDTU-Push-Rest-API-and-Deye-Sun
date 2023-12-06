@@ -4,6 +4,13 @@
 [![cpplint](https://github.com/tbnobody/OpenDTU/actions/workflows/cpplint.yml/badge.svg)](https://github.com/tbnobody/OpenDTU/actions/workflows/cpplint.yml)
 [![Yarn Linting](https://github.com/tbnobody/OpenDTU/actions/workflows/yarnlint.yml/badge.svg)](https://github.com/tbnobody/OpenDTU/actions/workflows/yarnlint.yml)
 
+## What's this fork about ?
+
+Currently, I am working on two features:
+
+- Push data via rest to extern Application [here](https://github.com/tost11/OpenDTU-Push-Rest-API/tree/feature/push-rest-api)
+- Implement Logic to add and Monitor Deye Sun,Bosswerk Inverters, Not Finished yet! [here](https://github.com/tost11/OpenDTU-Push-Rest-API/tree/feature/deye-sun)
+
 ## !! IMPORTANT UPGRADE NOTES !!
 
 If you are upgrading from a version before 15.03.2023 you have to upgrade the partition table of the ESP32. Please follow the [this](docs/UpgradePartition.md) documentation!
