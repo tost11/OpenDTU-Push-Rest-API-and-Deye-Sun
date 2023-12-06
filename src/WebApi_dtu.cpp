@@ -7,7 +7,7 @@
 #include "WebApi.h"
 #include "WebApi_errors.h"
 #include <AsyncJson.h>
-#include <Hoymiles.h>
+#include <InverterHandler.h>
 
 void WebApiDtuClass::init(AsyncWebServer* server)
 {
@@ -168,5 +168,5 @@ void WebApiDtuClass::onDtuAdminPost(AsyncWebServerRequest* request)
     Hoymiles.getRadioNrf()->setDtuSerial(config.Dtu_Serial);
     Hoymiles.getRadioCmt()->setDtuSerial(config.Dtu_Serial);
     Hoymiles.getRadioCmt()->setInverterTargetFrequency(config.Dtu_CmtFrequency);
-    Hoymiles.setPollInterval(config.Dtu_PollInterval);
+    InverterHandler.setPollInterval(config.Dtu_PollInterval);
 }

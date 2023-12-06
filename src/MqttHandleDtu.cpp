@@ -6,7 +6,7 @@
 #include "Configuration.h"
 #include "MqttSettings.h"
 #include "NetworkSettings.h"
-#include <Hoymiles.h>
+#include <InverterHandler.h>
 
 MqttHandleDtuClass MqttHandleDtu;
 
@@ -16,7 +16,7 @@ void MqttHandleDtuClass::init()
 
 void MqttHandleDtuClass::loop()
 {
-    if (!MqttSettings.getConnected() || !Hoymiles.isAllRadioIdle()) {
+    if (!MqttSettings.getConnected() || !InverterHandler.isAllRadioIdle()) {
         return;
     }
 

@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 #include "Parser.h"
+#include "BasePowerCommand.h"
 
-class PowerCommandParser : public Parser {
+class PowerCommandParser : public Parser, public BasePowerCommand {
 public:
     void setLastPowerCommandSuccess(LastCommandSuccess status);
-    LastCommandSuccess getLastPowerCommandSuccess();
+    LastCommandSuccess getLastPowerCommandSuccess() override;
     uint32_t getLastUpdateCommand();
     void setLastUpdateCommand(uint32_t lastUpdate);
 

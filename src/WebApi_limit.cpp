@@ -6,7 +6,7 @@
 #include "WebApi.h"
 #include "WebApi_errors.h"
 #include <AsyncJson.h>
-#include <Hoymiles.h>
+#include <InverterHandler.h>
 
 void WebApiLimitClass::init(AsyncWebServer* server)
 {
@@ -31,8 +31,8 @@ void WebApiLimitClass::onLimitStatus(AsyncWebServerRequest* request)
     AsyncJsonResponse* response = new AsyncJsonResponse();
     JsonObject root = response->getRoot();
 
-    for (uint8_t i = 0; i < Hoymiles.getNumInverters(); i++) {
-        auto inv = Hoymiles.getInverterByPos(i);
+    for (uint8_t i = 0; i < InverterHandler.getNumInverters(); i++) {
+        auto inv = InverterHandler.getInverterByPos(i);
 
         String serial = inv->serialString();
 
@@ -137,7 +137,7 @@ void WebApiLimitClass::onLimitPost(AsyncWebServerRequest* request)
     uint16_t limit = root["limit_value"].as<uint16_t>();
     PowerLimitControlType type = root["limit_type"].as<PowerLimitControlType>();
 
-    auto inv = Hoymiles.getInverterBySerial(serial);
+    auto inv = InverterHandler.getInverterBySerial(serial);
     if (inv == nullptr) {
         retMsg["message"] = "Invalid inverter specified!";
         retMsg["code"] = WebApiError::LimitInvalidInverter;

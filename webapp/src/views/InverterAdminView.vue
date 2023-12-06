@@ -23,6 +23,35 @@
             </form>
         </CardElement>
 
+      <CardElement :text="$t('inverteradmin.AddInverter')" textVariant="text-bg-primary">
+        <form class="form-inline" v-on:submit.prevent="onSubmitDeyeSun">
+          <div class="form-group">
+            <label>{{ $t('inverteradmin.Serial') }}</label>
+            <input v-model="newInverterData.serial" type="number" class="form-control ml-sm-2 mr-sm-4 my-2"
+                   required />
+          </div>
+          <div class="form-group">
+            <label>{{ $t('inverteradmin.Name') }}</label>
+            <input v-model="newInverterData.name" type="text" class="form-control ml-sm-2 mr-sm-4 my-2"
+                   maxlength="31" required />
+          </div>
+          <div class="form-group">
+            <label>{{ "Hostname or Ip" }}</label>
+            <input v-model="newInverterData.hostnameOrPort" type="text" class="form-control ml-sm-2 mr-sm-4 my-2"
+                   maxlength="31" required />
+          </div>
+          <div class="form-group">
+            <label>{{ "Port" }}</label>
+            <input v-model="newInverterData.port" type="number" class="form-control ml-sm-2 mr-sm-4 my-2"
+                   required />
+          </div>
+          <div class="ml-auto text-right">
+            <button type="submit" class="btn btn-primary my-2">{{ $t('inverteradmin.Add') }}</button>
+          </div>
+          <div class="alert alert-secondary" role="alert" v-html="$t('inverteradmin.AddHint')"></div>
+        </form>
+      </CardElement>
+
         <CardElement :text="$t('inverteradmin.InverterList')" textVariant="text-bg-primary" add-space>
             <div class="table-responsive">
                 <table class="table">
@@ -260,6 +289,8 @@ declare interface Inverter {
     id: string;
     serial: number;
     name: string;
+    hostnameOrPort: string;
+    port: number;
     type: string;
     order: number;
     poll_enable: boolean;
@@ -352,8 +383,14 @@ export default defineComponent({
                 });
         },
         onSubmit() {
+            this.newInverterData.type = "Hoymiles";
             this.callInverterApiEndpoint("add", JSON.stringify(this.newInverterData));
             this.newInverterData = {} as Inverter;
+        },
+        onSubmitDeyeSun() {
+          this.newInverterData.type = "DeyeSun";
+          this.callInverterApiEndpoint("add", JSON.stringify(this.newInverterData));
+          this.newInverterData = {} as Inverter;
         },
         onDelete() {
             this.callInverterApiEndpoint("del", JSON.stringify({ id: this.selectedInverterData.id }));

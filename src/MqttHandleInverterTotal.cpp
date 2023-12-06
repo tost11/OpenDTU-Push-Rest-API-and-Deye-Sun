@@ -6,7 +6,7 @@
 #include "Configuration.h"
 #include "Datastore.h"
 #include "MqttSettings.h"
-#include <Hoymiles.h>
+#include <InverterHandler.h>
 
 MqttHandleInverterTotalClass MqttHandleInverterTotal;
 
@@ -17,7 +17,7 @@ void MqttHandleInverterTotalClass::init()
 
 void MqttHandleInverterTotalClass::loop()
 {
-    if (!MqttSettings.getConnected() || !Hoymiles.isAllRadioIdle()) {
+    if (!MqttSettings.getConnected() || !InverterHandler.isAllRadioIdle()) {
         return;
     }
 

@@ -5,7 +5,7 @@
 #include "WebApi_gridprofile.h"
 #include "WebApi.h"
 #include <AsyncJson.h>
-#include <Hoymiles.h>
+#include <InverterHandler.h>
 
 void WebApiGridProfileClass::init(AsyncWebServer* server)
 {
@@ -35,7 +35,7 @@ void WebApiGridProfileClass::onGridProfileStatus(AsyncWebServerRequest* request)
         serial = strtoll(s.c_str(), NULL, 16);
     }
 
-    auto inv = Hoymiles.getInverterBySerial(serial);
+    auto inv = InverterHandler.getInverterBySerial(serial);
 
     if (inv != nullptr) {
         auto raw = root.createNestedArray("raw");

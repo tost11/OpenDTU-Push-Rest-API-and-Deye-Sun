@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 #include "Parser.h"
+#include "BaseDevInfo.h"
 
 #define DEV_INFO_SIZE 20
 
-class DevInfoParser : public Parser {
+class DevInfoParser : public Parser, public BaseDevInfo {
 public:
     DevInfoParser();
     void clearBufferAll();
@@ -13,21 +14,21 @@ public:
     void clearBufferSimple();
     void appendFragmentSimple(uint8_t offset, uint8_t* payload, uint8_t len);
 
-    uint32_t getLastUpdateAll();
-    void setLastUpdateAll(uint32_t lastUpdate);
+    uint32_t getLastUpdateAll() override;
+    void setLastUpdateAll(uint32_t lastUpdate) override;
 
-    uint32_t getLastUpdateSimple();
-    void setLastUpdateSimple(uint32_t lastUpdate);
+    uint32_t getLastUpdateSimple() override;
+    void setLastUpdateSimple(uint32_t lastUpdate) override;
 
-    uint16_t getFwBuildVersion();
-    time_t getFwBuildDateTime();
-    uint16_t getFwBootloaderVersion();
+    uint16_t getFwBuildVersion() override;
+    time_t getFwBuildDateTime() override;
+    uint16_t getFwBootloaderVersion() override;
 
-    uint32_t getHwPartNumber();
-    String getHwVersion();
+    uint32_t getHwPartNumber() override;
+    String getHwVersion() override;
 
-    uint16_t getMaxPower();
-    String getHwModelName();
+    uint16_t getMaxPower() override;
+    String getHwModelName() override;
 
     bool containsValidData();
 

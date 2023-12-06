@@ -8,7 +8,7 @@
 #include "MessageOutput.h"
 #include "NetworkSettings.h"
 #include "WebApi.h"
-#include <Hoymiles.h>
+#include <InverterHandler.h>
 
 void WebApiPrometheusClass::init(AsyncWebServer* server)
 {
@@ -61,8 +61,8 @@ void WebApiPrometheusClass::onPrometheusMetricsGet(AsyncWebServerRequest* reques
         stream->print("# TYPE wifi_station gauge\n");
         stream->printf("wifi_station{bssid=\"%s\"} 1\n", WiFi.BSSIDstr().c_str());
 
-        for (uint8_t i = 0; i < Hoymiles.getNumInverters(); i++) {
-            auto inv = Hoymiles.getInverterByPos(i);
+        for (uint8_t i = 0; i < InverterHandler.getNumInverters(); i++) {
+            auto inv = InverterHandler.getInverterByPos(i);
 
             String serial = inv->serialString();
             const char* name = inv->name();
@@ -99,7 +99,7 @@ void WebApiPrometheusClass::onPrometheusMetricsGet(AsyncWebServerRequest* reques
     }
 }
 
-void WebApiPrometheusClass::addField(AsyncResponseStream* stream, String& serial, uint8_t idx, std::shared_ptr<InverterAbstract> inv, ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId, const char* metricName, const char* channelName)
+void WebApiPrometheusClass::addField(AsyncResponseStream* stream, String& serial, uint8_t idx, std::shared_ptr<BaseInverterClass> inv, ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId, const char* metricName, const char* channelName)
 {
     if (inv->Statistics()->hasChannelFieldValue(type, channel, fieldId)) {
         const char* chanName = (channelName == NULL) ? inv->Statistics()->getChannelFieldName(type, channel, fieldId) : channelName;
@@ -118,7 +118,7 @@ void WebApiPrometheusClass::addField(AsyncResponseStream* stream, String& serial
     }
 }
 
-void WebApiPrometheusClass::addPanelInfo(AsyncResponseStream* stream, String& serial, uint8_t idx, std::shared_ptr<InverterAbstract> inv, ChannelType_t type, ChannelNum_t channel)
+void WebApiPrometheusClass::addPanelInfo(AsyncResponseStream* stream, String& serial, uint8_t idx, std::shared_ptr<BaseInverterClass> inv, ChannelType_t type, ChannelNum_t channel)
 {
     if (type != TYPE_DC) {
         return;

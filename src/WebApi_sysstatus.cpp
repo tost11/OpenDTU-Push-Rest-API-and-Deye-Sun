@@ -8,7 +8,7 @@
 #include "PinMapping.h"
 #include "WebApi.h"
 #include <AsyncJson.h>
-#include <Hoymiles.h>
+#include <InverterHandler.h>
 #include <LittleFS.h>
 #include <ResetReason.h>
 

@@ -5,6 +5,7 @@
 #include "MqttHandleInverter.h"
 #include "MessageOutput.h"
 #include "MqttSettings.h"
+#include "InverterHandler.h"
 #include <ctime>
 
 #define TOPIC_SUB_LIMIT_PERSISTENT_RELATIVE "limit_persistent_relative"
@@ -38,7 +39,7 @@ void MqttHandleInverterClass::init()
 
 void MqttHandleInverterClass::loop()
 {
-    if (!MqttSettings.getConnected() || !Hoymiles.isAllRadioIdle()) {
+    if (!MqttSettings.getConnected() || !InverterHandler.isAllRadioIdle()) {
         return;
     }
 
@@ -46,8 +47,8 @@ void MqttHandleInverterClass::loop()
 
     if (millis() - _lastPublish > (config.Mqtt_PublishInterval * 1000)) {
         // Loop all inverters
-        for (uint8_t i = 0; i < Hoymiles.getNumInverters(); i++) {
-            auto inv = Hoymiles.getInverterByPos(i);
+        for (uint8_t i = 0; i < InverterHandler.getNumInverters(); i++) {
+            auto inv = InverterHandler.getInverterByPos(i);
 
             String subtopic = inv->serialString();
 
@@ -121,7 +122,7 @@ void MqttHandleInverterClass::loop()
     }
 }
 
-void MqttHandleInverterClass::publishField(std::shared_ptr<InverterAbstract> inv, ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId)
+void MqttHandleInverterClass::publishField(std::shared_ptr<BaseInverterClass> inv, ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId)
 {
     String topic = getTopic(inv, type, channel, fieldId);
     if (topic == "") {
@@ -131,7 +132,7 @@ void MqttHandleInverterClass::publishField(std::shared_ptr<InverterAbstract> inv
     MqttSettings.publish(topic, inv->Statistics()->getChannelFieldValueString(type, channel, fieldId));
 }
 
-String MqttHandleInverterClass::getTopic(std::shared_ptr<InverterAbstract> inv, ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId)
+String MqttHandleInverterClass::getTopic(std::shared_ptr<BaseInverterClass> inv, ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId)
 {
     if (!inv->Statistics()->hasChannelFieldValue(type, channel, fieldId)) {
         return String("");

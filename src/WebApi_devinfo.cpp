@@ -5,7 +5,7 @@
 #include "WebApi_devinfo.h"
 #include "WebApi.h"
 #include <AsyncJson.h>
-#include <Hoymiles.h>
+#include <InverterHandler.h>
 #include <ctime>
 
 void WebApiDevInfoClass::init(AsyncWebServer* server)
@@ -36,7 +36,7 @@ void WebApiDevInfoClass::onDevInfoStatus(AsyncWebServerRequest* request)
         serial = strtoll(s.c_str(), NULL, 16);
     }
 
-    auto inv = Hoymiles.getInverterBySerial(serial);
+    auto inv = InverterHandler.getInverterBySerial(serial);
 
     if (inv != nullptr) {
         root["valid_data"] = inv->DevInfo()->getLastUpdate() > 0;

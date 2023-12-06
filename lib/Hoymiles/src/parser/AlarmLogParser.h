@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 #include "Parser.h"
+#include "BaseAlarmLog.h"
 #include <array>
 #include <cstdint>
 
@@ -9,13 +10,6 @@
 #define ALARM_LOG_PAYLOAD_SIZE (ALARM_LOG_ENTRY_COUNT * ALARM_LOG_ENTRY_SIZE + 4)
 
 #define ALARM_MSG_COUNT 111
-
-struct AlarmLogEntry_t {
-    uint16_t MessageId;
-    String Message;
-    time_t StartTime;
-    time_t EndTime;
-};
 
 enum class AlarmMessageType_t {
     ALL = 0,
@@ -28,14 +22,14 @@ typedef struct {
     String Message;
 } AlarmMessage_t;
 
-class AlarmLogParser : public Parser {
+class AlarmLogParser : public Parser, public BaseAlarmLog {
 public:
     AlarmLogParser();
     void clearBuffer();
     void appendFragment(uint8_t offset, uint8_t* payload, uint8_t len);
 
-    uint8_t getEntryCount();
-    void getLogEntry(uint8_t entryId, AlarmLogEntry_t* entry);
+    uint8_t getEntryCount() override;
+    void getLogEntry(uint8_t entryId, AlarmLogEntry_t* entry) override;
 
     void setLastAlarmRequestSuccess(LastCommandSuccess status);
     LastCommandSuccess getLastAlarmRequestSuccess();

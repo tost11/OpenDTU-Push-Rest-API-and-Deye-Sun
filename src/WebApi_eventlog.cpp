@@ -5,7 +5,7 @@
 #include "WebApi_eventlog.h"
 #include "WebApi.h"
 #include <AsyncJson.h>
-#include <Hoymiles.h>
+#include <InverterHandler.h>
 
 void WebApiEventlogClass::init(AsyncWebServer* server)
 {
@@ -35,7 +35,7 @@ void WebApiEventlogClass::onEventlogStatus(AsyncWebServerRequest* request)
         serial = strtoll(s.c_str(), NULL, 16);
     }
 
-    auto inv = Hoymiles.getInverterBySerial(serial);
+    auto inv = InverterHandler.getInverterBySerial(serial);
 
     if (inv != nullptr) {
         uint8_t logEntryCount = inv->EventLog()->getEntryCount();

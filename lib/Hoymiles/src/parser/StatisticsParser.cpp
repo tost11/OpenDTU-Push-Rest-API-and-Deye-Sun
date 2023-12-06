@@ -127,6 +127,10 @@ float StatisticsParser::getChannelFieldValue(ChannelType_t type, ChannelNum_t ch
     uint8_t end = ptr + pos->num;
     uint16_t div = pos->div;
 
+    Serial.print(ptr);
+    Serial.print(" / ");
+    Serial.println(end);
+
     if (CMD_CALC != div) {
         // Value is a static value
         uint32_t val = 0;
@@ -250,20 +254,6 @@ void StatisticsParser::setChannelFieldOffset(ChannelType_t type, ChannelNum_t ch
     }
 }
 
-std::list<ChannelType_t> StatisticsParser::getChannelTypes()
-{
-    return {
-        TYPE_AC,
-        TYPE_DC,
-        TYPE_INV
-    };
-}
-
-const char* StatisticsParser::getChannelTypeName(ChannelType_t type)
-{
-    return channelsTypes[type];
-}
-
 std::list<ChannelNum_t> StatisticsParser::getChannelsByType(ChannelType_t type)
 {
     std::list<ChannelNum_t> l;
@@ -276,17 +266,6 @@ std::list<ChannelNum_t> StatisticsParser::getChannelsByType(ChannelType_t type)
     return l;
 }
 
-uint16_t StatisticsParser::getStringMaxPower(uint8_t channel)
-{
-    return _stringMaxPower[channel];
-}
-
-void StatisticsParser::setStringMaxPower(uint8_t channel, uint16_t power)
-{
-    if (channel < sizeof(_stringMaxPower) / sizeof(_stringMaxPower[0])) {
-        _stringMaxPower[channel] = power;
-    }
-}
 
 void StatisticsParser::resetRxFailureCount()
 {
@@ -315,19 +294,10 @@ void StatisticsParser::zeroDailyData()
 
 void StatisticsParser::setLastUpdate(uint32_t lastUpdate)
 {
-    Parser::setLastUpdate(lastUpdate);
+    Updater::setLastUpdate(lastUpdate);
     setLastUpdateFromInternal(lastUpdate);
 }
 
-uint32_t StatisticsParser::getLastUpdateFromInternal()
-{
-    return _lastUpdateFromInternal;
-}
-
-void StatisticsParser::setLastUpdateFromInternal(uint32_t lastUpdate)
-{
-    _lastUpdateFromInternal = lastUpdate;
-}
 
 void StatisticsParser::zeroFields(const FieldId_t* fields)
 {

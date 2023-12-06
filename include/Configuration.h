@@ -24,6 +24,7 @@
 #define INV_MAX_NAME_STRLEN 31
 #define INV_MAX_COUNT 10
 #define INV_MAX_CHAN_COUNT 6
+#define INV_MAX_HOSTNAME_STRLEN 31
 
 #define CHAN_MAX_NAME_STRLEN 31
 
@@ -37,9 +38,18 @@ struct CHANNEL_CONFIG_T {
     float YieldTotalOffset;
 };
 
+
+enum inverter_type {
+    Inverter_Hoymiles = 0,
+    Inverter_DeyeSun = 1
+};
+
 struct INVERTER_CONFIG_T {
+    inverter_type Type;
     uint64_t Serial;
     char Name[INV_MAX_NAME_STRLEN + 1];
+    char HostnameOrIp[INV_MAX_HOSTNAME_STRLEN + 1];
+    uint16_t Port;
     uint8_t Order;
     bool Poll_Enable;
     bool Poll_Enable_Night;

@@ -18,7 +18,6 @@ HoymilesClass Hoymiles;
 
 void HoymilesClass::init()
 {
-    _pollInterval = 0;
     _radioNrf.reset(new HoymilesRadio_NRF());
     _radioCmt.reset(new HoymilesRadio_CMT());
 }
@@ -239,16 +238,6 @@ HoymilesRadio_CMT* HoymilesClass::getRadioCmt()
 bool HoymilesClass::isAllRadioIdle()
 {
     return _radioNrf.get()->isIdle() && _radioCmt.get()->isIdle();
-}
-
-uint32_t HoymilesClass::PollInterval()
-{
-    return _pollInterval;
-}
-
-void HoymilesClass::setPollInterval(uint32_t interval)
-{
-    _pollInterval = interval;
 }
 
 void HoymilesClass::setMessageOutput(Print* output)

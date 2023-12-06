@@ -7,7 +7,9 @@
 #include "MessageOutput.h"
 #include "PinMapping.h"
 #include "SunPosition.h"
-#include <Hoymiles.h>
+#include "Hoymiles.h"
+#include "DeyeSun.h"
+#include <InverterHandler.h>
 
 // the NRF shall use the second externally usable HW SPI controller
 // for ESP32 that is the so-called VSPI, for ESP32-S2/S3 it is now called implicitly
@@ -29,6 +31,38 @@ void InverterSettingsClass::init()
 {
     const CONFIG_T& config = Configuration.get();
     const PinMapping_t& pin = PinMapping.get();
+
+    MessageOutput.print("Initialize Deye interface... ");
+    DeyeSun.setMessageOutput(&MessageOutput);
+    DeyeSun.init();
+
+    MessageOutput.println("  Setting Deye poll interval... ");
+    DeyeSun.setPollInterval(config.Dtu_PollInterval);
+
+    for (uint8_t i = 0; i < INV_MAX_COUNT; i++) {
+        if (config.Inverter[i].Type == inverter_type::Inverter_DeyeSun && config.Inverter[i].Serial > 0) {
+            MessageOutput.print("  Adding DeyeSun inverter: ");
+            MessageOutput.print(config.Inverter[i].Serial, HEX);
+            MessageOutput.print(" - ");
+            MessageOutput.print(config.Inverter[i].Name);
+            auto inv = DeyeSun.addInverter(
+                    config.Inverter[i].Name,
+                    config.Inverter[i].Serial,
+                    "localhost",
+                    12345);
+
+            if (inv != nullptr) {
+                inv->setReachableThreshold(config.Inverter[i].ReachableThreshold);
+                inv->setZeroValuesIfUnreachable(config.Inverter[i].ZeroRuntimeDataIfUnrechable);
+                inv->setZeroYieldDayOnMidnight(config.Inverter[i].ZeroYieldDayOnMidnight);
+                for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
+                    inv->Statistics()->setStringMaxPower(c, config.Inverter[i].channel[c].MaxChannelPower);
+                }
+            }
+            MessageOutput.println(" done");
+        }
+    }
+    MessageOutput.println(" done");
 
     // Initialize inverter communication
     MessageOutput.print("Initialize Hoymiles interface... ");
@@ -61,7 +95,7 @@ void InverterSettingsClass::init()
         Hoymiles.setPollInterval(config.Dtu_PollInterval);
 
         for (uint8_t i = 0; i < INV_MAX_COUNT; i++) {
-            if (config.Inverter[i].Serial > 0) {
+            if (config.Inverter[i].Type == inverter_type::Inverter_Hoymiles && config.Inverter[i].Serial > 0) {
                 MessageOutput.print("  Adding inverter: ");
                 MessageOutput.print(config.Inverter[i].Serial, HEX);
                 MessageOutput.print(" - ");
@@ -86,6 +120,11 @@ void InverterSettingsClass::init()
     } else {
         MessageOutput.println("Invalid pin config");
     }
+
+    MessageOutput.print("Initialize InverterHandler... ");
+    InverterHandler.init();
+    MessageOutput.println(" done");
+
 }
 
 void InverterSettingsClass::loop()
@@ -109,4 +148,5 @@ void InverterSettingsClass::loop()
     }
 
     Hoymiles.loop();
+    DeyeSun.loop();
 }

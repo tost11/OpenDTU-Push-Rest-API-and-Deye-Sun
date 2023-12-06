@@ -8,6 +8,7 @@
 #include "MessageOutput.h"
 #include "WebApi.h"
 #include "defaults.h"
+#include "InverterHandler.h"
 #include <AsyncJson.h>
 
 WebApiWsLiveClass::WebApiWsLiveClass()
@@ -50,8 +51,8 @@ void WebApiWsLiveClass::loop()
     _lastInvUpdateCheck = millis();
 
     uint32_t maxTimeStamp = 0;
-    for (uint8_t i = 0; i < Hoymiles.getNumInverters(); i++) {
-        auto inv = Hoymiles.getInverterByPos(i);
+    for (uint8_t i = 0; i < InverterHandler.getNumInverters(); i++) {
+        auto inv = InverterHandler.getInverterByPos(i);
 
         if (inv->Statistics()->getLastUpdate() > maxTimeStamp) {
             maxTimeStamp = inv->Statistics()->getLastUpdate();
@@ -95,8 +96,9 @@ void WebApiWsLiveClass::generateJsonResponse(JsonVariant& root)
     JsonArray invArray = root.createNestedArray("inverters");
 
     // Loop all inverters
-    for (uint8_t i = 0; i < Hoymiles.getNumInverters(); i++) {
-        auto inv = Hoymiles.getInverterByPos(i);
+    for (uint8_t i = 0; i < InverterHandler.getNumInverters(); i++) {
+
+        auto inv = InverterHandler.getInverterByPos(i);
         if (inv == nullptr) {
             continue;
         }
@@ -179,7 +181,7 @@ void WebApiWsLiveClass::generateJsonResponse(JsonVariant& root)
     }
 }
 
-void WebApiWsLiveClass::addField(JsonObject& root, uint8_t idx, std::shared_ptr<InverterAbstract> inv, ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId, String topic)
+void WebApiWsLiveClass::addField(JsonObject& root, uint8_t idx, std::shared_ptr<BaseInverterClass> inv, ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId, String topic)
 {
     if (inv->Statistics()->hasChannelFieldValue(type, channel, fieldId)) {
         String chanName;

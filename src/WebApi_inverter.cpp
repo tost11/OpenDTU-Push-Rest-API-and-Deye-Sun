@@ -9,8 +9,9 @@
 #include "WebApi_errors.h"
 #include "defaults.h"
 #include "helper.h"
+#include "DeyeSun.h"
 #include <AsyncJson.h>
-#include <Hoymiles.h>
+#include <InverterHandler.h>
 
 void WebApiInverterClass::init(AsyncWebServer* server)
 {
@@ -62,7 +63,7 @@ void WebApiInverterClass::onInverterList(AsyncWebServerRequest* request)
             obj["zero_runtime"] = config.Inverter[i].ZeroRuntimeDataIfUnrechable;
             obj["zero_day"] = config.Inverter[i].ZeroYieldDayOnMidnight;
 
-            auto inv = Hoymiles.getInverterBySerial(config.Inverter[i].Serial);
+            auto inv = InverterHandler.getInverterBySerial(config.Inverter[i].Serial);
             uint8_t max_channels;
             if (inv == nullptr) {
                 obj["type"] = "Unknown";
@@ -126,7 +127,8 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
     }
 
     if (!(root.containsKey("serial")
-            && root.containsKey("name"))) {
+            && root.containsKey("name")
+            && root.containsKey("type"))) {
         retMsg["message"] = "Values are missing!";
         retMsg["code"] = WebApiError::GenericValueMissing;
         response->setLength();
@@ -142,9 +144,19 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
         return;
     }
 
+
     if (root["name"].as<String>().length() == 0 || root["name"].as<String>().length() > INV_MAX_NAME_STRLEN) {
         retMsg["message"] = "Name must between 1 and " STR(INV_MAX_NAME_STRLEN) " characters long!";
         retMsg["code"] = WebApiError::InverterNameLength;
+        retMsg["param"]["max"] = INV_MAX_NAME_STRLEN;
+        response->setLength();
+        request->send(response);
+        return;
+    }
+
+    if (root["type"].as<String>() != "Hoymiles" && root["type"].as<String>() != "DeyeSun" ) {
+        retMsg["message"] = "Unknown Inverter Type: " + root["type"].as<String>();
+        retMsg["code"] = WebApiError::InverterType;
         retMsg["param"]["max"] = INV_MAX_NAME_STRLEN;
         response->setLength();
         request->send(response);
@@ -166,6 +178,15 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
     inverter->Serial = strtoll(root["serial"].as<String>().c_str(), NULL, 16);
 
     strncpy(inverter->Name, root["name"].as<String>().c_str(), INV_MAX_NAME_STRLEN);
+
+    Serial.println(root["type"].as<String>());
+    if (root["type"].as<String>() == "Hoymiles" ) {
+        inverter->Type = inverter_type::Inverter_Hoymiles;
+    }else if(root["type"].as<String>() == "DeyeSun"){
+        //strncpy(inverter->HostnameOrIp, "localhost", INV_MAX_HOSTNAME_STRLEN);
+        inverter->Port = 10000;
+        inverter->Type = inverter_type::Inverter_DeyeSun;
+    }
     Configuration.write();
 
     retMsg["type"] = "success";
@@ -175,7 +196,21 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
     response->setLength();
     request->send(response);
 
-    auto inv = Hoymiles.addInverter(inverter->Name, inverter->Serial);
+    if (root["name"].as<String>().length() == 0 || root["name"].as<String>().length() > INV_MAX_NAME_STRLEN) {
+        retMsg["message"] = "Name must between 1 and " STR(INV_MAX_NAME_STRLEN) " characters long!";
+        retMsg["code"] = WebApiError::InverterNameLength;
+        retMsg["param"]["max"] = INV_MAX_NAME_STRLEN;
+        response->setLength();
+        request->send(response);
+        return;
+    }
+
+    std::shared_ptr<BaseInverterClass> inv = nullptr;
+    if (root["type"].as<String>() == "Hoymiles" ) {
+        inv = std::reinterpret_pointer_cast<BaseInverterClass>(Hoymiles.addInverter(inverter->Name, inverter->Serial));
+    }else if(root["type"].as<String>() == "DeyeSun"){
+        inv = std::reinterpret_pointer_cast<BaseInverterClass>(DeyeSun.addInverter(inverter->Name, inverter->Serial,"localhost",10000));
+    }
 
     if (inv != nullptr) {
         for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
@@ -388,7 +423,7 @@ void WebApiInverterClass::onInverterDelete(AsyncWebServerRequest* request)
     uint8_t inverter_id = root["id"].as<uint8_t>();
     INVERTER_CONFIG_T& inverter = Configuration.get().Inverter[inverter_id];
 
-    Hoymiles.removeInverterBySerial(inverter.Serial);
+    InverterHandler.removeInverterBySerial(inverter.Serial);
 
     inverter.Serial = 0;
     strncpy(inverter.Name, "", sizeof(inverter.Name));

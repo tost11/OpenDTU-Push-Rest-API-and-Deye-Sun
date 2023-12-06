@@ -4,7 +4,9 @@
  */
 #include "Datastore.h"
 #include "Configuration.h"
-#include <Hoymiles.h>
+#include <InverterHandler.h>
+
+using namespace std;
 
 DatastoreClass Datastore;
 
@@ -15,7 +17,7 @@ void DatastoreClass::init()
 
 void DatastoreClass::loop()
 {
-    if (Hoymiles.isAllRadioIdle() && _updateTimeout.occured()) {
+    if (InverterHandler.isAllRadioIdle() && _updateTimeout.occured()) {
 
         uint8_t isProducing = 0;
         uint8_t isReachable = 0;
@@ -41,8 +43,8 @@ void DatastoreClass::loop()
         _isAllEnabledProducing = true;
         _isAllEnabledReachable = true;
 
-        for (uint8_t i = 0; i < Hoymiles.getNumInverters(); i++) {
-            auto inv = Hoymiles.getInverterByPos(i);
+        for (uint8_t i = 0; i < InverterHandler.getNumInverters(); i++) {
+            auto inv = InverterHandler.getInverterByPos(i);
             if (inv == nullptr) {
                 continue;
             }

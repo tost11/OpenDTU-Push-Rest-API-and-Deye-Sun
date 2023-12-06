@@ -32,7 +32,7 @@ void InverterAbstract::init()
     // Not possible in constructor --> virtual function
     // Not possible in verifyAllFragments --> Because no data if nothing is ever received
     // It has to be executed because otherwise the getChannelCount method in stats always returns 0
-    _statisticsParser.get()->setByteAssignment(getByteAssignment(), getByteAssignmentSize());
+    Statistics()->setByteAssignment(getByteAssignment(), getByteAssignmentSize());
 }
 
 uint64_t InverterAbstract::serial()
@@ -40,32 +40,13 @@ uint64_t InverterAbstract::serial()
     return _serial.u64;
 }
 
-const String& InverterAbstract::serialString()
-{
-    return _serialString;
-}
-
-void InverterAbstract::setName(const char* name)
-{
-    uint8_t len = strlen(name);
-    if (len + 1 > MAX_NAME_LENGTH) {
-        len = MAX_NAME_LENGTH - 1;
-    }
-    strncpy(_name, name, len);
-    _name[len] = '\0';
-}
-
-const char* InverterAbstract::name()
-{
-    return _name;
-}
-
 bool InverterAbstract::isProducing()
 {
+    auto stats = Statistics();
     float totalAc = 0;
-    for (auto& c : Statistics()->getChannelsByType(TYPE_AC)) {
-        if (Statistics()->hasChannelFieldValue(TYPE_AC, c, FLD_PAC)) {
-            totalAc += Statistics()->getChannelFieldValue(TYPE_AC, c, FLD_PAC);
+    for (auto& c : stats->getChannelsByType(TYPE_AC)) {
+        if (stats->hasChannelFieldValue(TYPE_AC, c, FLD_PAC)) {
+            totalAc += stats->getChannelFieldValue(TYPE_AC, c, FLD_PAC);
         }
     }
 
@@ -77,56 +58,6 @@ bool InverterAbstract::isReachable()
     return _enablePolling && Statistics()->getRxFailureCount() <= _reachableThreshold;
 }
 
-void InverterAbstract::setEnablePolling(bool enabled)
-{
-    _enablePolling = enabled;
-}
-
-bool InverterAbstract::getEnablePolling()
-{
-    return _enablePolling;
-}
-
-void InverterAbstract::setEnableCommands(bool enabled)
-{
-    _enableCommands = enabled;
-}
-
-bool InverterAbstract::getEnableCommands()
-{
-    return _enableCommands;
-}
-
-void InverterAbstract::setReachableThreshold(uint8_t threshold)
-{
-    _reachableThreshold = threshold;
-}
-
-uint8_t InverterAbstract::getReachableThreshold()
-{
-    return _reachableThreshold;
-}
-
-void InverterAbstract::setZeroValuesIfUnreachable(bool enabled)
-{
-    _zeroValuesIfUnreachable = enabled;
-}
-
-bool InverterAbstract::getZeroValuesIfUnreachable()
-{
-    return _zeroValuesIfUnreachable;
-}
-
-void InverterAbstract::setZeroYieldDayOnMidnight(bool enabled)
-{
-    _zeroYieldDayOnMidnight = enabled;
-}
-
-bool InverterAbstract::getZeroYieldDayOnMidnight()
-{
-    return _zeroYieldDayOnMidnight;
-}
-
 bool InverterAbstract::sendChangeChannelRequest()
 {
     return false;
@@ -135,36 +66,6 @@ bool InverterAbstract::sendChangeChannelRequest()
 HoymilesRadio* InverterAbstract::getRadio()
 {
     return _radio;
-}
-
-AlarmLogParser* InverterAbstract::EventLog()
-{
-    return _alarmLogParser.get();
-}
-
-DevInfoParser* InverterAbstract::DevInfo()
-{
-    return _devInfoParser.get();
-}
-
-GridProfileParser* InverterAbstract::GridProfile()
-{
-    return _gridProfileParser.get();
-}
-
-PowerCommandParser* InverterAbstract::PowerCommand()
-{
-    return _powerCommandParser.get();
-}
-
-StatisticsParser* InverterAbstract::Statistics()
-{
-    return _statisticsParser.get();
-}
-
-SystemConfigParaParser* InverterAbstract::SystemConfigPara()
-{
-    return _systemConfigParaParser.get();
 }
 
 void InverterAbstract::clearRxFragmentBuffer()
