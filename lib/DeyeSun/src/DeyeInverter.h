@@ -22,9 +22,11 @@
 struct RegisterMapping{
     String readRegister;
     uint8_t length;
-    RegisterMapping(const String & readRegister,uint8_t length):
+    uint16_t targetPos;
+    RegisterMapping(const String & readRegister,uint8_t length,uint16_t targetPos):
     readRegister(readRegister),
-    length(length){}
+    length(length),
+    targetPos(targetPos){}
 };
 
 class DeyeInverter : public BaseInverter<StatisticsParser,DeyeDevInfo,DeyeSystemConfigPara,DeyeAlarmLog,DeyeGridProfile,DeyePowerCommand> {

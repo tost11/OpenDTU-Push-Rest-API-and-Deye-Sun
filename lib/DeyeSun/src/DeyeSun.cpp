@@ -19,7 +19,7 @@ void DeyeSunClass::loop()
                     continue;
                 }
 
-                float testValue = 150.f;
+                /*float testValue = 150.f;
 
                 uint8_t toAdd[4];
 
@@ -32,6 +32,7 @@ void DeyeSunClass::loop()
                 inv->Statistics()->resetRxFailureCount();
                 inv->Statistics()->setLastUpdate(millis());
 
+                 */
                 inv->updateSocket();
             }
         }
