@@ -70,6 +70,7 @@ private:
     uint32_t _lastPoll = 0;
     uint32_t _lastSuccessfullPoll = 0;
     uint32_t _lastSuccessData = 0;
+    uint32_t lastTimeSuccesfullData = 0;
     uint32_t _commandPosition;
     static const std::vector<RegisterMapping> _registersToRead;
 

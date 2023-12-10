@@ -7,34 +7,29 @@ void DeyeSunClass::loop()
     std::lock_guard<std::mutex> lock(_mutex);
 
     if (getNumInverters() > 0) {
-        if (millis() - _lastPoll > (_pollInterval * 1000)) {
-
-            _lastPoll = millis();
-
-            for(size_t pos = 0; pos <= getNumInverters(); pos++){
+        for(size_t pos = 0; pos <= getNumInverters(); pos++){
 
 
-                auto inv = getInverterByPos(0);
-                if(inv == nullptr){
-                    continue;
-                }
-
-                /*float testValue = 150.f;
-
-                uint8_t toAdd[4];
-
-                memcpy(toAdd,&testValue,4);
-
-                inv->Statistics()->beginAppendFragment();
-                inv->Statistics()->clearBuffer();
-                inv->Statistics()->appendFragment(0,toAdd,4);
-                inv->Statistics()->endAppendFragment();
-                inv->Statistics()->resetRxFailureCount();
-                inv->Statistics()->setLastUpdate(millis());
-
-                 */
-                inv->updateSocket();
+            auto inv = getInverterByPos(0);
+            if(inv == nullptr){
+                continue;
             }
+
+            /*float testValue = 150.f;
+
+            uint8_t toAdd[4];
+
+            memcpy(toAdd,&testValue,4);
+
+            inv->Statistics()->beginAppendFragment();
+            inv->Statistics()->clearBuffer();
+            inv->Statistics()->appendFragment(0,toAdd,4);
+            inv->Statistics()->endAppendFragment();
+            inv->Statistics()->resetRxFailureCount();
+            inv->Statistics()->setLastUpdate(millis());
+
+             */
+            inv->updateSocket();
         }
     }
 }
@@ -97,7 +92,7 @@ size_t DeyeSunClass::getNumInverters()
 bool DeyeSunClass::isAllRadioIdle()
 {
     //TODO
-    return false;
+    return true;
 }
 
 void DeyeSunClass::setMessageOutput(Print* output)

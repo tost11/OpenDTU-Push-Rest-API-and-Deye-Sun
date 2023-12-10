@@ -14,7 +14,6 @@ public:
 
     void init();
 
-
     uint32_t PollInterval() const;
     void setPollInterval(uint32_t interval);
     void removeInverterBySerial(uint64_t serial);

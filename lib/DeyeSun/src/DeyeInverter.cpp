@@ -199,6 +199,7 @@ void DeyeInverter::updateSocket() {
                 _lastSuccessData = millis();//i know abuse of this variable
                 return;
             }
+            lastTimeSuccesfullData = millis();
             sendSocketMessage("+ok");
             _commandPosition++;
             sendCurrentRegisterRead();
@@ -206,6 +207,7 @@ void DeyeInverter::updateSocket() {
         }else{
             int ret = handleRegisterRead(num);
             if(ret == 0){//ok
+                lastTimeSuccesfullData = millis();
                 if(_commandPosition >= _registersToRead.size()){
                     sendSocketMessage("AT+Q\n");
                     //TODO with commandlist
@@ -263,11 +265,11 @@ String DeyeInverter::typeName() {
 }
 
 bool DeyeInverter::isProducing() {
-    return false;
+    return _statisticsParser->getChannelFieldValue(TYPE_AC,CH0,FLD_PAC) > 0;
 }
 
 bool DeyeInverter::isReachable() {
-    return false;
+    return millis() - lastTimeSuccesfullData < 30 * 1000;
 }
 
 bool DeyeInverter::sendActivePowerControlRequest(float limit, PowerLimitControlType type) {
@@ -346,7 +348,7 @@ int DeyeInverter::handleRegisterRead(size_t length) {
         return -2;
     }
 
-    if (std::count(ret.begin(), ret.end(),'.') > 0){
+    if (std::count(ret.begin(), ret.end(),'.') > 0 || std::count(ret.begin(), ret.end(),':') > 0){
         Serial.print("Received wrong message");
         return -1;
     }
