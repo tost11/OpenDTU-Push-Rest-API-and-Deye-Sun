@@ -4,53 +4,43 @@
             {{ alert.message }}
         </BootstrapAlert>
 
+        <label for="inputTimezone" class="col-sm-2 col-form-label">Inverter Type to add</label>
+        <div class="col-sm-10">
+          <select class="form-select" v-model="newInverterData.type">
+            <option selected>Hoymiles</option>
+            <option>DeyeSun</option>
+          </select>
+        </div>
+        <br/>
+
         <CardElement :text="$t('inverteradmin.AddInverter')" textVariant="text-bg-primary">
             <form class="form-inline" v-on:submit.prevent="onSubmit">
                 <div class="form-group">
-                    <label>{{ $t('inverteradmin.Serial') }}</label>
-                    <input v-model="newInverterData.serial" type="number" class="form-control ml-sm-2 mr-sm-4 my-2"
-                        required />
+                  <label>{{ $t('inverteradmin.Serial') }}</label>
+                  <input v-model="newInverterData.serial" type="number" class="form-control ml-sm-2 mr-sm-4 my-2"
+                         required />
                 </div>
                 <div class="form-group">
-                    <label>{{ $t('inverteradmin.Name') }}</label>
-                    <input v-model="newInverterData.name" type="text" class="form-control ml-sm-2 mr-sm-4 my-2"
-                        maxlength="31" required />
+                  <label>{{ $t('inverteradmin.Name') }}</label>
+                  <input v-model="newInverterData.name" type="text" class="form-control ml-sm-2 mr-sm-4 my-2"
+                         maxlength="31" required />
+                </div>
+                <div v-if="newInverterData.type == 'DeyeSun'" class="form-group">
+                  <label>{{ "Hostname or Ip" }}</label>
+                  <input v-model="newInverterData.hostnameOrPort" type="text" class="form-control ml-sm-2 mr-sm-4 my-2"
+                         maxlength="31" required />
+                </div>
+                <div v-if="newInverterData.type == 'DeyeSun'" class="form-group">
+                  <label>{{ "Port" }}</label>
+                  <input v-model="newInverterData.port" type="number" class="form-control ml-sm-2 mr-sm-4 my-2"
+                         required />
                 </div>
                 <div class="ml-auto text-right">
-                    <button type="submit" class="btn btn-primary my-2">{{ $t('inverteradmin.Add') }}</button>
+                  <button type="submit" class="btn btn-primary my-2">{{ $t('inverteradmin.Add') }}</button>
                 </div>
                 <div class="alert alert-secondary" role="alert" v-html="$t('inverteradmin.AddHint')"></div>
             </form>
         </CardElement>
-
-      <CardElement :text="$t('inverteradmin.AddInverter')" textVariant="text-bg-primary">
-        <form class="form-inline" v-on:submit.prevent="onSubmitDeyeSun">
-          <div class="form-group">
-            <label>{{ $t('inverteradmin.Serial') }}</label>
-            <input v-model="newInverterData.serial" type="number" class="form-control ml-sm-2 mr-sm-4 my-2"
-                   required />
-          </div>
-          <div class="form-group">
-            <label>{{ $t('inverteradmin.Name') }}</label>
-            <input v-model="newInverterData.name" type="text" class="form-control ml-sm-2 mr-sm-4 my-2"
-                   maxlength="31" required />
-          </div>
-          <div class="form-group">
-            <label>{{ "Hostname or Ip" }}</label>
-            <input v-model="newInverterData.hostnameOrPort" type="text" class="form-control ml-sm-2 mr-sm-4 my-2"
-                   maxlength="31" required />
-          </div>
-          <div class="form-group">
-            <label>{{ "Port" }}</label>
-            <input v-model="newInverterData.port" type="number" class="form-control ml-sm-2 mr-sm-4 my-2"
-                   required />
-          </div>
-          <div class="ml-auto text-right">
-            <button type="submit" class="btn btn-primary my-2">{{ $t('inverteradmin.Add') }}</button>
-          </div>
-          <div class="alert alert-secondary" role="alert" v-html="$t('inverteradmin.AddHint')"></div>
-        </form>
-      </CardElement>
 
         <CardElement :text="$t('inverteradmin.InverterList')" textVariant="text-bg-primary" add-space>
             <div class="table-responsive">
@@ -327,7 +317,7 @@ export default defineComponent({
         return {
             modal: {} as bootstrap.Modal,
             modalDelete: {} as bootstrap.Modal,
-            newInverterData: {} as Inverter,
+            newInverterData: {type:"Hoymiles"} as Inverter,
             selectedInverterData: {} as Inverter,
             inverters: [] as Inverter[],
             dataLoading: true,
@@ -383,14 +373,8 @@ export default defineComponent({
                 });
         },
         onSubmit() {
-            this.newInverterData.type = "Hoymiles";
             this.callInverterApiEndpoint("add", JSON.stringify(this.newInverterData));
-            this.newInverterData = {} as Inverter;
-        },
-        onSubmitDeyeSun() {
-          this.newInverterData.type = "DeyeSun";
-          this.callInverterApiEndpoint("add", JSON.stringify(this.newInverterData));
-          this.newInverterData = {} as Inverter;
+            this.newInverterData = {type:"Hoymiles"} as Inverter;
         },
         onDelete() {
             this.callInverterApiEndpoint("del", JSON.stringify({ id: this.selectedInverterData.id }));
@@ -404,6 +388,9 @@ export default defineComponent({
             // deep copy inverter object for editing/deleting
             this.selectedInverterData = JSON.parse(JSON.stringify(inverter)) as Inverter;
             modal.show();
+        },
+        inverterTypeChanges(event:Event) {
+            console.log(event);
         },
         onCloseModal(modal: bootstrap.Modal) {
             modal.hide();

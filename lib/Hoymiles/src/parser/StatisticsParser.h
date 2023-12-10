@@ -33,7 +33,8 @@ enum {
     CALC_UDC_CH,
     CALC_PDC_CH0,
     CALC_EFF_CH0,
-    CALC_IRR_CH
+    CALC_IRR_CH,
+    CALC_PDC,
 };
 enum { CMD_CALC = 0xffff };
 

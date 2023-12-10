@@ -57,6 +57,8 @@ public:
 
     bool parseInitInformation(size_t length);
     int handleRegisterRead(size_t length);
+
+    void spwapBuffers();
 private:
 
     void sendSocketMessage(String message);
@@ -75,9 +77,13 @@ private:
     char _hostnameOrIp[MAX_NAME_HOST] = "";
     uint16_t _port = 0;
 
+    uint8_t _payloadStatisticBuffer[STATISTIC_PACKET_SIZE] = {};
+
     static unsigned int hex_char_to_int(char c);
 
     static unsigned short modbusCRC16FromHex(const String &message);
 
     static String modbusCRC16FromASCII(const String &input);
+
+    void appendFragment(uint8_t offset, uint8_t *payload, uint8_t len);
 };

@@ -28,36 +28,38 @@ const std::vector<RegisterMapping> DeyeInverter::_registersToRead = {
 
 static const byteAssign_t byteAssignment[] = {
         //type, channel, field,  uint, first, byte in buffer, number of bytes in buffer, divisor, isSigned; // allow negative numbers, digits; // number of valid digits after the decimal point
-        { TYPE_DC, CH0, FLD_UDC, UNIT_V, 2, 2, 10, true, 1 },
-        { TYPE_DC, CH0, FLD_IDC, UNIT_A, 4, 2, 10, true, 2 },
+        { TYPE_DC, CH0, FLD_UDC, UNIT_V, 2, 2, 10, false, 1 },
+        { TYPE_DC, CH0, FLD_IDC, UNIT_A, 4, 2, 10, false, 2 },
         //{ TYPE_DC, CH0, FLD_PDC, UNIT_W, 6, 2, 10, false, 1 },
-        { TYPE_DC, CH0, FLD_YD, UNIT_WH, 14, 2, 1, true, 0 },
-        { TYPE_DC, CH0, FLD_YT, UNIT_KWH, 10, 2, 1000, true, 3 },
+        { TYPE_DC, CH0, FLD_PDC, UNIT_W, CALC_PDC, CH0, CMD_CALC, false, 2 },
+        { TYPE_DC, CH0, FLD_YD, UNIT_WH, 14, 2, 1, false, 0 },
+        { TYPE_DC, CH0, FLD_YT, UNIT_KWH, 10, 2, 10, false, 3 },
         { TYPE_DC, CH0, FLD_IRR, UNIT_PCT, CALC_IRR_CH, CH0, CMD_CALC, false, 3 },
 
-        { TYPE_DC, CH1, FLD_UDC, UNIT_V, 6, 2, 10, true, 1 },
-        { TYPE_DC, CH1, FLD_IDC, UNIT_A, 8, 2, 100, true, 2 },
+        { TYPE_DC, CH1, FLD_UDC, UNIT_V, 6, 2, 10, false, 1 },
+        { TYPE_DC, CH1, FLD_IDC, UNIT_A, 8, 2, 10, false, 2 },
         //{ TYPE_DC, CH1, FLD_PDC, UNIT_W, 12, 2, 10, false, 1 },
-        { TYPE_DC, CH1, FLD_YD, UNIT_WH, 16, 2, 1, true, 0 },
-        { TYPE_DC, CH1, FLD_YT, UNIT_KWH, 12, 2, 1000, true, 3 },
+        { TYPE_DC, CH1, FLD_PDC, UNIT_W, CALC_PDC, CH1, CMD_CALC, false, 2 },
+        { TYPE_DC, CH1, FLD_YD, UNIT_WH, 16, 2, 1, false, 0 },
+        { TYPE_DC, CH1, FLD_YT, UNIT_KWH, 12, 2, 10, false, 3 },
         { TYPE_DC, CH1, FLD_IRR, UNIT_PCT, CALC_IRR_CH, CH1, CMD_CALC, false, 3 },
 
-        { TYPE_AC, CH0, FLD_UAC, UNIT_V, 18, 2, 10, true, 1 },
-        { TYPE_AC, CH0, FLD_IAC, UNIT_A, 26, 2, 10, true, 2 },
-        { TYPE_AC, CH0, FLD_PAC, UNIT_W, 22, 4, 10, false, 1 },
-        { TYPE_AC, CH0, FLD_Q, UNIT_VAR, 24, 2, 10, true, 1 },//rated power
-        { TYPE_AC, CH0, FLD_F, UNIT_HZ, 20, 2, 100, true, 2 },
-        { TYPE_AC, CH0, FLD_PF, UNIT_NONE, 28, 2, 1000, true, 3 },//todo calculate
+        { TYPE_AC, CH0, FLD_UAC, UNIT_V, 18, 2, 10, false, 1 },
+        { TYPE_AC, CH0, FLD_IAC, UNIT_A, 26, 2, 10, false, 2 },
+        { TYPE_AC, CH0, FLD_PAC, UNIT_W, 22, 4, 100, false, 1 },
+        { TYPE_AC, CH0, FLD_Q, UNIT_VAR, 24, 2, 10, false, 1 },//rated power
+        { TYPE_AC, CH0, FLD_F, UNIT_HZ, 20, 2, 100, false, 2 },
+        { TYPE_AC, CH0, FLD_PF, UNIT_NONE, 28, 2, 1000, false, 3 },//todo calculate
 
         { TYPE_INV, CH0, FLD_T, UNIT_C, 30, 2, 10, true, 1 },
-        { TYPE_INV, CH0, FLD_EVT_LOG, UNIT_NONE, 32, 2, 1, true, 0 },//current status
+        { TYPE_INV, CH0, FLD_EVT_LOG, UNIT_NONE, 32, 2, 1, false, 0 },//current status
 
         //{ TYPE_AC, CH0, FLD_YD, UNIT_WH, CALC_YD_CH0, 0, CMD_CALC, false, 0 },
-        { TYPE_DC, CH1, FLD_YD, UNIT_WH, 34, 2, 1, true, 0 },
+        { TYPE_AC, CH0, FLD_YD, UNIT_WH, 34, 2, 1, false, 0 },
         //{ TYPE_AC, CH0, FLD_YT, UNIT_KWH, CALC_YT_CH0, 0, CMD_CALC, false, 3 },
-        { TYPE_AC, CH0, FLD_YT, UNIT_KWH, 36, 4, 1000, true, 3 },
-        { TYPE_AC, CH0, FLD_PDC, UNIT_W, CALC_PDC_CH0, 0, CMD_CALC, true, 1 },
-        { TYPE_AC, CH0, FLD_EFF, UNIT_PCT, CALC_EFF_CH0, 0, CMD_CALC, true, 3 }
+        { TYPE_AC, CH0, FLD_YT, UNIT_KWH, 36, 4, 10, false, 1 },
+        { TYPE_AC, CH0, FLD_PDC, UNIT_W, CALC_PDC_CH0, 0, CMD_CALC, false, 1 },
+        { TYPE_AC, CH0, FLD_EFF, UNIT_PCT, CALC_EFF_CH0, 0, CMD_CALC, false, 3 }
 };
 
 unsigned DeyeInverter::hex_char_to_int( char c ) {
@@ -130,7 +132,12 @@ String DeyeInverter::modbusCRC16FromASCII(const String & input) {
 DeyeInverter::DeyeInverter(uint64_t serial):
 _socket(nullptr){
     _serial = serial;
-    _serialString = String(serial);
+
+    char serial_buff[sizeof(uint64_t) * 8 + 1];
+    snprintf(serial_buff, sizeof(serial_buff), "%0x%08x",
+             ((uint32_t)((serial >> 32) & 0xFFFFFFFF)),
+             ((uint32_t)(serial & 0xFFFFFFFF)));
+    _serialString = serial_buff;
 
     _alarmLogParser.reset(new DeyeAlarmLog());
     _devInfoParser.reset(new DeyeDevInfo());
@@ -158,17 +165,6 @@ void DeyeInverter::sendSocketMessage(String message) {
 
 
 void DeyeInverter::updateSocket() {
-
-    /*
-                inv->Statistics()->beginAppendFragment();
-                inv->Statistics()->clearBuffer();
-                inv->Statistics()->appendFragment(0,toAdd,4);
-                inv->Statistics()->endAppendFragment();
-                inv->Statistics()->resetRxFailureCount();
-                inv->Statistics()->setLastUpdate(millis());
-     */
-
-
     //no new data required
     if (millis() - _lastSuccessData < (10 * 1000)) {
         return;
@@ -200,16 +196,13 @@ void DeyeInverter::updateSocket() {
         if(_commandPosition == 0){
             if(!parseInitInformation(num)){
                 _socket = nullptr;
-                _lastSuccessfullPoll = millis();
+                _lastSuccessData = millis();//i know abuse of this variable
                 return;
             }
-            //TOD0 handle register stuff
             sendSocketMessage("+ok");
             _commandPosition++;
             sendCurrentRegisterRead();
 
-            _statisticsParser->beginAppendFragment();
-            _statisticsParser->clearBuffer();
         }else{
             int ret = handleRegisterRead(num);
             if(ret == 0){//ok
@@ -219,8 +212,7 @@ void DeyeInverter::updateSocket() {
                     _socket = nullptr;
                     _lastSuccessData = millis();
 
-                    _statisticsParser->endAppendFragment();
-                    _statisticsParser->setLastUpdate(millis());
+                    spwapBuffers();
 
                     Serial.println("Red succesfull all values");
                     return;
@@ -235,8 +227,6 @@ void DeyeInverter::updateSocket() {
                 _socket = nullptr;
 
                 _statisticsParser->incrementRxFailureCount();
-                _statisticsParser->endAppendFragment();
-                _statisticsParser->setLastUpdate(millis());
 
                 return;
             }
@@ -261,7 +251,6 @@ void DeyeInverter::updateSocket() {
     if (millis() - _lastSuccessfullPoll > (10 * 1000)) {
         Serial.println("Nothing received over 10 sec reset connection");
         _socket = nullptr;
-        _statisticsParser->endAppendFragment();
     }
 }
 
@@ -314,6 +303,25 @@ bool DeyeInverter::parseInitInformation(size_t length) {
     String ret = String(_readBuff,length);
     Serial.print("Recevied Initial Read: ");
     Serial.println(ret);
+
+    int index = ret.lastIndexOf(',');
+    if(index < 0){
+        //TODO error logging
+        return false;
+    }
+    if(index >= ret.length()-1){
+        //TODO error logging
+        return false;
+    }
+
+    String serial = ret.substring(index+1);
+
+    if(!serial.equalsIgnoreCase(_serialString)){
+        //TODO error parsing
+        Serial.write("Serial dose not match");
+        return false;
+    }
+
     return true;
 }
 
@@ -345,7 +353,6 @@ int DeyeInverter::handleRegisterRead(size_t length) {
 
     auto & current = _registersToRead[_commandPosition-1];
 
-
     //+ok= plus first 6 header characters
     int start = 4 + 6;
 
@@ -355,32 +362,45 @@ int DeyeInverter::handleRegisterRead(size_t length) {
         return -1000;
     }
 
-    //String hexString = ret.substring(start,start+current.length);
-    String hexString;
+    String hexString = ret.substring(start,start+(current.length*4));
 
-    for(int i=start;i<start+(current.length*4);i=i+2){
+    if(current.length == 2){
+        Serial.println("Perfomring permutation");
+        Serial.println(hexString);
+        hexString = hexString.substring(4)+hexString.substring(0,4);
+        Serial.println(hexString);
+    }
+
+    String finalResult;
+
+    for(int i=0;i<hexString.length();i=i+2){
 
         String test;
 
-        test+=ret[i];
-        test+=ret[i+1];
+        test+=hexString[i];
+        test+=hexString[i+1];
 
         Serial.print("COnverting: ");
         Serial.println(test);
 
-        unsigned number = hex_char_to_int( ret[ i ] ); // most signifcnt nibble
-        unsigned lsn = hex_char_to_int( ret[ i + 1 ] ); // least signt nibble
+        unsigned number = hex_char_to_int( hexString[ i ] ); // most signifcnt nibble
+        unsigned lsn = hex_char_to_int( hexString[ i + 1 ] ); // least signt nibble
         number = (number << 4) + lsn;
-        hexString += (char)number;
+        finalResult += (char)number;
     }
 
-    if(current.length == 2){
-        hexString = hexString.substring(0,3)+hexString.substring(4);
-    }
-
-    _statisticsParser->appendFragment(current.targetPos,(uint8_t*)(hexString.c_str()),current.length*2);//i know this is string cast is ugly
+    appendFragment(current.targetPos,(uint8_t*)(finalResult.c_str()),current.length*2);//I know this is string cast is ugly
 
     return 0;
+}
+
+void DeyeInverter::appendFragment(uint8_t offset, uint8_t* payload, uint8_t len)
+{
+    if (offset + len > STATISTIC_PACKET_SIZE) {
+        Serial.printf("FATAL: (%s, %d) stats packet too large for buffer\r\n", __FILE__, __LINE__);
+        return;
+    }
+    memcpy(&_payloadStatisticBuffer[offset], payload, len);
 }
 
 void DeyeInverter::sendCurrentRegisterRead() {
@@ -395,4 +415,13 @@ void DeyeInverter::sendCurrentRegisterRead() {
     String checksum = modbusCRC16FromASCII(data);
 
     sendSocketMessage("AT+INVDATA=8,"+data+checksum+"\n");
+}
+
+void DeyeInverter::spwapBuffers() {
+    _statisticsParser->beginAppendFragment();
+    _statisticsParser->clearBuffer();
+    _statisticsParser->appendFragment(0,_payloadStatisticBuffer,STATISTIC_PACKET_SIZE);
+    _statisticsParser->setLastUpdate(millis());
+    _statisticsParser->resetRxFailureCount();
+    _statisticsParser->endAppendFragment();
 }
