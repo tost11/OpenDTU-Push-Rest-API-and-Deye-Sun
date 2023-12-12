@@ -9,21 +9,21 @@ const std::vector<RegisterMapping> DeyeInverter::_registersToRead = {
         RegisterMapping("006D",1,2),
         RegisterMapping("006F",1,6),
         RegisterMapping("006E",1,4),
-        RegisterMapping("0070",1,8),//TODO calculate ampere
-        RegisterMapping("003C",1,34),
+        RegisterMapping("0070",1,8),
+        RegisterMapping("003C",1,36),
         RegisterMapping("0041",1,14),
         RegisterMapping("0042",1,16),
-        RegisterMapping("003F",2,36),
+        RegisterMapping("003F",2,38),
         RegisterMapping("0045",1,10),
         RegisterMapping("0047",1,12),
-        RegisterMapping("0028",1,24),
+        RegisterMapping("0028",1,26),
         RegisterMapping("0049",1,18),
-        RegisterMapping("004C",1,26),
+        RegisterMapping("004C",1,30),
         RegisterMapping("004F",1,20),
-        RegisterMapping("003B",1,32),
+        RegisterMapping("003B",1,34),
         RegisterMapping("0056",2,22),
-        RegisterMapping("005A",1,30),
-        RegisterMapping("0010",1,24)
+        RegisterMapping("005A",1,32),
+        RegisterMapping("0010",1,26)
 };
 
 static const byteAssign_t byteAssignment[] = {
@@ -32,32 +32,32 @@ static const byteAssign_t byteAssignment[] = {
         { TYPE_DC, CH0, FLD_IDC, UNIT_A, 4, 2, 10, false, 2 },
         //{ TYPE_DC, CH0, FLD_PDC, UNIT_W, 6, 2, 10, false, 1 },
         { TYPE_DC, CH0, FLD_PDC, UNIT_W, CALC_PDC, CH0, CMD_CALC, false, 2 },
-        { TYPE_DC, CH0, FLD_YD, UNIT_WH, 14, 2, 1, false, 0 },
-        { TYPE_DC, CH0, FLD_YT, UNIT_KWH, 10, 2, 10, false, 3 },
+        { TYPE_DC, CH0, FLD_YD, UNIT_KWH, 14, 2, 100, false, 1 },
+        { TYPE_DC, CH0, FLD_YT, UNIT_KWH, 10, 2, 10, false, 0 },
         { TYPE_DC, CH0, FLD_IRR, UNIT_PCT, CALC_IRR_CH, CH0, CMD_CALC, false, 3 },
 
         { TYPE_DC, CH1, FLD_UDC, UNIT_V, 6, 2, 10, false, 1 },
         { TYPE_DC, CH1, FLD_IDC, UNIT_A, 8, 2, 10, false, 2 },
         //{ TYPE_DC, CH1, FLD_PDC, UNIT_W, 12, 2, 10, false, 1 },
         { TYPE_DC, CH1, FLD_PDC, UNIT_W, CALC_PDC, CH1, CMD_CALC, false, 2 },
-        { TYPE_DC, CH1, FLD_YD, UNIT_WH, 16, 2, 1, false, 0 },
-        { TYPE_DC, CH1, FLD_YT, UNIT_KWH, 12, 2, 10, false, 3 },
+        { TYPE_DC, CH1, FLD_YD, UNIT_KWH, 16, 2, 100, false, 1 },
+        { TYPE_DC, CH1, FLD_YT, UNIT_KWH, 12, 2, 10, false, 0 },
         { TYPE_DC, CH1, FLD_IRR, UNIT_PCT, CALC_IRR_CH, CH1, CMD_CALC, false, 3 },
 
         { TYPE_AC, CH0, FLD_UAC, UNIT_V, 18, 2, 10, false, 1 },
-        { TYPE_AC, CH0, FLD_IAC, UNIT_A, 26, 2, 10, false, 2 },
-        { TYPE_AC, CH0, FLD_PAC, UNIT_W, 22, 4, 100, false, 1 },
-        { TYPE_AC, CH0, FLD_Q, UNIT_VAR, 24, 2, 10, false, 1 },//rated power
+        { TYPE_AC, CH0, FLD_IAC, UNIT_A, 28, 2, 10, false, 2 },
+        { TYPE_AC, CH0, FLD_PAC, UNIT_W, 22, 4, 10, false, 1 },
+        { TYPE_AC, CH0, FLD_Q, UNIT_VAR, 26, 2, 10, false, 1 },//rated power
         { TYPE_AC, CH0, FLD_F, UNIT_HZ, 20, 2, 100, false, 2 },
-        { TYPE_AC, CH0, FLD_PF, UNIT_NONE, 28, 2, 1000, false, 3 },//todo calculate
+        { TYPE_AC, CH0, FLD_PF, UNIT_NONE, 30, 2, 1000, false, 3 },//todo calculate
 
-        { TYPE_INV, CH0, FLD_T, UNIT_C, 30, 2, 10, true, 1 },
-        { TYPE_INV, CH0, FLD_EVT_LOG, UNIT_NONE, 32, 2, 1, false, 0 },//current status
+        { TYPE_INV, CH0, FLD_T, UNIT_C, 32, 2, 10, true, 1 },
+        { TYPE_INV, CH0, FLD_EVT_LOG, UNIT_NONE, 34, 2, 1, false, 0 },//current status
 
         //{ TYPE_AC, CH0, FLD_YD, UNIT_WH, CALC_YD_CH0, 0, CMD_CALC, false, 0 },
-        { TYPE_AC, CH0, FLD_YD, UNIT_WH, 34, 2, 1, false, 0 },
+        { TYPE_AC, CH0, FLD_YD, UNIT_KWH, 36, 2, 100, false, 1 },
         //{ TYPE_AC, CH0, FLD_YT, UNIT_KWH, CALC_YT_CH0, 0, CMD_CALC, false, 3 },
-        { TYPE_AC, CH0, FLD_YT, UNIT_KWH, 36, 4, 10, false, 1 },
+        { TYPE_AC, CH0, FLD_YT, UNIT_KWH, 38, 4, 10, false, 0 },
         { TYPE_AC, CH0, FLD_PDC, UNIT_W, CALC_PDC_CH0, 0, CMD_CALC, false, 1 },
         { TYPE_AC, CH0, FLD_EFF, UNIT_PCT, CALC_EFF_CH0, 0, CMD_CALC, false, 3 }
 };
@@ -181,38 +181,36 @@ void DeyeInverter::updateSocket() {
         _socket = std::make_unique<WiFiUDP>();
         sendSocketMessage("WIFIKIT-214028-READ");
         _commandPosition = 0;
+        _startCommand = true;
         _lastPoll = millis();
-        _lastSuccessfullPoll = millis();
     }
 
     int packetSize = _socket->parsePacket();
-    if (packetSize > 0){
-        _lastSuccessfullPoll = millis();
+    while (packetSize > 0){
         Serial.println("Recevied new package");
-        _lastPoll = millis();
         size_t num = _socket->read(_readBuff,packetSize);
         _socket->flush();
+        _lastPoll = millis();
         Serial.println(num);
-        if(_commandPosition == 0){
+        if(_startCommand){
             if(!parseInitInformation(num)){
                 _socket = nullptr;
-                _lastSuccessData = millis();//i know abuse of this variable
                 return;
             }
             lastTimeSuccesfullData = millis();
             sendSocketMessage("+ok");
-            _commandPosition++;
+            _startCommand = false;
             sendCurrentRegisterRead();
 
         }else{
             int ret = handleRegisterRead(num);
             if(ret == 0){//ok
-                lastTimeSuccesfullData = millis();
-                if(_commandPosition >= _registersToRead.size()){
+                if(_commandPosition +1 >= _registersToRead.size()){
                     sendSocketMessage("AT+Q\n");
                     //TODO with commandlist
                     _socket = nullptr;
                     _lastSuccessData = millis();
+                    _commandPosition = 0;
 
                     spwapBuffers();
 
@@ -222,38 +220,44 @@ void DeyeInverter::updateSocket() {
                 _commandPosition++;
                 //pollWait = true;
                 sendCurrentRegisterRead();
-            }else if(ret == -1){//try again error
+            }else{
+                _socket = nullptr;
+                return;
+            }
+            /*else if(ret == -1){//try again error
                 //pollWait = true;
-                sendCurrentRegisterRead();
+                //sendCurrentRegisterRead();
             }else{
                 _socket = nullptr;
 
                 _statisticsParser->incrementRxFailureCount();
 
                 return;
-            }
+            }*/
         }
+        packetSize = _socket->parsePacket();
     }
 
     //timeout of one second
     if (millis() - _lastPoll > (1 * 1000)) {
         _lastPoll = millis();
         Serial.println("Max poll time overtook try again");
-        if (_commandPosition == 0) {
+        _socket = nullptr;
+        /*if (_commandPosition == 0) {
             sendSocketMessage("WIFIKIT-214028-READ");
         } else {
             if (_commandPosition == 1) {
                 sendSocketMessage("+ok");
             }
             sendCurrentRegisterRead();
-        }
+        }*/
     }
 
-    //timeout of one second
+    /*//timeout of one second
     if (millis() - _lastSuccessfullPoll > (10 * 1000)) {
         Serial.println("Nothing received over 10 sec reset connection");
         _socket = nullptr;
-    }
+    }*/
 }
 
 uint64_t DeyeInverter::serial() {
@@ -348,12 +352,17 @@ int DeyeInverter::handleRegisterRead(size_t length) {
         return -2;
     }
 
-    if (std::count(ret.begin(), ret.end(),'.') > 0 || std::count(ret.begin(), ret.end(),':') > 0){
-        Serial.print("Received wrong message");
-        return -1;
-    }
+    auto & current = _registersToRead[_commandPosition];
 
-    auto & current = _registersToRead[_commandPosition-1];
+    if(current.length == 2){
+        if(!ret.startsWith("+ok=010304")){
+            return -1;
+        }
+    }else{
+        if(!ret.startsWith("+ok=010302")){
+            return -1;
+        }
+    }
 
     //+ok= plus first 6 header characters
     int start = 4 + 6;
@@ -406,7 +415,7 @@ void DeyeInverter::appendFragment(uint8_t offset, uint8_t* payload, uint8_t len)
 }
 
 void DeyeInverter::sendCurrentRegisterRead() {
-    auto & current = _registersToRead[_commandPosition-1];
+    auto & current = _registersToRead[_commandPosition];
     String data = "0103";
     data += current.readRegister;
 

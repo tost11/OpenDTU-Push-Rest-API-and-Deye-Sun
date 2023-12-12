@@ -72,6 +72,7 @@ private:
     uint32_t _lastSuccessData = 0;
     uint32_t lastTimeSuccesfullData = 0;
     uint32_t _commandPosition;
+    bool _startCommand;
     static const std::vector<RegisterMapping> _registersToRead;
 
     uint64_t _serial;
