@@ -9,6 +9,7 @@
 #include "parser/DeyeGridProfile.h"
 #include "parser/DeyePowerCommand.h"
 #include "parser/StatisticsParser.h"
+#include "parser/SystemConfigParaParser.h"
 #include <Arduino.h>
 #include <cstdint>
 #include <list>
@@ -29,7 +30,7 @@ struct RegisterMapping{
     targetPos(targetPos){}
 };
 
-class DeyeInverter : public BaseInverter<StatisticsParser,DeyeDevInfo,DeyeSystemConfigPara,DeyeAlarmLog,DeyeGridProfile,DeyePowerCommand> {
+class DeyeInverter : public BaseInverter<StatisticsParser,DeyeDevInfo,SystemConfigParaParser,DeyeAlarmLog,DeyeGridProfile,DeyePowerCommand> {
 public:
     explicit DeyeInverter(uint64_t serial);
     ~DeyeInverter() = default;
@@ -59,6 +60,8 @@ public:
     int handleRegisterRead(size_t length);
 
     void spwapBuffers();
+
+
 private:
 
     void sendSocketMessage(String message);
@@ -67,11 +70,23 @@ private:
 
     std::unique_ptr<UDP> _socket;
 
-    uint32_t _lastPoll = 0;
-    uint32_t _lastSuccessfullPoll = 0;
-    uint32_t _lastSuccessData = 0;
-    uint32_t lastTimeSuccesfullData = 0;
+    //these timers seem to work good no idea what's best and what causes what
+    static const uint32_t TIMER_FETCH_DATA = 5 * 60 * 1000;
+    static const uint32_t TIMER_HEALTH_CHECK = 20 * 1000;
+    static const uint32_t TIMER_ERROR_BACKOFF = 100;
+    static const uint32_t TIMER_BETWEEN_SENDS = 500;
+
+    static const uint32_t INIT_COMMAND_START_SKIP = 6;
+
+    bool _needInitData;
+
+    uint32_t _timerFullPoll = 0;
+    uint32_t _timerHealthCheck = 0;
+    uint32_t _timerErrorBackOff = 0;
+    uint32_t _timerBetweenSends = 0;
+    uint32_t _timerTimeoutCheck = 0;
     uint32_t _commandPosition;
+
     bool _startCommand;
     static const std::vector<RegisterMapping> _registersToRead;
 

@@ -1,4 +1,5 @@
 #include "DeyeInverter.h"
+#include "DeyeUtils.h"
 
 #include <cstring>
 #include <sstream>
@@ -6,6 +7,13 @@
 #include <iomanip>
 
 const std::vector<RegisterMapping> DeyeInverter::_registersToRead = {
+        RegisterMapping("0010",1,44),//init rated power
+        RegisterMapping("000C",1,46),//init Hardware Version
+        RegisterMapping("001D",1,48),//init DC Master Firmware Version
+        RegisterMapping("001E",1,50),//init AC Version. Number
+        RegisterMapping("0012",1,52),//init Communication Protocol Version
+        RegisterMapping("0003",5,54),//init Inverter ID
+        RegisterMapping("0028",1,42),//limit always check
         RegisterMapping("006D",1,2),
         RegisterMapping("006F",1,6),
         RegisterMapping("006E",1,4),
@@ -16,14 +24,12 @@ const std::vector<RegisterMapping> DeyeInverter::_registersToRead = {
         RegisterMapping("003F",2,38),
         RegisterMapping("0045",1,10),
         RegisterMapping("0047",1,12),
-        RegisterMapping("0028",1,26),
         RegisterMapping("0049",1,18),
         RegisterMapping("004C",1,30),
         RegisterMapping("004F",1,20),
         RegisterMapping("003B",1,34),
         RegisterMapping("0056",2,22),
         RegisterMapping("005A",1,32),
-        RegisterMapping("0010",1,26)
 };
 
 static const byteAssign_t byteAssignment[] = {
@@ -47,7 +53,7 @@ static const byteAssign_t byteAssignment[] = {
         { TYPE_AC, CH0, FLD_UAC, UNIT_V, 18, 2, 10, false, 1 },
         { TYPE_AC, CH0, FLD_IAC, UNIT_A, 28, 2, 10, false, 2 },
         { TYPE_AC, CH0, FLD_PAC, UNIT_W, 22, 4, 10, false, 1 },
-        { TYPE_AC, CH0, FLD_Q, UNIT_VAR, 26, 2, 10, false, 1 },//rated power
+        //{ TYPE_AC, CH0, FLD_Q, UNIT_VAR, 26, 2, 10, false, 1 },
         { TYPE_AC, CH0, FLD_F, UNIT_HZ, 20, 2, 100, false, 2 },
         { TYPE_AC, CH0, FLD_PF, UNIT_NONE, 30, 2, 1000, false, 3 },//todo calculate
 
@@ -144,10 +150,12 @@ _socket(nullptr){
     _gridProfileParser.reset(new DeyeGridProfile());
     _powerCommandParser.reset(new DeyePowerCommand());
     _statisticsParser.reset(new StatisticsParser());
-    _systemConfigParaParser.reset(new DeyeSystemConfigPara());
+    _systemConfigParaParser.reset(new SystemConfigParaParser());
 
     _statisticsParser->setByteAssignment(byteAssignment,sizeof(byteAssignment) / sizeof(byteAssignment[0]));
+    _devInfoParser->setMaxPowerDevider(10);
 
+    _needInitData = true;
     _commandPosition = 0;
 }
 
@@ -160,15 +168,11 @@ void DeyeInverter::sendSocketMessage(String message) {
     _socket->print(message);
     _socket->endPacket();
 
-    _lastSuccessfullPoll = millis();
+    _timerTimeoutCheck = millis();
 }
 
 
 void DeyeInverter::updateSocket() {
-    //no new data required
-    if (millis() - _lastSuccessData < (10 * 1000)) {
-        return;
-    }
 
     if (!WiFi.isConnected()) {
         Serial.println("Wifi not connected");
@@ -176,13 +180,22 @@ void DeyeInverter::updateSocket() {
         return;
     }
 
+    if (millis() - _timerHealthCheck < (TIMER_HEALTH_CHECK)) {
+        //no fetch needed
+        return;
+    }
+
     if (_socket == nullptr) {
+        if (millis() - _timerErrorBackOff < (TIMER_ERROR_BACKOFF)) {
+            //wait after error for try again
+            return;
+        }
         Serial.println("New connection");
         _socket = std::make_unique<WiFiUDP>();
+        Serial.print("port: ");
         sendSocketMessage("WIFIKIT-214028-READ");
-        _commandPosition = 0;
         _startCommand = true;
-        _lastPoll = millis();
+        _timerBetweenSends = 0;
     }
 
     int packetSize = _socket->parsePacket();
@@ -190,74 +203,78 @@ void DeyeInverter::updateSocket() {
         Serial.println("Recevied new package");
         size_t num = _socket->read(_readBuff,packetSize);
         _socket->flush();
-        _lastPoll = millis();
+        _timerTimeoutCheck = millis();
         Serial.println(num);
         if(_startCommand){
             if(!parseInitInformation(num)){
+                _socket->stop();
                 _socket = nullptr;
                 return;
             }
-            lastTimeSuccesfullData = millis();
-            sendSocketMessage("+ok");
             _startCommand = false;
-            sendCurrentRegisterRead();
-
+            sendSocketMessage("+ok");
+            //sendSocketMessage("+ok");
+            //sendCurrentRegisterRead();
+            _timerBetweenSends = millis();
         }else{
             int ret = handleRegisterRead(num);
             if(ret == 0){//ok
-                if(_commandPosition +1 >= _registersToRead.size()){
+                if(_commandPosition == INIT_COMMAND_START_SKIP && !_needInitData && (millis() - _timerFullPoll < (TIMER_FETCH_DATA))){
                     sendSocketMessage("AT+Q\n");
-                    //TODO with commandlist
+                    _socket->stop();
                     _socket = nullptr;
-                    _lastSuccessData = millis();
-                    _commandPosition = 0;
-
+                    _commandPosition = INIT_COMMAND_START_SKIP;
+                    _timerHealthCheck = millis();
                     spwapBuffers();
-
-                    Serial.println("Red succesfull all values");
+                    Serial.println("Succesfully healtcheck");
                     return;
                 }
+                if(_commandPosition +1 >= _registersToRead.size()){
+                    sendSocketMessage("AT+Q\n");
+                    _socket->stop();
+                    _socket = nullptr;
+                    _commandPosition = INIT_COMMAND_START_SKIP;
+                    spwapBuffers();
+                    Serial.println("Red succesfull all values");
+                    _timerHealthCheck = millis();
+                    if(_needInitData){
+                        _needInitData = false;
+                        _timerFullPoll = millis();
+                    }else{
+                        //so do exactly match 5 minutes of logger checking data
+                        while(millis() - _timerFullPoll > (TIMER_FETCH_DATA)){
+                            _timerFullPoll += TIMER_FETCH_DATA;
+                        }
+                    }
+                    return;
+                }
+                _timerBetweenSends = millis();
                 _commandPosition++;
-                //pollWait = true;
-                sendCurrentRegisterRead();
-            }else{
-                _socket = nullptr;
-                return;
-            }
-            /*else if(ret == -1){//try again error
                 //pollWait = true;
                 //sendCurrentRegisterRead();
             }else{
+                _timerErrorBackOff = millis();
+                _socket->stop();
                 _socket = nullptr;
-
-                _statisticsParser->incrementRxFailureCount();
-
                 return;
-            }*/
+            }
         }
         packetSize = _socket->parsePacket();
     }
 
-    //timeout of one second
-    if (millis() - _lastPoll > (1 * 1000)) {
-        _lastPoll = millis();
-        Serial.println("Max poll time overtook try again");
-        _socket = nullptr;
-        /*if (_commandPosition == 0) {
-            sendSocketMessage("WIFIKIT-214028-READ");
-        } else {
-            if (_commandPosition == 1) {
-                sendSocketMessage("+ok");
-            }
+    if(_timerBetweenSends != 0){
+        if (millis() - _timerBetweenSends > TIMER_BETWEEN_SENDS) {
             sendCurrentRegisterRead();
-        }*/
+            _timerBetweenSends = 0;
+        }
+    }else {
+        //timeout of one second
+        if (millis() - _timerTimeoutCheck > (1 * 1000)) {
+            Serial.println("Max poll time overtook try again");
+            _socket->stop();
+            _socket = nullptr;
+        }
     }
-
-    /*//timeout of one second
-    if (millis() - _lastSuccessfullPoll > (10 * 1000)) {
-        Serial.println("Nothing received over 10 sec reset connection");
-        _socket = nullptr;
-    }*/
 }
 
 uint64_t DeyeInverter::serial() {
@@ -273,7 +290,7 @@ bool DeyeInverter::isProducing() {
 }
 
 bool DeyeInverter::isReachable() {
-    return millis() - lastTimeSuccesfullData < 30 * 1000;
+    return millis() - _timerHealthCheck < 25 * 1000;
 }
 
 bool DeyeInverter::sendActivePowerControlRequest(float limit, PowerLimitControlType type) {
@@ -356,12 +373,21 @@ int DeyeInverter::handleRegisterRead(size_t length) {
 
     if(current.length == 2){
         if(!ret.startsWith("+ok=010304")){
+            Serial.println("Length for 2 not matching");
+            return -1;
+        }
+    }if(current.length == 5){
+        if(!ret.startsWith("+ok=01030A")){
+            Serial.println("Length for 5 not matching");
+            return -1;
+        }
+    }else if(current.length == 1){
+        if(!ret.startsWith("+ok=010302")){
+            Serial.println("Length for 1 not matching");
             return -1;
         }
     }else{
-        if(!ret.startsWith("+ok=010302")){
-            return -1;
-        }
+        Serial.println("Unknown Length");
     }
 
     //+ok= plus first 6 header characters
@@ -373,34 +399,38 @@ int DeyeInverter::handleRegisterRead(size_t length) {
         return -1000;
     }
 
-    String hexString = ret.substring(start,start+(current.length*4));
+    if(current.length > 4){
+        appendFragment(current.targetPos,(uint8_t*)(ret.c_str()),current.length*2);//I know this is string cast is ugly
+    }else {
 
-    if(current.length == 2){
-        Serial.println("Perfomring permutation");
-        Serial.println(hexString);
-        hexString = hexString.substring(4)+hexString.substring(0,4);
-        Serial.println(hexString);
+        String hexString = ret.substring(start, start + (current.length * 4));
+
+        if (current.length == 2) {
+            Serial.println("Perfomring permutation");
+            Serial.println(hexString);
+            hexString = hexString.substring(4) + hexString.substring(0, 4);
+            Serial.println(hexString);
+        }
+
+        String finalResult;
+
+        for (int i = 0; i < hexString.length(); i = i + 2) {
+
+            String test;
+
+            test += hexString[i];
+            test += hexString[i + 1];
+
+            Serial.print("COnverting: ");
+            Serial.println(test);
+
+            unsigned number = hex_char_to_int(hexString[i]); // most signifcnt nibble
+            unsigned lsn = hex_char_to_int(hexString[i + 1]); // least signt nibble
+            number = (number << 4) + lsn;
+            finalResult += (char) number;
+        }
+        appendFragment(current.targetPos,(uint8_t*)(finalResult.c_str()),current.length*2);//I know this is string cast is ugly
     }
-
-    String finalResult;
-
-    for(int i=0;i<hexString.length();i=i+2){
-
-        String test;
-
-        test+=hexString[i];
-        test+=hexString[i+1];
-
-        Serial.print("COnverting: ");
-        Serial.println(test);
-
-        unsigned number = hex_char_to_int( hexString[ i ] ); // most signifcnt nibble
-        unsigned lsn = hex_char_to_int( hexString[ i + 1 ] ); // least signt nibble
-        number = (number << 4) + lsn;
-        finalResult += (char)number;
-    }
-
-    appendFragment(current.targetPos,(uint8_t*)(finalResult.c_str()),current.length*2);//I know this is string cast is ugly
 
     return 0;
 }
@@ -415,6 +445,7 @@ void DeyeInverter::appendFragment(uint8_t offset, uint8_t* payload, uint8_t len)
 }
 
 void DeyeInverter::sendCurrentRegisterRead() {
+
     auto & current = _registersToRead[_commandPosition];
     String data = "0103";
     data += current.readRegister;
@@ -435,4 +466,10 @@ void DeyeInverter::spwapBuffers() {
     _statisticsParser->setLastUpdate(millis());
     _statisticsParser->resetRxFailureCount();
     _statisticsParser->endAppendFragment();
+
+    _systemConfigParaParser->setLimitPercent(DeyeUtils::defaultParseFloat(42,_payloadStatisticBuffer));
+
+    _devInfoParser->clearBuffer();
+    _devInfoParser->appendFragment(0,_payloadStatisticBuffer+44,2*5+2*5);
+    _devInfoParser->setLastUpdate(millis());
 }
