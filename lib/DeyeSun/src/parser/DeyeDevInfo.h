@@ -35,9 +35,14 @@ public:
     String getHwModelName() override;
 
     void setMaxPowerDevider(uint8_t dev);
+
+    void setHardwareVersion(const String & version);
+    void setHardwareModel(const String & model);
 private:
     uint8_t _payloadDevInfo[DEV_INFO_SIZE_DEYE] = {};
     uint8_t _devInfoLength = 0;
 
     uint8_t _maxPowerDevider;
+    String _hardwareVersion;
+    String _hardwareModel;
 };

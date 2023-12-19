@@ -2,6 +2,7 @@
 
 
 #include <cstdint>
+#include <WString.h>
 
 class DeyeUtils {
 public:

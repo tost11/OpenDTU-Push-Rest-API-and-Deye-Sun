@@ -61,6 +61,7 @@ public:
 
     void spwapBuffers();
 
+    bool resolveHostname();
 
 private:
 
@@ -70,13 +71,16 @@ private:
 
     std::unique_ptr<UDP> _socket;
 
+    std::unique_ptr<IPAddress> _ipAdress;
+
     //these timers seem to work good no idea what's best and what causes what
     static const uint32_t TIMER_FETCH_DATA = 5 * 60 * 1000;
     static const uint32_t TIMER_HEALTH_CHECK = 20 * 1000;
     static const uint32_t TIMER_ERROR_BACKOFF = 100;
     static const uint32_t TIMER_BETWEEN_SENDS = 500;
+    static const uint32_t TIMER_RESOLVE_HOSTNAME = 30 * 1000;
 
-    static const uint32_t INIT_COMMAND_START_SKIP = 6;
+    static const uint32_t INIT_COMMAND_START_SKIP = 2;
 
     bool _needInitData;
 
@@ -85,6 +89,7 @@ private:
     uint32_t _timerErrorBackOff = 0;
     uint32_t _timerBetweenSends = 0;
     uint32_t _timerTimeoutCheck = 0;
+    uint32_t _timerResolveHostname = 0;
     uint32_t _commandPosition;
 
     bool _startCommand;

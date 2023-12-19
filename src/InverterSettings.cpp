@@ -48,8 +48,8 @@ void InverterSettingsClass::init()
             auto inv = DeyeSun.addInverter(
                     config.Inverter[i].Name,
                     config.Inverter[i].Serial,
-                    "localhost",
-                    12345);
+                    config.Inverter[i].HostnameOrIp,
+                    config.Inverter[i].Port);
 
             if (inv != nullptr) {
                 inv->setReachableThreshold(config.Inverter[i].ReachableThreshold);

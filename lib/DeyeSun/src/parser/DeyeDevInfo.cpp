@@ -19,16 +19,10 @@ void DeyeDevInfo::setLastUpdateSimple(uint32_t lastUpdate) {
 }
 
 uint16_t DeyeDevInfo::getFwBootloaderVersion() {
-    if(_devInfoLength >= 8){
-        return DeyeUtils::defaultParseUInt(6,_payloadDevInfo);
-    }
     return 0;
 }
 
 uint16_t DeyeDevInfo::getFwBuildVersion() {
-    if(_devInfoLength >= 6){
-        return DeyeUtils::defaultParseUInt(4,_payloadDevInfo);
-    }
     return 0;
 }
 
@@ -41,14 +35,7 @@ uint32_t DeyeDevInfo::getHwPartNumber() {
 }
 
 String DeyeDevInfo::getHwVersion() {
-    if(_devInfoLength >= 2*5 + 2*5){
-        String res = "";
-        for(int i=2*5;i<2*5 + 2*5;i++){
-            res += _payloadDevInfo[i];
-        }
-        return res;
-    }
-    return "";
+    return _hardwareVersion;
 }
 
 uint16_t DeyeDevInfo::getMaxPower() {
@@ -59,7 +46,7 @@ uint16_t DeyeDevInfo::getMaxPower() {
 }
 
 String DeyeDevInfo::getHwModelName() {
-    return String();
+    return _hardwareModel;
 }
 
 void DeyeDevInfo::clearBuffer() {
@@ -78,4 +65,12 @@ void DeyeDevInfo::appendFragment(uint8_t offset, uint8_t *payload, uint8_t len) 
 
 void DeyeDevInfo::setMaxPowerDevider(uint8_t dev) {
     _maxPowerDevider = dev;
+}
+
+void DeyeDevInfo::setHardwareVersion(const String &version) {
+    _hardwareVersion = version;
+}
+
+void DeyeDevInfo::setHardwareModel(const String &model) {
+    _hardwareModel = model;
 }

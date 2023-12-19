@@ -62,6 +62,8 @@ void WebApiInverterClass::onInverterList(AsyncWebServerRequest* request)
             obj["reachable_threshold"] = config.Inverter[i].ReachableThreshold;
             obj["zero_runtime"] = config.Inverter[i].ZeroRuntimeDataIfUnrechable;
             obj["zero_day"] = config.Inverter[i].ZeroYieldDayOnMidnight;
+            obj["port"] = config.Inverter[i].Port;
+            obj["hostname_or_ip"] = config.Inverter[i].HostnameOrIp;
 
             auto inv = InverterHandler.getInverterBySerial(config.Inverter[i].Serial);
             uint8_t max_channels;
@@ -163,6 +165,28 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
         return;
     }
 
+    if(root["type"].as<String>() == "DeyeSun"){
+        //validate Deye Sun Data
+        if (!root.containsKey("hostname_or_ip") || root["hostname_or_ip"].as<String>().length() == 0 || root["hostname_or_ip"].as<String>().length() > INV_MAX_HOSTNAME_STRLEN) {
+            retMsg["message"] = "Hostname must between 1 and " STR(INV_MAX_HOSTNAME_STRLEN) " characters long!";
+            retMsg["code"] = WebApiError::InverterHostnameLength;
+            retMsg["param"]["max"] = INV_MAX_HOSTNAME_STRLEN;
+            response->setLength();
+            request->send(response);
+            return;
+        }
+
+        if (!root.containsKey("port") || root["port"].as<int>() <= 0 || root["port"].as<int>() > 65535) {
+            retMsg["message"] = "Post must between 1 and 65535!";
+            retMsg["code"] = WebApiError::InverterInvalidPortNumber;
+            retMsg["param"]["max"] = 65535;
+            retMsg["param"]["min"] = 1;
+            response->setLength();
+            request->send(response);
+            return;
+        }
+    }
+
     INVERTER_CONFIG_T* inverter = Configuration.getFreeInverterSlot();
 
     if (!inverter) {
@@ -183,8 +207,8 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
     if (root["type"].as<String>() == "Hoymiles" ) {
         inverter->Type = inverter_type::Inverter_Hoymiles;
     }else if(root["type"].as<String>() == "DeyeSun"){
-        //strncpy(inverter->HostnameOrIp, "localhost", INV_MAX_HOSTNAME_STRLEN);
-        inverter->Port = 10000;
+        strncpy(inverter->HostnameOrIp, root["hostname_or_ip"].as<String>().c_str(), INV_MAX_HOSTNAME_STRLEN);
+        inverter->Port = root["port"].as<uint16_t>();
         inverter->Type = inverter_type::Inverter_DeyeSun;
     }
     Configuration.write();
@@ -209,7 +233,7 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
     if (root["type"].as<String>() == "Hoymiles" ) {
         inv = std::reinterpret_pointer_cast<BaseInverterClass>(Hoymiles.addInverter(inverter->Name, inverter->Serial));
     }else if(root["type"].as<String>() == "DeyeSun"){
-        inv = std::reinterpret_pointer_cast<BaseInverterClass>(DeyeSun.addInverter(inverter->Name, inverter->Serial,"localhost",10000));
+        inv = std::reinterpret_pointer_cast<BaseInverterClass>(DeyeSun.addInverter(inverter->Name, inverter->Serial,inverter->HostnameOrIp,inverter->Port));
     }
 
     if (inv != nullptr) {

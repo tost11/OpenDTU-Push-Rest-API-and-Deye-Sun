@@ -105,7 +105,7 @@ bool ConfigurationClass::write()
         JsonObject inv = inverters.createNestedObject();
         inv["serial"] = config.Inverter[i].Serial;
         inv["name"] = config.Inverter[i].Name;
-        inv["hostname"] = config.Inverter[i].HostnameOrIp;
+        inv["hostname_or_ip"] = config.Inverter[i].HostnameOrIp;
         inv["port"] = config.Inverter[i].Port;
         inv["type"] = config.Inverter[i].Type;
         inv["order"] = config.Inverter[i].Order;
@@ -258,7 +258,7 @@ bool ConfigurationClass::read()
         JsonObject inv = inverters[i].as<JsonObject>();
         config.Inverter[i].Serial = inv["serial"] | 0ULL;
         strlcpy(config.Inverter[i].Name, inv["name"] | "", sizeof(config.Inverter[i].Name));
-        strlcpy(config.Inverter[i].Name, inv["hostna,e"] | "", sizeof(config.Inverter[i].HostnameOrIp));
+        strlcpy(config.Inverter[i].HostnameOrIp, inv["hostname_or_ip"] | "", sizeof(config.Inverter[i].HostnameOrIp));
         config.Inverter[i].Order = inv["order"] | 0;
         config.Inverter[i].Port = inv["port"] | 0;
         config.Inverter[i].Type = inv["type"] | inverter_type::Inverter_Hoymiles;

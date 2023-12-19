@@ -27,12 +27,12 @@
                 </div>
                 <div v-if="newInverterData.type == 'DeyeSun'" class="form-group">
                   <label>{{ "Hostname or Ip" }}</label>
-                  <input v-model="newInverterData.hostnameOrPort" type="text" class="form-control ml-sm-2 mr-sm-4 my-2"
+                  <input v-model="newInverterData.hostname_or_ip" type="text" class="form-control ml-sm-2 mr-sm-4 my-2"
                          maxlength="31" required />
                 </div>
                 <div v-if="newInverterData.type == 'DeyeSun'" class="form-group">
                   <label>{{ "Port" }}</label>
-                  <input v-model="newInverterData.port" type="number" class="form-control ml-sm-2 mr-sm-4 my-2"
+                  <input v-model="newInverterData.port" type="number" class="form-control ml-sm-2 mr-sm-4 my-2" maxlength="5"
                          required />
                 </div>
                 <div class="ml-auto text-right">
@@ -124,6 +124,16 @@
                                     </label>
                                     <input v-model="selectedInverterData.name" type="text" id="inverter-name"
                                         class="form-control" maxlength="31" />
+                                    <label for="inverter-hostname" class="col-form-label">{{ $t('inverteradmin.InverterHostnameOrIp') }}
+                                      <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterHostnameOrIpHint')" />
+                                    </label>
+                                    <input v-model="selectedInverterData.hostname_or_ip" type="text" id="inverter-hostname-or-ip"
+                                           class="form-control" maxlength="31" />
+                                    <label for="inverter-port" class="col-form-label">
+                                      {{ $t('inverteradmin.InverterPort') }}
+                                    </label>
+                                    <input v-model="selectedInverterData.port" type="number" id="inverter-port" maxlength="5"
+                                           class="form-control" />
 
                                     <CardElement :text="$t('inverteradmin.InverterStatus')" addSpace>
                                         <InputElement :label="$t('inverteradmin.PollEnable')"
@@ -279,7 +289,7 @@ declare interface Inverter {
     id: string;
     serial: number;
     name: string;
-    hostnameOrPort: string;
+    hostname_or_ip: string;
     port: number;
     type: string;
     order: number;

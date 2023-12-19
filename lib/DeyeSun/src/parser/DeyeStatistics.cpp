@@ -6,7 +6,6 @@ DeyeStatistics::DeyeStatistics() {
     field = "Field";
 }
 
-
 std::list<ChannelNum_t> DeyeStatistics::getChannelsByType(ChannelType_t type) {
     //TODO implmeent
 

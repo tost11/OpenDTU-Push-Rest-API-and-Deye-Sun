@@ -1,5 +1,6 @@
 #include "DeyeInverter.h"
 #include "DeyeUtils.h"
+#include "Dns.h"
 
 #include <cstring>
 #include <sstream>
@@ -8,11 +9,13 @@
 
 const std::vector<RegisterMapping> DeyeInverter::_registersToRead = {
         RegisterMapping("0010",1,44),//init rated power
-        RegisterMapping("000C",1,46),//init Hardware Version
-        RegisterMapping("001D",1,48),//init DC Master Firmware Version
-        RegisterMapping("001E",1,50),//init AC Version. Number
-        RegisterMapping("0012",1,52),//init Communication Protocol Version
-        RegisterMapping("0003",5,54),//init Inverter ID
+        //RegisterMapping("000C",1,46),//init Hardware Version
+        //RegisterMapping("001D",1,48),//init DC Master Firmware Version
+        //RegisterMapping("001E",1,50),//init AC Version. Number
+        //RegisterMapping("0012",1,52),//init Communication Protocol Version
+        //RegisterMapping("0003",5,54),//init Inverter ID
+        //RegisterMapping("000C",1,46),//init Hardware Version
+        RegisterMapping("AT+YZVER",0,0),//firmware version
         RegisterMapping("0028",1,42),//limit always check
         RegisterMapping("006D",1,2),
         RegisterMapping("006F",1,6),
@@ -155,16 +158,26 @@ _socket(nullptr){
     _statisticsParser->setByteAssignment(byteAssignment,sizeof(byteAssignment) / sizeof(byteAssignment[0]));
     _devInfoParser->setMaxPowerDevider(10);
 
+    String model = "unknown Deye Sun";
+    if(_serialString.startsWith("415")){
+        model = "SUN600G3-EU-230";
+    }else if(_serialString.startsWith("413")){
+        model = "SUN300G3-EU-230";
+    }
+    _devInfoParser->setHardwareModel(model);
+
     _needInitData = true;
     _commandPosition = 0;
+
+    _ipAdress = nullptr;
 }
 
 void DeyeInverter::sendSocketMessage(String message) {
 
     Serial.println("Sending deye message: "+message);
 
-    IPAddress RecipientIP(192, 168, 1, 138);
-    _socket->beginPacket(RecipientIP, 48899);
+    //IPAddress RecipientIP(192, 168, 1, 138);
+    _socket->beginPacket(*_ipAdress, _port);
     _socket->print(message);
     _socket->endPacket();
 
@@ -180,7 +193,18 @@ void DeyeInverter::updateSocket() {
         return;
     }
 
-    if (millis() - _timerHealthCheck < (TIMER_HEALTH_CHECK)) {
+    if(_ipAdress == nullptr){
+        if(_timerResolveHostname == 0 or millis() - _timerResolveHostname > (TIMER_RESOLVE_HOSTNAME)){
+            _timerResolveHostname = millis();
+            resolveHostname();
+        }
+    }
+
+    if(_ipAdress == nullptr){
+        return;
+    }
+
+    if (_timerHealthCheck != 0 and millis() - _timerHealthCheck < (TIMER_HEALTH_CHECK)) {
         //no fetch needed
         return;
     }
@@ -282,7 +306,7 @@ uint64_t DeyeInverter::serial() {
 }
 
 String DeyeInverter::typeName() {
-    return "DeyeSun";
+    return _devInfoParser->getHwModelName();
 }
 
 bool DeyeInverter::isProducing() {
@@ -310,12 +334,14 @@ bool DeyeInverter::sendPowerControlRequest(bool turnOn) {
 }
 
 void DeyeInverter::setHostnameOrIp(const char *hostOrIp) {
+
     uint8_t len = strlen(hostOrIp);
     if (len + 1 > MAX_NAME_HOST) {
         len = MAX_NAME_HOST - 1;
     }
-    strncpy(_name, _hostnameOrIp, len);
-    _name[len] = '\0';
+    strncpy(_hostnameOrIp, hostOrIp, len);
+    _hostnameOrIp[len] = '\0';
+
 }
 
 void DeyeInverter::setPort(uint16_t port) {
@@ -370,6 +396,21 @@ int DeyeInverter::handleRegisterRead(size_t length) {
     }
 
     auto & current = _registersToRead[_commandPosition];
+
+    if(current.readRegister.startsWith("AT+")){
+        if(current.readRegister == "AT+YZVER"){
+            int start = 4;
+
+            if(ret.length() <= start){
+                Serial.print("Error while reading data not entoh data on: ");
+                Serial.println(current.readRegister);
+                return -2000;
+            }
+
+            _devInfoParser->setHardwareVersion(ret.substring(start));
+        }
+        return 0;
+    }
 
     if(current.length == 2){
         if(!ret.startsWith("+ok=010304")){
@@ -447,6 +488,12 @@ void DeyeInverter::appendFragment(uint8_t offset, uint8_t* payload, uint8_t len)
 void DeyeInverter::sendCurrentRegisterRead() {
 
     auto & current = _registersToRead[_commandPosition];
+
+    if(current.readRegister.startsWith("AT+")){
+        sendSocketMessage(current.readRegister+"\n");
+        return;
+    }
+
     String data = "0103";
     data += current.readRegister;
 
@@ -470,6 +517,25 @@ void DeyeInverter::spwapBuffers() {
     _systemConfigParaParser->setLimitPercent(DeyeUtils::defaultParseFloat(42,_payloadStatisticBuffer));
 
     _devInfoParser->clearBuffer();
-    _devInfoParser->appendFragment(0,_payloadStatisticBuffer+44,2*5+2*5);
+    _devInfoParser->appendFragment(0,_payloadStatisticBuffer+44,2);
     _devInfoParser->setLastUpdate(millis());
+}
+
+bool DeyeInverter::resolveHostname() {
+    DNSClient dns;
+    IPAddress remote_addr;
+
+    Serial.print("Try to resolve hostname: ");
+    Serial.println(_hostnameOrIp);
+
+    dns.begin(WiFi.dnsIP());
+    auto ret = dns.getHostByName(_hostnameOrIp, remote_addr);
+    if (ret == 1) {
+        Serial.print("Resolved Ip is: ");
+        Serial.println(remote_addr);
+        _ipAdress = std::make_unique<IPAddress>(remote_addr);
+        return true;
+    }
+    Serial.println("Could not resolve hostname");
+    return false;
 }
