@@ -163,3 +163,7 @@ uint8_t InverterAbstract::verifyAllFragments(CommandAbstract* cmd)
 
     return FRAGMENT_OK;
 }
+
+inverter_type InverterAbstract::getInverterType() {
+    return inverter_type::Inverter_Hoymiles;
+}

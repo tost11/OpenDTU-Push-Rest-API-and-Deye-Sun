@@ -96,9 +96,20 @@ void WebApiLimitClass::onLimitPost(AsyncWebServerRequest* request)
 
     if (!(root.containsKey("serial")
             && root.containsKey("limit_value")
-            && root.containsKey("limit_type"))) {
+            && root.containsKey("limit_type")
+            && root.containsKey("manufacturer"))) {
         retMsg["message"] = "Values are missing!";
         retMsg["code"] = WebApiError::GenericValueMissing;
+        response->setLength();
+        request->send(response);
+        return;
+    }
+
+    auto inverterType = to_inverter_type(root["manufacturer"].as<String>());
+
+    if(inverterType == inverter_type::Inverter_count){
+        retMsg["message"] = "Inverter not Found";
+        retMsg["code"] = WebApiError::LimitInvalidInverter;
         response->setLength();
         request->send(response);
         return;
@@ -137,7 +148,7 @@ void WebApiLimitClass::onLimitPost(AsyncWebServerRequest* request)
     uint16_t limit = root["limit_value"].as<uint16_t>();
     PowerLimitControlType type = root["limit_type"].as<PowerLimitControlType>();
 
-    auto inv = InverterHandler.getInverterBySerial(serial);
+    auto inv = InverterHandler.getInverterBySerial(serial,inverterType);
     if (inv == nullptr) {
         retMsg["message"] = "Invalid inverter specified!";
         retMsg["code"] = WebApiError::LimitInvalidInverter;

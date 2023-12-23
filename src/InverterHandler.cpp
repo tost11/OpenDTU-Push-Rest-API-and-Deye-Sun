@@ -52,21 +52,20 @@ void InverterHandlerClass::setPollInterval(uint32_t interval) {
     }
 }
 
-std::shared_ptr<BaseInverterClass> InverterHandlerClass::getInverterBySerial(uint64_t serial) {
-    for (const auto &item: _handlers){
-        auto res = item->getInverterBySerial(serial);
-        if(res != nullptr){
-            return res;
-        }
+std::shared_ptr<BaseInverterClass> InverterHandlerClass::getInverterBySerial(uint64_t serial,inverter_type inverterType) {
+    if(inverterType == inverter_type::Inverter_Hoymiles){
+        return std::reinterpret_pointer_cast<BaseInverterClass>(Hoymiles.getInverterBySerial(serial));
+    }
+    if(inverterType == inverter_type::Inverter_DeyeSun){
+        return std::reinterpret_pointer_cast<BaseInverterClass>(DeyeSun.getInverterBySerial(serial));
     }
     return nullptr;
 }
 
-void InverterHandlerClass::removeInverterBySerial(uint64_t serial) {
-    for (const auto &item: _handlers){
-        if(item->getInverterBySerial(serial) != nullptr){
-            item->removeInverterBySerial(serial);
-            return;
-        }
+void InverterHandlerClass::removeInverterBySerial(uint64_t serial,inverter_type inverterType) {
+    if(inverterType == inverter_type::Inverter_Hoymiles){
+        Hoymiles.removeInverterBySerial(serial);
+    }else if(inverterType == Inverter_DeyeSun){
+        DeyeSun.removeInverterBySerial(serial);
     }
 }

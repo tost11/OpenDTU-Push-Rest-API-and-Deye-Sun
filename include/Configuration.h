@@ -2,6 +2,8 @@
 #pragma once
 
 #include <cstdint>
+#include <WString.h>
+#include "defines.h"
 
 #define CONFIG_FILENAME "/config.json"
 #define CONFIG_VERSION 0x00011900 // 0.1.24 // make sure to clean all after change
@@ -36,12 +38,6 @@ struct CHANNEL_CONFIG_T {
     uint16_t MaxChannelPower;
     char Name[CHAN_MAX_NAME_STRLEN];
     float YieldTotalOffset;
-};
-
-
-enum inverter_type {
-    Inverter_Hoymiles = 0,
-    Inverter_DeyeSun = 1
 };
 
 struct INVERTER_CONFIG_T {

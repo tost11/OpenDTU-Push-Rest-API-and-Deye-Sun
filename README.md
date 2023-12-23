@@ -9,7 +9,27 @@
 Currently, I am working on two features:
 
 - Push data via rest to extern Application [here](https://github.com/tost11/OpenDTU-Push-Rest-API/tree/feature/push-rest-api)
-- Implement Logic to add and Monitor Deye Sun,Bosswerk Inverters, Not Finished yet! [here](https://github.com/tost11/OpenDTU-Push-Rest-API/tree/feature/deye-sun)
+- Implement Logic to add and Monitor Deye Sun,Bosswerk Inverters, Not everything working yet! [here](https://github.com/tost11/OpenDTU-Push-Rest-API/tree/feature/deye-sun)
+
+## Dye Sun Branch
+
+The esp will connect via udp to the configured ip and port.
+It will read all data every 5 minutes (more is not supported by device)
+Reachable check will be done more often
+
+Original implementation for Hoymiles inverts will work in parallel
+
+### Working
+
+- Reading data
+- Configuring via UI
+
+### Not working
+
+- Setting limit
+- Tun on and off
+- Showing logs
+- Dynamic view for different Deye Invert Models (DC Inputs)
 
 ## !! IMPORTANT UPGRADE NOTES !!
 

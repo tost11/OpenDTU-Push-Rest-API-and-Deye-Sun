@@ -2,6 +2,7 @@
 
 #include <vector>
 #include "BaseInverterHandler.h"
+#include "Configuration.h"
 
 class InverterHandlerClass {
 public:
@@ -10,13 +11,13 @@ public:
     size_t getNumInverters();
 
     std::shared_ptr<BaseInverterClass> getInverterByPos(uint8_t pos);
-    std::shared_ptr<BaseInverterClass> getInverterBySerial(uint64_t serial);
+    std::shared_ptr<BaseInverterClass> getInverterBySerial(uint64_t serial,inverter_type inverterTyp);
 
     void init();
 
     uint32_t PollInterval() const;
     void setPollInterval(uint32_t interval);
-    void removeInverterBySerial(uint64_t serial);
+    void removeInverterBySerial(uint64_t serial,inverter_type inverterType);
 private:
 
     uint32_t _pollInterval = 0;

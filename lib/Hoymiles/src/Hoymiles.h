@@ -29,6 +29,7 @@ public:
     std::shared_ptr<InverterAbstract> getInverterBySerial(uint64_t serial) override;
     std::shared_ptr<InverterAbstract> getInverterByFragment(fragment_t* fragment);
     void removeInverterBySerial(uint64_t serial) override;
+
     size_t getNumInverters() override;
 
     HoymilesRadio_NRF* getRadioNrf();

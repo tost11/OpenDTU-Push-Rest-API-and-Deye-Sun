@@ -56,7 +56,7 @@
                             <div class="btn-toolbar p-2" role="toolbar">
                                 <div class="btn-group me-2" role="group">
                                     <button :disabled="!isLogged" type="button" class="btn btn-sm btn-danger"
-                                        @click="onShowLimitSettings(inverter.serial)" v-tooltip :title="$t('home.ShowSetInverterLimit')">
+                                        @click="onShowLimitSettings(inverter.serial,inverter.manufacturer)" v-tooltip :title="$t('home.ShowSetInverterLimit')">
                                         <BIconSpeedometer style="font-size:24px;" />
 
                                     </button>
@@ -72,7 +72,7 @@
 
                                 <div class="btn-group me-2" role="group">
                                     <button type="button" class="btn btn-sm btn-info"
-                                        @click="onShowDevInfo(inverter.serial)" v-tooltip :title="$t('home.ShowInverterInfo')">
+                                        @click="onShowDevInfo(inverter.serial,inverter.manufacturer)" v-tooltip :title="$t('home.ShowInverterInfo')">
                                         <BIconCpu style="font-size:24px;" />
 
                                     </button>
@@ -80,7 +80,7 @@
 
                                 <div class="btn-group me-2" role="group">
                                     <button type="button" class="btn btn-sm btn-info"
-                                        @click="onShowGridProfile(inverter.serial)" v-tooltip :title="$t('home.ShowGridProfile')">
+                                        @click="onShowGridProfile(inverter.serial,inverter.manufacturer)" v-tooltip :title="$t('home.ShowGridProfile')">
                                         <BIconOutlet style="font-size:24px;" />
 
                                     </button>
@@ -89,7 +89,7 @@
                                 <div class="btn-group" role="group">
                                     <button v-if="inverter.events >= 0" type="button"
                                         class="btn btn-sm btn-secondary position-relative"
-                                        @click="onShowEventlog(inverter.serial)" v-tooltip :title="$t('home.ShowEventlog')">
+                                        @click="onShowEventlog(inverter.serial,inverter.manufacturer)" v-tooltip :title="$t('home.ShowEventlog')">
                                         <BIconJournalText style="font-size:24px;" />
                                         <span
                                             class="position-absolute top-0 start-100 translate-middle badge rounded-pill text-bg-danger">
@@ -204,6 +204,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <form @submit="onSubmitLimit">
+                    <input type="hidden" id="manufacturer" v-model="targetLimitList.manufacturer">
                     <div class="modal-header">
                         <h5 class="modal-title">{{ $t('home.LimitSettings') }}</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -578,9 +579,9 @@ export default defineComponent({
         onHideEventlog() {
             this.eventLogView.hide();
         },
-        onShowEventlog(serial: number) {
+        onShowEventlog(serial: number,manufacturer: String) {
             this.eventLogLoading = true;
-            fetch("/api/eventlog/status?inv=" + serial, { headers: authHeader() })
+            fetch("/api/eventlog/status?inv=" + serial + "&manufacturer="+manufacturer, { headers: authHeader() })
                 .then((response) => handleResponse(response, this.$emitter, this.$router))
                 .then((data) => {
                     this.eventLogList = data;
@@ -592,13 +593,14 @@ export default defineComponent({
         onHideDevInfo() {
             this.devInfoView.hide();
         },
-        onShowDevInfo(serial: number) {
+        onShowDevInfo(serial: number,manufacturer: string) {
             this.devInfoLoading = true;
-            fetch("/api/devinfo/status?inv=" + serial, { headers: authHeader() })
+            fetch("/api/devinfo/status?inv=" + serial + "&manufacturer="+manufacturer, { headers: authHeader() })
                 .then((response) => handleResponse(response, this.$emitter, this.$router))
                 .then((data) => {
                     this.devInfoList = data;
                     this.devInfoList.serial = serial;
+                    this.devInfoList.manufacturer = manufacturer;
                     this.devInfoLoading = false;
                 });
 
@@ -607,9 +609,9 @@ export default defineComponent({
         onHideGridProfile() {
             this.devInfoView.hide();
         },
-        onShowGridProfile(serial: number) {
+        onShowGridProfile(serial: number,manufacturer: String) {
             this.gridProfileLoading = true;
-            fetch("/api/gridprofile/status?inv=" + serial, { headers: authHeader() })
+            fetch("/api/gridprofile/status?inv=" + serial + "&manufacturer="+manufacturer, { headers: authHeader() })
                 .then((response) => handleResponse(response, this.$emitter, this.$router))
                 .then((data) => {
                     this.gridProfileList = data;
@@ -621,11 +623,12 @@ export default defineComponent({
         onHideLimitSettings() {
             this.showAlertLimit = false;
         },
-        onShowLimitSettings(serial: number) {
+        onShowLimitSettings(serial: number,manufacturer: String) {
             this.targetLimitList.serial = 0;
             this.targetLimitList.limit_value = 0;
             this.targetLimitType = 1;
             this.targetLimitTypeText = this.$t('home.Relative');
+            this.targetLimitList.manufacturer = manufacturer;
 
             this.limitSettingLoading = true;
             fetch("/api/limit/status", { headers: authHeader() })

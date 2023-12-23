@@ -63,6 +63,8 @@ public:
 
     bool resolveHostname();
 
+    inverter_type getInverterType() override;
+
 private:
 
     void sendSocketMessage(String message);
@@ -76,9 +78,10 @@ private:
     //these timers seem to work good no idea what's best and what causes what
     static const uint32_t TIMER_FETCH_DATA = 5 * 60 * 1000;
     static const uint32_t TIMER_HEALTH_CHECK = 20 * 1000;
-    static const uint32_t TIMER_ERROR_BACKOFF = 100;
-    static const uint32_t TIMER_BETWEEN_SENDS = 500;
+    static const uint32_t TIMER_ERROR_BACKOFF = 3 * 1000;
+    static const uint32_t TIMER_BETWEEN_SENDS = 200;
     static const uint32_t TIMER_RESOLVE_HOSTNAME = 30 * 1000;
+    static const uint32_t TIMER_TIMEOUT = 1200;
 
     static const uint32_t INIT_COMMAND_START_SKIP = 2;
 

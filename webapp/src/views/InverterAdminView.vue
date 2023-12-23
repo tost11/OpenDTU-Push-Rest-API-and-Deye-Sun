@@ -4,13 +4,11 @@
             {{ alert.message }}
         </BootstrapAlert>
 
-        <label for="inputTimezone" class="col-sm-2 col-form-label">Inverter Type to add</label>
-        <div class="col-sm-10">
-          <select class="form-select" v-model="newInverterData.type">
-            <option selected>Hoymiles</option>
-            <option>DeyeSun</option>
-          </select>
-        </div>
+        <label>Inverter Type to add</label>
+        <select class="form-select" v-model="newInverterData.manufacturer">
+          <option selected>Hoymiles</option>
+          <option>DeyeSun</option>
+        </select>
         <br/>
 
         <CardElement :text="$t('inverteradmin.AddInverter')" textVariant="text-bg-primary">
@@ -25,12 +23,12 @@
                   <input v-model="newInverterData.name" type="text" class="form-control ml-sm-2 mr-sm-4 my-2"
                          maxlength="31" required />
                 </div>
-                <div v-if="newInverterData.type == 'DeyeSun'" class="form-group">
+                <div v-if="newInverterData.manufacturer == 'DeyeSun'" class="form-group">
                   <label>{{ "Hostname or Ip" }}</label>
                   <input v-model="newInverterData.hostname_or_ip" type="text" class="form-control ml-sm-2 mr-sm-4 my-2"
                          maxlength="31" required />
                 </div>
-                <div v-if="newInverterData.type == 'DeyeSun'" class="form-group">
+                <div v-if="newInverterData.manufacturer == 'DeyeSun'" class="form-group">
                   <label>{{ "Port" }}</label>
                   <input v-model="newInverterData.port" type="number" class="form-control ml-sm-2 mr-sm-4 my-2" maxlength="5"
                          required />
@@ -292,6 +290,7 @@ declare interface Inverter {
     hostname_or_ip: string;
     port: number;
     type: string;
+    manufacturer: string;
     order: number;
     poll_enable: boolean;
     poll_enable_night: boolean;
@@ -327,7 +326,7 @@ export default defineComponent({
         return {
             modal: {} as bootstrap.Modal,
             modalDelete: {} as bootstrap.Modal,
-            newInverterData: {type:"Hoymiles"} as Inverter,
+            newInverterData: {manufacturer:"Hoymiles"} as Inverter,
             selectedInverterData: {} as Inverter,
             inverters: [] as Inverter[],
             dataLoading: true,
@@ -384,7 +383,7 @@ export default defineComponent({
         },
         onSubmit() {
             this.callInverterApiEndpoint("add", JSON.stringify(this.newInverterData));
-            this.newInverterData = {type:"Hoymiles"} as Inverter;
+            this.newInverterData = {manufacturer:"Hoymiles"} as Inverter;
         },
         onDelete() {
             this.callInverterApiEndpoint("del", JSON.stringify({ id: this.selectedInverterData.id }));

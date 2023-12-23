@@ -81,7 +81,7 @@ public:
     bool setChannelFieldValue(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId, float value);
 
     float getChannelFieldOffset(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId);
-    void setChannelFieldOffset(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId, float offset);
+    void setChannelFieldOffset(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId, float offset) override;
 
     std::list<ChannelNum_t> getChannelsByType(ChannelType_t type) override;
 

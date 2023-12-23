@@ -116,6 +116,7 @@ void WebApiWsLiveClass::generateJsonResponse(JsonVariant& root)
         invObject["poll_enabled"] = inv->getEnablePolling();
         invObject["reachable"] = inv->isReachable();
         invObject["producing"] = inv->isProducing();
+        invObject["manufacturer"] = from_inverter_type(inv->getInverterType());
         invObject["limit_relative"] = inv->SystemConfigPara()->getLimitPercent();
         if (inv->DevInfo()->getMaxPower() > 0) {
             invObject["limit_absolute"] = inv->SystemConfigPara()->getLimitPercent() * inv->DevInfo()->getMaxPower() / 100.0;

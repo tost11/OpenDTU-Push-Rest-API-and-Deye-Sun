@@ -89,6 +89,16 @@ void WebApiPowerClass::onPowerPost(AsyncWebServerRequest* request)
         return;
     }
 
+    auto inverterType = to_inverter_type(root["manufacturer"].as<String>());
+
+    if(inverterType == inverter_type::Inverter_count){
+        retMsg["message"] = "Inverter not Found";
+        retMsg["code"] = WebApiError::PowerInvalidInverter;
+        response->setLength();
+        request->send(response);
+        return;
+    }
+
     if (!(root.containsKey("serial")
             && (root.containsKey("power")
                 || root.containsKey("restart")))) {
@@ -108,7 +118,7 @@ void WebApiPowerClass::onPowerPost(AsyncWebServerRequest* request)
     }
 
     uint64_t serial = strtoll(root["serial"].as<String>().c_str(), NULL, 16);
-    auto inv = InverterHandler.getInverterBySerial(serial);
+    auto inv = InverterHandler.getInverterBySerial(serial,inverterType);
     if (inv == nullptr) {
         retMsg["message"] = "Invalid inverter specified!";
         retMsg["code"] = WebApiError::PowerInvalidInverter;

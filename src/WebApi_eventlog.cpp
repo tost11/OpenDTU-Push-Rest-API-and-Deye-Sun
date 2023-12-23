@@ -35,7 +35,23 @@ void WebApiEventlogClass::onEventlogStatus(AsyncWebServerRequest* request)
         serial = strtoll(s.c_str(), NULL, 16);
     }
 
-    auto inv = InverterHandler.getInverterBySerial(serial);
+    if(!request->hasParam("manufacturer")){
+        response->setCode(400);
+        response->setLength();
+        request->send(response);
+        return;
+    }
+
+    auto type = to_inverter_type(request->getParam("manufacturer")->value());
+
+    if(type == inverter_type::Inverter_count){
+        response->setCode(400);
+        response->setLength();
+        request->send(response);
+        return;
+    }
+
+    auto inv = InverterHandler.getInverterBySerial(serial,type);
 
     if (inv != nullptr) {
         uint8_t logEntryCount = inv->EventLog()->getEntryCount();

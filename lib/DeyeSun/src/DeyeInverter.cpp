@@ -28,11 +28,12 @@ const std::vector<RegisterMapping> DeyeInverter::_registersToRead = {
         RegisterMapping("0045",1,10),
         RegisterMapping("0047",1,12),
         RegisterMapping("0049",1,18),
-        RegisterMapping("004C",1,30),
+        RegisterMapping("004C",1,28),
         RegisterMapping("004F",1,20),
         RegisterMapping("003B",1,34),
         RegisterMapping("0056",2,22),
         RegisterMapping("005A",1,32),
+        RegisterMapping("0032",1,30),
 };
 
 static const byteAssign_t byteAssignment[] = {
@@ -58,9 +59,9 @@ static const byteAssign_t byteAssignment[] = {
         { TYPE_AC, CH0, FLD_PAC, UNIT_W, 22, 4, 10, false, 1 },
         //{ TYPE_AC, CH0, FLD_Q, UNIT_VAR, 26, 2, 10, false, 1 },
         { TYPE_AC, CH0, FLD_F, UNIT_HZ, 20, 2, 100, false, 2 },
-        { TYPE_AC, CH0, FLD_PF, UNIT_NONE, 30, 2, 1000, false, 3 },//todo calculate
+        { TYPE_AC, CH0, FLD_PF, UNIT_NONE, 30, 2, 1000, false, 3 },
 
-        { TYPE_INV, CH0, FLD_T, UNIT_C, 32, 2, 10, true, 1 },
+        { TYPE_INV, CH0, FLD_T, UNIT_C, 32, 2, 100, true, 1 },
         { TYPE_INV, CH0, FLD_EVT_LOG, UNIT_NONE, 34, 2, 1, false, 0 },//current status
 
         //{ TYPE_AC, CH0, FLD_YD, UNIT_WH, CALC_YD_CH0, 0, CMD_CALC, false, 0 },
@@ -231,13 +232,13 @@ void DeyeInverter::updateSocket() {
         Serial.println(num);
         if(_startCommand){
             if(!parseInitInformation(num)){
+                sendSocketMessage("AT+Q\n");
                 _socket->stop();
                 _socket = nullptr;
                 return;
             }
             _startCommand = false;
             sendSocketMessage("+ok");
-            //sendSocketMessage("+ok");
             //sendCurrentRegisterRead();
             _timerBetweenSends = millis();
         }else{
@@ -278,6 +279,7 @@ void DeyeInverter::updateSocket() {
                 //sendCurrentRegisterRead();
             }else{
                 _timerErrorBackOff = millis();
+                sendSocketMessage("AT+Q\n");
                 _socket->stop();
                 _socket = nullptr;
                 return;
@@ -293,8 +295,9 @@ void DeyeInverter::updateSocket() {
         }
     }else {
         //timeout of one second
-        if (millis() - _timerTimeoutCheck > (1 * 1000)) {
+        if (millis() - _timerTimeoutCheck > TIMER_TIMEOUT) {
             Serial.println("Max poll time overtook try again");
+            sendSocketMessage("AT+Q\n");
             _socket->stop();
             _socket = nullptr;
         }
@@ -456,20 +459,38 @@ int DeyeInverter::handleRegisterRead(size_t length) {
         String finalResult;
 
         for (int i = 0; i < hexString.length(); i = i + 2) {
-
-            String test;
-
-            test += hexString[i];
-            test += hexString[i + 1];
-
-            Serial.print("COnverting: ");
-            Serial.println(test);
-
             unsigned number = hex_char_to_int(hexString[i]); // most signifcnt nibble
             unsigned lsn = hex_char_to_int(hexString[i + 1]); // least signt nibble
             number = (number << 4) + lsn;
             finalResult += (char) number;
         }
+
+        if(current.readRegister == "005A"){//temperature needs minus 10
+            int16_t value = (int16_t)DeyeUtils::defaultParseUInt(0,(uint8_t*)finalResult.c_str(),1);
+
+            value -= 1000;
+
+            if(value < -1000){
+                value = -1000;
+            }
+
+            Serial.print("Caluclated value is: ");
+            Serial.println(value);
+
+            std::stringstream stream;
+            stream << std::setfill ('0') << std::setw(sizeof(int16_t)*2)<< std::hex << value;
+            hexString = stream.str().c_str();
+
+            finalResult = "";
+
+            for (int i = 0; i < hexString.length(); i = i + 2) {
+                unsigned number = hex_char_to_int(hexString[i]); // most signifcnt nibble
+                unsigned lsn = hex_char_to_int(hexString[i + 1]); // least signt nibble
+                number = (number << 4) + lsn;
+                finalResult += (char) number;
+            }
+        }
+
         appendFragment(current.targetPos,(uint8_t*)(finalResult.c_str()),current.length*2);//I know this is string cast is ugly
     }
 
@@ -486,6 +507,11 @@ void DeyeInverter::appendFragment(uint8_t offset, uint8_t* payload, uint8_t len)
 }
 
 void DeyeInverter::sendCurrentRegisterRead() {
+
+    if((_commandPosition == INIT_COMMAND_START_SKIP && !_needInitData ) ||
+       (_commandPosition == 0 && _needInitData)){
+        //sendSocketMessage("+ok");
+    }
 
     auto & current = _registersToRead[_commandPosition];
 
@@ -538,4 +564,8 @@ bool DeyeInverter::resolveHostname() {
     }
     Serial.println("Could not resolve hostname");
     return false;
+}
+
+inverter_type DeyeInverter::getInverterType() {
+    return inverter_type::Inverter_DeyeSun;
 }
