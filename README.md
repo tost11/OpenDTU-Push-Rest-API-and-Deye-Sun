@@ -13,11 +13,15 @@ Currently, I am working on two features:
 
 ## Dye Sun Branch
 
-The esp will connect via udp to the configured ip and port.
+This feature Branch is intended to read out Deye Sun Micro PV Inverters and make use of the original project UI and features
+
+The esp will connect via udp to the configured ip/hostname and port.
 It will read all data every 5 minutes (more is not supported by device)
 Reachable check will be done more often
 
 Original implementation for Hoymiles inverts will work in parallel
+
+Tested with model: SUN300G3-EU-230
 
 ### Working
 

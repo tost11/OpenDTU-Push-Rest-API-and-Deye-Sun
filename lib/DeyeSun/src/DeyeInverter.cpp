@@ -160,9 +160,9 @@ _socket(nullptr){
     _devInfoParser->setMaxPowerDevider(10);
 
     String model = "unknown Deye Sun";
-    if(_serialString.startsWith("415")){
+    if(_serialString.startsWith("415")){//TODO find out more ids and check if correct
         model = "SUN600G3-EU-230";
-    }else if(_serialString.startsWith("413")){
+    }else if(_serialString.startsWith("413")){//TODO find out more ids and check if correct
         model = "SUN300G3-EU-230";
     }
     _devInfoParser->setHardwareModel(model);
