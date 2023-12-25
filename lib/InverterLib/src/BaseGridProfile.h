@@ -10,7 +10,7 @@
 
 class BaseGridProfile : public Updater {
 public:
-    virtual std::vector<uint8_t> getRawData() = 0;
+    virtual std::vector<uint8_t> getRawData() const = 0;
 };
 
 

@@ -7,6 +7,14 @@
 
 #include <ctime>
 #include <WString.h>
+#include <cstdint>
+#include "Updater.h"
+
+enum class AlarmMessageLocale_t {
+    EN,
+    DE,
+    FR
+};
 
 struct AlarmLogEntry_t {
     uint16_t MessageId;
@@ -15,13 +23,10 @@ struct AlarmLogEntry_t {
     time_t EndTime;
 };
 
-#include <cstdint>
-#include "Updater.h"
-
 class BaseAlarmLog : public Updater {
 public:
-    virtual uint8_t getEntryCount() = 0;
-    virtual void getLogEntry(uint8_t entryId, AlarmLogEntry_t* entry) = 0;
+    virtual uint8_t getEntryCount() const = 0;
+    virtual void getLogEntry(const uint8_t entryId, AlarmLogEntry_t& entry, const AlarmMessageLocale_t locale) = 0;
 };
 
 

@@ -12,27 +12,27 @@ public:
 
     void appendFragment(uint8_t offset, uint8_t* payload, uint8_t len);
 
-    uint32_t getLastUpdateAll() override;
+    uint32_t getLastUpdateAll() const override;
 
     void setLastUpdateAll(uint32_t lastUpdate) override;
 
-    uint32_t getLastUpdateSimple() override;
+    uint32_t getLastUpdateSimple() const override;
 
     void setLastUpdateSimple(uint32_t lastUpdate) override;
 
-    uint16_t getFwBootloaderVersion() override;
+    uint16_t getFwBootloaderVersion() const override;
 
-    uint16_t getFwBuildVersion() override;
+    uint16_t getFwBuildVersion() const override;
 
-    time_t getFwBuildDateTime() override;
+    time_t getFwBuildDateTime() const override;
 
-    uint32_t getHwPartNumber() override;
+    uint32_t getHwPartNumber() const override;
 
-    String getHwVersion() override;
+    String getHwVersion() const override;
 
-    uint16_t getMaxPower() override;
+    uint16_t getMaxPower() const override;
 
-    String getHwModelName() override;
+    String getHwModelName() const override;
 
     void setMaxPowerDevider(uint8_t dev);
 

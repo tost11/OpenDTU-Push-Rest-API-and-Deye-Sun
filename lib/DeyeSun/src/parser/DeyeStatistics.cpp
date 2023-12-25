@@ -6,7 +6,7 @@ DeyeStatistics::DeyeStatistics() {
     field = "Field";
 }
 
-std::list<ChannelNum_t> DeyeStatistics::getChannelsByType(ChannelType_t type) {
+std::list<ChannelNum_t> DeyeStatistics::getChannelsByType(ChannelType_t type) const {
     //TODO implmeent
 
     std::list<ChannelNum_t> ret;
@@ -27,15 +27,15 @@ float DeyeStatistics::getChannelFieldValue(ChannelType_t type, ChannelNum_t chan
     return 1;
 }
 
-uint8_t DeyeStatistics::getChannelFieldDigits(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) {
+uint8_t DeyeStatistics::getChannelFieldDigits(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) const {
     return 1;
 }
 
-bool DeyeStatistics::hasChannelFieldValue(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) {
+bool DeyeStatistics::hasChannelFieldValue(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) const {
     return true;
 }
 
-const char *DeyeStatistics::getChannelFieldName(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) {
+const char *DeyeStatistics::getChannelFieldName(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) const {
     return value.c_str();
 }
 
@@ -43,6 +43,6 @@ String DeyeStatistics::getChannelFieldValueString(ChannelType_t type, ChannelNum
     return field;
 }
 
-const char *DeyeStatistics::getChannelFieldUnit(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) {
+const char *DeyeStatistics::getChannelFieldUnit(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) const {
     return unit.c_str();
 }

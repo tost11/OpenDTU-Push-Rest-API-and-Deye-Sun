@@ -279,20 +279,6 @@ void StatisticsParser::setChannelFieldOffset(const ChannelType_t type, const Cha
     }
 }
 
-std::list<ChannelType_t> StatisticsParser::getChannelTypes() const
-{
-    return {
-        TYPE_AC,
-        TYPE_DC,
-        TYPE_INV
-    };
-}
-
-const char* StatisticsParser::getChannelTypeName(const ChannelType_t type) const
-{
-    return channelsTypes[type];
-}
-
 std::list<ChannelNum_t> StatisticsParser::getChannelsByType(const ChannelType_t type) const
 {
     std::list<ChannelNum_t> l;

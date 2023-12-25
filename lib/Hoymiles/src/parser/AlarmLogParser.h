@@ -16,12 +16,6 @@ enum class AlarmMessageType_t {
     HMT
 };
 
-enum class AlarmMessageLocale_t {
-    EN,
-    DE,
-    FR
-};
-
 typedef struct {
     AlarmMessageType_t InverterType;
     uint16_t MessageId;

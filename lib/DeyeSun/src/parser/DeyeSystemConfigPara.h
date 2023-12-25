@@ -4,7 +4,7 @@
 
 class DeyeSystemConfigPara : public BaseSystemConfigPara {
 public:
-    float getLimitPercent() override;
+    float getLimitPercent() const override;
 
-    LastCommandSuccess getLastLimitCommandSuccess() override;
+    LastCommandSuccess getLastLimitCommandSuccess() const override;
 };

@@ -304,11 +304,11 @@ void DeyeInverter::updateSocket() {
     }
 }
 
-uint64_t DeyeInverter::serial() {
+uint64_t DeyeInverter::serial() const {
     return _serial;
 }
 
-String DeyeInverter::typeName() {
+String DeyeInverter::typeName() const {
     return _devInfoParser->getHwModelName();
 }
 

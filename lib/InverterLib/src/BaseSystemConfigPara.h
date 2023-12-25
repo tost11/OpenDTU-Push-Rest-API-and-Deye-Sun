@@ -12,8 +12,8 @@
 
 class BaseSystemConfigPara : public Updater {
 public:
-    virtual float getLimitPercent() = 0;
-    virtual LastCommandSuccess getLastLimitCommandSuccess() = 0;
+    virtual float getLimitPercent() const = 0;
+    virtual LastCommandSuccess getLastLimitCommandSuccess() const = 0;
 };
 
 

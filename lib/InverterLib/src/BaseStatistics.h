@@ -61,11 +61,11 @@ public:
     virtual std::list<ChannelNum_t> getChannelsByType(const ChannelType_t type) const = 0;
 
     virtual float getChannelFieldValue(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) = 0;
-    virtual uint8_t getChannelFieldDigits(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) = 0;
-    virtual bool hasChannelFieldValue(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) = 0;
-    virtual const char* getChannelFieldName(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) = 0;
+    virtual uint8_t getChannelFieldDigits(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) const = 0;
+    virtual bool hasChannelFieldValue(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) const = 0;
+    virtual const char* getChannelFieldName(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) const = 0;
     virtual String getChannelFieldValueString(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) = 0;
-    virtual const char* getChannelFieldUnit(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) = 0;
+    virtual const char* getChannelFieldUnit(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) const = 0;
     virtual void setChannelFieldOffset(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId, float offset) = 0;
 
     uint16_t getStringMaxPower(const uint8_t channel) const;

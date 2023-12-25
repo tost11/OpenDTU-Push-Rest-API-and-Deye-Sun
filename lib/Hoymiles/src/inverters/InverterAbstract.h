@@ -35,23 +35,8 @@ public:
     virtual const byteAssign_t* getByteAssignment() const = 0;
     virtual uint8_t getByteAssignmentSize() const = 0;
 
-    bool isProducing();
-    bool isReachable();
-
-    void setEnablePolling(bool enabled);
-    bool getEnablePolling();
-
-    void setEnableCommands(bool enabled);
-    bool getEnableCommands();
-
-    void setReachableThreshold(uint8_t threshold);
-    uint8_t getReachableThreshold();
-
-    void setZeroValuesIfUnreachable(bool enabled);
-    bool getZeroValuesIfUnreachable();
-
-    void setZeroYieldDayOnMidnight(bool enabled);
-    bool getZeroYieldDayOnMidnight();
+    bool isProducing() override;
+    bool isReachable() override;
 
     void clearRxFragmentBuffer();
     void addRxFragment(const uint8_t fragment[], const uint8_t len);

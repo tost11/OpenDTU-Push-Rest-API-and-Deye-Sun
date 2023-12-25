@@ -82,9 +82,9 @@ public:
     bool setChannelFieldValue(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId, float value);
 
     float getChannelFieldOffset(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId);
-    void setChannelFieldOffset(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId, const float offset);
+    void setChannelFieldOffset(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId, const float offset) override;
 
-  std::list<ChannelNum_t> getChannelsByType(const ChannelType_t type) const;
+    std::list<ChannelNum_t> getChannelsByType(const ChannelType_t type) const override;
 
     void resetRxFailureCount();
     void incrementRxFailureCount();

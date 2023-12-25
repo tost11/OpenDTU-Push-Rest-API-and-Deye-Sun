@@ -433,7 +433,9 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
         inv->setReachableThreshold(inverter.ReachableThreshold);
         inv->setZeroValuesIfUnreachable(inverter.ZeroRuntimeDataIfUnrechable);
         inv->setZeroYieldDayOnMidnight(inverter.ZeroYieldDayOnMidnight);
-        inv->Statistics()->setYieldDayCorrection(inverter.YieldDayCorrection);
+        if(inv->getInverterType() == inverter_type::Inverter_Hoymiles) {
+            static_cast<StatisticsParser*>(inv->Statistics())->setYieldDayCorrection(inverter.YieldDayCorrection);
+        }
         for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
             inv->Statistics()->setStringMaxPower(c, inverter.channel[c].MaxChannelPower);
             inv->Statistics()->setChannelFieldOffset(TYPE_DC, static_cast<ChannelNum_t>(c), FLD_YT, inverter.channel[c].YieldTotalOffset);

@@ -25,9 +25,9 @@ public:
     std::shared_ptr<DeyeInverter> getInverterByPos(uint8_t pos) override;
     std::shared_ptr<DeyeInverter> getInverterBySerial(uint64_t serial) override;
     void removeInverterBySerial(uint64_t serial) override;
-    size_t getNumInverters() override;
+    size_t getNumInverters() const override;
 
-    bool isAllRadioIdle() override;
+    bool isAllRadioIdle() const override;
 
     void init() override;
 

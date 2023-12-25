@@ -1,5 +1,5 @@
 #include "DeyePowerCommand.h"
 
-LastCommandSuccess DeyePowerCommand::getLastPowerCommandSuccess() {
+LastCommandSuccess DeyePowerCommand::getLastPowerCommandSuccess() const {
     return CMD_NOK;
 }

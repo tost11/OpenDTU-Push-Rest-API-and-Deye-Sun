@@ -4,5 +4,5 @@
 
 class DeyePowerCommand : public BasePowerCommand {
 public:
-    LastCommandSuccess getLastPowerCommandSuccess() override;
+    LastCommandSuccess getLastPowerCommandSuccess() const override;
 };

@@ -37,7 +37,7 @@ void InverterSettingsClass::init(Scheduler& scheduler)
     DeyeSun.init();
 
     MessageOutput.println("  Setting Deye poll interval... ");
-    DeyeSun.setPollInterval(config.Dtu_PollInterval);
+    Hoymiles.setPollInterval(config.Dtu.PollInterval);
 
     for (uint8_t i = 0; i < INV_MAX_COUNT; i++) {
         if (config.Inverter[i].Type == inverter_type::Inverter_DeyeSun && config.Inverter[i].Serial > 0) {

@@ -5,5 +5,5 @@
 
 class BasePowerCommand : public Updater {
 public:
-    virtual LastCommandSuccess getLastPowerCommandSuccess() = 0;
+    virtual LastCommandSuccess getLastPowerCommandSuccess() const = 0;
 };

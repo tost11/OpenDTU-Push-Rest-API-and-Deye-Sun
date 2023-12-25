@@ -2,7 +2,7 @@
 #include "DeyeDevInfo.h"
 #include "DeyeUtils.h"
 
-uint32_t DeyeDevInfo::getLastUpdateAll() {
+uint32_t DeyeDevInfo::getLastUpdateAll() const {
     return 0;
 }
 
@@ -10,7 +10,7 @@ void DeyeDevInfo::setLastUpdateAll(uint32_t lastUpdate) {
 
 }
 
-uint32_t DeyeDevInfo::getLastUpdateSimple() {
+uint32_t DeyeDevInfo::getLastUpdateSimple() const {
     return 0;
 }
 
@@ -18,34 +18,34 @@ void DeyeDevInfo::setLastUpdateSimple(uint32_t lastUpdate) {
 
 }
 
-uint16_t DeyeDevInfo::getFwBootloaderVersion() {
+uint16_t DeyeDevInfo::getFwBootloaderVersion() const {
     return 0;
 }
 
-uint16_t DeyeDevInfo::getFwBuildVersion() {
+uint16_t DeyeDevInfo::getFwBuildVersion() const {
     return 0;
 }
 
-time_t DeyeDevInfo::getFwBuildDateTime() {
+time_t DeyeDevInfo::getFwBuildDateTime() const {
     return 0;
 }
 
-uint32_t DeyeDevInfo::getHwPartNumber() {
+uint32_t DeyeDevInfo::getHwPartNumber() const {
     return 0;
 }
 
-String DeyeDevInfo::getHwVersion() {
+String DeyeDevInfo::getHwVersion() const {
     return _hardwareVersion;
 }
 
-uint16_t DeyeDevInfo::getMaxPower() {
+uint16_t DeyeDevInfo::getMaxPower() const {
     if(_devInfoLength >= 2){
         return DeyeUtils::defaultParseUInt(0,_payloadDevInfo,_maxPowerDevider);
     }
     return 0;
 }
 
-String DeyeDevInfo::getHwModelName() {
+String DeyeDevInfo::getHwModelName() const {
     return _hardwareModel;
 }
 

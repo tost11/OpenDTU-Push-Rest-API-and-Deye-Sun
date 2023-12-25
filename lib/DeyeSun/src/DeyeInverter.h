@@ -35,9 +35,9 @@ public:
     explicit DeyeInverter(uint64_t serial);
     ~DeyeInverter() = default;
 
-    uint64_t serial() override;
+    uint64_t serial() const override;
 
-    String typeName() override;
+    String typeName() const override;
 
     bool isProducing() override;
 

@@ -29,8 +29,8 @@ public:
     StatT* Statistics(){return _statisticsParser.get();}
     SysT* SystemConfigPara(){return _systemConfigParaParser.get();}
 
-    virtual uint64_t serial() = 0;
-    virtual String typeName() = 0;
+    virtual uint64_t serial() const = 0;
+    virtual String typeName() const = 0;
 
     virtual bool isProducing() = 0;
     virtual bool isReachable() = 0;

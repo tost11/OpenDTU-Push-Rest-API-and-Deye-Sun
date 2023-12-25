@@ -36,3 +36,4 @@ void BaseStatistics::setLastUpdateFromInternal(uint32_t lastUpdate)
 {
     _lastUpdateFromInternal = lastUpdate;
 }
+

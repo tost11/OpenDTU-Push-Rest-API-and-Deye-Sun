@@ -15,8 +15,8 @@ template<class InverterType,class StatT,class DevT,class SysT,class AlarmT,class
 class BaseInverterHandler {
 public:
     virtual void init() = 0;
-    virtual bool isAllRadioIdle() = 0;
-    virtual size_t getNumInverters() = 0;
+    virtual bool isAllRadioIdle() const = 0;
+    virtual size_t getNumInverters() const = 0;
 
     virtual std::shared_ptr<InverterType> getInverterByPos(uint8_t pos) = 0;
     virtual std::shared_ptr<InverterType> getInverterBySerial(uint64_t serial) = 0;

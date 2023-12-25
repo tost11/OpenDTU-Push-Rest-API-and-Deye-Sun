@@ -15,7 +15,7 @@ public:
     void setLimitPercent(const float value);
 
     void setLastLimitCommandSuccess(const LastCommandSuccess status);
-    LastCommandSuccess getLastLimitCommandSuccess() const;
+    LastCommandSuccess getLastLimitCommandSuccess() const override;
     uint32_t getLastUpdateCommand() const;
     void setLastUpdateCommand(const uint32_t lastUpdate);
 

@@ -83,13 +83,13 @@ void DeyeSunClass::removeInverterBySerial(uint64_t serial)
     }
 }
 
-size_t DeyeSunClass::getNumInverters()
+size_t DeyeSunClass::getNumInverters() const
 {
     return _inverters.size();
 }
 
 
-bool DeyeSunClass::isAllRadioIdle()
+bool DeyeSunClass::isAllRadioIdle() const
 {
     //TODO
     return true;
