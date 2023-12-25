@@ -127,7 +127,10 @@ void InverterSettingsClass::init(Scheduler& scheduler)
     _hoyTask.setIterations(TASK_FOREVER);
     _hoyTask.enable();
 
-    //TODO add deye task
+    scheduler.addTask(_deyeTask);
+    _deyeTask.setCallback(std::bind(&InverterSettingsClass::deyeLoop, this));
+    _deyeTask.setIterations(TASK_FOREVER);
+    _deyeTask.enable();
 
     scheduler.addTask(_settingsTask);
     _settingsTask.setCallback(std::bind(&InverterSettingsClass::settingsLoop, this));
@@ -163,5 +166,10 @@ void InverterSettingsClass::settingsLoop()
 void InverterSettingsClass::hoyLoop()
 {
     Hoymiles.loop();
+}
+
+
+void InverterSettingsClass::deyeLoop()
+{
     DeyeSun.loop();
 }

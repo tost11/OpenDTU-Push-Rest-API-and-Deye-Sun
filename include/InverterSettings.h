@@ -13,9 +13,11 @@ public:
 private:
     void settingsLoop();
     void hoyLoop();
+    void deyeLoop();
 
     Task _settingsTask;
     Task _hoyTask;
+    Task _deyeTask;
 };
 
 extern InverterSettingsClass InverterSettings;

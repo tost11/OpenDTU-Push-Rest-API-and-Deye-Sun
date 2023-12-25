@@ -22,6 +22,9 @@ template<class StatT,class DevT,class SysT,class AlarmT,class GridT,class PowerT
         typename = std::enable_if<std::is_base_of<BasePowerCommand,PowerT>::value>>
 class BaseInverter {
 public:
+    BaseInverter() = default;
+    ~BaseInverter() = default;
+
     AlarmT* EventLog(){return _alarmLogParser.get();}
     DevT* DevInfo(){return _devInfoParser.get();}
     GridT* GridProfile(){return _gridProfileParser.get();}

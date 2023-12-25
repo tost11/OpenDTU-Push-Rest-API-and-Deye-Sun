@@ -5,7 +5,6 @@
 #include <vector>
 #include <mutex>
 #include <HardwareSerial.h>
-#include "DeyeInverter.h"
 #include "BaseInverterHandler.h"
 #include "parser/DeyeDevInfo.h"
 #include "parser/DeyeSystemConfigPara.h"
@@ -13,6 +12,7 @@
 #include "parser/DeyeGridProfile.h"
 #include "parser/DeyePowerCommand.h"
 #include "parser/StatisticsParser.h"
+#include "inverters/DeyeInverter.h"
 
 class DeyeSunClass: public BaseInverterHandler<DeyeInverter,DeyeStatistics,DeyeDevInfo,DeyeSystemConfigPara,DeyeAlarmLog,DeyeGridProfile,DeyePowerCommand> {
 public:

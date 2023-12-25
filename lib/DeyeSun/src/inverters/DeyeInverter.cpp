@@ -7,71 +7,6 @@
 #include <ios>
 #include <iomanip>
 
-const std::vector<RegisterMapping> DeyeInverter::_registersToRead = {
-        RegisterMapping("0010",1,44),//init rated power
-        //RegisterMapping("000C",1,46),//init Hardware Version
-        //RegisterMapping("001D",1,48),//init DC Master Firmware Version
-        //RegisterMapping("001E",1,50),//init AC Version. Number
-        //RegisterMapping("0012",1,52),//init Communication Protocol Version
-        //RegisterMapping("0003",5,54),//init Inverter ID
-        //RegisterMapping("000C",1,46),//init Hardware Version
-        RegisterMapping("AT+YZVER",0,0),//firmware version
-        RegisterMapping("0028",1,42),//limit always check
-        RegisterMapping("006D",1,2),
-        RegisterMapping("006F",1,6),
-        RegisterMapping("006E",1,4),
-        RegisterMapping("0070",1,8),
-        RegisterMapping("003C",1,36),
-        RegisterMapping("0041",1,14),
-        RegisterMapping("0042",1,16),
-        RegisterMapping("003F",2,38),
-        RegisterMapping("0045",1,10),
-        RegisterMapping("0047",1,12),
-        RegisterMapping("0049",1,18),
-        RegisterMapping("004C",1,28),
-        RegisterMapping("004F",1,20),
-        RegisterMapping("003B",1,34),
-        RegisterMapping("0056",2,22),
-        RegisterMapping("005A",1,32),
-        RegisterMapping("0032",1,30),
-};
-
-static const byteAssign_t byteAssignment[] = {
-        //type, channel, field,  uint, first, byte in buffer, number of bytes in buffer, divisor, isSigned; // allow negative numbers, digits; // number of valid digits after the decimal point
-        { TYPE_DC, CH0, FLD_UDC, UNIT_V, 2, 2, 10, false, 1 },
-        { TYPE_DC, CH0, FLD_IDC, UNIT_A, 4, 2, 10, false, 2 },
-        //{ TYPE_DC, CH0, FLD_PDC, UNIT_W, 6, 2, 10, false, 1 },
-        { TYPE_DC, CH0, FLD_PDC, UNIT_W, CALC_PDC, CH0, CMD_CALC, false, 2 },
-        { TYPE_DC, CH0, FLD_YD, UNIT_KWH, 14, 2, 100, false, 1 },
-        { TYPE_DC, CH0, FLD_YT, UNIT_KWH, 10, 2, 10, false, 0 },
-        { TYPE_DC, CH0, FLD_IRR, UNIT_PCT, CALC_IRR_CH, CH0, CMD_CALC, false, 3 },
-
-        { TYPE_DC, CH1, FLD_UDC, UNIT_V, 6, 2, 10, false, 1 },
-        { TYPE_DC, CH1, FLD_IDC, UNIT_A, 8, 2, 10, false, 2 },
-        //{ TYPE_DC, CH1, FLD_PDC, UNIT_W, 12, 2, 10, false, 1 },
-        { TYPE_DC, CH1, FLD_PDC, UNIT_W, CALC_PDC, CH1, CMD_CALC, false, 2 },
-        { TYPE_DC, CH1, FLD_YD, UNIT_KWH, 16, 2, 100, false, 1 },
-        { TYPE_DC, CH1, FLD_YT, UNIT_KWH, 12, 2, 10, false, 0 },
-        { TYPE_DC, CH1, FLD_IRR, UNIT_PCT, CALC_IRR_CH, CH1, CMD_CALC, false, 3 },
-
-        { TYPE_AC, CH0, FLD_UAC, UNIT_V, 18, 2, 10, false, 1 },
-        { TYPE_AC, CH0, FLD_IAC, UNIT_A, 28, 2, 10, false, 2 },
-        { TYPE_AC, CH0, FLD_PAC, UNIT_W, 22, 4, 10, false, 1 },
-        //{ TYPE_AC, CH0, FLD_Q, UNIT_VAR, 26, 2, 10, false, 1 },
-        { TYPE_AC, CH0, FLD_F, UNIT_HZ, 20, 2, 100, false, 2 },
-        { TYPE_AC, CH0, FLD_PF, UNIT_NONE, 30, 2, 1000, false, 3 },
-
-        { TYPE_INV, CH0, FLD_T, UNIT_C, 32, 2, 100, true, 1 },
-        { TYPE_INV, CH0, FLD_EVT_LOG, UNIT_NONE, 34, 2, 1, false, 0 },//current status
-
-        //{ TYPE_AC, CH0, FLD_YD, UNIT_WH, CALC_YD_CH0, 0, CMD_CALC, false, 0 },
-        { TYPE_AC, CH0, FLD_YD, UNIT_KWH, 36, 2, 100, false, 1 },
-        //{ TYPE_AC, CH0, FLD_YT, UNIT_KWH, CALC_YT_CH0, 0, CMD_CALC, false, 3 },
-        { TYPE_AC, CH0, FLD_YT, UNIT_KWH, 38, 4, 10, false, 0 },
-        { TYPE_AC, CH0, FLD_PDC, UNIT_W, CALC_PDC_CH0, 0, CMD_CALC, false, 1 },
-        { TYPE_AC, CH0, FLD_EFF, UNIT_PCT, CALC_EFF_CH0, 0, CMD_CALC, false, 3 }
-};
-
 unsigned DeyeInverter::hex_char_to_int( char c ) {
     unsigned result = -1;
     if( ('0' <= c) && (c <= '9') ) {
@@ -156,16 +91,7 @@ _socket(nullptr){
     _statisticsParser.reset(new StatisticsParser());
     _systemConfigParaParser.reset(new SystemConfigParaParser());
 
-    _statisticsParser->setByteAssignment(byteAssignment,sizeof(byteAssignment) / sizeof(byteAssignment[0]));
     _devInfoParser->setMaxPowerDevider(10);
-
-    String model = "unknown Deye Sun";
-    if(_serialString.startsWith("415")){//TODO find out more ids and check if correct
-        model = "SUN600G3-EU-230";
-    }else if(_serialString.startsWith("413")){//TODO find out more ids and check if correct
-        model = "SUN300G3-EU-230";
-    }
-    _devInfoParser->setHardwareModel(model);
 
     _needInitData = true;
     _commandPosition = 0;
@@ -254,7 +180,7 @@ void DeyeInverter::updateSocket() {
                     Serial.println("Succesfully healtcheck");
                     return;
                 }
-                if(_commandPosition +1 >= _registersToRead.size()){
+                if(_commandPosition +1 >= getRegisteresToRead().size()){
                     sendSocketMessage("AT+Q\n");
                     _socket->stop();
                     _socket = nullptr;
@@ -398,7 +324,7 @@ int DeyeInverter::handleRegisterRead(size_t length) {
         return -2;
     }
 
-    auto & current = _registersToRead[_commandPosition];
+    auto & current = getRegisteresToRead()[_commandPosition];
 
     if(current.readRegister.startsWith("AT+")){
         if(current.readRegister == "AT+YZVER"){
@@ -513,7 +439,7 @@ void DeyeInverter::sendCurrentRegisterRead() {
         //sendSocketMessage("+ok");
     }
 
-    auto & current = _registersToRead[_commandPosition];
+    auto & current = getRegisteresToRead()[_commandPosition];
 
     if(current.readRegister.startsWith("AT+")){
         sendSocketMessage(current.readRegister+"\n");
@@ -569,3 +495,21 @@ bool DeyeInverter::resolveHostname() {
 inverter_type DeyeInverter::getInverterType() {
     return inverter_type::Inverter_DeyeSun;
 }
+
+String DeyeInverter::serialToModel(uint64_t serial) {
+
+    char serial_buff[sizeof(uint64_t) * 8 + 1];
+    snprintf(serial_buff, sizeof(serial_buff), "%0x%08x",
+             ((uint32_t)((serial >> 32) & 0xFFFFFFFF)),
+             ((uint32_t)(serial & 0xFFFFFFFF)));
+    String serialString = serial_buff;
+
+    if(serialString.startsWith("415")){//TODO find out more ids and check if correct
+        return "SUN600G3-EU-230";
+    }else if(serialString.startsWith("413")){//TODO find out more ids and check if correct
+        return "SUN300G3-EU-230";
+    }
+
+    return "Unknown Deye Sun Inverter";
+}
+

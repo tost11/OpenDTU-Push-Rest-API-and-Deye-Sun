@@ -1,4 +1,7 @@
 #include "DeyeSun.h"
+#include "inverters/DeyeInverter.h"
+#include "inverters/DS_1CH.h"
+#include "inverters/DS_2CH.h"
 
 DeyeSunClass DeyeSun;
 
@@ -38,9 +41,13 @@ std::shared_ptr<DeyeInverter> DeyeSunClass::addInverter(const char* name, uint64
 {
     std::shared_ptr<DeyeInverter> i = nullptr;
 
-    //TODO validate serial
+    String type = DeyeInverter::serialToModel(serial);
 
-    i = std::make_unique<DeyeInverter>(serial);
+    if(type.startsWith("SUN300G3")){
+        i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<DS_1CH>(serial,type));
+    }else{
+        i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<DS_2CH>(serial,type));
+    }
 
     if (i) {
         i->setName(name);

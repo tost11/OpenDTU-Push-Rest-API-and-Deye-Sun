@@ -33,7 +33,7 @@ struct RegisterMapping{
 class DeyeInverter : public BaseInverter<StatisticsParser,DeyeDevInfo,SystemConfigParaParser,DeyeAlarmLog,DeyeGridProfile,DeyePowerCommand> {
 public:
     explicit DeyeInverter(uint64_t serial);
-    ~DeyeInverter() = default;
+    virtual ~DeyeInverter() = default;
 
     uint64_t serial() const override;
 
@@ -65,6 +65,7 @@ public:
 
     inverter_type getInverterType() override;
 
+    static String serialToModel(uint64_t serial);
 private:
 
     void sendSocketMessage(String message);
@@ -96,7 +97,7 @@ private:
     uint32_t _commandPosition;
 
     bool _startCommand;
-    static const std::vector<RegisterMapping> _registersToRead;
+    virtual const std::vector<RegisterMapping> & getRegisteresToRead() = 0;
 
     uint64_t _serial;
     char _hostnameOrIp[MAX_NAME_HOST] = "";
@@ -111,4 +112,6 @@ private:
     static String modbusCRC16FromASCII(const String &input);
 
     void appendFragment(uint8_t offset, uint8_t *payload, uint8_t len);
+
+
 };
