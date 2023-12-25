@@ -56,9 +56,9 @@ const char* const channelsTypes[] = { "AC", "DC", "INV" };
 class BaseStatistics : public Updater {
 
 public:
-    std::list<ChannelType_t> getChannelTypes();
-    const char* getChannelTypeName(ChannelType_t type);
-    virtual std::list<ChannelNum_t> getChannelsByType(ChannelType_t type) = 0;
+    std::list<ChannelType_t> getChannelTypes() const;
+    const char* getChannelTypeName(const ChannelType_t type) const;
+    virtual std::list<ChannelNum_t> getChannelsByType(const ChannelType_t type) const = 0;
 
     virtual float getChannelFieldValue(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) = 0;
     virtual uint8_t getChannelFieldDigits(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) = 0;
@@ -68,11 +68,11 @@ public:
     virtual const char* getChannelFieldUnit(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) = 0;
     virtual void setChannelFieldOffset(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId, float offset) = 0;
 
-    uint16_t getStringMaxPower(uint8_t channel);
-    void setStringMaxPower(uint8_t channel, uint16_t power);
+    uint16_t getStringMaxPower(const uint8_t channel) const;
+    void setStringMaxPower(const uint8_t channel, const uint16_t power);
 
     // Update time when internal data structure changes (from inverter and by internal manipulation)
-    uint32_t getLastUpdateFromInternal();
+    uint32_t getLastUpdateFromInternal() const;
     void setLastUpdateFromInternal(uint32_t lastUpdate);
 private:
 

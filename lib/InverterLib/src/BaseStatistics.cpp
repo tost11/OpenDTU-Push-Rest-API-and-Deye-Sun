@@ -1,7 +1,7 @@
 
 #include "BaseStatistics.h"
 
-std::list<ChannelType_t> BaseStatistics::getChannelTypes()
+std::list<ChannelType_t> BaseStatistics::getChannelTypes() const
 {
     return {
             TYPE_AC,
@@ -10,12 +10,12 @@ std::list<ChannelType_t> BaseStatistics::getChannelTypes()
     };
 }
 
-const char* BaseStatistics::getChannelTypeName(ChannelType_t type)
+const char* BaseStatistics::getChannelTypeName(ChannelType_t type) const
 {
     return channelsTypes[type];
 }
 
-uint16_t BaseStatistics::getStringMaxPower(uint8_t channel)
+uint16_t BaseStatistics::getStringMaxPower(uint8_t channel) const
 {
     return _stringMaxPower[channel];
 }
@@ -27,7 +27,7 @@ void BaseStatistics::setStringMaxPower(uint8_t channel, uint16_t power)
     }
 }
 
-uint32_t BaseStatistics::getLastUpdateFromInternal()
+uint32_t BaseStatistics::getLastUpdateFromInternal() const
 {
     return _lastUpdateFromInternal;
 }

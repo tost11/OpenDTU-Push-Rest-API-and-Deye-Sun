@@ -61,41 +61,45 @@ class StatisticsParser : public Parser, public BaseStatistics {
 public:
     StatisticsParser();
     void clearBuffer();
-    void appendFragment(uint8_t offset, uint8_t* payload, uint8_t len);
+    void appendFragment(const uint8_t offset, const uint8_t* payload, const uint8_t len);
+    void endAppendFragment();
 
-    void setByteAssignment(const byteAssign_t* byteAssignment, uint8_t size);
+    void setByteAssignment(const byteAssign_t* byteAssignment, const uint8_t size);
 
     // Returns 1 based amount of expected bytes of statistic data
     uint8_t getExpectedByteCount();
 
-    const byteAssign_t* getAssignmentByChannelField(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId);
-    fieldSettings_t* getSettingByChannelField(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId);
+    const byteAssign_t* getAssignmentByChannelField(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId) const;
+    fieldSettings_t* getSettingByChannelField(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId);
 
-    float getChannelFieldValue(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) override;
-    String getChannelFieldValueString(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) override;
-    bool hasChannelFieldValue(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) override;
-    const char* getChannelFieldUnit(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) override;
-    const char* getChannelFieldName(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) override;
-    uint8_t getChannelFieldDigits(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) override;
+    float getChannelFieldValue(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId) override;
+    String getChannelFieldValueString(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId) override;
+    bool hasChannelFieldValue(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId) const override;
+    const char* getChannelFieldUnit(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId) const override;
+    const char* getChannelFieldName(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId) const override;
+    uint8_t getChannelFieldDigits(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId) const override;
 
-    bool setChannelFieldValue(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId, float value);
+    bool setChannelFieldValue(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId, float value);
 
-    float getChannelFieldOffset(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId);
-    void setChannelFieldOffset(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId, float offset) override;
+    float getChannelFieldOffset(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId);
+    void setChannelFieldOffset(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId, const float offset);
 
-    std::list<ChannelNum_t> getChannelsByType(ChannelType_t type) override;
+  std::list<ChannelNum_t> getChannelsByType(const ChannelType_t type) const;
 
     void resetRxFailureCount();
     void incrementRxFailureCount();
-    uint32_t getRxFailureCount();
+    uint32_t getRxFailureCount() const;
 
     void zeroRuntimeData();
     void zeroDailyData();
+    void resetYieldDayCorrection();
 
     // Update time when new data from the inverter is received
-    void setLastUpdate(uint32_t lastUpdate);
+    void setLastUpdate(const uint32_t lastUpdate);
 
 
+    bool getYieldDayCorrection() const;
+    void setYieldDayCorrection(const bool enabled);
 private:
     void zeroFields(const FieldId_t* fields);
 
@@ -108,4 +112,7 @@ private:
     std::list<fieldSettings_t> _fieldSettings;
 
     uint32_t _rxFailureCount = 0;
+
+    bool _enableYieldDayCorrection = false;
+    float _lastYieldDay[CH_CNT] = {};
 };

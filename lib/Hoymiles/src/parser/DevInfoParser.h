@@ -9,32 +9,32 @@ class DevInfoParser : public Parser, public BaseDevInfo {
 public:
     DevInfoParser();
     void clearBufferAll();
-    void appendFragmentAll(uint8_t offset, uint8_t* payload, uint8_t len);
+    void appendFragmentAll(const uint8_t offset, const uint8_t* payload, const uint8_t len);
 
     void clearBufferSimple();
-    void appendFragmentSimple(uint8_t offset, uint8_t* payload, uint8_t len);
+    void appendFragmentSimple(const uint8_t offset, const uint8_t* payload, const uint8_t len);
 
-    uint32_t getLastUpdateAll() override;
-    void setLastUpdateAll(uint32_t lastUpdate) override;
+    uint32_t getLastUpdateAll() const override;
+    void setLastUpdateAll(const uint32_t lastUpdate) override;
 
-    uint32_t getLastUpdateSimple() override;
-    void setLastUpdateSimple(uint32_t lastUpdate) override;
+    uint32_t getLastUpdateSimple() const override;
+    void setLastUpdateSimple(const uint32_t lastUpdate) override;
 
-    uint16_t getFwBuildVersion() override;
-    time_t getFwBuildDateTime() override;
-    uint16_t getFwBootloaderVersion() override;
+    uint16_t getFwBuildVersion() const override;
+    time_t getFwBuildDateTime() const override;
+    uint16_t getFwBootloaderVersion() const override;
 
-    uint32_t getHwPartNumber() override;
-    String getHwVersion() override;
+    uint32_t getHwPartNumber() const override;
+    String getHwVersion() const override;
 
-    uint16_t getMaxPower() override;
-    String getHwModelName() override;
+    uint16_t getMaxPower() const override;
+    String getHwModelName() const override;
 
-    bool containsValidData();
+    bool containsValidData() const;
 
 private:
-    time_t timegm(struct tm* tm);
-    uint8_t getDevIdx();
+    static time_t timegm(const struct tm* tm);
+    uint8_t getDevIdx() const;
 
     uint32_t _lastUpdateAll = 0;
     uint32_t _lastUpdateSimple = 0;

@@ -35,10 +35,10 @@ public:
     virtual bool isProducing() = 0;
     virtual bool isReachable() = 0;
 
-    virtual bool sendActivePowerControlRequest(float limit, PowerLimitControlType type) = 0;
+    virtual bool sendActivePowerControlRequest(float limit,const PowerLimitControlType type) = 0;
     virtual bool resendPowerControlRequest() = 0;
     virtual bool sendRestartControlRequest() = 0;
-    virtual bool sendPowerControlRequest(bool turnOn) = 0;
+    virtual bool sendPowerControlRequest(const bool turnOn) = 0;
     virtual inverter_type getInverterType() = 0;
 protected:
 
@@ -61,7 +61,7 @@ protected:
     std::unique_ptr<PowerT> _powerCommandParser;
 
 public:
-    void setReachableThreshold(uint8_t threshold)
+    void setReachableThreshold(const uint8_t threshold)
     {
         _reachableThreshold = threshold;
     }
@@ -81,7 +81,7 @@ public:
         return _zeroValuesIfUnreachable;
     }
 
-    void setZeroYieldDayOnMidnight(bool enabled)
+    void setZeroYieldDayOnMidnight(const bool enabled)
     {
         _zeroYieldDayOnMidnight = enabled;
     }
@@ -92,7 +92,7 @@ public:
     }
 
 
-    const String& serialString()
+    const String& serialString() const
     {
         return _serialString;
     }
@@ -107,12 +107,12 @@ public:
         _name[len] = '\0';
     }
 
-    const char* name()
+    const char* name() const
     {
         return _name;
     }
 
-    void setEnablePolling(bool enabled)
+    void setEnablePolling(const bool enabled)
     {
         _enablePolling = enabled;
     }
@@ -122,7 +122,7 @@ public:
         return _enablePolling;
     }
 
-    void setEnableCommands(bool enabled)
+    void setEnableCommands(const bool enabled)
     {
         _enableCommands = enabled;
     }

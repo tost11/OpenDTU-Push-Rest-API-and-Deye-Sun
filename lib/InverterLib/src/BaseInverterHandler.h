@@ -23,12 +23,14 @@ public:
 
     virtual void removeInverterBySerial(uint64_t serial) = 0;
 
+
+    uint32_t PollInterval() const {return _pollInterval;};
+    void setPollInterval(const uint32_t interval){_pollInterval=interval;}
 protected:
     uint32_t _pollInterval = 0;
     uint32_t _lastPoll = 0;
 
 public:
-    void setPollInterval(uint32_t interval){_pollInterval = interval;}
 };
 
 using BaseInverterHandlerClass = BaseInverterHandler<BaseInverterClass ,BaseStatistics,BaseDevInfo,BaseSystemConfigPara,BaseAlarmLog,BaseGridProfile,BasePowerCommand>;
