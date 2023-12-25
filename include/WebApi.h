@@ -7,6 +7,7 @@
 #include "WebApi_dtu.h"
 #include "WebApi_eventlog.h"
 #include "WebApi_firmware.h"
+#include "WebApi_gridprofile.h"
 #include "WebApi_inverter.h"
 #include "WebApi_limit.h"
 #include "WebApi_maintenance.h"
@@ -21,12 +22,12 @@
 #include "WebApi_ws_console.h"
 #include "WebApi_ws_live.h"
 #include <ESPAsyncWebServer.h>
+#include <TaskSchedulerDeclarations.h>
 
 class WebApiClass {
 public:
     WebApiClass();
-    void init();
-    void loop();
+    void init(Scheduler& scheduler);
 
     static bool checkCredentials(AsyncWebServerRequest* request);
     static bool checkCredentialsReadonly(AsyncWebServerRequest* request);
@@ -34,8 +35,11 @@ public:
     static void sendTooManyRequests(AsyncWebServerRequest* request);
 
 private:
+    void loop();
+
+    Task _loopTask;
+
     AsyncWebServer _server;
-    AsyncEventSource _events;
 
     WebApiConfigClass _webApiConfig;
     WebApiDeviceClass _webApiDevice;
@@ -43,6 +47,7 @@ private:
     WebApiDtuClass _webApiDtu;
     WebApiEventlogClass _webApiEventlog;
     WebApiFirmwareClass _webApiFirmware;
+    WebApiGridProfileClass _webApiGridprofile;
     WebApiInverterClass _webApiInverter;
     WebApiLimitClass _webApiLimit;
     WebApiMaintenanceClass _webApiMaintenance;
