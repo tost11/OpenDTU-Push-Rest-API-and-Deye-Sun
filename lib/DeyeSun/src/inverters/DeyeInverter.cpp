@@ -52,8 +52,8 @@ unsigned short DeyeInverter::modbusCRC16FromHex(const String & message)
 
 String DeyeInverter::modbusCRC16FromASCII(const String & input) {
 
-    Serial.print("Calculating crc for: ");
-    Serial.println(input);
+    //Serial.print("Calculating crc for: ");
+    //Serial.println(input);
 
     String hexString;
 
@@ -87,7 +87,7 @@ _socket(nullptr){
     _alarmLogParser.reset(new DeyeAlarmLog());
     _devInfoParser.reset(new DeyeDevInfo());
     _gridProfileParser.reset(new DeyeGridProfile());
-    _powerCommandParser.reset(new DeyePowerCommand());
+    _powerCommandParser.reset(new PowerCommandParser());
     _statisticsParser.reset(new StatisticsParser());
     _systemConfigParaParser.reset(new SystemConfigParaParser());
 
@@ -115,118 +115,41 @@ void DeyeInverter::sendSocketMessage(String message) {
 void DeyeInverter::updateSocket() {
 
     if (!WiFi.isConnected()) {
-        Serial.println("Wifi not connected");
+        //Serial.println("Wifi not connected");
         _socket = nullptr;
         return;
     }
 
-    if(_ipAdress == nullptr){
-        if(_timerResolveHostname == 0 or millis() - _timerResolveHostname > (TIMER_RESOLVE_HOSTNAME)){
+    if (_ipAdress == nullptr) {
+        if (_timerResolveHostname == 0 or millis() - _timerResolveHostname > (TIMER_RESOLVE_HOSTNAME)) {
             _timerResolveHostname = millis();
             resolveHostname();
         }
     }
 
-    if(_ipAdress == nullptr){
+    if (_ipAdress == nullptr) {
         return;
     }
 
-    if (_timerHealthCheck != 0 and millis() - _timerHealthCheck < (TIMER_HEALTH_CHECK)) {
-        //no fetch needed
-        return;
-    }
-
-    if (_socket == nullptr) {
-        if (millis() - _timerErrorBackOff < (TIMER_ERROR_BACKOFF)) {
-            //wait after error for try again
-            return;
-        }
-        Serial.println("New connection");
-        _socket = std::make_unique<WiFiUDP>();
-        Serial.print("port: ");
-        sendSocketMessage("WIFIKIT-214028-READ");
-        _startCommand = true;
-        _timerBetweenSends = 0;
-    }
-
-    int packetSize = _socket->parsePacket();
-    while (packetSize > 0){
-        Serial.println("Recevied new package");
-        size_t num = _socket->read(_readBuff,packetSize);
-        _socket->flush();
-        _timerTimeoutCheck = millis();
-        Serial.println(num);
-        if(_startCommand){
-            if(!parseInitInformation(num)){
-                sendSocketMessage("AT+Q\n");
-                _socket->stop();
-                _socket = nullptr;
-                return;
-            }
-            _startCommand = false;
-            sendSocketMessage("+ok");
-            //sendCurrentRegisterRead();
-            _timerBetweenSends = millis();
-        }else{
-            int ret = handleRegisterRead(num);
-            if(ret == 0){//ok
-                if(_commandPosition == INIT_COMMAND_START_SKIP && !_needInitData && (millis() - _timerFullPoll < (TIMER_FETCH_DATA))){
-                    sendSocketMessage("AT+Q\n");
-                    _socket->stop();
-                    _socket = nullptr;
-                    _commandPosition = INIT_COMMAND_START_SKIP;
-                    _timerHealthCheck = millis();
-                    spwapBuffers();
-                    Serial.println("Succesfully healtcheck");
-                    return;
-                }
-                if(_commandPosition +1 >= getRegisteresToRead().size()){
-                    sendSocketMessage("AT+Q\n");
-                    _socket->stop();
-                    _socket = nullptr;
-                    _commandPosition = INIT_COMMAND_START_SKIP;
-                    spwapBuffers();
-                    Serial.println("Red succesfull all values");
-                    _timerHealthCheck = millis();
-                    if(_needInitData){
-                        _needInitData = false;
-                        _timerFullPoll = millis();
-                    }else{
-                        //so do exactly match 5 minutes of logger checking data
-                        while(millis() - _timerFullPoll > (TIMER_FETCH_DATA)){
-                            _timerFullPoll += TIMER_FETCH_DATA;
-                        }
-                    }
-                    return;
-                }
-                _timerBetweenSends = millis();
-                _commandPosition++;
-                //pollWait = true;
-                //sendCurrentRegisterRead();
-            }else{
-                _timerErrorBackOff = millis();
-                sendSocketMessage("AT+Q\n");
-                _socket->stop();
-                _socket = nullptr;
-                return;
+    if(_currentWritCommand == nullptr){
+        bool busy = handleRead();
+        if(!busy && _currentWritCommand == nullptr) {
+            if (_powerTargetStatus != nullptr) {
+                Serial.println("Start writing register power status");
+                _currentWritCommand = std::make_unique<WriteRegisterMapping>("002B", 1,*_powerTargetStatus ? "0001" : "0000");
+                _powerTargetStatus = nullptr;
+                _writeErrorCounter = -1;
+            } else if (_limitToSet != nullptr) {
+                Serial.println("Start writing register limit");
+                _currentWritCommand = std::make_unique<WriteRegisterMapping>("0028", 1, lengthToString(*_limitToSet));
+                _limitToSet = nullptr;
+                _writeErrorCounter = -1;
             }
         }
-        packetSize = _socket->parsePacket();
     }
 
-    if(_timerBetweenSends != 0){
-        if (millis() - _timerBetweenSends > TIMER_BETWEEN_SENDS) {
-            sendCurrentRegisterRead();
-            _timerBetweenSends = 0;
-        }
-    }else {
-        //timeout of one second
-        if (millis() - _timerTimeoutCheck > TIMER_TIMEOUT) {
-            Serial.println("Max poll time overtook try again");
-            sendSocketMessage("AT+Q\n");
-            _socket->stop();
-            _socket = nullptr;
-        }
+    if(_currentWritCommand != nullptr){
+        handleWrite();
     }
 }
 
@@ -239,7 +162,15 @@ String DeyeInverter::typeName() const {
 }
 
 bool DeyeInverter::isProducing() {
-    return _statisticsParser->getChannelFieldValue(TYPE_AC,CH0,FLD_PAC) > 0;
+    auto stats = Statistics();
+    float totalAc = 0;
+    for (auto& c : stats->getChannelsByType(TYPE_AC)) {
+        if (stats->hasChannelFieldValue(TYPE_AC, c, FLD_PAC)) {
+            totalAc += stats->getChannelFieldValue(TYPE_AC, c, FLD_PAC);
+        }
+    }
+
+    return _enablePolling && totalAc > 0;
 }
 
 bool DeyeInverter::isReachable() {
@@ -247,7 +178,29 @@ bool DeyeInverter::isReachable() {
 }
 
 bool DeyeInverter::sendActivePowerControlRequest(float limit, PowerLimitControlType type) {
-    return false;
+    Serial.print("limit set to ");
+    Serial.println(limit);
+    if(!(type == AbsolutPersistent || type == RelativPersistent)){
+        return false;
+    }
+
+    uint16_t realLimit;
+    if(type == RelativPersistent){
+        realLimit = (uint16_t)(limit + 0.5);
+    }else{
+        uint16_t maxPower = _devInfoParser->getMaxPower();
+        if(maxPower == 0){
+            SystemConfigPara()->setLastLimitRequestSuccess(CMD_NOK);
+            return false;
+        }
+        realLimit = (uint16_t)(limit / (float)maxPower * 100);
+    }
+    if(realLimit > 100){
+        realLimit = 100;
+    }
+    SystemConfigPara()->setLastLimitRequestSuccess(CMD_PENDING);
+    _limitToSet = std::make_unique<uint16_t>(realLimit);
+    return true;
 }
 
 bool DeyeInverter::resendPowerControlRequest() {
@@ -259,7 +212,12 @@ bool DeyeInverter::sendRestartControlRequest() {
 }
 
 bool DeyeInverter::sendPowerControlRequest(bool turnOn) {
-    return false;
+    if(typeName().startsWith("Unknown")){
+        return false;
+    }
+    _powerTargetStatus = std::make_unique<bool>(turnOn);
+    _powerCommandParser->setLastPowerCommandSuccess(CMD_PENDING);
+    return true;
 }
 
 void DeyeInverter::setHostnameOrIp(const char *hostOrIp) {
@@ -270,7 +228,6 @@ void DeyeInverter::setHostnameOrIp(const char *hostOrIp) {
     }
     strncpy(_hostnameOrIp, hostOrIp, len);
     _hostnameOrIp[len] = '\0';
-
 }
 
 void DeyeInverter::setPort(uint16_t port) {
@@ -303,9 +260,7 @@ bool DeyeInverter::parseInitInformation(size_t length) {
     return true;
 }
 
-int DeyeInverter::handleRegisterRead(size_t length) {
-    Serial.print("Recevied Register Read: ");
-    Serial.println(_readBuff);
+String DeyeInverter::filterReceivedResponse(size_t length){
     String ret;
     for(int i=0;i<length;i++){
         //there are those od characters in response filter them
@@ -313,6 +268,37 @@ int DeyeInverter::handleRegisterRead(size_t length) {
             ret+=_readBuff[i];
         }
     }
+    return ret;
+}
+
+int DeyeInverter::handleRegisterWrite(size_t length) {
+    String ret= filterReceivedResponse(length);
+
+    Serial.print("Fileted recevied Register Wrtie: ");
+    Serial.println(ret);
+
+    if(ret.startsWith("+ERR=")) {
+        if (ret.startsWith("+ERR=-1")) {
+            return -1;
+        }
+        return -2;
+    }
+
+    String expected = "+ok=0110";
+    expected += _currentWritCommand->writeRegister;
+    expected += "0001";
+
+    //todo checksum
+
+    if(!ret.startsWith(expected)) {
+        Serial.println("Write response not correct");
+        return -1000;
+    }
+    return 0;
+}
+
+int DeyeInverter::handleRegisterRead(size_t length) {
+    String ret= filterReceivedResponse(length);
 
     Serial.print("Fileted recevied Register Read: ");
     Serial.println(ret);
@@ -340,6 +326,8 @@ int DeyeInverter::handleRegisterRead(size_t length) {
         }
         return 0;
     }
+
+    //todo add checksum calculation
 
     if(current.length == 2){
         if(!ret.startsWith("+ok=010304")){
@@ -376,10 +364,10 @@ int DeyeInverter::handleRegisterRead(size_t length) {
         String hexString = ret.substring(start, start + (current.length * 4));
 
         if (current.length == 2) {
-            Serial.println("Perfomring permutation");
-            Serial.println(hexString);
+            //Serial.println("Perfomring permutation");
+            //Serial.println(hexString);
             hexString = hexString.substring(4) + hexString.substring(0, 4);
-            Serial.println(hexString);
+            //Serial.println(hexString);
         }
 
         String finalResult;
@@ -400,8 +388,8 @@ int DeyeInverter::handleRegisterRead(size_t length) {
                 value = -1000;
             }
 
-            Serial.print("Caluclated value is: ");
-            Serial.println(value);
+            //erial.print("Caluclated value is: ");
+            //Serial.println(value);
 
             std::stringstream stream;
             stream << std::setfill ('0') << std::setw(sizeof(int16_t)*2)<< std::hex << value;
@@ -449,16 +437,38 @@ void DeyeInverter::sendCurrentRegisterRead() {
     String data = "0103";
     data += current.readRegister;
 
-    std::stringstream ss;
-    ss << std::setw(4) << std::setfill('0') << (int)current.length;
-    data += ss.str().c_str();
+    data += lengthToString(current.length);
 
     String checksum = modbusCRC16FromASCII(data);
 
     sendSocketMessage("AT+INVDATA=8,"+data+checksum+"\n");
 }
 
-void DeyeInverter::spwapBuffers() {
+void DeyeInverter::sendCurrentRegisterWrite() {
+
+    if(_currentWritCommand->length * 2 * 2 != _currentWritCommand->valueToWrite.length()){
+        Serial.print("Write register message not correct length:");
+        Serial.print("expected: ");
+        Serial.print(_currentWritCommand->length * 2 * 2 );
+        Serial.print(" is: ");
+        Serial.print(_currentWritCommand->valueToWrite.length());
+        assert( 0 );
+    }
+
+    String data = "0110";
+    data += _currentWritCommand->writeRegister;
+    data += "0001";
+    data += lengthToString(_currentWritCommand->length * 2,2);
+    data += _currentWritCommand->valueToWrite;
+
+    String checksum = modbusCRC16FromASCII(data);
+
+    Serial.println("Sending socket message write: ");
+    //Serial.println("AT+INVDATA=11,"+data+checksum+"\n");
+    sendSocketMessage("AT+INVDATA=11,"+data+checksum+"\n");
+}
+
+void DeyeInverter::swapBuffers() {
     _statisticsParser->beginAppendFragment();
     _statisticsParser->clearBuffer();
     _statisticsParser->appendFragment(0,_payloadStatisticBuffer,STATISTIC_PACKET_SIZE);
@@ -497,7 +507,6 @@ inverter_type DeyeInverter::getInverterType() {
 }
 
 String DeyeInverter::serialToModel(uint64_t serial) {
-
     char serial_buff[sizeof(uint64_t) * 8 + 1];
     snprintf(serial_buff, sizeof(serial_buff), "%0x%08x",
              ((uint32_t)((serial >> 32) & 0xFFFFFFFF)),
@@ -513,3 +522,178 @@ String DeyeInverter::serialToModel(uint64_t serial) {
     return "Unknown Deye Sun Inverter";
 }
 
+bool DeyeInverter::handleRead() {
+    if (_timerHealthCheck != 0 and millis() - _timerHealthCheck < (TIMER_HEALTH_CHECK)) {
+        //no fetch needed
+        return false;
+    }
+
+    if (_socket == nullptr) {
+        if (millis() - _timerErrorBackOff < (TIMER_ERROR_BACKOFF)) {
+            //wait after error for try again
+            return true;
+        }
+        Serial.println("New connection");
+        _socket = std::make_unique<WiFiUDP>();
+        sendSocketMessage("WIFIKIT-214028-READ");
+        _startCommand = true;
+        _timerBetweenSends = 0;
+    }
+
+    int packetSize = _socket->parsePacket();
+    while (packetSize > 0){
+        Serial.println("Recevied new package");
+        size_t num = _socket->read(_readBuff,packetSize);
+        _socket->flush();
+        _timerTimeoutCheck = millis();
+        Serial.println(num);
+        if(_startCommand){
+            if(!parseInitInformation(num)){
+                endSocket();
+                return true;
+            }
+            _startCommand = false;
+            sendSocketMessage("+ok");
+            //sendCurrentRegisterRead();
+            _timerBetweenSends = millis();
+        }else{
+            int ret = handleRegisterRead(num);
+            if(ret == 0){//ok
+                if(_commandPosition == LAST_HEALTHCHECK_COMMEND && !_needInitData && (millis() - _timerFullPoll < (TIMER_FETCH_DATA))){
+                    endSocket();
+                    _commandPosition = INIT_COMMAND_START_SKIP;
+                    _timerHealthCheck = millis();
+                    swapBuffers();
+                    Serial.println("Succesfully healtcheck");
+                    return true;
+                }
+                if(_commandPosition +1 >= getRegisteresToRead().size()){
+                    endSocket();
+                    _commandPosition = INIT_COMMAND_START_SKIP;
+                    swapBuffers();
+                    Serial.println("Red succesfull all values");
+                    _timerHealthCheck = millis();
+                    if(_needInitData){
+                        _needInitData = false;
+                        _timerFullPoll = millis();
+                    }else{
+                        //so do exactly match 5 minutes of logger checking data
+                        while(millis() - _timerFullPoll > (TIMER_FETCH_DATA)){
+                            _timerFullPoll += TIMER_FETCH_DATA;
+                        }
+                    }
+                    return true;
+                }
+                _timerBetweenSends = millis();
+                _commandPosition++;
+                //pollWait = true;
+                //sendCurrentRegisterRead();
+            }else{
+                _timerErrorBackOff = millis();
+                endSocket();
+                return true;
+            }
+        }
+        packetSize = _socket->parsePacket();
+    }
+
+    if(_timerBetweenSends != 0){
+        if (millis() - _timerBetweenSends > TIMER_BETWEEN_SENDS) {
+            sendCurrentRegisterRead();
+            _timerBetweenSends = 0;
+        }
+    }else {
+        //timeout of one second
+        if (millis() - _timerTimeoutCheck > TIMER_TIMEOUT) {
+            Serial.println("Max poll time overtook try again");
+            endSocket();
+        }
+    }
+    return true;
+}
+
+void DeyeInverter::endSocket() {
+    if(_socket != nullptr) {
+        sendSocketMessage("AT+Q\n");
+        _socket->stop();
+        _oldSocket = std::move(_socket);
+    }
+}
+
+void DeyeInverter::handleWrite() {
+    if (_socket == nullptr) {
+        if (millis() - _timerErrorBackOff < (TIMER_ERROR_BACKOFF)) {
+            //wait after error for try again
+        }
+        _writeErrorCounter++;
+        if(_writeErrorCounter > 10){
+            //TODO do better
+            if(_currentWritCommand->writeRegister == "002B") {
+                _powerCommandParser->setLastPowerCommandSuccess(CMD_NOK);
+            }else if(_currentWritCommand->writeRegister == "0028") {
+                SystemConfigPara()->setLastLimitRequestSuccess(CMD_NOK);
+            }
+            _currentWritCommand = nullptr;
+            return;
+        }
+        Serial.println("New connection for write");
+        _socket = std::make_unique<WiFiUDP>();
+        sendSocketMessage("WIFIKIT-214028-READ");
+        _startCommand = true;
+        _timerBetweenSends = 0;
+    }
+
+    int packetSize = _socket->parsePacket();
+    while (packetSize > 0){
+        Serial.println("Recevied new package");
+        size_t num = _socket->read(_readBuff,packetSize);
+        _socket->flush();
+        _timerTimeoutCheck = millis();
+        Serial.println(num);
+        if(_startCommand){
+            if(!parseInitInformation(num)){
+                endSocket();
+            }
+            _startCommand = false;
+            sendSocketMessage("+ok");
+            //sendCurrentRegisterRead();
+            _timerBetweenSends = millis();
+        }else{
+            int ret = handleRegisterWrite(num);
+            if(ret == 0){//ok
+                endSocket();
+                //TODO do better
+                if(_currentWritCommand->writeRegister == "002B") {
+                    _powerCommandParser->setLastPowerCommandSuccess(CMD_OK);
+                }else if(_currentWritCommand->writeRegister == "0028") {
+                    SystemConfigPara()->setLastLimitRequestSuccess(CMD_OK);
+                }
+                _currentWritCommand = nullptr;
+                return;
+            }
+            _timerErrorBackOff = millis();
+            endSocket();
+            return;
+        }
+        packetSize = _socket->parsePacket();
+    }
+
+    if(_timerBetweenSends != 0){
+        if (millis() - _timerBetweenSends > TIMER_BETWEEN_SENDS) {
+            sendCurrentRegisterWrite();
+            _timerBetweenSends = 0;
+        }
+    }else {
+        //timeout of one second
+        if (millis() - _timerTimeoutCheck > TIMER_TIMEOUT) {
+            Serial.println("Max poll time for write overtook try again");
+            endSocket();
+        }
+    }
+}
+
+String DeyeInverter::lengthToString(uint8_t length,int fill) {
+    std::stringstream ss;
+    ss << std::setw(fill) << std::setfill('0') << (int)length;
+    return ss.str().c_str();
+}

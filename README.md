@@ -27,13 +27,14 @@ Tested with model: SUN300G3-EU-230
 
 - Reading data
 - Configuring via UI
+- Tun on and off (theoretically, setting to off doesn't change anything but working for on (rewiring after red led of death))
+- Setting limit
 
 ### Not working
 
-- Setting limit
-- Tun on and off
 - Showing logs
-- Dynamic view for different Deye Invert Models (DC Inputs)
+- Nice Logging
+- Fancy OpenDTU features like poll interval and so on
 
 ## !! IMPORTANT UPGRADE NOTES !!
 

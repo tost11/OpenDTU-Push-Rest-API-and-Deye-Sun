@@ -7,9 +7,9 @@
 #include "parser/DeyeSystemConfigPara.h"
 #include "parser/DeyeAlarmLog.h"
 #include "parser/DeyeGridProfile.h"
-#include "parser/DeyePowerCommand.h"
 #include "parser/StatisticsParser.h"
 #include "parser/SystemConfigParaParser.h"
+#include "parser/PowerCommandParser.h"
 #include <Arduino.h>
 #include <cstdint>
 #include <list>
@@ -30,7 +30,18 @@ struct RegisterMapping{
     targetPos(targetPos){}
 };
 
-class DeyeInverter : public BaseInverter<StatisticsParser,DeyeDevInfo,SystemConfigParaParser,DeyeAlarmLog,DeyeGridProfile,DeyePowerCommand> {
+struct WriteRegisterMapping{
+    String writeRegister;
+    uint8_t length;
+    String valueToWrite;
+
+    WriteRegisterMapping(const String &writeRegister, uint8_t length, const String &valueToWrite):
+    writeRegister(writeRegister),
+    length(length),
+    valueToWrite(valueToWrite){}
+};
+
+class DeyeInverter : public BaseInverter<StatisticsParser,DeyeDevInfo,SystemConfigParaParser,DeyeAlarmLog,DeyeGridProfile,PowerCommandParser> {
 public:
     explicit DeyeInverter(uint64_t serial);
     virtual ~DeyeInverter() = default;
@@ -56,25 +67,40 @@ public:
 
     void updateSocket();
 
-    bool parseInitInformation(size_t length);
-    int handleRegisterRead(size_t length);
-
-    void spwapBuffers();
-
-    bool resolveHostname();
-
     inverter_type getInverterType() override;
 
     static String serialToModel(uint64_t serial);
+
 private:
+    bool parseInitInformation(size_t length);
+    int handleRegisterRead(size_t length);
+    int handleRegisterWrite(size_t length);
+
+    static String lengthToString(uint8_t length,int fill = 4);
+    String filterReceivedResponse(size_t length);
+
+    bool resolveHostname();
+    void swapBuffers();
+
+    bool handleRead();
+    void handleWrite();
+
+    void endSocket();
 
     void sendSocketMessage(String message);
     void sendCurrentRegisterRead();
+    void sendCurrentRegisterWrite();
     char _readBuff[1000];
 
     std::unique_ptr<UDP> _socket;
+    std::unique_ptr<UDP> _oldSocket;
+
+    std::unique_ptr<bool> _powerTargetStatus;
+    std::unique_ptr<uint16_t > _limitToSet;
 
     std::unique_ptr<IPAddress> _ipAdress;
+
+    std::unique_ptr<WriteRegisterMapping> _currentWritCommand;
 
     //these timers seem to work good no idea what's best and what causes what
     static const uint32_t TIMER_FETCH_DATA = 5 * 60 * 1000;
@@ -84,7 +110,9 @@ private:
     static const uint32_t TIMER_RESOLVE_HOSTNAME = 30 * 1000;
     static const uint32_t TIMER_TIMEOUT = 1200;
 
+    //TODO move to inverter classes
     static const uint32_t INIT_COMMAND_START_SKIP = 2;
+    static const uint32_t LAST_HEALTHCHECK_COMMEND = 4;
 
     bool _needInitData;
 
@@ -98,6 +126,7 @@ private:
 
     bool _startCommand;
     virtual const std::vector<RegisterMapping> & getRegisteresToRead() = 0;
+    int _writeErrorCounter;
 
     uint64_t _serial;
     char _hostnameOrIp[MAX_NAME_HOST] = "";

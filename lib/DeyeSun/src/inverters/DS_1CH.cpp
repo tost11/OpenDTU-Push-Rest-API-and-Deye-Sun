@@ -4,6 +4,7 @@ const std::vector<RegisterMapping> registersToRead = {
         RegisterMapping("0010",1,44),//init rated power
         RegisterMapping("AT+YZVER",0,0),//firmware version
         RegisterMapping("0028",1,42),//limit always check
+        RegisterMapping("002B",1,46),//power status always check
         RegisterMapping("006D",1,2),
         //RegisterMapping("006F",1,6),
         RegisterMapping("006E",1,4),

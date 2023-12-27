@@ -64,7 +64,7 @@
 
                                 <div class="btn-group me-2" role="group">
                                     <button :disabled="!isLogged" type="button" class="btn btn-sm btn-danger"
-                                        @click="onShowPowerSettings(inverter.serial)" v-tooltip :title="$t('home.TurnOnOff')">
+                                        @click="onShowPowerSettings(inverter.serial,inverter.manufacturer)" v-tooltip :title="$t('home.TurnOnOff')">
                                         <BIconPower style="font-size:24px;" />
 
                                     </button>
@@ -444,6 +444,7 @@ export default defineComponent({
 
             powerSettingView: {} as bootstrap.Modal,
             powerSettingSerial: 0,
+            powerManufacturer: "",
             powerSettingLoading: true,
             alertMessagePower: "",
             alertTypePower: "info",
@@ -692,7 +693,7 @@ export default defineComponent({
             this.targetLimitType = type;
         },
 
-        onShowPowerSettings(serial: number) {
+        onShowPowerSettings(serial: number,manufacturer: string) {
             this.powerSettingLoading = true;
             fetch("/api/power/status", { headers: authHeader() })
                 .then((response) => handleResponse(response, this.$emitter, this.$router))
@@ -701,6 +702,7 @@ export default defineComponent({
                     this.powerSettingSerial = serial;
                     this.powerSettingLoading = false;
                 });
+            this.powerManufacturer = manufacturer;
             this.powerSettingView.show();
         },
 
@@ -714,11 +716,13 @@ export default defineComponent({
             if (restart) {
                 data = {
                     serial: this.powerSettingSerial,
+                    manufacturer: this.powerManufacturer,
                     restart: true,
                 };
             } else {
                 data = {
                     serial: this.powerSettingSerial,
+                    manufacturer: this.powerManufacturer,
                     power: turnOn,
                 };
             }

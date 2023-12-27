@@ -10,11 +10,10 @@
 #include "parser/DeyeSystemConfigPara.h"
 #include "parser/DeyeAlarmLog.h"
 #include "parser/DeyeGridProfile.h"
-#include "parser/DeyePowerCommand.h"
 #include "parser/StatisticsParser.h"
 #include "inverters/DeyeInverter.h"
 
-class DeyeSunClass: public BaseInverterHandler<DeyeInverter,DeyeStatistics,DeyeDevInfo,DeyeSystemConfigPara,DeyeAlarmLog,DeyeGridProfile,DeyePowerCommand> {
+class DeyeSunClass: public BaseInverterHandler<DeyeInverter,DeyeStatistics,DeyeDevInfo,DeyeSystemConfigPara,DeyeAlarmLog,DeyeGridProfile,PowerCommandParser> {
 public:
     void loop();
 
