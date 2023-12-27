@@ -178,8 +178,9 @@ bool DeyeInverter::isReachable() {
 }
 
 bool DeyeInverter::sendActivePowerControlRequest(float limit, PowerLimitControlType type) {
-    Serial.print("limit set to ");
-    Serial.println(limit);
+    if(typeName().startsWith("Unknown")){
+        return false;
+    }
     if(!(type == AbsolutPersistent || type == RelativPersistent)){
         return false;
     }
