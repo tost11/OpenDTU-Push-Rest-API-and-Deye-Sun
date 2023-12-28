@@ -16,6 +16,8 @@
 
 class HoymilesClass : public BaseInverterHandler<InverterAbstract,StatisticsParser,DevInfoParser,SystemConfigParaParser,AlarmLogParser,GridProfileParser>{
 public:
+    HoymilesClass();
+
     void init() override;
     void initNRF(SPIClass* initialisedSpiBus, const uint8_t pinCE, const uint8_t pinIRQ);
     void initCMT(const int8_t pin_sdio, const int8_t pin_clk, const int8_t pin_cs, const int8_t pin_fcs, const int8_t pin_gpio2, const int8_t pin_gpio3);
@@ -38,7 +40,7 @@ public:
     bool isAllRadioIdle() const override;
 
 private:
-    std::vector<std::shared_ptr<InverterAbstract>> _inverters;
+    std::vector<std::shared_ptr<InverterAbstract>> &_inverters;
     std::unique_ptr<HoymilesRadio_NRF> _radioNrf;
     std::unique_ptr<HoymilesRadio_CMT> _radioCmt;
 

@@ -3,7 +3,6 @@
  * Copyright (C) 2022-2023 Thomas Basler and others
  */
 #include "Hoymiles.h"
-#include "Utils.h"
 #include "inverters/HMS_1CH.h"
 #include "inverters/HMS_1CHv2.h"
 #include "inverters/HMS_2CH.h"
@@ -16,6 +15,10 @@
 #include <Arduino.h>
 
 HoymilesClass Hoymiles;
+
+HoymilesClass::HoymilesClass():
+_inverters(*reinterpret_cast<std::vector<std::shared_ptr<InverterAbstract>>*>(&_baseInverters)){
+}
 
 void HoymilesClass::init()
 {
@@ -123,26 +126,7 @@ void HoymilesClass::loop()
             }
         }
 
-        // Perform housekeeping of all inverters on day change
-        const int8_t currentWeekDay = Utils::getWeekDay();
-        static int8_t lastWeekDay = -1;
-        if (lastWeekDay == -1) {
-            lastWeekDay = currentWeekDay;
-        } else {
-            if (currentWeekDay != lastWeekDay) {
-
-                for (auto& inv : _inverters) {
-                    // Have to reset the offets first, otherwise it will
-                    // Substract the offset from zero which leads to a high value
-                    inv->Statistics()->resetYieldDayCorrection();
-                    if (inv->getZeroYieldDayOnMidnight()) {
-                        inv->Statistics()->zeroDailyData();
-                    }
-                }
-
-                lastWeekDay = currentWeekDay;
-            }
-        }
+        performHouseKeeping();
     }
 }
 
@@ -261,3 +245,4 @@ Print* HoymilesClass::getMessageOutput()
 {
     return _messageOutput;
 }
+

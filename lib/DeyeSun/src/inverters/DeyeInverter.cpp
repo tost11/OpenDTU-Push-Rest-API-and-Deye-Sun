@@ -178,6 +178,7 @@ bool DeyeInverter::isReachable() {
 }
 
 bool DeyeInverter::sendActivePowerControlRequest(float limit, PowerLimitControlType type) {
+    //TODO do better
     if(typeName().startsWith("Unknown")){
         return false;
     }
@@ -213,6 +214,7 @@ bool DeyeInverter::sendRestartControlRequest() {
 }
 
 bool DeyeInverter::sendPowerControlRequest(bool turnOn) {
+    //TODO do better
     if(typeName().startsWith("Unknown")){
         return false;
     }

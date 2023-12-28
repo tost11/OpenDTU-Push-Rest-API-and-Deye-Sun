@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-class Utils {
+class InverterUtils {
 public:
     static uint8_t getWeekDay();
 };

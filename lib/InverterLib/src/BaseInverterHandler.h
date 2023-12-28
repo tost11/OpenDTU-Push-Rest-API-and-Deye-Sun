@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <memory>
 #include "BaseInverter.h"
+#include "InverterUtils.h"
 
 template<class InverterType,class StatT,class DevT,class SysT,class AlarmT,class GridT,
         typename = std::enable_if_t<std::is_base_of<BaseStatistics,StatT>::value>,
@@ -30,7 +31,34 @@ protected:
     uint32_t _pollInterval = 0;
     uint32_t _lastPoll = 0;
 
+    std::vector<std::shared_ptr<BaseInverterClass>> _baseInverters;
+
+    void performHouseKeeping(){
+        // Perform housekeeping of all inverters on day change
+        const int8_t currentWeekDay = InverterUtils::getWeekDay();
+        static int8_t lastWeekDay = -1;
+        if (lastWeekDay == -1) {
+            lastWeekDay = currentWeekDay;
+        } else {
+            if (currentWeekDay != lastWeekDay) {
+
+                for (auto& inv : _baseInverters) {
+                    // Have to reset the offets first, otherwise it will
+                    // Substract the offset from zero which leads to a high value
+                    inv->Statistics()->resetYieldDayCorrection();
+                    if (inv->getZeroYieldDayOnMidnight()) {
+                        inv->Statistics()->zeroDailyData();
+                    }
+                }
+
+                lastWeekDay = currentWeekDay;
+            }
+        }
+    }
 public:
 };
+
+
+
 
 using BaseInverterHandlerClass = BaseInverterHandler<BaseInverterClass ,BaseStatistics,BaseDevInfo,BaseSystemConfigPara,BaseAlarmLog,BaseGridProfile,BasePowerCommand>;

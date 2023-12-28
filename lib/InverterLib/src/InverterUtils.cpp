@@ -2,10 +2,10 @@
 /*
  * Copyright (C) 2023 Thomas Basler and others
  */
-#include "Utils.h"
+#include "InverterUtils.h"
 #include <time.h>
 
-uint8_t Utils::getWeekDay()
+uint8_t InverterUtils::getWeekDay()
 {
     time_t raw;
     struct tm info;

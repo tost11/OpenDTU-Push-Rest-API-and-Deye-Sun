@@ -67,6 +67,8 @@ public:
     virtual String getChannelFieldValueString(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) = 0;
     virtual const char* getChannelFieldUnit(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) const = 0;
     virtual void setChannelFieldOffset(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId, float offset) = 0;
+    virtual void zeroDailyData() = 0;
+    virtual void resetYieldDayCorrection() = 0;
 
     uint16_t getStringMaxPower(const uint8_t channel) const;
     void setStringMaxPower(const uint8_t channel, const uint16_t power);

@@ -15,6 +15,8 @@
 
 class DeyeSunClass: public BaseInverterHandler<DeyeInverter,DeyeStatistics,DeyeDevInfo,DeyeSystemConfigPara,DeyeAlarmLog,DeyeGridProfile,PowerCommandParser> {
 public:
+    DeyeSunClass();
+
     void loop();
 
     void setMessageOutput(Print* output);
@@ -31,7 +33,7 @@ public:
     void init() override;
 
 private:
-    std::vector<std::shared_ptr<DeyeInverter>> _inverters;
+    std::vector<std::shared_ptr<DeyeInverter>> & _inverters;
 
     std::mutex _mutex;
 

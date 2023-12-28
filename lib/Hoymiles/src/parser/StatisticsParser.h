@@ -91,8 +91,8 @@ public:
     uint32_t getRxFailureCount() const;
 
     void zeroRuntimeData();
-    void zeroDailyData();
-    void resetYieldDayCorrection();
+    void zeroDailyData() override;
+    void resetYieldDayCorrection() override;
 
     // Update time when new data from the inverter is received
     void setLastUpdate(const uint32_t lastUpdate);
