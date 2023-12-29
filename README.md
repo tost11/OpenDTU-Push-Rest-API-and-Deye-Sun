@@ -11,7 +11,7 @@ Currently, I am working on two features:
 - Push data via rest to extern Application [here](https://github.com/tost11/OpenDTU-Push-Rest-API/tree/feature/push-rest-api)
 - Implement Logic to add and Monitor Deye Sun,Bosswerk Inverters, Not everything working yet! [here](https://github.com/tost11/OpenDTU-Push-Rest-API/tree/feature/deye-sun)
 
-## Dye Sun Branch
+## Deye Sun Branch
 
 This feature Branch is intended to read out Deye Sun Micro PV Inverters and make use of the original project UI and features
 
