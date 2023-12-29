@@ -158,7 +158,7 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
         return;
     }
 
-    if (root["manufacturer"].as<String>() != "Hoymiles" && root["manufacturer"].as<String>() != "DeyeSun" ) {
+    if (root["manufacturer"].as<String>() != from_inverter_type(inverter_type::Inverter_Hoymiles) && root["manufacturer"].as<String>() != from_inverter_type(inverter_type::Inverter_DeyeSun) ) {
         retMsg["message"] = "Unknown Inverter Type: " + root["manufacturer"].as<String>();
         retMsg["code"] = WebApiError::InverterType;
         retMsg["param"]["max"] = INV_MAX_NAME_STRLEN;
@@ -204,9 +204,9 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
     inverter->Serial = strtoll(root["serial"].as<String>().c_str(), NULL, 16);
     strncpy(inverter->Name, root["name"].as<String>().c_str(), INV_MAX_NAME_STRLEN);
 
-    if (root["manufacturer"].as<String>() == "Hoymiles" ) {
+    if (root["manufacturer"].as<String>() == from_inverter_type(inverter_type::Inverter_Hoymiles) ) {
         inverter->Type = inverter_type::Inverter_Hoymiles;
-    }else if(root["manufacturer"].as<String>() == "DeyeSun"){
+    }else if(root["manufacturer"].as<String>() == from_inverter_type(inverter_type::Inverter_DeyeSun)){
         strncpy(inverter->HostnameOrIp, root["hostname_or_ip"].as<String>().c_str(), INV_MAX_HOSTNAME_STRLEN);
         inverter->Port = root["port"].as<uint16_t>();
         inverter->Type = inverter_type::Inverter_DeyeSun;
@@ -230,9 +230,9 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
     }
 
     std::shared_ptr<BaseInverterClass> inv = nullptr;
-    if (root["type"].as<String>() == "Hoymiles" ) {
+    if (root["manufacturer"].as<String>() == from_inverter_type(inverter_type::Inverter_Hoymiles) ) {
         inv = std::reinterpret_pointer_cast<BaseInverterClass>(Hoymiles.addInverter(inverter->Name, inverter->Serial));
-    }else if(root["type"].as<String>() == "DeyeSun"){
+    }else if(root["manufacturer"].as<String>() == from_inverter_type(inverter_type::Inverter_DeyeSun)){
         inv = std::reinterpret_pointer_cast<BaseInverterClass>(DeyeSun.addInverter(inverter->Name, inverter->Serial,inverter->HostnameOrIp,inverter->Port));
     }
 

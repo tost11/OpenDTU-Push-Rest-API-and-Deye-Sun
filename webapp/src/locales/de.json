@@ -497,7 +497,13 @@
         "DeleteMsg": "Soll der Wechselrichter \"{name}\" mit der Seriennummer {serial} wirklich gelöscht werden?",
         "Delete": "Löschen",
         "YieldDayCorrection": "Tagesertragskorrektur",
-        "YieldDayCorrectionHint": "Summiert den Tagesertrag, auch wenn der Wechselrichter neu gestartet wird. Der Wert wird um Mitternacht zurückgesetzt"
+        "YieldDayCorrectionHint": "Summiert den Tagesertrag, auch wenn der Wechselrichter neu gestartet wird. Der Wert wird um Mitternacht zurückgesetzt",
+        "Manufacturer": "Hersteller",
+        "InverterHostnameOrIp": "Hostname oder Ip",
+        "InverterHostnameOrIpHint": "Ip Adresse oder Name des Gerätes im Netzwerk",
+        "InverterPort": "Port",
+        "InverterPortHint": "Udp kommunikations Port des Gerätes, standart: 48899",
+        "ManufacturerSelect": "Wähle Hersteller des Gerätes zum hinzufügen"
     },
     "configadmin": {
         "ConfigManagement": "Konfigurationsverwaltung",

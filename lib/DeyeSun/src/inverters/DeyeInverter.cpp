@@ -522,7 +522,7 @@ String DeyeInverter::serialToModel(uint64_t serial) {
         return "SUN300G3-EU-230";
     }
 
-    return "Unknown Deye Sun Inverter";
+    return "Unknown";
 }
 
 bool DeyeInverter::handleRead() {

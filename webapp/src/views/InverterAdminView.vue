@@ -4,7 +4,7 @@
             {{ alert.message }}
         </BootstrapAlert>
 
-        <label>Inverter Type to add</label>
+        <label>{{ $t('inverteradmin.ManufacturerSelect') }}</label>
         <select class="form-select" v-model="newInverterData.manufacturer">
           <option selected>Hoymiles</option>
           <option>DeyeSun</option>
@@ -24,12 +24,12 @@
                          maxlength="31" required />
                 </div>
                 <div v-if="newInverterData.manufacturer == 'DeyeSun'" class="form-group">
-                  <label>{{ "Hostname or Ip" }}</label>
+                  <label>{{ $t('inverteradmin.Name') }} <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterHostnameOrIpHint')" /></label>
                   <input v-model="newInverterData.hostname_or_ip" type="text" class="form-control ml-sm-2 mr-sm-4 my-2"
                          maxlength="31" required />
                 </div>
                 <div v-if="newInverterData.manufacturer == 'DeyeSun'" class="form-group">
-                  <label>{{ "Port" }}</label>
+                  <label>{{ $t('inverteradmin.InverterPort') }} <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterPortHint')" /></label>
                   <input v-model="newInverterData.port" type="number" class="form-control ml-sm-2 mr-sm-4 my-2" maxlength="5"
                          required />
                 </div>
@@ -49,6 +49,7 @@
                             <th scope="col">{{ $t('inverteradmin.Status') }}</th>
                             <th>{{ $t('inverteradmin.Serial') }}</th>
                             <th>{{ $t('inverteradmin.Name') }}</th>
+                            <th>{{ $t('inverteradmin.Manufacturer') }}</th>
                             <th>{{ $t('inverteradmin.Type') }}</th>
                             <th>{{ $t('inverteradmin.Action') }}</th>
                         </tr>
@@ -69,6 +70,7 @@
                             </td>
                             <td>{{ inverter.serial }}</td>
                             <td>{{ inverter.name }}</td>
+                            <td>{{ inverter.manufacturer }}</td>
                             <td>{{ inverter.type }}</td>
                             <td>
                                 <a href="#" class="icon text-danger" :title="$t('inverteradmin.DeleteInverter')">
@@ -128,8 +130,8 @@
                                       </label>
                                       <input v-model="selectedInverterData.hostname_or_ip" type="text" id="inverter-hostname-or-ip"
                                              class="form-control" maxlength="31" />
-                                      <label for="inverter-port" class="col-form-label">
-                                        {{ $t('inverteradmin.InverterPort') }}
+                                      <label for="inverter-port" class="col-form-label">{{ $t('inverteradmin.InverterPort') }}
+                                         <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterPortHint')" />
                                       </label>
                                       <input v-model="selectedInverterData.port" type="number" id="inverter-port" maxlength="5"
                                              class="form-control" />
@@ -336,7 +338,7 @@ export default defineComponent({
         return {
             modal: {} as bootstrap.Modal,
             modalDelete: {} as bootstrap.Modal,
-            newInverterData: {manufacturer:"Hoymiles"} as Inverter,
+            newInverterData: {manufacturer:"Hoymiles",port:48899} as Inverter,
             selectedInverterData: {} as Inverter,
             inverters: [] as Inverter[],
             dataLoading: true,

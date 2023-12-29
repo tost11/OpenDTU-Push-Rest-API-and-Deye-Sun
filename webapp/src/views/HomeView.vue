@@ -582,7 +582,7 @@ export default defineComponent({
         onHideEventlog() {
             this.eventLogView.hide();
         },
-        onShowEventlog(serial: number,manufacturer: String) {
+        onShowEventlog(serial: number,manufacturer: string) {
             this.eventLogLoading = true;
             fetch("/api/eventlog/status?inv=" + serial + "&locale=" + this.$i18n.locale + "&manufacturer="+manufacturer, { headers: authHeader() })
                 .then((response) => handleResponse(response, this.$emitter, this.$router))
@@ -612,7 +612,7 @@ export default defineComponent({
         onHideGridProfile() {
             this.devInfoView.hide();
         },
-        onShowGridProfile(serial: number,manufacturer: String) {
+        onShowGridProfile(serial: number,manufacturer: string) {
             this.gridProfileLoading = true;
             fetch("/api/gridprofile/status?inv=" + serial + "&manufacturer="+manufacturer, { headers: authHeader() })
                 .then((response) => handleResponse(response, this.$emitter, this.$router))
@@ -632,7 +632,7 @@ export default defineComponent({
         onHideLimitSettings() {
             this.showAlertLimit = false;
         },
-        onShowLimitSettings(serial: number,manufacturer: String) {
+        onShowLimitSettings(serial: number,manufacturer: string) {
             this.targetLimitList.serial = 0;
             this.targetLimitList.limit_value = 0;
             this.targetLimitType = 1;

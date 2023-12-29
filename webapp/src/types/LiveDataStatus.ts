@@ -25,7 +25,7 @@ export interface Inverter {
     serial: number;
     name: string;
     order: number;
-    manufacturer: String;
+    manufacturer: string;
     data_age: number;
     poll_enabled: boolean;
     reachable: boolean;
