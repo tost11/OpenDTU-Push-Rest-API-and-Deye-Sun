@@ -100,7 +100,7 @@ _logDebug(false){
 
 void DeyeInverter::sendSocketMessage(String message) {
 
-    println("Sending deye message: "+message);
+    println("Sending deye message: "+message, true);
 
     //IPAddress RecipientIP(192, 168, 1, 138);
     _socket->beginPacket(*_ipAdress, _port);
@@ -119,13 +119,18 @@ void DeyeInverter::updateSocket() {
     }
 
     if (_ipAdress == nullptr) {
-        if (_timerResolveHostname == 0 or millis() - _timerResolveHostname > (TIMER_RESOLVE_HOSTNAME)) {
+        if (_timerResolveHostname == 0 or ((millis() - _timerResolveHostname) > TIMER_RESOLVE_HOSTNAME)) {
             _timerResolveHostname = millis();
             resolveHostname();
         }
     }
 
     if (_ipAdress == nullptr) {
+        return;
+    }
+
+    if(_timerAfterCounterTimout != 0 && ((millis() - _timerAfterCounterTimout) < TIMER_COUNTER_ERROR_TIMEOUT)) {
+        //wait after error for try again
         return;
     }
 
@@ -136,12 +141,10 @@ void DeyeInverter::updateSocket() {
                 println("Start writing register power status",true);
                 _currentWritCommand = std::make_unique<WriteRegisterMapping>("002B", 1,*_powerTargetStatus ? "0001" : "0000");
                 _powerTargetStatus = nullptr;
-                _writeErrorCounter = -1;
             } else if (_limitToSet != nullptr) {
                 println("Start writing register limit",true);
                 _currentWritCommand = std::make_unique<WriteRegisterMapping>("0028", 1, lengthToString(*_limitToSet));
                 _limitToSet = nullptr;
-                _writeErrorCounter = -1;
             }
         }
     }
@@ -411,12 +414,6 @@ void DeyeInverter::appendFragment(uint8_t offset, uint8_t* payload, uint8_t len)
 }
 
 void DeyeInverter::sendCurrentRegisterRead() {
-
-    if((_commandPosition == INIT_COMMAND_START_SKIP && !_needInitData ) ||
-       (_commandPosition == 0 && _needInitData)){
-        //sendSocketMessage("+ok");
-    }
-
     auto & current = getRegisteresToRead()[_commandPosition];
 
     if(current.readRegister.startsWith("AT+")){
@@ -520,6 +517,14 @@ bool DeyeInverter::handleRead() {
     }
 
     if (_socket == nullptr) {
+        _errorCounter++;
+        if(_errorCounter > 30){//give up after 25 failed attempts and wait long
+            _commandPosition = _needInitData ? 0 : INIT_COMMAND_START_SKIP;
+            _timerAfterCounterTimout = millis();
+            _errorCounter = -1;
+            println("Read Data of Timeout (or not reachable) of Deye Sun Inverter: " + String(name()));
+            return true;//busy true so timeout works and so write is send
+        }
         if (millis() - _timerErrorBackOff < (TIMER_ERROR_BACKOFF)) {
             //wait after error for try again
             return true;
@@ -554,15 +559,16 @@ bool DeyeInverter::handleRead() {
                     _commandPosition = INIT_COMMAND_START_SKIP;
                     _timerHealthCheck = millis();
                     swapBuffers();
-                    println("Succesfully healtcheck",true);
-                    return true;
+                    _errorCounter = -1;
+                    println("Succesfully healtcheck");
+                    return false;
                 }
-                if(_commandPosition +1 >= getRegisteresToRead().size()){
+                if(_commandPosition + 1 >= getRegisteresToRead().size()){
                     endSocket();
                     _commandPosition = INIT_COMMAND_START_SKIP;
                     swapBuffers();
-                    println("Red succesfull all values",true);
                     _timerHealthCheck = millis();
+                    _errorCounter = -1;
                     if(_needInitData){
                         _needInitData = false;
                         _timerFullPoll = millis();
@@ -572,7 +578,8 @@ bool DeyeInverter::handleRead() {
                             _timerFullPoll += TIMER_FETCH_DATA;
                         }
                     }
-                    return true;
+                    println("Red succesfull all values");
+                    return false;
                 }
                 _timerBetweenSends = millis();
                 _commandPosition++;
@@ -612,11 +619,9 @@ void DeyeInverter::endSocket() {
 
 void DeyeInverter::handleWrite() {
     if (_socket == nullptr) {
-        if (millis() - _timerErrorBackOff < (TIMER_ERROR_BACKOFF)) {
-            //wait after error for try again
-        }
-        _writeErrorCounter++;
-        if(_writeErrorCounter > 10){
+        _errorCounter++;
+        if(_errorCounter > 10){
+            _errorCounter = -1;
             //TODO do better
             if(_currentWritCommand->writeRegister == "002B") {
                 _powerCommandParser->setLastPowerCommandSuccess(CMD_NOK);
@@ -624,6 +629,10 @@ void DeyeInverter::handleWrite() {
                 SystemConfigPara()->setLastLimitRequestSuccess(CMD_NOK);
             }
             _currentWritCommand = nullptr;
+            return;
+        }
+        if (millis() - _timerErrorBackOff < (TIMER_ERROR_BACKOFF)) {
+            //wait after error for try again
             return;
         }
         println("New connection for write",true);

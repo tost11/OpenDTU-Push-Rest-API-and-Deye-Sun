@@ -151,10 +151,6 @@ float StatisticsParser::getChannelFieldValue(const ChannelType_t type, const Cha
     const uint8_t end = ptr + pos->num;
     const uint16_t div = pos->div;
 
-    Serial.print(ptr);
-    Serial.print(" / ");
-    Serial.println(end);
-
     if (CMD_CALC != div) {
         // Value is a static value
         uint32_t val = 0;

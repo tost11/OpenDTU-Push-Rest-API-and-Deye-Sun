@@ -109,6 +109,7 @@ private:
     static const uint32_t TIMER_BETWEEN_SENDS = 200;
     static const uint32_t TIMER_RESOLVE_HOSTNAME = 30 * 1000;
     static const uint32_t TIMER_TIMEOUT = 1200;
+    static const uint32_t TIMER_COUNTER_ERROR_TIMEOUT = 3 * 60 * 1000;
 
     //TODO move to inverter classes
     static const uint32_t INIT_COMMAND_START_SKIP = 2;
@@ -122,14 +123,17 @@ private:
     uint32_t _timerBetweenSends = 0;
     uint32_t _timerTimeoutCheck = 0;
     uint32_t _timerResolveHostname = 0;
+    uint32_t _timerAfterCounterTimout = 0;
     uint32_t _commandPosition;
+
+    bool _waitLongAfterTimeout;
 
     Print & _messageOutput;
     bool _logDebug;
 
     bool _startCommand;
     virtual const std::vector<RegisterMapping> & getRegisteresToRead() = 0;
-    int _writeErrorCounter;
+    int _errorCounter;
 
     uint64_t _serial;
     char _hostnameOrIp[MAX_NAME_HOST] = "";
