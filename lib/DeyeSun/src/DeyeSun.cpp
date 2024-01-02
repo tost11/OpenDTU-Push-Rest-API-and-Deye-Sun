@@ -33,9 +33,9 @@ std::shared_ptr<DeyeInverter> DeyeSunClass::addInverter(const char* name, uint64
     String type = DeyeInverter::serialToModel(serial);
 
     if(type.startsWith("SUN300G3")){
-        i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<DS_1CH>(serial,type));
+        i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<DS_1CH>(serial,type,*_messageOutput));
     }else{
-        i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<DS_2CH>(serial,type));
+        i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<DS_2CH>(serial,type,*_messageOutput));
     }
 
     if (i) {

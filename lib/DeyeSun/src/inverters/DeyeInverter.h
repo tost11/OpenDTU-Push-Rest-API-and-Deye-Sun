@@ -43,7 +43,7 @@ struct WriteRegisterMapping{
 
 class DeyeInverter : public BaseInverter<StatisticsParser,DeyeDevInfo,SystemConfigParaParser,DeyeAlarmLog,DeyeGridProfile,PowerCommandParser> {
 public:
-    explicit DeyeInverter(uint64_t serial);
+    explicit DeyeInverter(uint64_t serial,Print & print);
     virtual ~DeyeInverter() = default;
 
     uint64_t serial() const override;
@@ -124,6 +124,9 @@ private:
     uint32_t _timerResolveHostname = 0;
     uint32_t _commandPosition;
 
+    Print & _messageOutput;
+    bool _logDebug;
+
     bool _startCommand;
     virtual const std::vector<RegisterMapping> & getRegisteresToRead() = 0;
     int _writeErrorCounter;
@@ -142,5 +145,8 @@ private:
 
     void appendFragment(uint8_t offset, uint8_t *payload, uint8_t len);
 
-
+    void println(const char * message,bool debug = false);
+    void println(const StringSumHelper & helper,bool debug = false){ println(helper.c_str(),debug);}
+    void print(const char * message,bool debug = false);
+    void print(const StringSumHelper & helper,bool debug = false){ print(helper.c_str(),debug);}
 };

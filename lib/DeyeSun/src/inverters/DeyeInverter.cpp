@@ -19,10 +19,6 @@ unsigned DeyeInverter::hex_char_to_int( char c ) {
         result = 10 + c - 'a';
     }
     else {
-        Serial.print("could not convert to hex : ");
-        Serial.print(c);
-        Serial.print(" decimal:");
-        Serial.println((uint8_t)c);
         assert( 0 );
     }
     return result;
@@ -74,8 +70,11 @@ String DeyeInverter::modbusCRC16FromASCII(const String & input) {
 }
 
 
-DeyeInverter::DeyeInverter(uint64_t serial):
-_socket(nullptr){
+DeyeInverter::DeyeInverter(uint64_t serial,Print & print):
+_socket(nullptr),
+_messageOutput(print),
+//change if needed
+_logDebug(false){
     _serial = serial;
 
     char serial_buff[sizeof(uint64_t) * 8 + 1];
@@ -101,7 +100,7 @@ _socket(nullptr){
 
 void DeyeInverter::sendSocketMessage(String message) {
 
-    Serial.println("Sending deye message: "+message);
+    println("Sending deye message: "+message);
 
     //IPAddress RecipientIP(192, 168, 1, 138);
     _socket->beginPacket(*_ipAdress, _port);
@@ -115,7 +114,6 @@ void DeyeInverter::sendSocketMessage(String message) {
 void DeyeInverter::updateSocket() {
 
     if (!WiFi.isConnected()) {
-        //Serial.println("Wifi not connected");
         _socket = nullptr;
         return;
     }
@@ -135,12 +133,12 @@ void DeyeInverter::updateSocket() {
         bool busy = handleRead();
         if(!busy && _currentWritCommand == nullptr) {
             if (_powerTargetStatus != nullptr) {
-                Serial.println("Start writing register power status");
+                println("Start writing register power status",true);
                 _currentWritCommand = std::make_unique<WriteRegisterMapping>("002B", 1,*_powerTargetStatus ? "0001" : "0000");
                 _powerTargetStatus = nullptr;
                 _writeErrorCounter = -1;
             } else if (_limitToSet != nullptr) {
-                Serial.println("Start writing register limit");
+                println("Start writing register limit",true);
                 _currentWritCommand = std::make_unique<WriteRegisterMapping>("0028", 1, lengthToString(*_limitToSet));
                 _limitToSet = nullptr;
                 _writeErrorCounter = -1;
@@ -239,8 +237,8 @@ void DeyeInverter::setPort(uint16_t port) {
 
 bool DeyeInverter::parseInitInformation(size_t length) {
     String ret = String(_readBuff,length);
-    Serial.print("Recevied Initial Read: ");
-    Serial.println(ret);
+    print("Recevied Initial Read: ",true);
+    println(ret,true);
 
     int index = ret.lastIndexOf(',');
     if(index < 0){
@@ -277,8 +275,7 @@ String DeyeInverter::filterReceivedResponse(size_t length){
 int DeyeInverter::handleRegisterWrite(size_t length) {
     String ret= filterReceivedResponse(length);
 
-    Serial.print("Fileted recevied Register Wrtie: ");
-    Serial.println(ret);
+    print("Fileted recevied Register Wrtie: " + ret,true);
 
     if(ret.startsWith("+ERR=")) {
         if (ret.startsWith("+ERR=-1")) {
@@ -292,9 +289,8 @@ int DeyeInverter::handleRegisterWrite(size_t length) {
     expected += "0001";
 
     //todo checksum
-
     if(!ret.startsWith(expected)) {
-        Serial.println("Write response not correct");
+        println("Write response not correct",true);
         return -1000;
     }
     return 0;
@@ -303,8 +299,7 @@ int DeyeInverter::handleRegisterWrite(size_t length) {
 int DeyeInverter::handleRegisterRead(size_t length) {
     String ret= filterReceivedResponse(length);
 
-    Serial.print("Fileted recevied Register Read: ");
-    Serial.println(ret);
+    println("Fileted recevied Register Read: " + ret, true);
 
     if(ret.startsWith("+ERR=")) {
         if (ret.startsWith("+ERR=-1")) {
@@ -320,8 +315,7 @@ int DeyeInverter::handleRegisterRead(size_t length) {
             int start = 4;
 
             if(ret.length() <= start){
-                Serial.print("Error while reading data not entoh data on: ");
-                Serial.println(current.readRegister);
+                println("Error while reading data not entoh data on: " + current.readRegister, true);
                 return -2000;
             }
 
@@ -334,29 +328,28 @@ int DeyeInverter::handleRegisterRead(size_t length) {
 
     if(current.length == 2){
         if(!ret.startsWith("+ok=010304")){
-            Serial.println("Length for 2 not matching");
+            println("Length for 2 not matching", true);
             return -1;
         }
     }if(current.length == 5){
         if(!ret.startsWith("+ok=01030A")){
-            Serial.println("Length for 5 not matching");
+            println("Length for 5 not matching", true);
             return -1;
         }
     }else if(current.length == 1){
         if(!ret.startsWith("+ok=010302")){
-            Serial.println("Length for 1 not matching");
+            println("Length for 1 not matching", true);
             return -1;
         }
     }else{
-        Serial.println("Unknown Length");
+        println("Unknown Length", true);
     }
 
     //+ok= plus first 6 header characters
     int start = 4 + 6;
 
     if(ret.length() < start+(current.length*2)){
-        Serial.print("Error while reading data not entoh data on: ");
-        Serial.println(current.readRegister);
+        print("Error while reading data not entoh data on: " + current.readRegister, true);
         return -1000;
     }
 
@@ -367,10 +360,7 @@ int DeyeInverter::handleRegisterRead(size_t length) {
         String hexString = ret.substring(start, start + (current.length * 4));
 
         if (current.length == 2) {
-            //Serial.println("Perfomring permutation");
-            //Serial.println(hexString);
             hexString = hexString.substring(4) + hexString.substring(0, 4);
-            //Serial.println(hexString);
         }
 
         String finalResult;
@@ -390,9 +380,6 @@ int DeyeInverter::handleRegisterRead(size_t length) {
             if(value < -1000){
                 value = -1000;
             }
-
-            //erial.print("Caluclated value is: ");
-            //Serial.println(value);
 
             std::stringstream stream;
             stream << std::setfill ('0') << std::setw(sizeof(int16_t)*2)<< std::hex << value;
@@ -417,7 +404,7 @@ int DeyeInverter::handleRegisterRead(size_t length) {
 void DeyeInverter::appendFragment(uint8_t offset, uint8_t* payload, uint8_t len)
 {
     if (offset + len > STATISTIC_PACKET_SIZE) {
-        Serial.printf("FATAL: (%s, %d) stats packet too large for buffer\r\n", __FILE__, __LINE__);
+        _messageOutput.printf("FATAL: (%s, %d) stats packet too large for buffer\r\n", __FILE__, __LINE__);
         return;
     }
     memcpy(&_payloadStatisticBuffer[offset], payload, len);
@@ -450,11 +437,11 @@ void DeyeInverter::sendCurrentRegisterRead() {
 void DeyeInverter::sendCurrentRegisterWrite() {
 
     if(_currentWritCommand->length * 2 * 2 != _currentWritCommand->valueToWrite.length()){
-        Serial.print("Write register message not correct length:");
-        Serial.print("expected: ");
-        Serial.print(_currentWritCommand->length * 2 * 2 );
-        Serial.print(" is: ");
-        Serial.print(_currentWritCommand->valueToWrite.length());
+        print("Write register message not correct length:");
+        print("expected: ");
+        print(_currentWritCommand->length * 2 * 2 );
+        print(" is: ");
+        print(_currentWritCommand->valueToWrite.length());
         assert( 0 );
     }
 
@@ -466,7 +453,7 @@ void DeyeInverter::sendCurrentRegisterWrite() {
 
     String checksum = modbusCRC16FromASCII(data);
 
-    Serial.println("Sending socket message write: ");
+    println("Sending socket message write: ",true);
     //Serial.println("AT+INVDATA=11,"+data+checksum+"\n");
     sendSocketMessage("AT+INVDATA=11,"+data+checksum+"\n");
 }
@@ -490,18 +477,19 @@ bool DeyeInverter::resolveHostname() {
     DNSClient dns;
     IPAddress remote_addr;
 
-    Serial.print("Try to resolve hostname: ");
-    Serial.println(_hostnameOrIp);
+    print("Try to resolve hostname: ",true);
+    println(_hostnameOrIp,true);
 
     dns.begin(WiFi.dnsIP());
     auto ret = dns.getHostByName(_hostnameOrIp, remote_addr);
     if (ret == 1) {
-        Serial.print("Resolved Ip is: ");
-        Serial.println(remote_addr);
+        print("Resolved Ip is: ",true);
+        println(remote_addr.toString(),true);
         _ipAdress = std::make_unique<IPAddress>(remote_addr);
         return true;
     }
-    Serial.println("Could not resolve hostname");
+    print("Could not resolve hostname: ");
+    println(_hostnameOrIp);
     return false;
 }
 
@@ -536,7 +524,7 @@ bool DeyeInverter::handleRead() {
             //wait after error for try again
             return true;
         }
-        Serial.println("New connection");
+        println("New connection",true);
         _socket = std::make_unique<WiFiUDP>();
         sendSocketMessage("WIFIKIT-214028-READ");
         _startCommand = true;
@@ -545,11 +533,10 @@ bool DeyeInverter::handleRead() {
 
     int packetSize = _socket->parsePacket();
     while (packetSize > 0){
-        Serial.println("Recevied new package");
+        println("Recevied new package",true);
         size_t num = _socket->read(_readBuff,packetSize);
         _socket->flush();
         _timerTimeoutCheck = millis();
-        Serial.println(num);
         if(_startCommand){
             if(!parseInitInformation(num)){
                 endSocket();
@@ -567,14 +554,14 @@ bool DeyeInverter::handleRead() {
                     _commandPosition = INIT_COMMAND_START_SKIP;
                     _timerHealthCheck = millis();
                     swapBuffers();
-                    Serial.println("Succesfully healtcheck");
+                    println("Succesfully healtcheck",true);
                     return true;
                 }
                 if(_commandPosition +1 >= getRegisteresToRead().size()){
                     endSocket();
                     _commandPosition = INIT_COMMAND_START_SKIP;
                     swapBuffers();
-                    Serial.println("Red succesfull all values");
+                    println("Red succesfull all values",true);
                     _timerHealthCheck = millis();
                     if(_needInitData){
                         _needInitData = false;
@@ -606,9 +593,9 @@ bool DeyeInverter::handleRead() {
             _timerBetweenSends = 0;
         }
     }else {
-        //timeout of one second
+        //timeout of one ca. second
         if (millis() - _timerTimeoutCheck > TIMER_TIMEOUT) {
-            Serial.println("Max poll time overtook try again");
+            println("Max poll time overtook try again",true);
             endSocket();
         }
     }
@@ -639,7 +626,7 @@ void DeyeInverter::handleWrite() {
             _currentWritCommand = nullptr;
             return;
         }
-        Serial.println("New connection for write");
+        println("New connection for write",true);
         _socket = std::make_unique<WiFiUDP>();
         sendSocketMessage("WIFIKIT-214028-READ");
         _startCommand = true;
@@ -648,11 +635,10 @@ void DeyeInverter::handleWrite() {
 
     int packetSize = _socket->parsePacket();
     while (packetSize > 0){
-        Serial.println("Recevied new package");
+        println("Recevied new package for write",true);
         size_t num = _socket->read(_readBuff,packetSize);
         _socket->flush();
         _timerTimeoutCheck = millis();
-        Serial.println(num);
         if(_startCommand){
             if(!parseInitInformation(num)){
                 endSocket();
@@ -689,7 +675,7 @@ void DeyeInverter::handleWrite() {
     }else {
         //timeout of one second
         if (millis() - _timerTimeoutCheck > TIMER_TIMEOUT) {
-            Serial.println("Max poll time for write overtook try again");
+            println("Max poll time for write overtook from write, try again",true);
             endSocket();
         }
     }
@@ -699,4 +685,16 @@ String DeyeInverter::lengthToString(uint8_t length,int fill) {
     std::stringstream ss;
     ss << std::setw(fill) << std::setfill('0') << (int)length;
     return ss.str().c_str();
+}
+
+void DeyeInverter::println(const char *message,bool debug) {
+    if (!debug || (_logDebug && debug)) {
+        _messageOutput.println(message);
+    }
+}
+
+void DeyeInverter::print(const char * message,bool debug) {
+    if(!debug || (_logDebug && debug) ){
+        _messageOutput.print(message);
+    }
 }

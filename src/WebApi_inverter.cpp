@@ -373,6 +373,10 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
     // Interpret the string as a hex value and convert it to uint64_t
     inverter.Serial = new_serial;
     strncpy(inverter.Name, root["name"].as<String>().c_str(), INV_MAX_NAME_STRLEN);
+    if(inverter.Type == inverter_type::Inverter_DeyeSun){
+        strncpy(inverter.HostnameOrIp, root["hostname_or_ip"].as<String>().c_str(), INV_MAX_HOSTNAME_STRLEN);
+        inverter.Port = root["port"].as<uint16_t>();
+    }
 
     uint8_t arrayCount = 0;
     for (JsonVariant channel : channelArray) {
@@ -387,11 +391,6 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
         inverter.ZeroRuntimeDataIfUnrechable = root["zero_runtime"] | false;
         inverter.ZeroYieldDayOnMidnight = root["zero_day"] | false;
         inverter.YieldDayCorrection = root["yieldday_correction"] | false;
-
-        if(inverter.Type == inverter_type::Inverter_DeyeSun){
-            strncpy(inverter.HostnameOrIp, root["hostname_or_ip"].as<String>().c_str(), INV_MAX_HOSTNAME_STRLEN);
-            inverter.Port = root["port"].as<uint16_t>();
-        }
 
         arrayCount++;
     }

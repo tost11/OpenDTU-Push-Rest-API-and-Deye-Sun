@@ -53,8 +53,8 @@ static const byteAssign_t byteAssignment[] = {
         { TYPE_AC, CH0, FLD_EFF, UNIT_PCT, CALC_EFF_CH0, 0, CMD_CALC, false, 3 }
 };
 
-DS_1CH::DS_1CH(uint64_t serial,const String & modelType):
-DeyeInverter(serial){
+DS_1CH::DS_1CH(uint64_t serial,const String & modelType,Print & print):
+DeyeInverter(serial,print){
     _devInfoParser->setHardwareModel(modelType);
     _statisticsParser->setByteAssignment(byteAssignment,sizeof(byteAssignment) / sizeof(byteAssignment[0]));
 }
