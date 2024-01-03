@@ -80,7 +80,7 @@ private:
     String filterReceivedResponse(size_t length);
 
     bool resolveHostname();
-    void swapBuffers();
+    void swapBuffers(bool fullData);
 
     bool handleRead();
     void handleWrite();

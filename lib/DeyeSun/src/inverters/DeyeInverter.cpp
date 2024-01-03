@@ -175,7 +175,7 @@ bool DeyeInverter::isProducing() {
 }
 
 bool DeyeInverter::isReachable() {
-    return millis() - _timerHealthCheck < 25 * 1000;
+    return millis() - _timerHealthCheck < 60 * 1000;
 }
 
 bool DeyeInverter::sendActivePowerControlRequest(float limit, PowerLimitControlType type) {
@@ -455,19 +455,21 @@ void DeyeInverter::sendCurrentRegisterWrite() {
     sendSocketMessage("AT+INVDATA=11,"+data+checksum+"\n");
 }
 
-void DeyeInverter::swapBuffers() {
-    _statisticsParser->beginAppendFragment();
-    _statisticsParser->clearBuffer();
-    _statisticsParser->appendFragment(0,_payloadStatisticBuffer,STATISTIC_PACKET_SIZE);
-    _statisticsParser->setLastUpdate(millis());
-    _statisticsParser->resetRxFailureCount();
-    _statisticsParser->endAppendFragment();
+void DeyeInverter::swapBuffers(bool fullData) {
+    if(fullData) {
+        _statisticsParser->beginAppendFragment();
+        _statisticsParser->clearBuffer();
+        _statisticsParser->appendFragment(0, _payloadStatisticBuffer, STATISTIC_PACKET_SIZE);
+        _statisticsParser->setLastUpdate(millis());
+        _statisticsParser->resetRxFailureCount();
+        _statisticsParser->endAppendFragment();
+
+        _devInfoParser->clearBuffer();
+        _devInfoParser->appendFragment(0,_payloadStatisticBuffer+44,2);
+        _devInfoParser->setLastUpdate(millis());
+    }
 
     _systemConfigParaParser->setLimitPercent(DeyeUtils::defaultParseFloat(42,_payloadStatisticBuffer));
-
-    _devInfoParser->clearBuffer();
-    _devInfoParser->appendFragment(0,_payloadStatisticBuffer+44,2);
-    _devInfoParser->setLastUpdate(millis());
 }
 
 bool DeyeInverter::resolveHostname() {
@@ -558,7 +560,7 @@ bool DeyeInverter::handleRead() {
                     endSocket();
                     _commandPosition = INIT_COMMAND_START_SKIP;
                     _timerHealthCheck = millis();
-                    swapBuffers();
+                    swapBuffers(false);
                     _errorCounter = -1;
                     println("Succesfully healtcheck");
                     return false;
@@ -566,7 +568,7 @@ bool DeyeInverter::handleRead() {
                 if(_commandPosition + 1 >= getRegisteresToRead().size()){
                     endSocket();
                     _commandPosition = INIT_COMMAND_START_SKIP;
-                    swapBuffers();
+                    swapBuffers(true);
                     _timerHealthCheck = millis();
                     _errorCounter = -1;
                     if(_needInitData){
