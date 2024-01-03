@@ -13,13 +13,19 @@
 
 TostHandleClass TostHandle;
 
-void TostHandleClass::init()
+void TostHandleClass::init(Scheduler& scheduler)
 {
-    _lastPublish.set(Configuration.get().Tost_Duration * 1000);
+    _lastPublish.set(Configuration.get().Tost.Duration * 1000);
     lastErrorStatusCode = 0;
     lastErrorTimestamp = 0;
     lastSuccessfullyTimestamp = 0;
     lastErrorMessage = "";
+
+    scheduler.addTask(_loopTask);
+    _loopTask.setCallback(std::bind(&TostHandleClass::loop, this));
+    _loopTask.setIterations(TASK_FOREVER);
+    _loopTask.setInterval(1 * TASK_SECOND);
+    _loopTask.enable();
 }
 
 void TostHandleClass::loop()
@@ -43,7 +49,7 @@ void TostHandleClass::loop()
     //channel 2 -> temperature
     //9: temperature
 
-    if (!Configuration.get().Tost_Enabled || !Hoymiles.isAllRadioIdle()) {
+    if (!Configuration.get().Tost.Enabled || !Hoymiles.isAllRadioIdle()) {
         //MessageOutput.println("tost skip");
         return;
     }
@@ -51,7 +57,7 @@ void TostHandleClass::loop()
     if (_lastPublish.occured()) {
 
         DynamicJsonDocument data(4096);
-        data["duration"] = Configuration.get().Tost_Duration;
+        data["duration"] = Configuration.get().Tost.Duration;
         JsonArray devices = data.createNestedArray("devices");
 
         for (uint8_t i = 0; i < Hoymiles.getNumInverters(); i++) {
@@ -132,13 +138,13 @@ void TostHandleClass::loop()
 
             HTTPClient http;
 
-            std::string url = Configuration.get().Tost_Url;
+            std::string url = Configuration.get().Tost.Url;
             url+="/api/solar/data?systemId=";
-            url+=Configuration.get().Tost_System_Id;
+            url+=Configuration.get().Tost.SystemId;
 
 
             http.begin(url.c_str());
-            http.addHeader("clientToken",Configuration.get().Tost_Token);
+            http.addHeader("clientToken",Configuration.get().Tost.Token);
             http.addHeader("Content-Type", "application/json");
 
             //MessageOutput.printf("Request: %s\n\r",url.c_str());
@@ -181,6 +187,6 @@ void TostHandleClass::loop()
             }
         }
 
-        _lastPublish.set(Configuration.get().Tost_Duration * 1000);
+        _lastPublish.set(Configuration.get().Tost.Duration * 1000);
     }
 }

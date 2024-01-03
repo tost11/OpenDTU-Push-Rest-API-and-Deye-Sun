@@ -100,7 +100,7 @@ void setup()
 
     // Initialize Tost
     MessageOutput.print("Initialize Tost... ");
-    TostHandle.init();
+    TostHandle.init(scheduler);
     MessageOutput.println("done");
 
     // Initialize MqTT

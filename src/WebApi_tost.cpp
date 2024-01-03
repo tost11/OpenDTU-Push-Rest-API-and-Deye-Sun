@@ -11,11 +11,11 @@
 #include "TostHandle.h"
 #include "MessageOutput.h"
 
-void WebApiTostClass::init(AsyncWebServer* server)
+void WebApiTostClass::init(AsyncWebServer& server)
 {
     using std::placeholders::_1;
 
-    _server = server;
+    _server = &server;
 
     _server->on("/api/tost/status", HTTP_GET, std::bind(&WebApiTostClass::onTostStatus, this, _1));
     _server->on("/api/tost/config", HTTP_GET, std::bind(&WebApiTostClass::onTostAdminGet, this, _1));
@@ -39,10 +39,10 @@ void WebApiTostClass::onTostStatus(AsyncWebServerRequest* request)
     unsigned long errorStamp = TostHandle.getLastErrorTimestamp();
     unsigned long successStamp = TostHandle.getLastSuccessfullyTimestamp();
 
-    root[F("tost_enabled")] = config.Tost_Enabled;
-    root[F("tost_url")] = config.Tost_Url;
-    root[F("tost_system_id")] = config.Tost_System_Id;
-    root[F("tost_duration")] = config.Tost_Duration;
+    root[F("tost_enabled")] = config.Tost.Enabled;
+    root[F("tost_url")] = config.Tost.Url;
+    root[F("tost_system_id")] = config.Tost.SystemId;
+    root[F("tost_duration")] = config.Tost.Duration;
     root[F("tost_status_successfully_timestamp")] = successStamp == 0 ? successStamp : millis() - successStamp;
     root[F("tost_status_error_code")] = TostHandle.getLastErrorStatusCode();
     root[F("tost_status_error_message")] = TostHandle.getLastErrorMessage();
@@ -62,11 +62,11 @@ void WebApiTostClass::onTostAdminGet(AsyncWebServerRequest* request)
     JsonObject root = response->getRoot();
     const CONFIG_T& config = Configuration.get();
 
-    root[F("tost_enabled")] = config.Tost_Enabled;
-    root[F("tost_url")] = config.Tost_Url;
-    root[F("tost_system_id")] = config.Tost_System_Id;
-    root[F("tost_token")] = config.Tost_Token;
-    root[F("tost_duration")] = config.Tost_Duration;
+    root[F("tost_enabled")] = config.Tost.Enabled;
+    root[F("tost_url")] = config.Tost.Url;
+    root[F("tost_system_id")] = config.Tost.SystemId;
+    root[F("tost_token")] = config.Tost.Token;
+    root[F("tost_duration")] = config.Tost.Duration;
 
     response->setLength();
     request->send(response);
@@ -160,11 +160,11 @@ void WebApiTostClass::onTostAdminPost(AsyncWebServerRequest* request)
     }
 
     CONFIG_T& config = Configuration.get();
-    config.Tost_Enabled = root[F("tost_enabled")].as<bool>();
-    config.Tost_Duration = root[F("tost_duration")].as<uint>();
-    strlcpy(config.Tost_Url, root[F("tost_url")].as<String>().c_str(), sizeof(config.Tost_Url));
-    strlcpy(config.Tost_System_Id, root[F("tost_system_id")].as<String>().c_str(), sizeof(config.Tost_System_Id));
-    strlcpy(config.Tost_Token, root[F("tost_token")].as<String>().c_str(), sizeof(config.Tost_Token));
+    config.Tost.Enabled = root[F("tost_enabled")].as<bool>();
+    config.Tost.Duration = root[F("tost_duration")].as<uint>();
+    strlcpy(config.Tost.Url, root[F("tost_url")].as<String>().c_str(), sizeof(config.Tost.Url));
+    strlcpy(config.Tost.SystemId, root[F("tost_system_id")].as<String>().c_str(), sizeof(config.Tost.SystemId));
+    strlcpy(config.Tost.Token, root[F("tost_token")].as<String>().c_str(), sizeof(config.Tost.Token));
     Configuration.write();
 
     retMsg[F("type")] = F("success");

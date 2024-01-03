@@ -5,13 +5,16 @@
 #include <iostream>
 #include <Hoymiles.h>
 #include "Configuration.h"
+#include <TaskSchedulerDeclarations.h>
 
 class TostHandleClass {
 public:
-    void init();
-    void loop();
+    void init(Scheduler& scheduler);
 
 private:
+    Task _loopTask;
+    void loop();
+
     TimeoutHelper _lastPublish;
 
     uint32_t _lastPublishStats[INV_MAX_COUNT];

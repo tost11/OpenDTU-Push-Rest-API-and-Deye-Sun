@@ -89,6 +89,14 @@ struct CONFIG_T {
         uint8_t SunsetType;
     } Ntp;
 
+    struct{
+        bool Enabled;
+        uint Duration;
+        char SystemId[TOST_MAX_SYSTEM_ID_STRLEN + 1];
+        char Token[TOST_MAX_TOKEN_STRLEN + 1];
+        char Url[TOST_MAX_URL_STRLEN + 1];
+    } Tost;
+
     struct {
         bool Enabled;
         char Hostname[MQTT_MAX_HOSTNAME_STRLEN + 1];
@@ -115,24 +123,6 @@ struct CONFIG_T {
             bool Expire;
         } Hass;
 
-    bool Tost_Enabled;
-    uint Tost_Duration;
-    char Tost_System_Id[TOST_MAX_SYSTEM_ID_STRLEN + 1];
-    char Tost_Token[TOST_MAX_TOKEN_STRLEN + 1];
-    char Tost_Url[TOST_MAX_URL_STRLEN + 1];
-
-    bool Mqtt_Enabled;
-    char Mqtt_Hostname[MQTT_MAX_HOSTNAME_STRLEN + 1];
-    uint32_t Mqtt_Port;
-    char Mqtt_Username[MQTT_MAX_USERNAME_STRLEN + 1];
-    char Mqtt_Password[MQTT_MAX_PASSWORD_STRLEN + 1];
-    char Mqtt_Topic[MQTT_MAX_TOPIC_STRLEN + 1];
-    bool Mqtt_Retain;
-    char Mqtt_LwtTopic[MQTT_MAX_TOPIC_STRLEN + 1];
-    char Mqtt_LwtValue_Online[MQTT_MAX_LWTVALUE_STRLEN + 1];
-    char Mqtt_LwtValue_Offline[MQTT_MAX_LWTVALUE_STRLEN + 1];
-    uint32_t Mqtt_PublishInterval;
-    bool Mqtt_CleanSession;
         struct {
             bool Enabled;
             char RootCaCert[MQTT_MAX_CERT_STRLEN + 1];
