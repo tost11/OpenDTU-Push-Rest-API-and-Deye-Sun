@@ -67,7 +67,7 @@ public:
 
     void updateSocket();
 
-    inverter_type getInverterType() override;
+    inverter_type getInverterType() const override;
 
     static String serialToModel(uint64_t serial);
 

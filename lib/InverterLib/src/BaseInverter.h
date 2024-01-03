@@ -42,7 +42,7 @@ public:
     virtual bool resendPowerControlRequest() = 0;
     virtual bool sendRestartControlRequest() = 0;
     virtual bool sendPowerControlRequest(const bool turnOn) = 0;
-    virtual inverter_type getInverterType() = 0;
+    virtual inverter_type getInverterType() const = 0;
 protected:
 
     String _serialString;

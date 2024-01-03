@@ -490,7 +490,7 @@ bool DeyeInverter::resolveHostname() {
     return false;
 }
 
-inverter_type DeyeInverter::getInverterType() {
+inverter_type DeyeInverter::getInverterType() const {
     return inverter_type::Inverter_DeyeSun;
 }
 
