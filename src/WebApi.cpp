@@ -25,6 +25,7 @@ void WebApiClass::init(Scheduler& scheduler)
     _webApiLimit.init(_server);
     _webApiMaintenance.init(_server);
     _webApiMqtt.init(_server);
+    _webApiTost.init(_server);
     _webApiNetwork.init(_server);
     _webApiNtp.init(_server);
     _webApiPower.init(_server);
@@ -56,6 +57,7 @@ void WebApiClass::loop()
     _webApiLimit.loop();
     _webApiMaintenance.loop();
     _webApiMqtt.loop();
+    _webApiTost.loop();
     _webApiNetwork.loop();
     _webApiNtp.loop();
     _webApiPower.loop();

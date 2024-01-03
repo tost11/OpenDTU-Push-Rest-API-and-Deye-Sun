@@ -13,6 +13,7 @@
 #include "MqttHandleInverter.h"
 #include "MqttHandleInverterTotal.h"
 #include "MqttSettings.h"
+#include "TostHandle.h"
 #include "NetworkSettings.h"
 #include "NtpSettings.h"
 #include "PinMapping.h"
@@ -96,6 +97,11 @@ void setup()
     // Initialize SunPosition
     MessageOutput.print("Initialize SunPosition... ");
     SunPosition.init(scheduler);
+    MessageOutput.println("done");
+
+    // Initialize Tost
+    MessageOutput.print("Initialize Tost... ");
+    TostHandle.init(scheduler);
     MessageOutput.println("done");
 
     // Initialize MqTT

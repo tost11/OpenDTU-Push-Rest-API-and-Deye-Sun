@@ -12,6 +12,7 @@
 #include "WebApi_limit.h"
 #include "WebApi_maintenance.h"
 #include "WebApi_mqtt.h"
+#include "WebApi_tost.h"
 #include "WebApi_network.h"
 #include "WebApi_ntp.h"
 #include "WebApi_power.h"
@@ -52,6 +53,7 @@ private:
     WebApiLimitClass _webApiLimit;
     WebApiMaintenanceClass _webApiMaintenance;
     WebApiMqttClass _webApiMqtt;
+    WebApiTostClass _webApiTost;
     WebApiNetworkClass _webApiNetwork;
     WebApiNtpClass _webApiNtp;
     WebApiPowerClass _webApiPower;

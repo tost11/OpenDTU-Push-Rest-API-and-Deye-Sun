@@ -52,6 +52,13 @@ bool ConfigurationClass::write()
     ntp["longitude"] = config.Ntp.Longitude;
     ntp["sunsettype"] = config.Ntp.SunsetType;
 
+    JsonObject tost = doc.createNestedObject("tost");
+    tost["enabled"] = config.Tost.Enabled;
+    tost["url"] = config.Tost.Url;
+    tost["system_id"] = config.Tost.SystemId;
+    tost["token"] = config.Tost.Token;
+    tost["duration"] = config.Tost.Duration;
+
     JsonObject mqtt = doc.createNestedObject("mqtt");
     mqtt["enabled"] = config.Mqtt.Enabled;
     mqtt["hostname"] = config.Mqtt.Hostname;
@@ -216,6 +223,13 @@ bool ConfigurationClass::read()
     config.Ntp.Latitude = ntp["latitude"] | NTP_LATITUDE;
     config.Ntp.Longitude = ntp["longitude"] | NTP_LONGITUDE;
     config.Ntp.SunsetType = ntp["sunsettype"] | NTP_SUNSETTYPE;
+
+    JsonObject tost = doc["tost"];
+    config.Tost.Enabled = tost["enabled"] | TOST_ENABLED;
+    strlcpy(config.Tost.Url, tost["url"] | TOST_URL, sizeof(config.Tost.Url));
+    strlcpy(config.Tost.SystemId, tost["system_id"] | TOST_SYSTEM_ID, sizeof(config.Tost.SystemId));
+    strlcpy(config.Tost.Token, tost["token"] | TOST_TOKEN, sizeof(config.Tost.Token));
+    config.Tost.Duration = tost["duration"] | TOST_DURATION;
 
     JsonObject mqtt = doc["mqtt"];
     config.Mqtt.Enabled = mqtt["enabled"] | MQTT_ENABLED;
