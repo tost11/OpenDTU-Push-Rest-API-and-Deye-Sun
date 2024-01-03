@@ -54,7 +54,7 @@ public:
     virtual bool sendChangeChannelRequest();
     virtual bool sendGridOnProFileParaRequest() = 0;
 
-    inverter_type getInverterType() override;
+    inverter_type getInverterType() const override;
 
     HoymilesRadio* getRadio();
 protected:
