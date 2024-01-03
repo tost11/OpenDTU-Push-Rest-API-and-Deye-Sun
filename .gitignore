@@ -10,3 +10,5 @@ platformio_override.ini
 get-platformio.py
 .idea
 .DS_Store
+.idea
+tmp
