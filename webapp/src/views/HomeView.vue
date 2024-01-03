@@ -284,7 +284,7 @@
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-danger" @click="onSetLimitSettings(true)">{{ $t('home.SetPersistent') }}</button>
 
-                        <button type="submit" class="btn btn-danger" @click="onSetLimitSettings(false)">{{ $t('home.SetNonPersistent') }}</button>
+                        <button v-if="targetLimitList.manufacturer!='DeyeSun'" type="submit" class="btn btn-danger" @click="onSetLimitSettings(false)">{{ $t('home.SetNonPersistent') }}</button>
 
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ $t('home.Close') }}</button>
                     </div>
