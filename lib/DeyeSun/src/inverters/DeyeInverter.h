@@ -133,7 +133,7 @@ private:
 
     bool _startCommand;
     virtual const std::vector<RegisterMapping> & getRegisteresToRead() = 0;
-    int _errorCounter;
+    int _errorCounter = -1;
 
     uint64_t _serial;
     char _hostnameOrIp[MAX_NAME_HOST] = "";

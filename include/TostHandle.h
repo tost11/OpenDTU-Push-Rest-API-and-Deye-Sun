@@ -6,6 +6,17 @@
 #include <Hoymiles.h>
 #include "Configuration.h"
 #include <TaskSchedulerDeclarations.h>
+#include <BaseInverter.h>
+#include <ArduinoJson.h>
+#include <future>
+#include <HTTPClient.h>
+
+struct http_requests_to_send{
+    http_requests_to_send(uint32_t timestamp):
+    timestamp(timestamp){}
+    String data;
+    uint32_t timestamp;
+};
 
 class TostHandleClass {
 public:
@@ -15,15 +26,23 @@ private:
     Task _loopTask;
     void loop();
 
-    TimeoutHelper _lastPublish;
+    std::optional<std::pair<int,std::unique_ptr<HTTPClient>>> _lastRequestResponse;
+    std::unique_ptr<http_requests_to_send> _currentlySendingData;
 
-    uint32_t _lastPublishStats[INV_MAX_COUNT];
+    //TimeoutHelper _lastPublish;
+    TimeoutHelper _cleanupCheck;
+
+    std::unordered_map<std::string,uint32_t> _lastPublishedInverters;
+
+    std::queue<std::unique_ptr<http_requests_to_send>> requestsToSend;
 
     int lastErrorStatusCode;
     std::string lastErrorMessage;
 
     long lastErrorTimestamp;
     long lastSuccessfullyTimestamp;
+
+    const long TIMER_CLEANUP = 1000 * 60 * 5;
 
     FieldId_t _publishFields[14] = {
             FLD_UDC,
@@ -41,6 +60,14 @@ private:
             FLD_IRR,
             FLD_Q
         };
+
+    std::string generateUniqueId(const BaseInverterClass & inv);
+
+    void handleResponse();
+
+    void runNextHttpRequest();
+
+    std::thread _runningThread;
 
 public:
     unsigned long getLastErrorTimestamp()const{return lastErrorTimestamp;}
