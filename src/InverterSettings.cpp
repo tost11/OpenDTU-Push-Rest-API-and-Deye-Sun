@@ -153,7 +153,7 @@ void InverterSettingsClass::settingsLoop()
         if (inv_cfg.Serial == 0) {
             continue;
         }
-        auto inv = Hoymiles.getInverterBySerial(inv_cfg.Serial);
+        auto inv = InverterHandler.getInverterBySerial(inv_cfg.Serial,inv_cfg.Type);
         if (inv == nullptr) {
             continue;
         }

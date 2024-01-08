@@ -111,7 +111,9 @@ void DeyeInverter::sendSocketMessage(String message) {
 }
 
 
-void DeyeInverter::updateSocket() {
+void DeyeInverter::update() {
+
+    EventLog()->checkErrorsForTimeout();
 
     if (!WiFi.isConnected()) {
         _socket = nullptr;
@@ -136,7 +138,7 @@ void DeyeInverter::updateSocket() {
 
     if(_currentWritCommand == nullptr){
         bool busy = handleRead();
-        if(!busy && _currentWritCommand == nullptr) {
+        if(!busy && _currentWritCommand == nullptr && getEnableCommands()) {
             if (_powerTargetStatus != nullptr) {
                 println("Start writing register power status",true);
                 _currentWritCommand = std::make_unique<WriteRegisterMapping>("002B", 1,*_powerTargetStatus ? "0001" : "0000");
@@ -181,6 +183,7 @@ bool DeyeInverter::isReachable() {
 bool DeyeInverter::sendActivePowerControlRequest(float limit, PowerLimitControlType type) {
     //TODO do better
     if(typeName().startsWith("Unknown")){
+        _alarmLogParser->addAlarm(6,10 * 60,"command not send because Deye Sun device unknown (checked by Serial number)");//alarm for 10 min
         return false;
     }
     if(!(type == AbsolutPersistent || type == RelativPersistent)){
@@ -193,6 +196,7 @@ bool DeyeInverter::sendActivePowerControlRequest(float limit, PowerLimitControlT
     }else{
         uint16_t maxPower = _devInfoParser->getMaxPower();
         if(maxPower == 0){
+            _alarmLogParser->addAlarm(6,10 * 60,"command not send because init data of device not received yet (max Power)");//alarm for 10 min
             SystemConfigPara()->setLastLimitRequestSuccess(CMD_NOK);
             return false;
         }
@@ -256,8 +260,8 @@ bool DeyeInverter::parseInitInformation(size_t length) {
     String serial = ret.substring(index+1);
 
     if(!serial.equalsIgnoreCase(_serialString)){
-        //TODO error parsing
-        Serial.write("Serial dose not match");
+        _alarmLogParser->addAlarm(5,10 * 60);//alarm for 10 min
+        println("Serial dose not match", false);
         return false;
     }
 
@@ -513,6 +517,11 @@ String DeyeInverter::serialToModel(uint64_t serial) {
 }
 
 bool DeyeInverter::handleRead() {
+    if(!getEnablePolling()){
+        return false;
+    }
+
+
     if (_timerHealthCheck != 0 and millis() - _timerHealthCheck < (TIMER_HEALTH_CHECK)) {
         //no fetch needed
         return false;
@@ -547,6 +556,7 @@ bool DeyeInverter::handleRead() {
         if(_startCommand){
             if(!parseInitInformation(num)){
                 endSocket();
+                _errorCounter = 1000;
                 return true;
             }
             _startCommand = false;
@@ -627,8 +637,10 @@ void DeyeInverter::handleWrite() {
             //TODO do better
             if(_currentWritCommand->writeRegister == "002B") {
                 _powerCommandParser->setLastPowerCommandSuccess(CMD_NOK);
+                _alarmLogParser->addAlarm(7,10 * 60);//alarm for 10 min
             }else if(_currentWritCommand->writeRegister == "0028") {
                 SystemConfigPara()->setLastLimitRequestSuccess(CMD_NOK);
+                _alarmLogParser->addAlarm(6,10 * 60);//alarm for 10 min
             }
             _currentWritCommand = nullptr;
             return;
@@ -652,6 +664,7 @@ void DeyeInverter::handleWrite() {
         _timerTimeoutCheck = millis();
         if(_startCommand){
             if(!parseInitInformation(num)){
+                _errorCounter = 1000;
                 endSocket();
             }
             _startCommand = false;
@@ -708,4 +721,11 @@ void DeyeInverter::print(const char * message,bool debug) {
     if(!debug || (_logDebug && debug) ){
         _messageOutput.print(message);
     }
+}
+
+void DeyeInverter::setEnableCommands(const bool enabled) {
+    BaseInverter::setEnableCommands(enabled);
+    //remove not yet handles set commands
+    _limitToSet = nullptr;
+    _powerTargetStatus = nullptr;
 }
