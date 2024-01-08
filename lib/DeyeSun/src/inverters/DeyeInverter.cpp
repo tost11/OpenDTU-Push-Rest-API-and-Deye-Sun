@@ -136,7 +136,7 @@ void DeyeInverter::updateSocket() {
 
     if(_currentWritCommand == nullptr){
         bool busy = handleRead();
-        if(!busy && _currentWritCommand == nullptr) {
+        if(!busy && _currentWritCommand == nullptr && getEnableCommands()) {
             if (_powerTargetStatus != nullptr) {
                 println("Start writing register power status",true);
                 _currentWritCommand = std::make_unique<WriteRegisterMapping>("002B", 1,*_powerTargetStatus ? "0001" : "0000");
@@ -513,6 +513,11 @@ String DeyeInverter::serialToModel(uint64_t serial) {
 }
 
 bool DeyeInverter::handleRead() {
+    if(!getEnablePolling()){
+        return false;
+    }
+
+
     if (_timerHealthCheck != 0 and millis() - _timerHealthCheck < (TIMER_HEALTH_CHECK)) {
         //no fetch needed
         return false;
@@ -708,4 +713,11 @@ void DeyeInverter::print(const char * message,bool debug) {
     if(!debug || (_logDebug && debug) ){
         _messageOutput.print(message);
     }
+}
+
+void DeyeInverter::setEnableCommands(const bool enabled) {
+    BaseInverter::setEnableCommands(enabled);
+    //remove not yet handles set commands
+    _limitToSet = nullptr;
+    _powerTargetStatus = nullptr;
 }

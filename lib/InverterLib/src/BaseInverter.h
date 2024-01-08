@@ -125,7 +125,7 @@ public:
         return _enablePolling;
     }
 
-    void setEnableCommands(const bool enabled)
+    virtual void setEnableCommands(const bool enabled)
     {
         _enableCommands = enabled;
     }

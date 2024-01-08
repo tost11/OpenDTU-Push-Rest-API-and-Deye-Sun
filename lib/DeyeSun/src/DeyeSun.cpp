@@ -15,11 +15,18 @@ void DeyeSunClass::loop()
     std::lock_guard<std::mutex> lock(_mutex);
     if (getNumInverters() > 0) {
         for(size_t pos = 0; pos <= getNumInverters(); pos++){
-            auto inv = getInverterByPos(0);
+            auto inv = getInverterByPos(pos);
             if(inv == nullptr){
                 continue;
             }
-            inv->updateSocket();
+
+            if (inv->getZeroValuesIfUnreachable() && !inv->isReachable()) {
+                inv->Statistics()->zeroRuntimeData();
+            }
+
+            if (inv->getEnablePolling() || inv->getEnableCommands()) {
+                inv->updateSocket();
+            }
         }
     }
 
