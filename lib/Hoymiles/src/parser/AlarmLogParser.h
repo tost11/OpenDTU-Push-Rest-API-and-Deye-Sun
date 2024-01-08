@@ -5,24 +5,8 @@
 #include <array>
 #include <cstdint>
 
-#define ALARM_LOG_ENTRY_COUNT 15
 #define ALARM_LOG_ENTRY_SIZE 12
 #define ALARM_LOG_PAYLOAD_SIZE (ALARM_LOG_ENTRY_COUNT * ALARM_LOG_ENTRY_SIZE + 4)
-
-#define ALARM_MSG_COUNT 130
-
-enum class AlarmMessageType_t {
-    ALL = 0,
-    HMT
-};
-
-typedef struct {
-    AlarmMessageType_t InverterType;
-    uint16_t MessageId;
-    const char* Message_en;
-    const char* Message_de;
-    const char* Message_fr;
-} AlarmMessage_t;
 
 class AlarmLogParser : public Parser, public BaseAlarmLog {
 public:
@@ -48,6 +32,4 @@ private:
     LastCommandSuccess _lastAlarmRequestSuccess = CMD_NOK; // Set to NOK to fetch at startup
 
     AlarmMessageType_t _messageType = AlarmMessageType_t::ALL;
-
-    static const std::array<const AlarmMessage_t, ALARM_MSG_COUNT> _alarmMessages;
 };

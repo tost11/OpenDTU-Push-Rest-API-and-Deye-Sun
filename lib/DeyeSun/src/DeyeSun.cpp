@@ -25,7 +25,7 @@ void DeyeSunClass::loop()
             }
 
             if (inv->getEnablePolling() || inv->getEnableCommands()) {
-                inv->updateSocket();
+                inv->update();
             }
         }
     }
