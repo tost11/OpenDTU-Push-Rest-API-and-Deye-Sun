@@ -24,7 +24,7 @@
                          maxlength="31" required />
                 </div>
                 <div v-if="newInverterData.manufacturer == 'DeyeSun'" class="form-group">
-                  <label>{{ $t('inverteradmin.Name') }} <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterHostnameOrIpHint')" /></label>
+                  <label>{{ $t('inverteradmin.InverterHostnameOrIp') }} <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterHostnameOrIpHint')" /></label>
                   <input v-model="newInverterData.hostname_or_ip" type="text" class="form-control ml-sm-2 mr-sm-4 my-2"
                          maxlength="31" required />
                 </div>
