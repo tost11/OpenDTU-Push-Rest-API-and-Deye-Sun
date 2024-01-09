@@ -29,12 +29,12 @@ Tested with model: SUN300G3-EU-230
 - Configuring via UI
 - Tun on and off (theoretically, setting to off doesn't change anything but working for on (rewiring after red led of death))
 - Setting limit
+- Showing logs
 
 ### Not working
 
-- Showing logs
-- Nice Logging
-- Fancy OpenDTU features like poll interval and so on
+- Logs show hardware inverter errors
+- restart inverter
 
 ## !! IMPORTANT UPGRADE NOTES !!
 
