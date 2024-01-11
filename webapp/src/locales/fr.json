@@ -39,6 +39,7 @@
         "1003": "Données trop importantes !",
         "1004": "Échec de l'analyse des données !",
         "1005": "Certaines valeurs sont manquantes !",
+        "1006": "Write failed!",
         "2001": "Le numéro de série ne peut pas être nul !",
         "2002": "L'intervalle de sondage doit être supérieur à zéro !",
         "2003": "Réglage du niveau de puissance invalide !",
@@ -406,7 +407,6 @@
         "ApTimeout": "Délai d'attente du point d'accès",
         "ApTimeoutHint": "Durée pendant laquelle le point d'accès reste ouvert. Une valeur de 0 signifie infini.",
         "Minutes": "minutes",
-        "Save": "@:dtuadmin.Save",
         "EnableMdns": "Activer mDNS",
         "MdnsSettings": "mDNS Settings"
     },
@@ -450,8 +450,7 @@
         "HassPrefixTopicHint": "Le préfixe de découverte du sujet",
         "HassRetain": "Activer du maintien",
         "HassExpire": "Activer l'expiration",
-        "HassIndividual": "Panneaux individuels",
-        "Save": "@:dtuadmin.Save"
+        "HassIndividual": "Panneaux individuels"
     },
     "inverteradmin": {
         "InverterSettings": "Paramètres des onduleurs",
