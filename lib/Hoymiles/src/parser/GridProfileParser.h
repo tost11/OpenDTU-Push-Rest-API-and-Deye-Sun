@@ -5,8 +5,8 @@
 #include "BaseGridProfile.h"
 
 #define GRID_PROFILE_SIZE 141
-#define PROFILE_TYPE_COUNT 7
-#define SECTION_VALUE_COUNT 144
+#define PROFILE_TYPE_COUNT 10
+#define SECTION_VALUE_COUNT 158
 
 typedef struct {
     uint8_t lIdx;
