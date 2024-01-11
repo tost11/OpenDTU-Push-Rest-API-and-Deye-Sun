@@ -445,7 +445,7 @@
         "Token": "Token:",
         "TokenHint": "Token (looks like UUID)",
         "Duration": "Zeit",
-        "Save": "@:dtuadmin.Save",
+        "Save": "@:base.Save",
         "Seconds": "seconds"
     },
     "mqttadmin": {
