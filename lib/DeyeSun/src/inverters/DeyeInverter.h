@@ -111,7 +111,7 @@ private:
     static const uint32_t TIMER_BETWEEN_SENDS = 200;
     static const uint32_t TIMER_RESOLVE_HOSTNAME = 30 * 1000;
     static const uint32_t TIMER_TIMEOUT = 1200;
-    static const uint32_t TIMER_COUNTER_ERROR_TIMEOUT = 0.5 * 60 * 1000;
+    static const uint32_t TIMER_COUNTER_ERROR_TIMEOUT = 3 * 60 * 1000;
 
     //TODO move to inverter classes
     static const uint32_t INIT_COMMAND_START_SKIP = 2;
