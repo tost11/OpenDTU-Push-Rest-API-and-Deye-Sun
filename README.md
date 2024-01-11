@@ -9,6 +9,15 @@
 I have implemented an application that monitors solar systems on a server
 with graphs, statistics and all the cool stuff!
 
+- Push data via rest to extern Application [here](https://github.com/tost11/OpenDTU-Push-Rest-API/tree/feature/push-rest-api)
+- Implement Logic to add and Monitor Deye Sun,Bosswerk Inverters, [here](https://github.com/tost11/OpenDTU-Push-Rest-API/tree/feature/deye-sun).
+
+
+### Rest push service
+
+I have implemented an application that monitors solar systems on a server
+with graphs, statistics and all the cool stuff!
+
 For getting data on this application this fork has a new feature
 that sends the current inverter data via rest to the application.
 
