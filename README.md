@@ -9,7 +9,44 @@
 Currently, I am working on two features:
 
 - Push data via rest to extern Application [here](https://github.com/tost11/OpenDTU-Push-Rest-API/tree/feature/push-rest-api)
-- Implement Logic to add and Monitor Deye Sun,Bosswerk Inverters, [here](https://github.com/tost11/OpenDTU-Push-Rest-API/tree/feature/deye-sun).
+- Implement Logic to add and Monitor Deye Sun,Bosswerk Inverters, [here](https://github.com/tost11/OpenDTU-Push-Rest-API/tree/feature/deye-sun)
+- Both combined, [here](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/tree/feature/push-rest-api)
+
+### Deye Sun Branch
+
+This feature Branch is intended to read out Deye Sun Micro PV Inverters and make use of the original project UI and features
+
+The esp will connect via Network(udp) to the configured ip/hostname and port of the Inverter.
+It will read all data every 5 minutes (more is not supported by device)
+Reachable check will be done more often.
+
+Original implementation for Hoymiles inverts will work in parallel
+
+Tested with model: SUN300G3-EU-230
+
+#### Working
+
+- Reading data
+- Configuring via UI
+- Tun on and off (theoretically, setting to off doesn't change anything but working for on (rewiring after red led of death))
+- Setting limit
+- Showing logs
+
+#### Not working
+
+- Logs show hardware inverter errors
+- restart inverter
+
+### Rest push service
+
+I have implemented an application that monitors solar systems on a server
+with graphs, statistics and all the cool stuff!
+
+For getting data on this application this fork has a new feature
+that sends the current inverter data via rest to the application.
+
+If you are interested in the application or the rest definition for your own application
+check out the [project](https://github.com/tost11/solar-monitoring).
 
 ## !! IMPORTANT UPGRADE NOTES !!
 
