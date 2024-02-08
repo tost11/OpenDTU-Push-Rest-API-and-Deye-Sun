@@ -11,7 +11,7 @@
 #include "TostHandle.h"
 #include "MessageOutput.h"
 
-void WebApiTostClass::init(AsyncWebServer& server)
+void WebApiTostClass::init(AsyncWebServer& server, Scheduler& scheduler)
 {
     using std::placeholders::_1;
 

@@ -25,6 +25,7 @@ void WebApiClass::init(Scheduler& scheduler)
     _webApiLimit.init(_server, scheduler);
     _webApiMaintenance.init(_server, scheduler);
     _webApiMqtt.init(_server, scheduler);
+    _webApiTost.init(_server, scheduler);
     _webApiNetwork.init(_server, scheduler);
     _webApiNtp.init(_server, scheduler);
     _webApiPower.init(_server, scheduler);
