@@ -529,7 +529,7 @@ bool DeyeInverter::handleRead() {
 
     if (_socket == nullptr) {
         _errorCounter++;
-        if(_errorCounter > 30){//give up after 25 failed attempts and wait long
+        if(_errorCounter > 50){//give up after some failed attempts and wait long
             _commandPosition = _needInitData ? 0 : INIT_COMMAND_START_SKIP;
             _timerAfterCounterTimout = millis();
             _errorCounter = -1;

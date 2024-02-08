@@ -30,6 +30,10 @@ time_t DeyeDevInfo::getFwBuildDateTime() const {
     return 0;
 }
 
+String DeyeDevInfo::getFwBuildDateTimeStr() const{
+    return "";
+};
+
 uint32_t DeyeDevInfo::getHwPartNumber() const {
     return 0;
 }

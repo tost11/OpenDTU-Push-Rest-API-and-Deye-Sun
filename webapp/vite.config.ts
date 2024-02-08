@@ -16,6 +16,7 @@ try {
 } catch (error) {
     //proxy_target = '192.168.4.1';
     proxy_target = '192.168.1.144';
+    //proxy_target = 'opendtu';
 }
 
 // https://vitejs.dev/config/
