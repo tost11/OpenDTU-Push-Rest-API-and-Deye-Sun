@@ -2,12 +2,13 @@
 #pragma once
 
 #include <ESPAsyncWebServer.h>
+#include <TaskSchedulerDeclarations.h>
 
 #define TOST_JSON_DOC_SIZE 3072
 
 class WebApiTostClass {
 public:
-    void init(AsyncWebServer& server);
+    void init(AsyncWebServer& server,Scheduler& scheduler);
     void loop();
 
 private:
