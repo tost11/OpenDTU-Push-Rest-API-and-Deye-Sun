@@ -10,31 +10,43 @@ Currently, I am working on two features:
 
 - Push data via rest to extern Application [here](https://github.com/tost11/OpenDTU-Push-Rest-API/tree/feature/push-rest-api)
 - Implement Logic to add and Monitor Deye Sun,Bosswerk Inverters, [here](https://github.com/tost11/OpenDTU-Push-Rest-API/tree/feature/deye-sun)
+- Both combined, [here](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/tree/feature/push-rest-api)
 
-## Deye Sun Branch
+### Deye Sun Branch
 
 This feature Branch is intended to read out Deye Sun Micro PV Inverters and make use of the original project UI and features
 
-The esp will connect via udp to the configured ip/hostname and port.
+The esp will connect via Network(udp) to the configured ip/hostname and port of the Inverter.
 It will read all data every 5 minutes (more is not supported by device)
-Reachable check will be done more often
+Reachable check will be done more often.
 
 Original implementation for Hoymiles inverts will work in parallel
 
 Tested with model: SUN300G3-EU-230
 
-### Working
+#### Working
 
 - Reading data
 - Configuring via UI
-- Tun on and off (theoretically, setting to off doesn't change anything but working for on (reviving after red led of death))
+- Tun on and off (theoretically, setting to off doesn't change anything but working for on (rewiring after red led of death))
 - Setting limit
 - Showing logs
 
-### Not working
+#### Not working
 
 - Logs show hardware inverter errors
 - restart inverter
+
+### Rest push service
+
+I have implemented an application that monitors solar systems on a server
+with graphs, statistics and all the cool stuff!
+
+For getting data on this application this fork has a new feature
+that sends the current inverter data via rest to the application.
+
+If you are interested in the application or the rest definition for your own application
+check out the [project](https://github.com/tost11/solar-monitoring).
 
 ## !! IMPORTANT UPGRADE NOTES !!
 
@@ -103,34 +115,3 @@ Generated using: `git log --date=short --pretty=format:"* %h%x09%ad%x09%s" | gre
 | TSUN TSOL-M350       | NRF24L01+          | 1         | 1           | 1         |
 | TSUN TSOL-M800       | NRF24L01+          | 2         | 2           | 1         |
 | TSUN TSOL-M1600      | NRF24L01+          | 4         | 2           | 1         |
-
-
-
-## Hardware you need
-
-### ESP32 board
-
-For ease of use, buy a "ESP32 DEVKIT DOIT" or "ESP32 NodeMCU Development Board" with an ESP32-S3 or ESP-WROOM-32 chipset on it.
-
-Sample Picture:
-
-![NodeMCU-ESP32](docs/nodemcu-esp32.png)
-
-Also supported: Board with Ethernet-Connector and Power-over-Ethernet [Olimex ESP32-POE](https://www.olimex.com/Products/IoT/ESP32/ESP32-POE/open-source-hardware)
-
-### Change pin assignment
-
-Its possible to change all the pins of the NRF24L01+ module, the Display, the LED etc.
-The recommend way to change the pin assignment is by creating a custom [device profile](docs/DeviceProfiles.md).
-It is also possible to create a custom environment and compile the source yourself. This can be achieved by copying one of the [env:....] sections from 'platformio.ini' to 'platformio_override.ini' and editing the 'platformio_override.ini' file and add/change one or more of the following lines to the 'build_flags' parameter:
-
-```makefile
--DHOYMILES_PIN_MISO=19
--DHOYMILES_PIN_MOSI=23
--DHOYMILES_PIN_SCLK=18
--DHOYMILES_PIN_IRQ=16
--DHOYMILES_PIN_CE=4
--DHOYMILES_PIN_CS=5
-```
-
-It is recommended to make all changes only in the  'platformio_override.ini', this is your personal copy.

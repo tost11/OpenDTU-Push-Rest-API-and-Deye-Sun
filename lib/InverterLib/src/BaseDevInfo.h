@@ -16,6 +16,7 @@ public:
     virtual uint16_t getFwBootloaderVersion() const = 0;
     virtual uint16_t getFwBuildVersion() const = 0;
     virtual time_t getFwBuildDateTime() const = 0;
+    virtual String getFwBuildDateTimeStr() const = 0;
     virtual uint32_t getHwPartNumber() const = 0;
     virtual String getHwVersion() const = 0;
     virtual uint16_t getMaxPower() const = 0;

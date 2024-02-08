@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
- * Copyright (C) 2023 Thomas Basler and others
+ * Copyright (C) 2023-2024 Thomas Basler and others
  */
 #include "InverterSettings.h"
 #include "Configuration.h"
@@ -26,6 +26,12 @@
 #endif
 
 InverterSettingsClass InverterSettings;
+
+InverterSettingsClass::InverterSettingsClass()
+    : _settingsTask(INVERTER_UPDATE_SETTINGS_INTERVAL, TASK_FOREVER, std::bind(&InverterSettingsClass::settingsLoop, this))
+    , _hoyTask(TASK_IMMEDIATE, TASK_FOREVER, std::bind(&InverterSettingsClass::hoyLoop, this))
+{
+}
 
 void InverterSettingsClass::init(Scheduler& scheduler)
 {
@@ -79,6 +85,8 @@ void InverterSettingsClass::init(Scheduler& scheduler)
 
         if (PinMapping.isValidCmt2300Config()) {
             Hoymiles.initCMT(pin.cmt_sdio, pin.cmt_clk, pin.cmt_cs, pin.cmt_fcs, pin.cmt_gpio2, pin.cmt_gpio3);
+            MessageOutput.println(F("  Setting country mode... "));
+            Hoymiles.getRadioCmt()->setCountryMode(static_cast<CountryModeId_t>(config.Dtu.Cmt.CountryMode));
             MessageOutput.println(F("  Setting CMT target frequency... "));
             Hoymiles.getRadioCmt()->setInverterTargetFrequency(config.Dtu.Cmt.Frequency);
         }
@@ -123,8 +131,6 @@ void InverterSettingsClass::init(Scheduler& scheduler)
     }
 
     scheduler.addTask(_hoyTask);
-    _hoyTask.setCallback(std::bind(&InverterSettingsClass::hoyLoop, this));
-    _hoyTask.setIterations(TASK_FOREVER);
     _hoyTask.enable();
 
     scheduler.addTask(_deyeTask);
@@ -133,9 +139,6 @@ void InverterSettingsClass::init(Scheduler& scheduler)
     _deyeTask.enable();
 
     scheduler.addTask(_settingsTask);
-    _settingsTask.setCallback(std::bind(&InverterSettingsClass::settingsLoop, this));
-    _settingsTask.setIterations(TASK_FOREVER);
-    _settingsTask.setInterval(INVERTER_UPDATE_SETTINGS_INTERVAL);
     _settingsTask.enable();
 
     MessageOutput.print("Initialize InverterHandler... ");
@@ -147,6 +150,7 @@ void InverterSettingsClass::init(Scheduler& scheduler)
 void InverterSettingsClass::settingsLoop()
 {
     const CONFIG_T& config = Configuration.get();
+    const bool isDayPeriod = SunPosition.isDayPeriod();
 
     for (uint8_t i = 0; i < INV_MAX_COUNT; i++) {
         auto const& inv_cfg = config.Inverter[i];
@@ -158,10 +162,10 @@ void InverterSettingsClass::settingsLoop()
             continue;
         }
 
-        inv->setEnablePolling(inv_cfg.Poll_Enable && (SunPosition.isDayPeriod() || inv_cfg.Poll_Enable_Night));
-        inv->setEnableCommands(inv_cfg.Command_Enable && (SunPosition.isDayPeriod() || inv_cfg.Command_Enable_Night));
+        inv->setEnablePolling(inv_cfg.Poll_Enable && (isDayPeriod || inv_cfg.Poll_Enable_Night));
+        inv->setEnableCommands(inv_cfg.Command_Enable && (isDayPeriod || inv_cfg.Command_Enable_Night));
     }
- }
+}
 
 void InverterSettingsClass::hoyLoop()
 {

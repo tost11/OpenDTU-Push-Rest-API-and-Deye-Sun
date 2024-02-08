@@ -22,6 +22,7 @@ public:
 
     uint16_t getFwBuildVersion() const override;
     time_t getFwBuildDateTime() const override;
+    String getFwBuildDateTimeStr() const override;
     uint16_t getFwBootloaderVersion() const override;
 
     uint32_t getHwPartNumber() const override;

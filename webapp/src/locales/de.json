@@ -26,7 +26,11 @@
         "Loading": "Lade...",
         "Reload": "Aktualisieren",
         "Cancel": "Abbrechen",
-        "Save": "Speichern"
+        "Save": "Speichern",
+        "Refreshing": "Aktualisieren",
+        "Pull": "Zum Aktualisieren nach unten ziehen",
+        "Release": "Loslassen zum Aktualisieren",
+        "Close": "Schließen"
     },
     "localeswitcher": {
         "Dark": "Dunkel",
@@ -44,6 +48,7 @@
         "2002": "Das Abfraginterval muss größer als 0 sein!",
         "2003": "Ungültige Sendeleistung angegeben!",
         "2004": "Die Frequenz muss zwischen {min} und {max} kHz liegen und ein vielfaches von 250kHz betragen!",
+        "2005": "Ungültige Landesauswahl!",
         "3001": "Nichts gelöscht!",
         "3002": "Konfiguration zurückgesetzt. Starte jetzt neu...",
         "4001": "@:apiresponse.2001",
@@ -112,7 +117,6 @@
         "UnreadMessages": "Ungelesene Meldungen",
         "Loading": "@:base.Loading",
         "EventLog": "Ereignisanzeige",
-        "Close": "Schließen",
         "InverterInfo": "Wechselrichter-Informationen",
         "LimitSettings": "Limit-Einstellungen",
         "LastLimitSetStatus": "Letzter Übertragungsstatus:",
@@ -181,10 +185,12 @@
         "FirmwareVersionHint": "Klicken Sie hier, um Informationen über Ihre aktuelle Version anzuzeigen",
         "FirmwareUpdate": "Firmware-Aktualisierung",
         "FirmwareUpdateHint": "Klicken Sie hier, um die Änderungen zwischen Ihrer Version und der neuesten Version anzuzeigen",
+        "FrmwareUpdateAllow": "Durch Aktivieren der Update Prüfung wird bei jedem Seitenaufruf eine Anfrage an GitHub.com gesendet um die aktuell verfügbare Version abzurufen. Wenn du damit nicht einverstanden bist, lasse diese Funktion deaktiviert.",
         "ResetReason0": "Reset Grund CPU 0",
         "ResetReason1": "Reset Grund CPU 1",
         "ConfigSaveCount": "Anzahl der Konfigurationsspeicherungen",
-        "Uptime": "Betriebszeit"
+        "Uptime": "Betriebszeit",
+        "UptimeValue": "0 Tage {time} | 1 Tag {time} | {count} Tage {time}"
     },
     "hardwareinfo": {
         "HardwareInformation": "Hardwareinformationen",
@@ -204,6 +210,13 @@
         "Heap": "Heap",
         "LittleFs": "LittleFs",
         "Sketch": "Sketch"
+    },
+    "heapdetails": {
+        "HeapDetails": "Detailinformationen zum Heap",
+        "TotalFree": "Insgesamt frei",
+        "LargestFreeBlock": "Größter zusammenhängender freier Block",
+        "MaxUsage": "Maximale Speichernutzung seit Start",
+        "Fragmentation": "Grad der Fragmentierung"
     },
     "radioinfo": {
         "RadioInformation": "Funkmodulinformationen",
@@ -305,10 +318,7 @@
     "inverterchannelinfo": {
         "String": "String {num}",
         "Phase": "Phase {num}",
-        "General": "Allgemein",
-        "Property": "Eigenschaft",
-        "Value": "Wert",
-        "Unit": "Einheit"
+        "General": "Allgemein"
     },
     "invertertotalinfo": {
         "TotalYieldTotal": "Gesamtertrag Insgesamt",
@@ -349,9 +359,14 @@
         "CmtPaLevel": "CMT2300A Sendeleistung:",
         "NrfPaLevelHint": "Verwendet für HM-Wechselrichter. Stellen Sie sicher, dass Ihre Stromversorgung stabil genug ist, bevor Sie die Sendeleistung erhöhen.",
         "CmtPaLevelHint": "Verwendet für HMS/HMT-Wechselrichter. Stellen Sie sicher, dass Ihre Stromversorgung stabil genug ist, bevor Sie die Sendeleistung erhöhen.",
+        "CmtCountry": "CMT2300A Region/Land:",
+        "CmtCountryHint": "Jedes Land hat unterschiedliche Frequenzzuteilungen.",
+        "country_0": "Europa ({min}MHz - {max}MHz)",
+        "country_1": "Nordamerika ({min}MHz - {max}MHz)",
+        "country_2": "Brasilien ({min}MHz - {max}MHz)",
         "CmtFrequency": "CMT2300A Frequenz:",
         "CmtFrequencyHint": "Stelle sicher, dass du nur Frequenzen verwendet werden welche im entsprechenden Land erlaubt sind! Nach einer Frequenzänderung kann es bis zu 15min dauern bis eine Verbindung hergestellt wird.",
-        "CmtFrequencyWarning": "Die ausgewählte Frequenz befindet außerhalb des in der EU zugelassenen Bereiches. Vergewissere dich, dass mit dieser Auswahl keine lokalen Regularien verletzt werden.",
+        "CmtFrequencyWarning": "Die gewählte Frequenz liegt außerhalb des zulässigen Bereichs in der gewählten Region/dem Land. Vergewissere dich, dass mit dieser Auswahl keine lokalen Regularien verletzt werden.",
         "MHz": "{mhz} MHz",
         "dBm": "{dbm} dBm",
         "Min": "Minimum ({db} dBm)",
@@ -541,7 +556,7 @@
         "Back": "Zurück",
         "Retry": "Wiederholen",
         "OtaStatus": "OTA-Status",
-        "OtaSuccess": "OTA erfolgreich. Das Gerät wurde automatisch neu gestartet und wird in wenigen Augenblicken wieder zur Verfügung stehen. Bitte nicht vergessen, die Weboberfläche neu zu laden!",
+        "OtaSuccess": "Das Hochladen der Firmware war erfolgreich. Das Gerät wurde automatisch neu gestartet. Wenn das Gerät wieder erreichbar ist wird die automatisch Oberfläche neu geladen.",
         "FirmwareUpload": "Firmware hochladen",
         "UploadProgress": "Hochlade-Fortschritt"
     },
@@ -578,6 +593,10 @@
         "PowerSafeHint": "Schaltet das Display aus, wenn kein Wechselrichter Strom erzeugt",
         "Screensaver": "Bildschirmschoner aktivieren:",
         "ScreensaverHint": "Bewegt die Ausgabe bei jeder Aktualisierung um ein Einbrennen zu verhindern (v. a. für OLED-Displays nützlich)",
+        "DiagramMode": "Diagramm Modus:",
+        "off": "Deaktiviert",
+        "small": "Klein",
+        "fullscreen": "Vollbild",
         "DiagramDuration": "Diagramm Periode:",
         "DiagramDurationHint": "Die Zeitperiode welche im Diagramm dargestellt wird.",
         "Seconds": "Sekunden",

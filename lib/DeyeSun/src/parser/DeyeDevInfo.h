@@ -26,6 +26,8 @@ public:
 
     time_t getFwBuildDateTime() const override;
 
+    String getFwBuildDateTimeStr() const override;
+
     uint32_t getHwPartNumber() const override;
 
     String getHwVersion() const override;
