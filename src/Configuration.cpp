@@ -328,7 +328,7 @@ bool ConfigurationClass::read()
     config.Servo.RangeMin = servo["range_min"] | 32;
     config.Servo.RangeMax = servo["range_max"] | 7;
     config.Servo.Pin = servo["pin"] | 15;
-    config.Servo.Serial = servo["serial"] | 0;
+    config.Servo.Serial = servo["serial"] | 0ULL;
     config.Servo.InputIndex = servo["input_index"] | 0;
     config.Servo.Power = servo["power"] | 600;
 

@@ -145,15 +145,6 @@ void WebApiServoClass::onServoAdminPost(AsyncWebServerRequest* request)
             return;
         }
 
-
-        if (root[F("serial")].as<int>() <= 0) {
-            retMsg[F("message")] = F("Serial Max must be above 0");
-            retMsg[F("code")] = WebApiError::ServoSerial;
-            response->setLength();
-            request->send(response);
-            return;
-        }
-
         if (root[F("input_index")].as<int>() < 0 || root[F("input_index")].as<int>() >= 256) {
             retMsg[F("message")] = F("Index Max must be above or equal 0 and below 256");
             retMsg[F("code")] = WebApiError::ServoIndex;

@@ -12,13 +12,14 @@ private:
 
     uint32_t _lastUpdate;
     void loop();
+    int calculatePosition();
 
-    int count=0;
-
-    int _ledPin;  // 16 corresponds to GPIO16
-    int _ledChannel;
+    const int _ledChannel = 0;
+    const int _resolution = 8;
 
     int _lastPosition;
+    int _lastFrequency;
+    int _lastPin;
 };
 
 extern ServoHandleClass ServoHandle;
