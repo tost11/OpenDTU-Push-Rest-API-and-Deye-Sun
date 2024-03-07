@@ -90,4 +90,14 @@ enum WebApiError {
 
     HardwareBase = 12000,
     HardwarePinMappingLength,
+
+    ServoBase = 14000,
+    ServoFrequency,
+    ServoPin,
+    ServoMin,
+    ServoMax,
+    ServoRange,
+    ServoSerial,
+    ServoIndex,
+    ServoPower
 };

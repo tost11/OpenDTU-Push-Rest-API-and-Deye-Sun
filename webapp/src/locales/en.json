@@ -9,6 +9,7 @@
         "SecuritySettings": "Security Settings",
         "DTUSettings": "DTU Settings",
         "DeviceManager": "Device-Manager",
+        "ServoManager": "Servo Display",
         "ConfigManagement": "Config Management",
         "FirmwareUpgrade": "Firmware Upgrade",
         "DeviceReboot": "Device Reboot",
@@ -607,6 +608,25 @@
         "Leds": "LEDs",
         "EqualBrightness": "Equal brightness:",
         "LedBrightness": "LED {led} brightness ({brightness}):"
+    },
+    "servoadmin": {
+        "ServoSettings": "Settings for Servo Configuration",
+        "ServoConfiguration": "Settings",
+        "Enable": "use Servo:",
+        "TostParameters": "Servo paramters",
+        "pin": "Pin",
+        "rangeMin": "Cap Min",
+        "rangeMax": "Cap Max",
+        "serial": "Serial",
+        "inputIndex": "Input Index",
+        "power": "Power",
+        "unitFrequency": "Hz",
+        "frequency": "Frequency",
+        "unitPower": "W",
+        "hintPower": "Value on that Servo Display is at max",
+        "hintSerial": "Serial of inverter to use",
+        "hintInputIndex": "Index of DC Input that is used for calculation (0 = all)",
+        "Save": "@:base.Save"
     },
     "pininfo": {
         "PinOverview": "Connection overview",

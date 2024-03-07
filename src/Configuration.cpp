@@ -143,6 +143,16 @@ bool ConfigurationClass::write()
         }
     }
 
+    JsonObject servo = doc.createNestedObject("servo");
+    servo["enabled"] = config.Servo.Enabled;
+    servo["frequency"] = config.Servo.Frequency;
+    servo["range_min"] = config.Servo.RangeMin;
+    servo["range_max"] = config.Servo.RangeMax;
+    servo["pin"] = config.Servo.Pin;
+    servo["serial"] = config.Servo.Serial;
+    servo["input_index"] = config.Servo.InputIndex;
+    servo["power"] = config.Servo.Power;
+
     // Serialize JSON to file
     if (serializeJson(doc, f) == 0) {
         MessageOutput.println("Failed to write file");
@@ -311,6 +321,16 @@ bool ConfigurationClass::read()
             strlcpy(config.Inverter[i].channel[c].Name, channel[c]["name"] | "", sizeof(config.Inverter[i].channel[c].Name));
         }
     }
+
+    JsonObject servo = doc["servo"];
+    config.Servo.Enabled = servo["enabled"] | false;
+    config.Servo.Frequency = servo["frequency"] | 50;
+    config.Servo.RangeMin = servo["range_min"] | 32;
+    config.Servo.RangeMax = servo["range_max"] | 7;
+    config.Servo.Pin = servo["pin"] | 15;
+    config.Servo.Serial = servo["serial"] | 0;
+    config.Servo.InputIndex = servo["input_index"] | 0;
+    config.Servo.Power = servo["power"] | 600;
 
     f.close();
     return true;

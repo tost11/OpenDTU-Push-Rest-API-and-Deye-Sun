@@ -17,6 +17,7 @@ import NtpInfoView from '@/views/NtpInfoView.vue';
 import SecurityAdminView from '@/views/SecurityAdminView.vue';
 import SystemInfoView from '@/views/SystemInfoView.vue';
 import { createRouter, createWebHistory } from 'vue-router';
+import ServoAdminView from "@/views/ServoAdminView.vue";
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -91,6 +92,11 @@ const router = createRouter({
         path: '/settings/device',
         name: 'Device Manager',
         component: DeviceAdminView
+    },
+    {
+        path: '/settings/servo',
+        name: 'Servo Manager',
+        component: ServoAdminView
     },
     {
         path: '/firmware/upgrade',

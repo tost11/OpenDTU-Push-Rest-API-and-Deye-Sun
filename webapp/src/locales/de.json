@@ -9,6 +9,7 @@
         "SecuritySettings": "Sicherheit",
         "DTUSettings": "DTU",
         "DeviceManager": "Hardware",
+        "ServoManager": "Servo Anzeige",
         "ConfigManagement": "Konfigurationsverwaltung",
         "FirmwareUpgrade": "Firmware-Aktualisierung",
         "DeviceReboot": "Neustart",
@@ -607,6 +608,25 @@
         "Leds": "LEDs",
         "EqualBrightness": "Gleiche Helligkeit:",
         "LedBrightness": "LED {led} Helligkeit ({brightness}):"
+    },
+    "servoadmin": {
+        "ServoSettings": "Einstellungen für Servo konfigurieren",
+        "ServoConfiguration": "Einstellungen",
+        "Enable": "Servo verwenden:",
+        "TostParameters": "Servo Parameter",
+        "pin": "Pin",
+        "rangeMin": "Anschlag Minium",
+        "rangeMax": "Anschlag Maximum",
+        "serial": "Seriennumer",
+        "inputIndex": "Eingangs Index",
+        "power": "Leistung",
+        "unitFrequency": "Hz",
+        "frequency": "Frequenz",
+        "unitPower": "W",
+        "hintPower": "Wert ab dem die Anzeige am Maximum ist",
+        "hintSerial": "Seriennummer des zu verwenden Inverters",
+        "hintInputIndex": "Index des DC Eingangs der für die Berechnung verwendet werden soll (0 = Alle)",
+        "Save": "@:base.Save"
     },
     "pininfo": {
         "PinOverview": "Anschlussübersicht",

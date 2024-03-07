@@ -21,6 +21,7 @@
 #include "Utils.h"
 #include "WebApi.h"
 #include "defaults.h"
+#include "ServoHandle.h"
 #include <Arduino.h>
 #include <LittleFS.h>
 #include <TaskScheduler.h>
@@ -109,6 +110,11 @@ void setup()
     // Initialize WebApi
     MessageOutput.print("Initialize WebApi... ");
     WebApi.init(scheduler);
+    MessageOutput.println("done");
+
+    // Initialize WebApi
+    MessageOutput.print("Initialize Servo... ");
+    ServoHandle.init(scheduler);
     MessageOutput.println("done");
 
     // Initialize Display
