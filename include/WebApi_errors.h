@@ -93,6 +93,7 @@ enum WebApiError {
 
     ServoBase = 14000,
     ServoFrequency,
+    ServoResolution,
     ServoPin,
     ServoMin,
     ServoMax,

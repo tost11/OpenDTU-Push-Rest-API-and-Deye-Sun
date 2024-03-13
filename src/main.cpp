@@ -114,7 +114,7 @@ void setup()
 
     // Initialize WebApi
     MessageOutput.print("Initialize Servo... ");
-    ServoHandle.init(scheduler);
+    ServoHandle.init(scheduler,pin.servo_pwm);
     MessageOutput.println("done");
 
     // Initialize Display

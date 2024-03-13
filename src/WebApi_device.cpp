@@ -68,6 +68,9 @@ void WebApiDeviceClass::onDeviceAdminGet(AsyncWebServerRequest* request)
     displayPinObj["cs"] = pin.display_cs;
     displayPinObj["reset"] = pin.display_reset;
 
+    auto servoPinObj = curPin.createNestedObject("servo");
+    servoPinObj["pwm"] = pin.servo_pwm;
+
     auto ledPinObj = curPin.createNestedObject("led");
     for (uint8_t i = 0; i < PINMAPPING_LED_COUNT; i++) {
         ledPinObj["led" + String(i)] = pin.led[i];
@@ -88,8 +91,62 @@ void WebApiDeviceClass::onDeviceAdminGet(AsyncWebServerRequest* request)
         led["brightness"] = config.Led_Single[i].Brightness;
     }
 
+    auto servo = root.createNestedObject("servo");
+    servo[F("frequency")] = config.Servo.Frequency;
+    servo[F("resolution")] = config.Servo.Resolution;
+    servo[F("range_min")] = config.Servo.RangeMin;
+    servo[F("range_max")] = config.Servo.RangeMax;
+    servo[F("serial")] = config.Servo.Serial;
+    servo[F("input_index")] = config.Servo.InputIndex;
+    servo[F("power")] = config.Servo.Power;
+
     response->setLength();
     request->send(response);
+}
+
+inline bool validateServoData(const JsonDocument & root,JsonVariant & retMsg){
+    if (root["servo"][F("frequency")].as<int>() <= 0 || root["servo"][F("frequency")].as<int>() > 255) {
+        retMsg[F("message")] = F("Frequency must be above 0 and below 256");
+        retMsg[F("code")] = WebApiError::ServoFrequency;
+        return false;
+    }
+
+    if (root["servo"][F("resolution")].as<int>() <= 0 || root["servo"][F("resolution")].as<int>() > 255) {
+        retMsg[F("message")] = F("Resolution must be above 0 and below 256");
+        retMsg[F("code")] = WebApiError::ServoResolution;
+        return false;
+    }
+
+    if (root["servo"][F("range_min")].as<int>() <= 0 || root["servo"][F("range_min")].as<int>() >= 256) {
+        retMsg[F("message")] = F("Pin must be above 0 and below 256");
+        retMsg[F("code")] = WebApiError::ServoPin;
+        return false;
+    }
+
+    if (root["servo"][F("range_max")].as<int>() <= 0 || root["servo"][F("range_max")].as<int>() >= 256) {
+        retMsg[F("message")] = F("Servo Max must be above 0 and below 256");
+        retMsg[F("code")] = WebApiError::ServoMax;
+        return false;
+    }
+
+    if (root["servo"][F("range_max")].as<int>() == root["servo"][F("range_min")].as<int>()) {
+        retMsg[F("message")] = F("Servo Max can not be equal to Servo Min");
+        retMsg[F("code")] = WebApiError::ServoRange;
+        return false;
+    }
+
+    if (root["servo"][F("input_index")].as<int>() < 0 || root["servo"][F("input_index")].as<int>() >= 256) {
+        retMsg[F("message")] = F("Index Max must be above or equal 0 and below 256");
+        retMsg[F("code")] = WebApiError::ServoIndex;
+        return false;
+    }
+
+    if (root["servo"][F("power")].as<int>() <= 0 || root["servo"][F("power")].as<int>() >= 65535) {
+        retMsg[F("message")] = F("Power Max must be above 0 and below 655345");
+        retMsg[F("code")] = WebApiError::ServoPower;
+        return false;
+    }
+    return true;
 }
 
 void WebApiDeviceClass::onDeviceAdminPost(AsyncWebServerRequest* request)
@@ -132,7 +189,8 @@ void WebApiDeviceClass::onDeviceAdminPost(AsyncWebServerRequest* request)
     }
 
     if (!(root.containsKey("curPin")
-            || root.containsKey("display"))) {
+            || root.containsKey("display")
+            || root.containsKey("servo"))) {
         retMsg["message"] = "Values are missing!";
         retMsg["code"] = WebApiError::GenericValueMissing;
         response->setLength();
@@ -147,6 +205,15 @@ void WebApiDeviceClass::onDeviceAdminPost(AsyncWebServerRequest* request)
         response->setLength();
         request->send(response);
         return;
+    }
+
+    if(root["curPin"]["servo"]["pwm"].as<int>() > 0){
+        //validate servo data
+        if(!validateServoData(root,retMsg)){
+            response->setLength();
+            request->send(response);
+            return;
+        }
     }
 
     CONFIG_T& config = Configuration.get();
@@ -173,6 +240,14 @@ void WebApiDeviceClass::onDeviceAdminPost(AsyncWebServerRequest* request)
     Display.setLanguage(config.Display.Language);
     Display.setDiagramMode(static_cast<DiagramMode_t>(config.Display.Diagram.Mode));
     Display.Diagram().updatePeriod();
+
+    config.Servo.Frequency = root["servo"][F("frequency")].as<uint8_t>();
+    config.Servo.Resolution = root["servo"][F("resolution")].as<uint8_t>();
+    config.Servo.RangeMin = root["servo"][F("range_min")].as<uint8_t>();
+    config.Servo.RangeMax = root["servo"][F("range_max")].as<uint8_t>();
+    config.Servo.Serial = root["servo"][F("serial")].as<uint64_t>();
+    config.Servo.InputIndex = root["servo"][F("input_index")].as<uint8_t>();
+    config.Servo.Power = root["servo"][F("power")].as<uint16_t>();
 
     WebApi.writeConfig(retMsg);
 

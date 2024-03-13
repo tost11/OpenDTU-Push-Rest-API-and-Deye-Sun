@@ -15,6 +15,8 @@
                         type="button" role="tab" aria-controls="nav-display">{{ $t('deviceadmin.Display') }}</button>
                     <button class="nav-link" id="nav-leds-tab" data-bs-toggle="tab" data-bs-target="#nav-leds"
                         type="button" role="tab" aria-controls="nav-leds">{{ $t('deviceadmin.Leds') }}</button>
+                    <button class="nav-link" id="nav-servo-tab" data-bs-toggle="tab" data-bs-target="#nav-servo"
+                        type="button" role="tab" aria-controls="nav-servo">{{ $t('deviceadmin.servo') }}</button>
                 </div>
             </nav>
             <div class="tab-content" id="nav-tabContent">
@@ -54,7 +56,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="tab-pane fade show" id="nav-display" role="tabpanel" aria-labelledby="nav-display-tab"
                     tabindex="0">
                     <div class="card">
@@ -145,6 +146,51 @@
                                         v-model="ledSetting.brightness" @change="syncSliders" />
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade show" id="nav-servo" role="tabpanel" aria-labelledby="nav-servo-tab" tabindex="0">
+                    <div class="card">
+                        <div class="card-body">
+                          <InputElement :label="$t('deviceadmin.servoFrequency')"
+                                        v-model="deviceConfigList.servo.frequency"
+                                        type="number" min="1" max="255"
+                                        :postfix="$t('deviceadmin.servoUnitFrequency')"
+                          />
+
+                          <InputElement :label="$t('deviceadmin.servoResolution')"
+                                        v-model="deviceConfigList.servo.resolution"
+                                        type="number" min="1" max="255"
+                          />
+
+                          <InputElement :label="$t('deviceadmin.servoRangeMin')"
+                                        v-model="deviceConfigList.servo.range_min"
+                                        type="number" min="1" max="255"
+                          />
+
+                          <InputElement :label="$t('deviceadmin.servoRangeMax')"
+                                        v-model="deviceConfigList.servo.range_max"
+                                        type="number" min="1" max="255"
+                          />
+
+                          <InputElement :label="$t('deviceadmin.servoSerial')"
+                                        v-model="deviceConfigList.servo.serial"
+                                        type="number" min="0"
+                                        :tooltip="$t('deviceadmin.servoHintSerial')"
+                          />
+
+                          <InputElement :label="$t('deviceadmin.servoInputIndex')"
+                                        v-model="deviceConfigList.servo.input_index"
+                                        type="number" min="0"
+                                        :tooltip="$t('deviceadmin.servoHintInputIndex')"
+                          />
+
+                          <InputElement :label="$t('deviceadmin.servoPower')"
+                                        v-model="deviceConfigList.servo.power"
+                                        type="number" min="1" max="65534"
+                                        :postfix="$t('deviceadmin.servoUnitPower')"
+                                        :tooltip="$t('deviceadmin.servoHintPower')"
+                          />
                         </div>
                     </div>
                 </div>

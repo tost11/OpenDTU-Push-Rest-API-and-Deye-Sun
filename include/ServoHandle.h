@@ -5,7 +5,7 @@
 class ServoHandleClass{
 public:
     ServoHandleClass();
-    void init(Scheduler &scheduler);
+    void init(Scheduler &scheduler,uint8_t pin);
 
 private:
     Task _loopTask;
@@ -15,11 +15,11 @@ private:
     int calculatePosition();
 
     const int _ledChannel = 0;
-    const int _resolution = 8;
 
     int _lastPosition;
     int _lastFrequency;
-    int _lastPin;
+    int _lastResolution;
+    uint8_t _pin;
 };
 
 extern ServoHandleClass ServoHandle;

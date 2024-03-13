@@ -155,11 +155,11 @@ struct CONFIG_T {
     } Led_Single[PINMAPPING_LED_COUNT];
 
     struct {
-        bool Enabled;
         uint8_t Frequency;
+        uint8_t Resolution;
         uint8_t RangeMin;
         uint8_t RangeMax;
-        uint8_t Pin;
+        //uint8_t Pin;
         uint64_t Serial;
         uint8_t InputIndex;
         uint16_t Power;

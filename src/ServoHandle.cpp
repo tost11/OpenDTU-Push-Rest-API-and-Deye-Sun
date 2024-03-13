@@ -11,16 +11,17 @@ ServoHandleClass::ServoHandleClass():
 _loopTask(TASK_IMMEDIATE, TASK_FOREVER, std::bind(&ServoHandleClass::loop, this)){
     _loopTask.setInterval(1 * TASK_SECOND);
     _lastPosition = -1;
-    _lastPin = -1;
     _lastFrequency = 0;
     _lastUpdate = 0;
 }
 
-void ServoHandleClass::init(Scheduler &scheduler){
+void ServoHandleClass::init(Scheduler &scheduler,uint8_t pin){
     scheduler.addTask(_loopTask);
     _loopTask.enable();
 
     _lastPosition = Configuration.get().Servo.RangeMin;
+    _lastFrequency = Configuration.get().Servo.Frequency;
+    _lastResolution = Configuration.get().Servo.Resolution;
 
     //TODO move this to extra feature
     //debug time set
@@ -36,37 +37,47 @@ void ServoHandleClass::init(Scheduler &scheduler){
     time_t t = mktime(&local);
     struct timeval now = { .tv_sec = t, .tv_usec = 0 };
     settimeofday(&now, NULL);
+
+    _pin = pin;
+
+    if(_pin > 0){
+        ledcSetup(_ledChannel, _lastFrequency, _lastResolution);
+        ledcWrite(_ledChannel, _lastPosition);
+        ledcAttachPin(pin,_ledChannel);
+    }
 }
 
 int ServoHandleClass::calculatePosition(){
 
     int setTo = Configuration.get().Servo.RangeMin;
 
-    if(!Configuration.get().Servo.Enabled){
+    if(_pin <= 0){
         return setTo;
     }
 
-    if(Configuration.get().Servo.Frequency != _lastFrequency){
+    if(Configuration.get().Servo.Frequency != _lastFrequency ||
+            Configuration.get().Servo.Resolution != _lastResolution){
         _lastFrequency = Configuration.get().Servo.Frequency;
-        ledcSetup(_ledChannel, _lastFrequency, _resolution);
-        return setTo;
-    }
-
-    if(Configuration.get().Servo.Pin != _lastPin){
-        if(_lastPin != -1){
-            ledcDetachPin(_lastPin);
-        }
-        _lastPin = Configuration.get().Servo.Pin;
-        ledcAttachPin(_lastPin,_ledChannel);
+        _lastResolution = Configuration.get().Servo.Frequency;
+        ledcSetup(_ledChannel, _lastFrequency, _lastResolution);
         ledcWrite(_ledChannel, _lastPosition);
         return setTo;
     }
 
-    Serial.printf("Serial is %llu\n",Configuration.get().Servo.Serial);
+    InverterAbstract * inv = nullptr;
+    if(Configuration.get().Servo.Serial == 0){
+        for(int i=0;i<Hoymiles.getNumInverters();i++){
+            inv = Hoymiles.getInverterByPos(i).get();
+            if(inv != nullptr){
+                break;
+            }
+        }
+    }else{
+        inv = Hoymiles.getInverterBySerialString(std::to_string(Configuration.get().Servo.Serial).c_str()).get();
+    }
 
-    auto inv = Hoymiles.getInverterBySerialString(std::to_string(Configuration.get().Servo.Serial).c_str()).get();
     if(inv == nullptr){
-        Serial.printf("Servo -> Serial not found\n");
+        Serial.printf("Inverter not found by Serial or first one\n");
         return setTo;
     }
 
@@ -114,7 +125,7 @@ int ServoHandleClass::calculatePosition(){
         setTo = std::max(setTo,(int)Configuration.get().Servo.RangeMax);
     }
 
-    Serial.printf("Watt is: %f so set to %d\n",value,setTo);
+    //Serial.printf("Watt is: %f so set to %d\n",value,setTo);
     return setTo;
 }
 

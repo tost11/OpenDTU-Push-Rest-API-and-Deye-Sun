@@ -61,7 +61,6 @@ private:
     WebApiWebappClass _webApiWebapp;
     WebApiWsConsoleClass _webApiWsConsole;
     WebApiWsLiveClass _webApiWsLive;
-    WebApiServoClass _webApiServo;
 };
 
 extern WebApiClass WebApi;
