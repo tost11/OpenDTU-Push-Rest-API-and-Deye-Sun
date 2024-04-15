@@ -24,6 +24,10 @@ unsigned DeyeInverter::hex_char_to_int( char c ) {
     return result;
 }
 
+String DeyeInverter::int_to_string_hex(uint8_t num) {
+    return String(num, HEX);
+}
+
 unsigned short DeyeInverter::modbusCRC16FromHex(const String & message)
 {
     const unsigned short generator = 0xA001;
@@ -141,11 +145,12 @@ void DeyeInverter::update() {
         if(!busy && _currentWritCommand == nullptr && getEnableCommands()) {
             if (_powerTargetStatus != nullptr) {
                 println("Start writing register power status",true);
-                _currentWritCommand = std::make_unique<WriteRegisterMapping>("002B", 1,*_powerTargetStatus ? "0001" : "0000");
+                _currentWritCommand = std::make_unique<WriteRegisterMapping>("002B", 1,*_powerTargetStatus ? "0001" : "0002");
                 _powerTargetStatus = nullptr;
             } else if (_limitToSet != nullptr) {
                 println("Start writing register limit",true);
-                _currentWritCommand = std::make_unique<WriteRegisterMapping>("0028", 1, lengthToString(*_limitToSet));
+                Serial.println(lengthToHexString(*_limitToSet));
+                _currentWritCommand = std::make_unique<WriteRegisterMapping>("0028", 1, lengthToHexString(*_limitToSet));
                 _limitToSet = nullptr;
             }
         }
@@ -205,6 +210,8 @@ bool DeyeInverter::sendActivePowerControlRequest(float limit, PowerLimitControlT
     if(realLimit > 100){
         realLimit = 100;
     }
+    Serial.print("RealLimit: ");
+    Serial.println(realLimit);
     SystemConfigPara()->setLastLimitRequestSuccess(CMD_PENDING);
     _limitToSet = std::make_unique<uint16_t>(realLimit);
     return true;
@@ -280,7 +287,7 @@ String DeyeInverter::filterReceivedResponse(size_t length){
 }
 
 int DeyeInverter::handleRegisterWrite(size_t length) {
-    String ret= filterReceivedResponse(length);
+    String ret = filterReceivedResponse(length);
 
     print("Fileted recevied Register Wrtie: " + ret,true);
 
@@ -509,7 +516,7 @@ String DeyeInverter::serialToModel(uint64_t serial) {
 
     if(serialString.startsWith("415")){//TODO find out more ids and check if correct
         return "SUN600G3-EU-230";
-    }else if(serialString.startsWith("413")){//TODO find out more ids and check if correct
+    }else if(serialString.startsWith("413") || serialString.startsWith("411")){//TODO find out more ids and check if correct
         return "SUN300G3-EU-230";
     }
 
@@ -708,6 +715,12 @@ void DeyeInverter::handleWrite() {
 String DeyeInverter::lengthToString(uint8_t length,int fill) {
     std::stringstream ss;
     ss << std::setw(fill) << std::setfill('0') << (int)length;
+    return ss.str().c_str();
+}
+
+String DeyeInverter::lengthToHexString(uint8_t length,int fill) {
+    std::stringstream ss;
+    ss << std::setw(fill) << std::setfill('0') << int_to_string_hex(length).c_str();
     return ss.str().c_str();
 }
 
