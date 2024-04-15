@@ -149,7 +149,6 @@ void DeyeInverter::update() {
                 _powerTargetStatus = nullptr;
             } else if (_limitToSet != nullptr) {
                 println("Start writing register limit",true);
-                Serial.println(lengthToHexString(*_limitToSet));
                 _currentWritCommand = std::make_unique<WriteRegisterMapping>("0028", 1, lengthToHexString(*_limitToSet));
                 _limitToSet = nullptr;
             }
