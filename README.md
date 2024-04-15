@@ -28,7 +28,7 @@ Tested with model: SUN300G3-EU-230
 
 - Reading data
 - Configuring via UI
-- Tun on and off (theoretically, setting to off doesn't change anything but working for on (rewiring after red led of death))
+- Tun on and off (this also fixes red led "error")
 - Setting limit
 - Showing logs
 
