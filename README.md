@@ -22,7 +22,7 @@ Reachable check will be done more often.
 
 Original implementation for Hoymiles inverts will work in parallel
 
-Tested with model: SUN300G3-EU-230
+Tested with models: SUN300G3-EU-230 and SUN600G3-EU-230
 
 #### Working
 
