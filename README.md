@@ -48,6 +48,10 @@ that sends the current inverter data via rest to the application.
 If you are interested in the application or the rest definition for your own application
 check out the [project](https://github.com/tost11/solar-monitoring).
 
+### Builds
+
+Check out precompiled builds for dev32 board [here](builds)
+
 ## !! IMPORTANT UPGRADE NOTES !!
 
 If you are upgrading from a version before 15.03.2023 you have to upgrade the partition table of the ESP32. Please follow the [this](docs/UpgradePartition.md) documentation!
