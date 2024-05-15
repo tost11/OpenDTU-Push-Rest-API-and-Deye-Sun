@@ -12,9 +12,7 @@ void WebApiDevInfoClass::init(AsyncWebServer& server, Scheduler& scheduler)
 {
     using std::placeholders::_1;
 
-    _server = &server;
-
-    _server->on("/api/devinfo/status", HTTP_GET, std::bind(&WebApiDevInfoClass::onDevInfoStatus, this, _1));
+    server.on("/api/devinfo/status", HTTP_GET, std::bind(&WebApiDevInfoClass::onDevInfoStatus, this, _1));
 }
 
 void WebApiDevInfoClass::onDevInfoStatus(AsyncWebServerRequest* request)
@@ -25,13 +23,7 @@ void WebApiDevInfoClass::onDevInfoStatus(AsyncWebServerRequest* request)
 
     AsyncJsonResponse* response = new AsyncJsonResponse();
     auto& root = response->getRoot();
-
-    uint64_t serial = 0;
-    if (request->hasParam("inv")) {
-        String s = request->getParam("inv")->value();
-        serial = strtoll(s.c_str(), NULL, 16);
-    }
-
+    auto serial = WebApi.parseSerialFromRequest(request);
     auto inv = Hoymiles.getInverterBySerial(serial);
 
     if (inv != nullptr) {
@@ -45,6 +37,5 @@ void WebApiDevInfoClass::onDevInfoStatus(AsyncWebServerRequest* request)
         root["fw_build_datetime"] = inv->DevInfo()->getFwBuildDateTimeStr();
     }
 
-    response->setLength();
-    request->send(response);
+    WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
 }

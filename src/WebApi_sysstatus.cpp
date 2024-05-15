@@ -11,18 +11,13 @@
 #include <Hoymiles.h>
 #include <LittleFS.h>
 #include <ResetReason.h>
-
-#ifndef AUTO_GIT_HASH
-#define AUTO_GIT_HASH ""
-#endif
+#include "__compiled_constants.h"
 
 void WebApiSysstatusClass::init(AsyncWebServer& server, Scheduler& scheduler)
 {
     using std::placeholders::_1;
 
-    _server = &server;
-
-    _server->on("/api/system/status", HTTP_GET, std::bind(&WebApiSysstatusClass::onSystemStatus, this, _1));
+    server.on("/api/system/status", HTTP_GET, std::bind(&WebApiSysstatusClass::onSystemStatus, this, _1));
 }
 
 void WebApiSysstatusClass::onSystemStatus(AsyncWebServerRequest* request)
@@ -43,6 +38,8 @@ void WebApiSysstatusClass::onSystemStatus(AsyncWebServerRequest* request)
     root["heap_used"] = ESP.getHeapSize() - ESP.getFreeHeap();
     root["heap_max_block"] = ESP.getMaxAllocHeap();
     root["heap_min_free"] = ESP.getMinFreeHeap();
+    root["psram_total"] = ESP.getPsramSize();
+    root["psram_used"] = ESP.getPsramSize() - ESP.getFreePsram();
     root["sketch_total"] = ESP.getFreeSketchSpace();
     root["sketch_used"] = ESP.getSketchSize();
     root["littlefs_total"] = LittleFS.totalBytes();
@@ -64,7 +61,7 @@ void WebApiSysstatusClass::onSystemStatus(AsyncWebServerRequest* request)
     char version[16];
     snprintf(version, sizeof(version), "%d.%d.%d", CONFIG_VERSION >> 24 & 0xff, CONFIG_VERSION >> 16 & 0xff, CONFIG_VERSION >> 8 & 0xff);
     root["config_version"] = version;
-    root["git_hash"] = AUTO_GIT_HASH;
+    root["git_hash"] = __COMPILED_GIT_HASH__;
     root["pioenv"] = PIOENV;
 
     root["uptime"] = esp_timer_get_time() / 1000000;
@@ -76,6 +73,5 @@ void WebApiSysstatusClass::onSystemStatus(AsyncWebServerRequest* request)
     root["cmt_configured"] = PinMapping.isValidCmt2300Config();
     root["cmt_connected"] = Hoymiles.getRadioCmt()->isConnected();
 
-    response->setLength();
-    request->send(response);
+    WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
 }

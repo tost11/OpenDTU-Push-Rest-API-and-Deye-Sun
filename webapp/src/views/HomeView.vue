@@ -5,14 +5,20 @@
         <div class="row gy-3">
             <div class="col-sm-3 col-md-2" :style="[inverterData.length == 1 ? { 'display': 'none' } : {}]">
                 <div class="nav nav-pills row-cols-sm-1" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-                    <button v-for="inverter in inverterData" :key="inverter.serial" class="nav-link"
+                    <button v-for="inverter in inverterData" :key="inverter.serial" class="nav-link border border-primary text-break"
                         :id="'v-pills-' + inverter.serial + '-tab'" data-bs-toggle="pill"
                         :data-bs-target="'#v-pills-' + inverter.serial" type="button" role="tab"
                         aria-controls="'v-pills-' + inverter.serial" aria-selected="true">
-                        <BIconXCircleFill class="fs-4" v-if="!inverter.reachable" />
-                        <BIconExclamationCircleFill class="fs-4" v-if="inverter.reachable && !inverter.producing" />
-                        <BIconCheckCircleFill class="fs-4" v-if="inverter.reachable && inverter.producing" />
-                        {{ inverter.name }}
+                        <div class="row">
+                            <div class="col-auto col-sm-2">
+                                <BIconXCircleFill class="fs-4" v-if="!inverter.reachable" />
+                                <BIconExclamationCircleFill class="fs-4" v-if="inverter.reachable && !inverter.producing" />
+                                <BIconCheckCircleFill class="fs-4" v-if="inverter.reachable && inverter.producing" />
+                            </div>
+                            <div class="col-sm-9">
+                                {{ inverter.name }}
+                            </div>
+                        </div>
                     </button>
                 </div>
             </div>
@@ -103,20 +109,30 @@
                         <div class="card-body">
                             <div class="row flex-row-reverse flex-wrap-reverse g-3">
                                 <template v-for="chanType in [{obj: inverter.INV, name: 'INV'}, {obj: inverter.AC, name: 'AC'}, {obj: inverter.DC, name: 'DC'}].reverse()">
-                                    <template v-for="channel in Object.keys(chanType.obj).sort().reverse().map(x=>+x)" :key="channel">
-                                        <template v-if="(chanType.name != 'DC') ||
-                                            (chanType.name == 'DC' && getSumIrridiation(inverter) == 0) ||
-                                            (chanType.name == 'DC' && getSumIrridiation(inverter) > 0 && chanType.obj[channel].Irradiation?.max || 0 > 0)
-                                            ">
-                                            <div class="col">
-                                                <InverterChannelInfo :channelData="chanType.obj[channel]"
-                                                    :channelType="chanType.name"
-                                                    :channelNumber="channel" />
-                                            </div>
+                                    <template v-if="chanType.obj != null">
+                                        <template v-for="channel in Object.keys(chanType.obj).sort().reverse().map(x=>+x)" :key="channel">
+                                            <template v-if="(chanType.name != 'DC') ||
+                                                (chanType.name == 'DC' && getSumIrridiation(inverter) == 0) ||
+                                                (chanType.name == 'DC' && getSumIrridiation(inverter) > 0 && chanType.obj[channel].Irradiation?.max || 0 > 0)
+                                                ">
+                                                <div class="col">
+                                                    <InverterChannelInfo :channelData="chanType.obj[channel]"
+                                                        :channelType="chanType.name"
+                                                        :channelNumber="channel" />
+                                                </div>
+                                            </template>
                                         </template>
                                     </template>
                                 </template>
                             </div>
+                            <BootstrapAlert class="m-3" :show="!inverter.hasOwnProperty('INV')">
+                                <div class="d-flex justify-content-center align-items-center">
+                                    <div class="spinner-border m-1" role="status">
+                                        <span class="visually-hidden">{{ $t('home.LoadingInverter') }}</span>
+                                    </div>
+                                    <span>{{ $t('home.LoadingInverter') }}</span>
+                                </div>
+                            </BootstrapAlert>
                         </div>
                     </div>
                 </div>
@@ -336,7 +352,7 @@ export default defineComponent({
             showAlertLimit: false,
 
             powerSettingView: {} as bootstrap.Modal,
-            powerSettingSerial: 0,
+            powerSettingSerial: "",
             powerSettingLoading: true,
             alertMessagePower: "",
             alertTypePower: "info",
@@ -441,7 +457,16 @@ export default defineComponent({
             this.socket.onmessage = (event) => {
                 console.log(event);
                 if (event.data != "{}") {
-                    this.liveData = JSON.parse(event.data);
+                    const newData = JSON.parse(event.data);
+                    Object.assign(this.liveData.total, newData.total);
+                    Object.assign(this.liveData.hints, newData.hints);
+
+                    const foundIdx = this.liveData.inverters.findIndex((element) => element.serial == newData.inverters[0].serial);
+                    if (foundIdx == -1) {
+                        Object.assign(this.liveData.inverters, newData.inverters);
+                    } else {
+                        Object.assign(this.liveData.inverters[foundIdx], newData.inverters[0]);
+                    }
                     this.dataLoading = false;
                     this.heartCheck(); // Reset heartbeat detection
                 } else {
@@ -451,17 +476,15 @@ export default defineComponent({
                 }
             };
 
-            var self = this;
-
-            this.socket.onopen = function (event) {
+            this.socket.onopen = (event) => {
                 console.log(event);
                 console.log("Successfully connected to the echo websocket server...");
-                self.isWebsocketConnected = true;
+                this.isWebsocketConnected = true;
             };
 
-            this.socket.onclose = function () {
+            this.socket.onclose = () => {
                 console.log("Connection to websocket closed...")
-                self.isWebsocketConnected = false;
+                this.isWebsocketConnected = false;
             }
 
             // Listen to window events , When the window closes , Take the initiative to disconnect websocket Connect
@@ -496,7 +519,7 @@ export default defineComponent({
             this.heartInterval && clearTimeout(this.heartInterval);
             this.isFirstFetchAfterConnect = true;
         },
-        onShowEventlog(serial: number) {
+        onShowEventlog(serial: string) {
             this.eventLogLoading = true;
             fetch("/api/eventlog/status?inv=" + serial + "&locale=" + this.$i18n.locale, { headers: authHeader() })
                 .then((response) => handleResponse(response, this.$emitter, this.$router))
@@ -507,7 +530,7 @@ export default defineComponent({
 
             this.eventLogView.show();
         },
-        onShowDevInfo(serial: number) {
+        onShowDevInfo(serial: string) {
             this.devInfoLoading = true;
             fetch("/api/devinfo/status?inv=" + serial, { headers: authHeader() })
                 .then((response) => handleResponse(response, this.$emitter, this.$router))
@@ -519,7 +542,7 @@ export default defineComponent({
 
             this.devInfoView.show();
         },
-        onShowGridProfile(serial: number) {
+        onShowGridProfile(serial: string) {
             this.gridProfileLoading = true;
             fetch("/api/gridprofile/status?inv=" + serial, { headers: authHeader() })
                 .then((response) => handleResponse(response, this.$emitter, this.$router))
@@ -536,9 +559,9 @@ export default defineComponent({
 
             this.gridProfileView.show();
         },
-        onShowLimitSettings(serial: number) {
+        onShowLimitSettings(serial: string) {
             this.showAlertLimit = false;
-            this.targetLimitList.serial = 0;
+            this.targetLimitList.serial = "";
             this.targetLimitList.limit_value = 0;
             this.targetLimitType = 1;
             this.targetLimitTypeText = this.$t('home.Relative');
@@ -592,9 +615,9 @@ export default defineComponent({
             this.targetLimitType = type;
         },
 
-        onShowPowerSettings(serial: number) {
+        onShowPowerSettings(serial: string) {
             this.showAlertPower = false;
-            this.powerSettingSerial = 0;
+            this.powerSettingSerial = "";
             this.powerSettingLoading = true;
             fetch("/api/power/status", { headers: authHeader() })
                 .then((response) => handleResponse(response, this.$emitter, this.$router))
