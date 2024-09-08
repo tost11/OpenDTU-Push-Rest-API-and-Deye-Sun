@@ -33,7 +33,7 @@ static const byteAssign_t byteAssignment[] = {
         { TYPE_DC, CH0, FLD_PDC, UNIT_W, CALC_PDC, CH0, CMD_CALC, false, 2 },
         { TYPE_DC, CH0, FLD_YD, UNIT_KWH, 14, 2, 100, false, 1 },
         { TYPE_DC, CH0, FLD_YT, UNIT_KWH, 10, 2, 10, false, 0 },
-        { TYPE_DC, CH0, FLD_IRR, UNIT_PCT, CALC_IRR_CH, CH0, CMD_CALC, false, 3 },
+        { TYPE_DC, CH0, FLD_IRR, UNIT_PCT, CALC_CH_IRR, CH0, CMD_CALC, false, 3 },
 
         { TYPE_AC, CH0, FLD_UAC, UNIT_V, 18, 2, 10, false, 1 },
         { TYPE_AC, CH0, FLD_IAC, UNIT_A, 28, 2, 10, false, 2 },
@@ -49,8 +49,8 @@ static const byteAssign_t byteAssignment[] = {
         { TYPE_AC, CH0, FLD_YD, UNIT_KWH, 36, 2, 100, false, 1 },
         //{ TYPE_AC, CH0, FLD_YT, UNIT_KWH, CALC_YT_CH0, 0, CMD_CALC, false, 3 },
         { TYPE_AC, CH0, FLD_YT, UNIT_KWH, 38, 4, 10, false, 0 },
-        { TYPE_AC, CH0, FLD_PDC, UNIT_W, CALC_PDC_CH0, 0, CMD_CALC, false, 1 },
-        { TYPE_AC, CH0, FLD_EFF, UNIT_PCT, CALC_EFF_CH0, 0, CMD_CALC, false, 3 }
+        { TYPE_AC, CH0, FLD_PDC, UNIT_W, CALC_TOTAL_PDC, 0, CMD_CALC, false, 1 },
+        { TYPE_AC, CH0, FLD_EFF, UNIT_PCT, CALC_TOTAL_EFF, 0, CMD_CALC, false, 3 }
 };
 
 DS_1CH::DS_1CH(uint64_t serial,const String & modelType,Print & print):

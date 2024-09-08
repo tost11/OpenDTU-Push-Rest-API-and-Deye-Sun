@@ -142,7 +142,7 @@ String MqttHandleInverterClass::getTopic(std::shared_ptr<BaseInverterClass> inv,
     }
 
     String chanName;
-    if (type == TYPE_AC && fieldId == FLD_PDC) {
+    if (type == TYPE_INV && fieldId == FLD_PDC) {
         chanName = "powerdc";
     } else {
         chanName = inv->Statistics()->getChannelFieldName(type, channel, fieldId);

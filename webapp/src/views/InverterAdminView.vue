@@ -14,9 +14,8 @@
         <CardElement :text="$t('inverteradmin.AddInverter')" textVariant="text-bg-primary">
             <form class="form-inline" v-on:submit.prevent="onSubmit">
                 <div class="form-group">
-                  <label>{{ $t('inverteradmin.Serial') }}</label>
-                  <input v-model="newInverterData.serial" type="number" class="form-control ml-sm-2 mr-sm-4 my-2"
-                         required />
+                    <label>{{ $t('inverteradmin.Serial') }}</label>
+                    <InputSerial v-model="newInverterData.serial" inputClass="ml-sm-2 mr-sm-4 my-2" required />
                 </div>
                 <div class="form-group">
                   <label>{{ $t('inverteradmin.Name') }}</label>
@@ -110,7 +109,7 @@
                     <label for="inverter-serial" class="col-form-label">
                         {{ $t('inverteradmin.InverterSerial') }}
                     </label>
-                    <input v-model="selectedInverterData.serial" type="number" id="inverter-serial" class="form-control" />
+                    <InputSerial v-model="selectedInverterData.serial" id="inverter-serial" />
                     <label for="inverter-name" class="col-form-label">{{ $t('inverteradmin.InverterName') }}
                         <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterNameHint')" />
                     </label>
@@ -240,6 +239,7 @@ import BasePage from '@/components/BasePage.vue';
 import BootstrapAlert from "@/components/BootstrapAlert.vue";
 import CardElement from '@/components/CardElement.vue';
 import InputElement from '@/components/InputElement.vue';
+import InputSerial from '@/components/InputSerial.vue';
 import ModalDialog from '@/components/ModalDialog.vue';
 import type { Inverter } from '@/types/InverterConfig';
 import { authHeader, handleResponse } from '@/utils/authentication';
@@ -268,6 +268,7 @@ export default defineComponent({
         BootstrapAlert,
         CardElement,
         InputElement,
+        InputSerial,
         ModalDialog,
         BIconInfoCircle,
         BIconPencil,

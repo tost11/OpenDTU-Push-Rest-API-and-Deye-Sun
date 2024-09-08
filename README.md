@@ -48,6 +48,10 @@ that sends the current inverter data via rest to the application.
 If you are interested in the application or the rest definition for your own application
 check out the [project](https://github.com/tost11/solar-monitoring).
 
+### Builds
+
+Check out precompiled builds for dev32 board [here](builds)
+
 ## !! IMPORTANT UPGRADE NOTES !!
 
 If you are upgrading from a version before 15.03.2023 you have to upgrade the partition table of the ESP32. Please follow the [this](docs/UpgradePartition.md) documentation!
@@ -67,6 +71,10 @@ Please feel free to support and create a PR in [this](https://github.com/tbnobod
 Generated using: `git log --date=short --pretty=format:"* %h%x09%ad%x09%s" | grep BREAKING`
 
 ```code
+* 1b637f08      2024-01-30      BREAKING CHANGE: Web API Endpoint /api/livedata/status and /api/prometheus/metrics
+* e1564780      2024-01-30      BREAKING CHANGE: Web API Endpoint /api/livedata/status and /api/prometheus/metrics
+* f0b5542c      2024-01-30      BREAKING CHANGE: Web API Endpoint /api/livedata/status and /api/prometheus/metrics
+* c27ecc36      2024-01-29      BREAKING CHANGE: Web API Endpoint /api/livedata/status
 * 71d1b3b       2023-11-07      BREAKING CHANGE: Home Assistant Auto Discovery to new naming scheme
 * 04f62e0       2023-04-20      BREAKING CHANGE: Web API Endpoint /api/eventlog/status no nested serial object
 * 59f43a8       2023-04-17      BREAKING CHANGE: Web API Endpoint /api/devinfo/status requires GET parameter inv=
@@ -115,3 +123,6 @@ Generated using: `git log --date=short --pretty=format:"* %h%x09%ad%x09%s" | gre
 | TSUN TSOL-M350       | NRF24L01+          | 1         | 1           | 1         |
 | TSUN TSOL-M800       | NRF24L01+          | 2         | 2           | 1         |
 | TSUN TSOL-M1600      | NRF24L01+          | 4         | 2           | 1         |
+| E-Star HERF-800      | NRF24L01+          | 2         | 2           | 1         |
+| E-Star HERF-1600     | NRF24L01+          | 4         | 2           | 1         |
+| E-Star HERF-1800     | NRF24L01+          | 4         | 2           | 1         |

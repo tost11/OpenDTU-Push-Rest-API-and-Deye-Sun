@@ -12,13 +12,8 @@
 #include "Updater.h"
 
 #define ALARM_LOG_ENTRY_COUNT 15
-#define ALARM_MSG_COUNT 133
-
-enum class AlarmMessageLocale_t {
-    EN,
-    DE,
-    FR
-};
+#define ALARM_LOG_ENTRY_SIZE 12
+#define ALARM_MSG_COUNT 134
 
 struct AlarmLogEntry_t {
     AlarmLogEntry_t(uint16_t messageId, const String &message, time_t startTime, time_t endTime) :
@@ -38,6 +33,12 @@ enum class AlarmMessageType_t {
     ALL = 0,
     HMT,
     DEYE
+};
+
+enum class AlarmMessageLocale_t {
+    EN,
+    DE,
+    FR
 };
 
 typedef struct {

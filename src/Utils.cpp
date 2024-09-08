@@ -6,7 +6,9 @@
 #include "Display_Graphic.h"
 #include "Led_Single.h"
 #include "MessageOutput.h"
+#include "PinMapping.h"
 #include <Esp.h>
+#include <LittleFS.h>
 
 uint32_t Utils::getChipId()
 {
@@ -67,12 +69,26 @@ void Utils::restartDtu()
     ESP.restart();
 }
 
-bool Utils::checkJsonAlloc(const DynamicJsonDocument& doc, const char* function, const uint16_t line)
+bool Utils::checkJsonAlloc(const JsonDocument& doc, const char* function, const uint16_t line)
 {
-    if (doc.capacity() == 0) {
+    if (doc.overflowed()) {
         MessageOutput.printf("Alloc failed: %s, %d\r\n", function, line);
         return false;
     }
 
     return true;
+}
+
+/// @brief Remove all files but the PINMAPPING_FILENAME
+void Utils::removeAllFiles()
+{
+    auto root = LittleFS.open("/");
+    auto file = root.getNextFileName();
+
+    while (file != "") {
+        if (file != PINMAPPING_FILENAME) {
+            LittleFS.remove(file);
+        }
+        file = root.getNextFileName();
+    }
 }

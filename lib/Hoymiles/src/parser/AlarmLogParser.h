@@ -5,7 +5,6 @@
 #include <array>
 #include <cstdint>
 
-#define ALARM_LOG_ENTRY_SIZE 12
 #define ALARM_LOG_PAYLOAD_SIZE (ALARM_LOG_ENTRY_COUNT * ALARM_LOG_ENTRY_SIZE + 4)
 
 class AlarmLogParser : public Parser, public BaseAlarmLog {

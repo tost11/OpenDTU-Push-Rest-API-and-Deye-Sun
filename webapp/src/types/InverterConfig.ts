@@ -6,7 +6,7 @@ export interface InverterChannel {
 
 export interface Inverter {
     id: string;
-    serial: number;
+    serial: string;
     name: string;
     hostname_or_ip: string;
     port: number;
