@@ -21,6 +21,7 @@ void WebApiInverterClass::init(AsyncWebServer& server, Scheduler& scheduler)
     server.on("/api/inverter/edit", HTTP_POST, std::bind(&WebApiInverterClass::onInverterEdit, this, _1));
     server.on("/api/inverter/del", HTTP_POST, std::bind(&WebApiInverterClass::onInverterDelete, this, _1));
     server.on("/api/inverter/order", HTTP_POST, std::bind(&WebApiInverterClass::onInverterOrder, this, _1));
+    server.on("/api/inverter/stats_reset", HTTP_GET, std::bind(&WebApiInverterClass::onInverterStatReset, this, _1));
 }
 
 void WebApiInverterClass::onInverterList(AsyncWebServerRequest* request)
@@ -44,7 +45,7 @@ void WebApiInverterClass::onInverterList(AsyncWebServerRequest* request)
 
             // Inverter Serial is read as HEX
             char buffer[sizeof(uint64_t) * 8 + 1];
-            snprintf(buffer, sizeof(buffer), "%0x%08x",
+            snprintf(buffer, sizeof(buffer), "%0" PRIx32 "%08" PRIx32,
                 ((uint32_t)((config.Inverter[i].Serial >> 32) & 0xFFFFFFFF)),
                 ((uint32_t)(config.Inverter[i].Serial & 0xFFFFFFFF)));
             obj["serial"] = buffer;
@@ -55,6 +56,7 @@ void WebApiInverterClass::onInverterList(AsyncWebServerRequest* request)
             obj["reachable_threshold"] = config.Inverter[i].ReachableThreshold;
             obj["zero_runtime"] = config.Inverter[i].ZeroRuntimeDataIfUnrechable;
             obj["zero_day"] = config.Inverter[i].ZeroYieldDayOnMidnight;
+            obj["clear_eventlog"] = config.Inverter[i].ClearEventlogOnMidnight;
             obj["yieldday_correction"] = config.Inverter[i].YieldDayCorrection;
 
             auto inv = Hoymiles.getInverterBySerial(config.Inverter[i].Serial);
@@ -94,8 +96,8 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
 
     auto& retMsg = response->getRoot();
 
-    if (!(root.containsKey("serial")
-            && root.containsKey("name"))) {
+    if (!(root["serial"].is<String>()
+            && root["name"].is<String>())) {
         retMsg["message"] = "Values are missing!";
         retMsg["code"] = WebApiError::GenericValueMissing;
         WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
@@ -164,7 +166,10 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
 
     auto& retMsg = response->getRoot();
 
-    if (!(root.containsKey("id") && root.containsKey("serial") && root.containsKey("name") && root.containsKey("channel"))) {
+    if (!(root["id"].is<uint8_t>()
+            && root["serial"].is<String>()
+            && root["name"].is<String>()
+            && root["channel"].is<JsonArray>())) {
         retMsg["message"] = "Values are missing!";
         retMsg["code"] = WebApiError::GenericValueMissing;
         WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
@@ -213,20 +218,21 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
     inverter.Serial = new_serial;
     strncpy(inverter.Name, root["name"].as<String>().c_str(), INV_MAX_NAME_STRLEN);
 
+    inverter.Poll_Enable = root["poll_enable"] | true;
+    inverter.Poll_Enable_Night = root["poll_enable_night"] | true;
+    inverter.Command_Enable = root["command_enable"] | true;
+    inverter.Command_Enable_Night = root["command_enable_night"] | true;
+    inverter.ReachableThreshold = root["reachable_threshold"] | REACHABLE_THRESHOLD;
+    inverter.ZeroRuntimeDataIfUnrechable = root["zero_runtime"] | false;
+    inverter.ZeroYieldDayOnMidnight = root["zero_day"] | false;
+    inverter.ClearEventlogOnMidnight = root["clear_eventlog"] | false;
+    inverter.YieldDayCorrection = root["yieldday_correction"] | false;
+
     uint8_t arrayCount = 0;
     for (JsonVariant channel : channelArray) {
         inverter.channel[arrayCount].MaxChannelPower = channel["max_power"].as<uint16_t>();
         inverter.channel[arrayCount].YieldTotalOffset = channel["yield_total_offset"].as<float>();
         strncpy(inverter.channel[arrayCount].Name, channel["name"] | "", sizeof(inverter.channel[arrayCount].Name));
-        inverter.Poll_Enable = root["poll_enable"] | true;
-        inverter.Poll_Enable_Night = root["poll_enable_night"] | true;
-        inverter.Command_Enable = root["command_enable"] | true;
-        inverter.Command_Enable_Night = root["command_enable_night"] | true;
-        inverter.ReachableThreshold = root["reachable_threshold"] | REACHABLE_THRESHOLD;
-        inverter.ZeroRuntimeDataIfUnrechable = root["zero_runtime"] | false;
-        inverter.ZeroYieldDayOnMidnight = root["zero_day"] | false;
-        inverter.YieldDayCorrection = root["yieldday_correction"] | false;
-
         arrayCount++;
     }
 
@@ -254,6 +260,7 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
         inv->setReachableThreshold(inverter.ReachableThreshold);
         inv->setZeroValuesIfUnreachable(inverter.ZeroRuntimeDataIfUnrechable);
         inv->setZeroYieldDayOnMidnight(inverter.ZeroYieldDayOnMidnight);
+        inv->setClearEventlogOnMidnight(inverter.ClearEventlogOnMidnight);
         inv->Statistics()->setYieldDayCorrection(inverter.YieldDayCorrection);
         for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
             inv->Statistics()->setStringMaxPower(c, inverter.channel[c].MaxChannelPower);
@@ -278,7 +285,7 @@ void WebApiInverterClass::onInverterDelete(AsyncWebServerRequest* request)
 
     auto& retMsg = response->getRoot();
 
-    if (!(root.containsKey("id"))) {
+    if (!(root["id"].is<uint8_t>())) {
         retMsg["message"] = "Values are missing!";
         retMsg["code"] = WebApiError::GenericValueMissing;
         WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
@@ -320,7 +327,7 @@ void WebApiInverterClass::onInverterOrder(AsyncWebServerRequest* request)
 
     auto& retMsg = response->getRoot();
 
-    if (!(root.containsKey("order"))) {
+    if (!(root["order"].is<JsonArray>())) {
         retMsg["message"] = "Values are missing!";
         retMsg["code"] = WebApiError::GenericValueMissing;
         WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
@@ -340,6 +347,27 @@ void WebApiInverterClass::onInverterOrder(AsyncWebServerRequest* request)
     }
 
     WebApi.writeConfig(retMsg, WebApiError::InverterOrdered, "Inverter order saved!");
+
+    WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
+}
+
+void WebApiInverterClass::onInverterStatReset(AsyncWebServerRequest* request)
+{
+    if (!WebApi.checkCredentials(request)) {
+        return;
+    }
+
+    AsyncJsonResponse* response = new AsyncJsonResponse();
+    auto retMsg = response->getRoot();
+    auto serial = WebApi.parseSerialFromRequest(request);
+    auto inv = Hoymiles.getInverterBySerial(serial);
+
+    if (inv != nullptr) {
+        inv->resetRadioStats();
+        retMsg["type"] = "success";
+        retMsg["message"] = "Stats resetted";
+        retMsg["code"] = WebApiError::InverterStatsResetted;
+    }
 
     WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
 }

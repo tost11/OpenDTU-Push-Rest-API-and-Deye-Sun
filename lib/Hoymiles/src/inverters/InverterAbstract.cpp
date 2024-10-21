@@ -127,6 +127,21 @@ bool InverterAbstract::getZeroYieldDayOnMidnight() const
     return _zeroYieldDayOnMidnight;
 }
 
+void InverterAbstract::setClearEventlogOnMidnight(const bool enabled)
+{
+    _clearEventlogOnMidnight = enabled;
+}
+
+bool InverterAbstract::getClearEventlogOnMidnight() const
+{
+    return _clearEventlogOnMidnight;
+}
+
+int8_t InverterAbstract::getLastRssi() const
+{
+    return _lastRssi;
+}
+
 bool InverterAbstract::sendChangeChannelRequest()
 {
     return false;
@@ -175,8 +190,10 @@ void InverterAbstract::clearRxFragmentBuffer()
     _rxFragmentRetransmitCnt = 0;
 }
 
-void InverterAbstract::addRxFragment(const uint8_t fragment[], const uint8_t len)
+void InverterAbstract::addRxFragment(const uint8_t fragment[], const uint8_t len, const int8_t rssi)
 {
+    _lastRssi = rssi;
+
     if (len < 11) {
         Hoymiles.getMessageOutput()->printf("FATAL: (%s, %d) fragment too short\r\n", __FILE__, __LINE__);
         return;
@@ -198,7 +215,7 @@ void InverterAbstract::addRxFragment(const uint8_t fragment[], const uint8_t len
     }
 
     if (fragmentId >= MAX_RF_FRAGMENT_COUNT) {
-        Hoymiles.getMessageOutput()->printf("ERROR: fragment id %d is too large for buffer and ignored\r\n", fragmentId);
+        Hoymiles.getMessageOutput()->printf("ERROR: fragment id %" PRId8 " is too large for buffer and ignored\r\n", fragmentId);
         return;
     }
 
@@ -226,7 +243,7 @@ uint8_t InverterAbstract::verifyAllFragments(CommandAbstract& cmd)
         if (cmd.getSendCount() <= cmd.getMaxResendCount()) {
             return FRAGMENT_ALL_MISSING_RESEND;
         } else {
-            cmd.gotTimeout(*this);
+            cmd.gotTimeout();
             return FRAGMENT_ALL_MISSING_TIMEOUT;
         }
     }
@@ -237,7 +254,7 @@ uint8_t InverterAbstract::verifyAllFragments(CommandAbstract& cmd)
         if (_rxFragmentRetransmitCnt++ < cmd.getMaxRetransmitCount()) {
             return _rxFragmentLastPacketId + 1;
         } else {
-            cmd.gotTimeout(*this);
+            cmd.gotTimeout();
             return FRAGMENT_RETRANSMIT_TIMEOUT;
         }
     }
@@ -249,16 +266,35 @@ uint8_t InverterAbstract::verifyAllFragments(CommandAbstract& cmd)
             if (_rxFragmentRetransmitCnt++ < cmd.getMaxRetransmitCount()) {
                 return i + 1;
             } else {
-                cmd.gotTimeout(*this);
+                cmd.gotTimeout();
                 return FRAGMENT_RETRANSMIT_TIMEOUT;
             }
         }
     }
 
-    if (!cmd.handleResponse(*this, _rxFragmentBuffer, _rxFragmentMaxPacketId)) {
-        cmd.gotTimeout(*this);
+    if (!cmd.handleResponse(_rxFragmentBuffer, _rxFragmentMaxPacketId)) {
+        cmd.gotTimeout();
         return FRAGMENT_HANDLE_ERROR;
     }
 
     return FRAGMENT_OK;
+}
+
+void InverterAbstract::performDailyTask()
+{
+    // Have to reset the offets first, otherwise it will
+    // Substract the offset from zero which leads to a high value
+    Statistics()->resetYieldDayCorrection();
+    if (getZeroYieldDayOnMidnight()) {
+        Statistics()->zeroDailyData();
+    }
+    if (getClearEventlogOnMidnight()) {
+        EventLog()->clearBuffer();
+    }
+    resetRadioStats();
+}
+
+void InverterAbstract::resetRadioStats()
+{
+    RadioStats = {};
 }

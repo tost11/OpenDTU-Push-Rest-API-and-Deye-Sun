@@ -1,9 +1,19 @@
+export interface TaskDetail {
+    name: string;
+    stack_watermark: number;
+    priority: number;
+}
+
 export interface SystemStatus {
     // HardwareInfo
     chipmodel: string;
     chiprevision: number;
     chipcores: number;
     cpufreq: number;
+    cputemp: number;
+    flashsize: number;
+    // TaskDetails
+    task_details: TaskDetail[];
     // FirmwareInfo
     hostname: string;
     sdkversion: string;
