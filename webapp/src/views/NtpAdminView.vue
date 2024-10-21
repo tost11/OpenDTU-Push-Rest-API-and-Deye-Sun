@@ -71,6 +71,11 @@
                     </div>
                 </div>
             </CardElement>
+
+            <CardElement :text="$t('ntpadmin.StartupTime')" textVariant="text-bg-primary" add-space>
+              <InputElement :label="$t('ntpadmin.StartupDateEnabled')" v-model="startupDateEnabled" type="checkbox" />
+              <InputElement :label="$t('ntpadmin.StartupDate')" v-show="startupDateEnabled" v-model="startupDate" type="date" />
+            </CardElement>
             <FormFooter @reload="getNtpConfig" />
         </form>
 
@@ -118,9 +123,11 @@ export default defineComponent({
             timezoneSelect: '',
             mcuTime: new Date(),
             localTime: new Date(),
+            startupDateEnabled: false,
+            startupDate: "",
             dataAgeInterval: 0,
             alertMessage: '',
-            alertType: 'info',
+            alertType: '1970-01-01',
             showAlert: false,
             sunsetTypeList: [
                 { key: 0, value: 'OFFICIAL' },
@@ -164,6 +171,13 @@ export default defineComponent({
                 .then((response) => handleResponse(response, this.$emitter, this.$router))
                 .then((data) => {
                     this.ntpConfigList = data;
+                    this.startupDateEnabled = data.startup_date && data.startup_date != 0;
+                    let date = new Date();
+                    if(this.startupDateEnabled){
+                      date = new Date(data.startup_date * 1000);
+                    }
+                    this.startupDate = date.toISOString().substring(0, 10);
+                    console.log(this.startupDate);
                     this.timezoneSelect =
                         this.ntpConfigList.ntp_timezone_descr + '---' + this.ntpConfigList.ntp_timezone;
                     this.dataLoading = false;
@@ -208,6 +222,15 @@ export default defineComponent({
         },
         saveNtpConfig(e: Event) {
             e.preventDefault();
+
+
+            console.log(this.startupDate);
+
+            if(this.startupDateEnabled){
+              this.ntpConfigList.startup_date = new Date(this.startupDate).getTime() / 1000
+            }else{
+              this.ntpConfigList.startup_date = 0
+            }
 
             const formData = new FormData();
             formData.append('data', JSON.stringify(this.ntpConfigList));
