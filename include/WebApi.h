@@ -23,6 +23,7 @@
 #include "WebApi_ws_console.h"
 #include "WebApi_ws_live.h"
 #include "WebApi_servo.h"
+#include <AsyncJson.h>
 #include <ESPAsyncWebServer.h>
 #include <TaskSchedulerDeclarations.h>
 
@@ -30,6 +31,7 @@ class WebApiClass {
 public:
     WebApiClass();
     void init(Scheduler& scheduler);
+    void reload();
 
     static bool checkCredentials(AsyncWebServerRequest* request);
     static bool checkCredentialsReadonly(AsyncWebServerRequest* request);
@@ -37,6 +39,10 @@ public:
     static void sendTooManyRequests(AsyncWebServerRequest* request);
 
     static void writeConfig(JsonVariant& retMsg, const WebApiError code = WebApiError::GenericSuccess, const String& message = "Settings saved!");
+
+    static bool parseRequestData(AsyncWebServerRequest* request, AsyncJsonResponse* response, JsonDocument& json_document);
+    static uint64_t parseSerialFromRequest(AsyncWebServerRequest* request, String param_name = "inv");
+    static bool sendJsonResponse(AsyncWebServerRequest* request, AsyncJsonResponse* response, const char* function, const uint16_t line);
 
 private:
     AsyncWebServer _server;

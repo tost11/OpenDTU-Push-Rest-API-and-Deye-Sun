@@ -8,6 +8,8 @@
         <div class="mt-5"></div>
         <HeapDetails :systemStatus="systemDataList" />
         <div class="mt-5"></div>
+        <TaskDetails :taskDetails="systemDataList.task_details" />
+        <div class="mt-5"></div>
         <RadioInfo :systemStatus="systemDataList" />
         <div class="mt-5"></div>
     </BasePage>
@@ -15,11 +17,12 @@
 
 <script lang="ts">
 import BasePage from '@/components/BasePage.vue';
-import FirmwareInfo from "@/components/FirmwareInfo.vue";
-import HardwareInfo from "@/components/HardwareInfo.vue";
-import MemoryInfo from "@/components/MemoryInfo.vue";
-import HeapDetails from "@/components/HeapDetails.vue";
-import RadioInfo from "@/components/RadioInfo.vue";
+import FirmwareInfo from '@/components/FirmwareInfo.vue';
+import HardwareInfo from '@/components/HardwareInfo.vue';
+import MemoryInfo from '@/components/MemoryInfo.vue';
+import HeapDetails from '@/components/HeapDetails.vue';
+import TaskDetails from '@/components/TaskDetails.vue';
+import RadioInfo from '@/components/RadioInfo.vue';
 import type { SystemStatus } from '@/types/SystemStatus';
 import { authHeader, handleResponse } from '@/utils/authentication';
 import { defineComponent } from 'vue';
@@ -31,6 +34,7 @@ export default defineComponent({
         HardwareInfo,
         MemoryInfo,
         HeapDetails,
+        TaskDetails,
         RadioInfo,
     },
     data() {
@@ -38,69 +42,79 @@ export default defineComponent({
             dataLoading: true,
             systemDataList: {} as SystemStatus,
             allowVersionInfo: false,
-        }
+        };
     },
     created() {
-        this.allowVersionInfo = (localStorage.getItem("allowVersionInfo") || "0") == "1";
+        this.allowVersionInfo = (localStorage.getItem('allowVersionInfo') || '0') == '1';
         this.getSystemInfo();
     },
     methods: {
         getSystemInfo() {
             this.dataLoading = true;
-            fetch("/api/system/status", { headers: authHeader() })
+            fetch('/api/system/status', { headers: authHeader() })
                 .then((response) => handleResponse(response, this.$emitter, this.$router))
                 .then((data) => {
                     this.systemDataList = data;
                     this.dataLoading = false;
-                    if (this.allowVersionInfo) {
-                        this.getUpdateInfo();
-                    }
-                })
+                    this.getUpdateInfo();
+                });
         },
         getUpdateInfo() {
+            if (this.systemDataList.git_hash === undefined) {
+                return;
+            }
+
             // If the left char is a "g" the value is the git hash (remove the "g")
             this.systemDataList.git_is_hash = this.systemDataList.git_hash?.substring(0, 1) == 'g';
-            this.systemDataList.git_hash = this.systemDataList.git_is_hash ? this.systemDataList.git_hash?.substring(1) : this.systemDataList.git_hash;
+            this.systemDataList.git_hash = this.systemDataList.git_is_hash
+                ? this.systemDataList.git_hash?.substring(1)
+                : this.systemDataList.git_hash;
 
             // Handle format "v0.1-5-gabcdefh"
-            if (this.systemDataList.git_hash.lastIndexOf("-") >= 0) {
-                this.systemDataList.git_hash = this.systemDataList.git_hash.substring(this.systemDataList.git_hash.lastIndexOf("-") + 2)
+            if (this.systemDataList.git_hash?.lastIndexOf('-') >= 0) {
+                this.systemDataList.git_hash = this.systemDataList.git_hash.substring(
+                    this.systemDataList.git_hash.lastIndexOf('-') + 2
+                );
                 this.systemDataList.git_is_hash = true;
             }
 
-            const fetchUrl = "https://api.github.com/repos/tbnobody/OpenDTU/compare/"
-                + this.systemDataList.git_hash + "...HEAD";
+            if (!this.allowVersionInfo) {
+                return;
+            }
+
+            const fetchUrl =
+                'https://api.github.com/repos/tbnobody/OpenDTU/compare/' + this.systemDataList.git_hash + '...HEAD';
 
             fetch(fetchUrl)
                 .then((response) => {
                     if (response.ok) {
-                        return response.json()
+                        return response.json();
                     }
-                    throw new Error(this.$t("systeminfo.VersionError"));
+                    throw new Error(this.$t('systeminfo.VersionError'));
                 })
                 .then((data) => {
                     if (data.total_commits > 0) {
-                        this.systemDataList.update_text = this.$t("systeminfo.VersionNew");
-                        this.systemDataList.update_status = "text-bg-danger";
+                        this.systemDataList.update_text = this.$t('systeminfo.VersionNew');
+                        this.systemDataList.update_status = 'text-bg-danger';
                         this.systemDataList.update_url = data.html_url;
                     } else {
-                        this.systemDataList.update_text = this.$t("systeminfo.VersionOk");
-                        this.systemDataList.update_status = "text-bg-success";
+                        this.systemDataList.update_text = this.$t('systeminfo.VersionOk');
+                        this.systemDataList.update_status = 'text-bg-success';
                     }
                 })
                 .catch((error: Error) => {
                     this.systemDataList.update_text = error.message;
-                    this.systemDataList.update_status = "text-bg-secondary";
+                    this.systemDataList.update_status = 'text-bg-secondary';
                 });
-        }
+        },
     },
     watch: {
-        allowVersionInfo(allow: Boolean) {
+        allowVersionInfo(allow: boolean) {
+            localStorage.setItem('allowVersionInfo', allow ? '1' : '0');
             if (allow) {
-                localStorage.setItem("allowVersionInfo", this.allowVersionInfo ? "1" : "0");
                 this.getUpdateInfo();
             }
-        }
-    }
+        },
+    },
 });
 </script>

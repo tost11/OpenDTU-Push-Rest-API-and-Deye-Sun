@@ -1,7 +1,7 @@
-declare module '@vue/runtime-core' {
+declare module 'vue' {
     interface ComponentCustomProperties {
         $emitter: Emitter;
     }
 }
 
-export { }  // Important! See note.
+export {}; // Important! See note.
