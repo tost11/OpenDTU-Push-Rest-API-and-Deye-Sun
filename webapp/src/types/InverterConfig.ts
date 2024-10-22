@@ -6,7 +6,7 @@ export interface InverterChannel {
 
 export interface Inverter {
     id: string;
-    serial: number;
+    serial: string;
     name: string;
     type: string;
     order: number;
@@ -17,6 +17,7 @@ export interface Inverter {
     reachable_threshold: number;
     zero_runtime: boolean;
     zero_day: boolean;
+    clear_eventlog: boolean;
     yieldday_correction: boolean;
     channel: Array<InverterChannel>;
 }

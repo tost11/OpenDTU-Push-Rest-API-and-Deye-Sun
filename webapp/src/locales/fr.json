@@ -32,6 +32,9 @@
         "Release": "Release to refresh",
         "Close": "Fermer"
     },
+    "Error": {
+        "Oops": "Oops!"
+    },
     "localeswitcher": {
         "Dark": "Sombre",
         "Light": "Clair",
@@ -82,6 +85,7 @@
         "7014": "Le sujet Hass ne doit pas dépasser {max} caractères !",
         "7015": "Le sujet Hass ne doit pas contenir d'espace !",
         "7016": "LWT QOS ne doit pas être supérieur à {max}!",
+        "7017": "Client ID must not longer then {max} characters!",
         "8001": "L'adresse IP n'est pas valide !",
         "8002": "Le masque de réseau n'est pas valide !",
         "8003": "La passerelle n'est pas valide !",
@@ -136,7 +140,20 @@
         "Ok": "OK",
         "Unknown": "Inconnu",
         "ShowGridProfile": "Show Grid Profile",
-        "GridProfile": "Grid Profile"
+        "GridProfile": "Grid Profile",
+        "LoadingInverter": "Waiting for data... (can take up to 10 seconds)",
+        "RadioStats": "Radio Statistics",
+        "TxRequest": "TX Request Count",
+        "RxSuccess": "RX Success",
+        "RxFailNothing": "RX Fail: Receive Nothing",
+        "RxFailPartial": "RX Fail: Receive Partial",
+        "RxFailCorrupt": "RX Fail: Receive Corrupt",
+        "TxReRequest": "TX Re-Request Fragment",
+        "StatsReset": "Reset Statistics",
+        "StatsResetting": "Resetting...",
+        "Rssi": "RSSI of last received packet",
+        "RssiHint": "HM inverters only support RSSI values < -64 dBm and > -64 dBm. In this case, -80 dbm and -30 dbm is shown.",
+        "dBm": "{dbm} dBm"
     },
     "eventlog": {
         "Start": "Départ",
@@ -198,7 +215,9 @@
         "ChipRevision": "Révision de la puce",
         "ChipCores": "Nombre de cœurs",
         "CpuFrequency": "Fréquence du CPU",
-        "Mhz": "MHz"
+        "Mhz": "MHz",
+        "CpuTemperature": "CPU Temperature",
+        "FlashSize": "Taille de la mémoire flash"
     },
     "memoryinfo": {
         "MemoryInformation": "Informations sur la mémoire",
@@ -208,6 +227,7 @@
         "Used": "Utilisée",
         "Size": "Taille",
         "Heap": "Heap",
+        "PsRam": "PSRAM",
         "LittleFs": "LittleFs",
         "Sketch": "Sketch"
     },
@@ -290,6 +310,7 @@
         "Disabled": "Désactivé",
         "Server": "@:ntpinfo.Server",
         "Port": "Port",
+        "ClientId": "Client ID",
         "Username": "Nom d'utilisateur",
         "BaseTopic": "Sujet de base",
         "PublishInterval": "Intervalle de publication",
@@ -434,6 +455,7 @@
         "Hostname": "Nom d'hôte",
         "HostnameHint": "Nom d'hôte ou adresse IP",
         "Port": "Port",
+        "ClientId": "Client ID:",
         "Username": "Nom d'utilisateur",
         "UsernameHint": "Nom d'utilisateur, laisser vide pour une connexion anonyme",
         "Password": "Mot de passe:",
@@ -508,6 +530,7 @@
         "ZeroRuntimeHint": "Zero runtime data (no yield data) if inverter becomes unreachable.",
         "ZeroDay": "Zero daily yield at midnight",
         "ZeroDayHint": "This only works if the inverter is unreachable. If data is read from the inverter, it's values will be used. (Reset only occours on power cycle)",
+        "ClearEventlog": "Clear Eventlog at midnight",
         "Cancel": "@:base.Cancel",
         "Save": "@:base.Save",
         "DeleteMsg": "Êtes-vous sûr de vouloir supprimer l'onduleur \"{name}\" avec le numéro de série \"{serial}\" ?",
@@ -556,6 +579,8 @@
     },
     "about": {
         "AboutOpendtu": "À propos d'OpenDTU",
+        "Documentation": "Documentation",
+        "DocumentationBody": "The firmware and hardware documentation can be found here: <a href=\"https://www.opendtu.solar\" target=\"_blank\">https://www.opendtu.solar</a>",
         "ProjectOrigin": "Origine du projet",
         "ProjectOriginBody1": "Ce projet a été démarré suite à cette discussion <a href=\"https://www.mikrocontroller.net/topic/525778\" target=\"_blank\">(Mikrocontroller.net)</a>.",
         "ProjectOriginBody2": "Le protocole Hoymiles a été décrypté grâce aux efforts volontaires de nombreux participants. OpenDTU, entre autres, a été développé sur la base de ce travail. Le projet est sous licence Open Source (<a href=\"https://www.gnu.de/documents/gpl-2.0.de.html\" target=\"_blank\">GNU General Public License version 2</a>).",
@@ -583,9 +608,9 @@
         "DefaultProfile": "(Réglages par défaut)",
         "ProfileHint": "Votre appareil peut cesser de répondre si vous sélectionnez un profil incompatible. Dans ce cas, vous devez effectuer une suppression via l'interface série.",
         "Display": "Affichage",
-        "PowerSafe": "Activer l'économiseur d'énergie",
+        "PowerSafe": "Economiseur d'énergie",
         "PowerSafeHint": "Eteindre l'écran si aucun onduleur n'est en production.",
-        "Screensaver": "Activer l'écran de veille",
+        "Screensaver": "OLED Anti burn-in",
         "ScreensaverHint": "Déplacez un peu l'écran à chaque mise à jour pour éviter le phénomène de brûlure. (Utile surtout pour les écrans OLED)",
         "DiagramMode": "Diagram mode:",
         "off": "Off",
@@ -614,5 +639,12 @@
         "Name": "Nom",
         "ValueSelected": "Sélectionné",
         "ValueActive": "Activé"
+    },
+    "inputserial": {
+        "format_hoymiles": "Hoymiles serial number format",
+        "format_converted": "Already converted serial number",
+        "format_herf_valid": "E-Star HERF format (will be saved converted): {serial}",
+        "format_herf_invalid": "E-Star HERF format: Invalid checksum",
+        "format_unknown": "Unknown format"
     }
 }

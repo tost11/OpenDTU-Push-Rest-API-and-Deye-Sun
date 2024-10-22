@@ -12,9 +12,10 @@ import path from 'path'
 // example 'vite.user.ts': export const proxy_target = '192.168.16.107'
 let proxy_target;
 try {
+    // eslint-disable-next-line
     proxy_target = require('./vite.user.ts').proxy_target;
-} catch (error) {
-    proxy_target = '192.168.1.144';
+} catch {
+    proxy_target = '192.168.20.110';
 }
 
 // https://vitejs.dev/config/
@@ -43,6 +44,7 @@ export default defineConfig({
     outDir: '../webapp_dist',
     emptyOutDir: true,
     minify: 'terser',
+    chunkSizeWarningLimit: 1024,
     rollupOptions: {
       output: {
         // Only create one js file
