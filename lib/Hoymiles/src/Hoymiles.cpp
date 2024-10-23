@@ -3,6 +3,7 @@
  * Copyright (C) 2022-2024 Thomas Basler and others
  */
 #include "Hoymiles.h"
+#include "inverters/HERF_1CH.h"
 #include "inverters/HERF_2CH.h"
 #include "inverters/HERF_4CH.h"
 #include "inverters/HMS_1CH.h"
@@ -128,6 +129,7 @@ void HoymilesClass::loop()
             }
         }
 
+        // Perform housekeeping handles for all inverter type in base class
         performHouseKeeping();
     }
 }
@@ -153,6 +155,8 @@ std::shared_ptr<InverterAbstract> HoymilesClass::addInverter(const char* name, c
         i = std::make_shared<HM_2CH>(_radioNrf.get(), serial);
     } else if (HM_1CH::isValidSerial(serial)) {
         i = std::make_shared<HM_1CH>(_radioNrf.get(), serial);
+    } else if (HERF_1CH::isValidSerial(serial)) {
+        i = std::make_shared<HERF_1CH>(_radioNrf.get(), serial);
     } else if (HERF_2CH::isValidSerial(serial)) {
         i = std::make_shared<HERF_2CH>(_radioNrf.get(), serial);
     } else if (HERF_4CH::isValidSerial(serial)) {
@@ -180,9 +184,9 @@ std::shared_ptr<InverterAbstract> HoymilesClass::getInverterByPos(const uint8_t 
 
 std::shared_ptr<InverterAbstract> HoymilesClass::getInverterBySerial(const uint64_t serial)
 {
-    for (uint8_t i = 0; i < _inverters.size(); i++) {
-        if (_inverters[i]->serial() == serial) {
-            return _inverters[i];
+    for (auto& inv : _inverters) {
+        if (inv->serial() == serial) {
+            return inv;
         }
     }
     return nullptr;
@@ -194,9 +198,7 @@ std::shared_ptr<InverterAbstract> HoymilesClass::getInverterByFragment(const fra
         return nullptr;
     }
 
-    std::shared_ptr<InverterAbstract> inv;
-    for (uint8_t i = 0; i < _inverters.size(); i++) {
-        inv = _inverters[i];
+    for (auto& inv : _inverters) {
         serial_u p;
         p.u64 = inv->serial();
 

@@ -32,6 +32,7 @@ enum WebApiError {
     InverterChanged,
     InverterDeleted,
     InverterOrdered,
+    InverterStatsResetted,
     InverterType,
     InverterHostnameLength,
     InverterInvalidPortNumber,
@@ -63,6 +64,7 @@ enum WebApiError {
     MqttHassTopicLength,
     MqttHassTopicCharacter,
     MqttLwtQos,
+    MqttClientIdLength,
 
     NetworkBase = 8000,
     NetworkIpInvalid,

@@ -6,11 +6,13 @@
 
 ## What's this fork about ?
 
-Currently, I am working on two features:
+Currently, I am working on multiple features:
 
 - Push data via rest to extern Application [here](https://github.com/tost11/OpenDTU-Push-Rest-API/tree/feature/push-rest-api)
 - Implement Logic to add and Monitor Deye Sun,Bosswerk Inverters, [here](https://github.com/tost11/OpenDTU-Push-Rest-API/tree/feature/deye-sun)
 - Both combined, [here](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/tree/feature/push-rest-api)
+- manuel startupdate (So opendtu works without npt and manuel setting date after boot,date and time obviously not correct)[here](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/tree/feature/default-start-date)
+- servo engine that views solar power (looks like [this](https://itgrufti.de/solar/monitoring/eine-solar-anzeige-fuer-die-kita/)) [here](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/tree/feature/servo)
 
 ### Deye Sun Branch
 
@@ -28,7 +30,7 @@ Tested with model: SUN300G3-EU-230
 
 - Reading data
 - Configuring via UI
-- Tun on and off (this also fixes red led "error")
+- Tun on and off (also "resetting" if led permanent red)
 - Setting limit
 - Showing logs
 
@@ -88,41 +90,4 @@ Generated using: `git log --date=short --pretty=format:"* %h%x09%ad%x09%s" | gre
 
 ## Currently supported Inverters
 
-| Model                | Required RF Module | DC Inputs | MPP-Tracker | AC Phases |
-| ---------------------| ------------------ | --------- | ----------- | --------- |
-| Hoymiles HM-300-1T   | NRF24L01+          | 1         | 1           | 1         |
-| Hoymiles HM-350-1T   | NRF24L01+          | 1         | 1           | 1         |
-| Hoymiles HM-400-1T   | NRF24L01+          | 1         | 1           | 1         |
-| Hoymiles HM-600-2T   | NRF24L01+          | 2         | 2           | 1         |
-| Hoymiles HM-700-2T   | NRF24L01+          | 2         | 2           | 1         |
-| Hoymiles HM-800-2T   | NRF24L01+          | 2         | 2           | 1         |
-| Hoymiles HM-1000-4T  | NRF24L01+          | 4         | 2           | 1         |
-| Hoymiles HM-1200-4T  | NRF24L01+          | 4         | 2           | 1         |
-| Hoymiles HM-1500-4T  | NRF24L01+          | 4         | 2           | 1         |
-| Hoymiles HMS-300-1T  | CMT2300A           | 1         | 1           | 1         |
-| Hoymiles HMS-350-1T  | CMT2300A           | 1         | 1           | 1         |
-| Hoymiles HMS-400-1T  | CMT2300A           | 1         | 1           | 1         |
-| Hoymiles HMS-450-1T  | CMT2300A           | 1         | 1           | 1         |
-| Hoymiles HMS-500-1T  | CMT2300A           | 1         | 1           | 1         |
-| Hoymiles HMS-600-2T  | CMT2300A           | 2         | 2           | 1         |
-| Hoymiles HMS-700-2T  | CMT2300A           | 2         | 2           | 1         |
-| Hoymiles HMS-800-2T  | CMT2300A           | 2         | 2           | 1         |
-| Hoymiles HMS-900-2T  | CMT2300A           | 2         | 2           | 1         |
-| Hoymiles HMS-1000-2T | CMT2300A           | 2         | 2           | 1         |
-| Hoymiles HMS-1600-4T | CMT2300A           | 4         | 4           | 1         |
-| Hoymiles HMS-1800-4T | CMT2300A           | 4         | 4           | 1         |
-| Hoymiles HMS-2000-4T | CMT2300A           | 4         | 4           | 1         |
-| Hoymiles HMT-1600-4T | CMT2300A           | 4         | 2           | 3         |
-| Hoymiles HMT-1800-4T | CMT2300A           | 4         | 2           | 3         |
-| Hoymiles HMT-2000-4T | CMT2300A           | 4         | 2           | 3         |
-| Hoymiles HMT-1800-6T | CMT2300A           | 6         | 3           | 3         |
-| Hoymiles HMT-2250-6T | CMT2300A           | 6         | 3           | 3         |
-| Solenso SOL-H350     | NRF24L01+          | 1         | 1           | 1         |
-| Solenso SOL-H400     | NRF24L01+          | 1         | 1           | 1         |
-| Solenso SOL-H800     | NRF24L01+          | 2         | 2           | 1         |
-| TSUN TSOL-M350       | NRF24L01+          | 1         | 1           | 1         |
-| TSUN TSOL-M800       | NRF24L01+          | 2         | 2           | 1         |
-| TSUN TSOL-M1600      | NRF24L01+          | 4         | 2           | 1         |
-| E-Star HERF-800      | NRF24L01+          | 2         | 2           | 1         |
-| E-Star HERF-1600     | NRF24L01+          | 4         | 2           | 1         |
-| E-Star HERF-1800     | NRF24L01+          | 4         | 2           | 1         |
+A list of all currently supported inverters can be found [here](https://www.opendtu.solar/hardware/inverter_overview/)

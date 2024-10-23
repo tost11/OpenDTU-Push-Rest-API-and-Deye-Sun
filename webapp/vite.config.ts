@@ -14,10 +14,8 @@ let proxy_target;
 try {
     // eslint-disable-next-line
     proxy_target = require('./vite.user.ts').proxy_target;
-} catch (error) {
-    //proxy_target = '192.168.4.1';
-    proxy_target = '192.168.1.144';
-    //proxy_target = 'opendtu';
+} catch {
+    proxy_target = 'opendtu';
 }
 
 // https://vitejs.dev/config/
@@ -32,7 +30,6 @@ export default defineConfig({
         fullInstall: false,
         forceStringify: true,
         strictMessage: false,
-        jitCompilation: false,
     }),
   ],
   resolve: {
@@ -47,6 +44,7 @@ export default defineConfig({
     outDir: '../webapp_dist',
     emptyOutDir: true,
     minify: 'terser',
+    chunkSizeWarningLimit: 1024,
     rollupOptions: {
       output: {
         // Only create one js file

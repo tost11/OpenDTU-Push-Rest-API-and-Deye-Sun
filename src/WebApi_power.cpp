@@ -62,14 +62,13 @@ void WebApiPowerClass::onPowerPost(AsyncWebServerRequest* request)
     if(inverterType == inverter_type::Inverter_count){
         retMsg["message"] = "Inverter not Found";
         retMsg["code"] = WebApiError::PowerInvalidInverter;
-        response->setLength();
-        request->send(response);
+        WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
         return;
     }
 
-    if (!(root.containsKey("serial")
-            && (root.containsKey("power")
-                || root.containsKey("restart")))) {
+    if (!(root["serial"].is<String>()
+            && (root["power"].is<bool>()
+                || root["restart"].is<bool>()))) {
         retMsg["message"] = "Values are missing!";
         retMsg["code"] = WebApiError::GenericValueMissing;
         WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
@@ -94,8 +93,8 @@ void WebApiPowerClass::onPowerPost(AsyncWebServerRequest* request)
         return;
     }
 
-    if (root.containsKey("power")) {
-        uint16_t power = root["power"].as<bool>();
+    if (root["power"].is<bool>()) {
+        bool power = root["power"].as<bool>();
         inv->sendPowerControlRequest(power);
     } else {
         if (root["restart"].as<bool>()) {

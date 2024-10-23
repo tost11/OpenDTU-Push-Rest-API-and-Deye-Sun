@@ -79,3 +79,8 @@ void DeyeAlarmLog::addAlarm(uint16_t id, uint32_t sec, const String &message) {
 
     addAlarm(id,timeinfo.tm_sec,timeinfo.tm_sec+sec,message);
 }
+
+
+void DeyeAlarmLog::clearBuffer(){
+    _errors.clear();
+}

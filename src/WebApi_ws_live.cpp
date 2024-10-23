@@ -37,18 +37,31 @@ void WebApiWsLiveClass::init(AsyncWebServer& server, Scheduler& scheduler)
 
     scheduler.addTask(_sendDataTask);
     _sendDataTask.enable();
+    _simpleDigestAuth.setUsername(AUTH_USERNAME);
+    _simpleDigestAuth.setRealm("live websocket");
+
+    reload();
+}
+
+void WebApiWsLiveClass::reload()
+{
+    _ws.removeMiddleware(&_simpleDigestAuth);
+
+    auto const& config = Configuration.get();
+
+    if (config.Security.AllowReadonly) { return; }
+
+    _ws.enable(false);
+    _simpleDigestAuth.setPassword(config.Security.Password);
+    _ws.addMiddleware(&_simpleDigestAuth);
+    _ws.closeAll();
+    _ws.enable(true);
 }
 
 void WebApiWsLiveClass::wsCleanupTaskCb()
 {
     // see: https://github.com/me-no-dev/ESPAsyncWebServer#limiting-the-number-of-web-socket-clients
     _ws.cleanupClients();
-
-    if (Configuration.get().Security.AllowReadonly) {
-        _ws.setAuthentication("", "");
-    } else {
-        _ws.setAuthentication(AUTH_USERNAME, Configuration.get().Security.Password);
-    }
 }
 
 void WebApiWsLiveClass::sendDataTaskCb()
@@ -138,6 +151,16 @@ void WebApiWsLiveClass::generateInverterCommonJsonResponse(JsonObject& root, std
         root["limit_absolute"] = inv->SystemConfigPara()->getLimitPercent() * inv->DevInfo()->getMaxPower() / 100.0;
     } else {
         root["limit_absolute"] = -1;
+    }
+    if(inv->getInverterType() == inverter_type::Inverter_Hoymiles) {
+        auto hoy = (InverterAbstract *) inv.get();
+        root["radio_stats"]["tx_request"] = hoy->RadioStats.TxRequestData;
+        root["radio_stats"]["tx_re_request"] = hoy->RadioStats.TxReRequestFragment;
+        root["radio_stats"]["rx_success"] = hoy->RadioStats.RxSuccess;
+        root["radio_stats"]["rx_fail_nothing"] = hoy->RadioStats.RxFailNoAnswer;
+        root["radio_stats"]["rx_fail_partial"] = hoy->RadioStats.RxFailPartialAnswer;
+        root["radio_stats"]["rx_fail_corrupt"] = hoy->RadioStats.RxFailCorruptData;
+        root["radio_stats"]["rssi"] = hoy->getLastRssi();
     }
 }
 

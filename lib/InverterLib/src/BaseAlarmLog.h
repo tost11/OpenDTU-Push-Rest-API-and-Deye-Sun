@@ -51,6 +51,7 @@ typedef struct {
 
 class BaseAlarmLog : public Updater {
 public:
+    virtual void clearBuffer() = 0;
     virtual uint8_t getEntryCount() const = 0;
     virtual void getLogEntry(const uint8_t entryId, AlarmLogEntry_t& entry, const AlarmMessageLocale_t locale) = 0;
 protected:

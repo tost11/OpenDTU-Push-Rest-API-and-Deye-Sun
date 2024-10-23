@@ -10,7 +10,7 @@
 class AlarmLogParser : public Parser, public BaseAlarmLog {
 public:
     AlarmLogParser();
-    void clearBuffer();
+    void clearBuffer() override;
     void appendFragment(const uint8_t offset, const uint8_t* payload, const uint8_t len);
 
     uint8_t getEntryCount()const override;

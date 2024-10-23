@@ -18,22 +18,29 @@
                     <InputSerial v-model="newInverterData.serial" inputClass="ml-sm-2 mr-sm-4 my-2" required />
                 </div>
                 <div class="form-group">
-                  <label>{{ $t('inverteradmin.Name') }}</label>
-                  <input v-model="newInverterData.name" type="text" class="form-control ml-sm-2 mr-sm-4 my-2"
-                         maxlength="31" required />
+                    <label>{{ $t('inverteradmin.Name') }}</label>
+                    <input
+                        v-model="newInverterData.name"
+                        type="text"
+                        class="form-control ml-sm-2 mr-sm-4 my-2"
+                        maxlength="31"
+                        required
+                    />
                 </div>
-                <div v-if="newInverterData.manufacturer == 'DeyeSun'" class="form-group">
-                  <label>{{ $t('inverteradmin.InverterHostnameOrIp') }} <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterHostnameOrIpHint')" /></label>
-                  <input v-model="newInverterData.hostname_or_ip" type="text" class="form-control ml-sm-2 mr-sm-4 my-2"
-                         maxlength="31" required />
-                </div>
+              <div v-if="newInverterData.manufacturer == 'DeyeSun'" class="form-group">
+                <label>{{ $t('inverteradmin.InverterHostnameOrIp') }} <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterHostnameOrIpHint')" /></label>
+                <input v-model="newInverterData.hostname_or_ip" type="text" class="form-control ml-sm-2 mr-sm-4 my-2"
+                       maxlength="31" required />
+              </div>
                 <div v-if="newInverterData.manufacturer == 'DeyeSun'" class="form-group">
                   <label>{{ $t('inverteradmin.InverterPort') }} <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterPortHint')" /></label>
                   <input v-model="newInverterData.port" type="number" class="form-control ml-sm-2 mr-sm-4 my-2" maxlength="5"
                          required />
                 </div>
                 <div class="ml-auto text-right">
-                  <button type="submit" class="btn btn-primary my-2">{{ $t('inverteradmin.Add') }}</button>
+                    <button type="submit" class="btn btn-primary my-2">
+                        {{ $t('inverteradmin.Add') }}
+                    </button>
                 </div>
                 <div class="alert alert-secondary" role="alert" v-html="$t('inverteradmin.AddHint')"></div>
             </form>
@@ -57,15 +64,25 @@
                         <tr v-for="inverter in inverters" v-bind:key="inverter.id" :data-id="inverter.id">
                             <td><BIconGripHorizontal class="drag-handle" /></td>
                             <td>
-                                <span class="badge" :title="$t('inverteradmin.Receive')" :class="{
-                                    'text-bg-warning': !inverter.poll_enable_night,
-                                    'text-bg-dark': inverter.poll_enable_night,}"
-                                    ><BIconArrowDown v-if="inverter.poll_enable"  /></span>
+                                <span
+                                    class="badge"
+                                    :title="$t('inverteradmin.Receive')"
+                                    :class="{
+                                        'text-bg-warning': !inverter.poll_enable_night,
+                                        'text-bg-dark': inverter.poll_enable_night,
+                                    }"
+                                    ><BIconArrowDown v-if="inverter.poll_enable"
+                                /></span>
 
-                                <span class="badge" :title="$t('inverteradmin.Send')" :class="{
-                                    'text-bg-warning': !inverter.command_enable_night,
-                                    'text-bg-dark': inverter.command_enable_night,}"
-                                    ><BIconArrowUp v-if="inverter.command_enable" /></span>
+                                <span
+                                    class="badge"
+                                    :title="$t('inverteradmin.Send')"
+                                    :class="{
+                                        'text-bg-warning': !inverter.command_enable_night,
+                                        'text-bg-dark': inverter.command_enable_night,
+                                    }"
+                                    ><BIconArrowUp v-if="inverter.command_enable"
+                                /></span>
                             </td>
                             <td>{{ inverter.serial }}</td>
                             <td>{{ inverter.name }}</td>
@@ -73,8 +90,8 @@
                             <td>{{ inverter.type }}</td>
                             <td>
                                 <a href="#" class="icon text-danger" :title="$t('inverteradmin.DeleteInverter')">
-                                    <BIconTrash v-on:click="onOpenModal(modalDelete, inverter)" />
-                                </a>&nbsp;
+                                    <BIconTrash v-on:click="onOpenModal(modalDelete, inverter)" /> </a
+                                >&nbsp;
                                 <a href="#" class="icon" :title="$t('inverteradmin.EditInverter')">
                                     <BIconPencil v-on:click="onOpenModal(modal, inverter)" />
                                 </a>
@@ -84,66 +101,134 @@
                 </table>
             </div>
             <div class="ml-auto text-right">
-                <button class="btn btn-primary my-2" @click="onSaveOrder()">{{ $t('inverteradmin.SaveOrder') }}</button>
+                <button class="btn btn-primary my-2" @click="onSaveOrder()">
+                    {{ $t('inverteradmin.SaveOrder') }}
+                </button>
             </div>
         </CardElement>
     </BasePage>
 
-    <ModalDialog modalId="inverterEdit" :title="$t('inverteradmin.EditInverter')" :closeText="$t('inverteradmin.Cancel')">
+    <ModalDialog
+        modalId="inverterEdit"
+        :title="$t('inverteradmin.EditInverter')"
+        :closeText="$t('inverteradmin.Cancel')"
+    >
         <nav>
             <div class="nav nav-tabs" id="nav-tab" role="tablist">
-                <button class="nav-link active" id="nav-general-tab" data-bs-toggle="tab" data-bs-target="#nav-general"
-                    type="button" role="tab" aria-controls="nav-general" aria-selected="true">{{
-                        $t('inverteradmin.General')
-                    }}</button>
-                <button class="nav-link" id="nav-string-tab" data-bs-toggle="tab" data-bs-target="#nav-string" type="button"
-                    role="tab" aria-controls="nav-string">{{ $t('inverteradmin.String') }}</button>
-                <button class="nav-link" id="nav-advanced-tab" data-bs-toggle="tab" data-bs-target="#nav-advanced"
-                    type="button" role="tab" aria-controls="nav-advanced">{{ $t('inverteradmin.Advanced') }}</button>
+                <button
+                    class="nav-link active"
+                    id="nav-general-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#nav-general"
+                    type="button"
+                    role="tab"
+                    aria-controls="nav-general"
+                    aria-selected="true"
+                >
+                    {{ $t('inverteradmin.General') }}
+                </button>
+                <button
+                    class="nav-link"
+                    id="nav-string-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#nav-string"
+                    type="button"
+                    role="tab"
+                    aria-controls="nav-string"
+                >
+                    {{ $t('inverteradmin.String') }}
+                </button>
+                <button
+                    class="nav-link"
+                    id="nav-advanced-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#nav-advanced"
+                    type="button"
+                    role="tab"
+                    aria-controls="nav-advanced"
+                >
+                    {{ $t('inverteradmin.Advanced') }}
+                </button>
             </div>
         </nav>
         <div class="tab-content" id="nav-tabContent">
-            <div class="tab-pane fade show active" id="nav-general" role="tabpanel" aria-labelledby="nav-general-tab"
-                tabindex="0">
+            <div
+                class="tab-pane fade show active"
+                id="nav-general"
+                role="tabpanel"
+                aria-labelledby="nav-general-tab"
+                tabindex="0"
+            >
                 <div class="mb-3">
                     <label for="inverter-serial" class="col-form-label">
                         {{ $t('inverteradmin.InverterSerial') }}
                     </label>
                     <InputSerial v-model="selectedInverterData.serial" id="inverter-serial" />
-                    <label for="inverter-name" class="col-form-label">{{ $t('inverteradmin.InverterName') }}
+                    <label for="inverter-name" class="col-form-label"
+                        >{{ $t('inverteradmin.InverterName') }}
                         <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterNameHint')" />
                     </label>
-                    <input v-model="selectedInverterData.name" type="text" id="inverter-name" class="form-control"
-                        maxlength="31" />
+                    <input
+                        v-model="selectedInverterData.name"
+                        type="text"
+                        id="inverter-name"
+                        class="form-control"
+                        maxlength="31"
+                    />
                     <span v-if="selectedInverterData.manufacturer=='DeyeSun'">
-                      <label for="inverter-hostname" class="col-form-label">{{ $t('inverteradmin.InverterHostnameOrIp') }}
-                        <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterHostnameOrIpHint')" />
-                      </label>
-                      <input v-model="selectedInverterData.hostname_or_ip" type="text" id="inverter-hostname-or-ip"
-                             class="form-control" maxlength="31" />
-                      <label for="inverter-port" class="col-form-label">{{ $t('inverteradmin.InverterPort') }}
-                         <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterPortHint')" />
-                      </label>
-                      <input v-model="selectedInverterData.port" type="number" id="inverter-port" maxlength="5"
-                             class="form-control" />
-                    </span>
+                        <label for="inverter-hostname" class="col-form-label">{{ $t('inverteradmin.InverterHostnameOrIp') }}
+                          <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterHostnameOrIpHint')" />
+                        </label>
+                        <input v-model="selectedInverterData.hostname_or_ip" type="text" id="inverter-hostname-or-ip"
+                               class="form-control" maxlength="31" />
+                        <label for="inverter-port" class="col-form-label">{{ $t('inverteradmin.InverterPort') }}
+                           <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterPortHint')" />
+                        </label>
+                        <input v-model="selectedInverterData.port" type="number" id="inverter-port" maxlength="5"
+                               class="form-control" />
+                      </span>
 
                     <CardElement :text="$t('inverteradmin.InverterStatus')" addSpace>
-                        <InputElement :label="$t('inverteradmin.PollEnable')" v-model="selectedInverterData.poll_enable"
-                            type="checkbox" wide />
-                        <InputElement :label="$t('inverteradmin.PollEnableNight')"
-                            v-model="selectedInverterData.poll_enable_night" type="checkbox" wide />
-                        <InputElement :label="$t('inverteradmin.CommandEnable')"
-                            v-model="selectedInverterData.command_enable" type="checkbox" wide />
-                        <InputElement :label="$t('inverteradmin.CommandEnableNight')"
-                            v-model="selectedInverterData.command_enable_night" type="checkbox" wide />
-                        <div class="alert alert-secondary mt-3" role="alert" v-html="$t('inverteradmin.StatusHint')">
-                        </div>
+                        <InputElement
+                            :label="$t('inverteradmin.PollEnable')"
+                            v-model="selectedInverterData.poll_enable"
+                            type="checkbox"
+                            wide
+                        />
+                        <InputElement
+                            :label="$t('inverteradmin.PollEnableNight')"
+                            v-model="selectedInverterData.poll_enable_night"
+                            type="checkbox"
+                            wide
+                        />
+                        <InputElement
+                            :label="$t('inverteradmin.CommandEnable')"
+                            v-model="selectedInverterData.command_enable"
+                            type="checkbox"
+                            wide
+                        />
+                        <InputElement
+                            :label="$t('inverteradmin.CommandEnableNight')"
+                            v-model="selectedInverterData.command_enable_night"
+                            type="checkbox"
+                            wide
+                        />
+                        <div
+                            class="alert alert-secondary mt-3"
+                            role="alert"
+                            v-html="$t('inverteradmin.StatusHint')"
+                        ></div>
                     </CardElement>
                 </div>
             </div>
 
-            <div class="tab-pane fade show" id="nav-string" role="tabpanel" aria-labelledby="nav-string-tab" tabindex="0">
+            <div
+                class="tab-pane fade show"
+                id="nav-string"
+                role="tabpanel"
+                aria-labelledby="nav-string-tab"
+                tabindex="0"
+            >
                 <div v-for="(ch, index) in selectedInverterData.channel" :key="`${index}`">
                 <span v-if="selectedInverterData.manufacturer != 'DeyeSun' || index <2">
                     <div class="row g-2">
@@ -154,8 +239,13 @@
                             </label>
                             <div class="d-flex mb-2">
                                 <div class="input-group">
-                                    <input type="text" class="form-control" :id="`inverter-name_${index}`" maxlength="31"
-                                        v-model="ch.name" />
+                                    <input
+                                        type="text"
+                                        class="form-control"
+                                        :id="`inverter-name_${index}`"
+                                        maxlength="31"
+                                        v-model="ch.name"
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -168,11 +258,17 @@
                             </label>
                             <div class="d-flex mb-2">
                                 <div class="input-group">
-                                    <input type="number" class="form-control" :id="`inverter-max_${index}`" min="0"
+                                    <input
+                                        type="number"
+                                        class="form-control"
+                                        :id="`inverter-max_${index}`"
+                                        min="0"
                                         v-model="ch.max_power"
-                                        :aria-describedby="`inverter-maxDescription_${index} inverter-customizer`" />
-                                    <span class="input-group-text"
-                                        :id="`inverter-maxDescription_${index}`">W<sub>p</sub><sup>*</sup></span>
+                                        :aria-describedby="`inverter-maxDescription_${index} inverter-customizer`"
+                                    />
+                                    <span class="input-group-text" :id="`inverter-maxDescription_${index}`"
+                                        >W<sub>p</sub><sup>*</sup></span
+                                    >
                                 </div>
                             </div>
                         </div>
@@ -183,60 +279,105 @@
                             </label>
                             <div class="d-flex mb-2">
                                 <div class="input-group">
-                                    <input type="number" class="form-control" :id="`inverter-ytoffset_${index}`" min="0"
+                                    <input
+                                        type="number"
+                                        class="form-control"
+                                        :id="`inverter-ytoffset_${index}`"
+                                        min="0"
                                         v-model="ch.yield_total_offset"
-                                        :aria-describedby="`inverter-ytoffsetDescription_${index} inverter-customizer`" />
-                                    <span class="input-group-text" :id="`inverter-ytoffsetDescription_${index}`">kWh</span>
+                                        :aria-describedby="`inverter-ytoffsetDescription_${index} inverter-customizer`"
+                                    />
+                                    <span class="input-group-text" :id="`inverter-ytoffsetDescription_${index}`"
+                                        >kWh</span
+                                    >
                                 </div>
                             </div>
                         </div>
                     </div>
                 </span>
                 </div>
-                <div :id="`inverter-customizer`" class="form-text" v-html="$t('inverteradmin.InverterHint')">
-                </div>
+                <div :id="`inverter-customizer`" class="form-text" v-html="$t('inverteradmin.InverterHint')"></div>
             </div>
 
-            <div class="tab-pane fade show" id="nav-advanced" role="tabpanel" aria-labelledby="nav-advanced-tab"
-                tabindex="0">
-                <InputElement :label="$t('inverteradmin.ReachableThreshold')"
-                    v-model="selectedInverterData.reachable_threshold" type="number" min="1" max="100"
-                    :tooltip="$t('inverteradmin.ReachableThresholdHint')" wide />
+            <div
+                class="tab-pane fade show"
+                id="nav-advanced"
+                role="tabpanel"
+                aria-labelledby="nav-advanced-tab"
+                tabindex="0"
+            >
+                <InputElement
+                    :label="$t('inverteradmin.ReachableThreshold')"
+                    v-model="selectedInverterData.reachable_threshold"
+                    type="number"
+                    min="1"
+                    max="100"
+                    :tooltip="$t('inverteradmin.ReachableThresholdHint')"
+                    wide
+                />
 
-                <InputElement :label="$t('inverteradmin.ZeroRuntime')" v-model="selectedInverterData.zero_runtime"
-                    type="checkbox" :tooltip="$t('inverteradmin.ZeroRuntimeHint')" wide />
+                <InputElement
+                    :label="$t('inverteradmin.ZeroRuntime')"
+                    v-model="selectedInverterData.zero_runtime"
+                    type="checkbox"
+                    :tooltip="$t('inverteradmin.ZeroRuntimeHint')"
+                    wide
+                />
 
-                <InputElement :label="$t('inverteradmin.ZeroDay')" v-model="selectedInverterData.zero_day" type="checkbox"
-                    :tooltip="$t('inverteradmin.ZeroDayHint')" wide />
+                <InputElement
+                    :label="$t('inverteradmin.ZeroDay')"
+                    v-model="selectedInverterData.zero_day"
+                    type="checkbox"
+                    :tooltip="$t('inverteradmin.ZeroDayHint')"
+                    wide
+                />
 
-                <InputElement :label="$t('inverteradmin.YieldDayCorrection')"
-                    v-model="selectedInverterData.yieldday_correction" type="checkbox"
-                    :tooltip="$t('inverteradmin.YieldDayCorrectionHint')" wide />
+                <InputElement
+                    :label="$t('inverteradmin.ClearEventlog')"
+                    v-model="selectedInverterData.clear_eventlog"
+                    type="checkbox"
+                    wide
+                />
+
+                <InputElement
+                    :label="$t('inverteradmin.YieldDayCorrection')"
+                    v-model="selectedInverterData.yieldday_correction"
+                    type="checkbox"
+                    :tooltip="$t('inverteradmin.YieldDayCorrectionHint')"
+                    wide
+                />
             </div>
         </div>
         <template #footer>
             <button type="button" class="btn btn-primary" @click="onEditSubmit">
-                {{ $t('inverteradmin.Save') }}</button>
+                {{ $t('inverteradmin.Save') }}
+            </button>
         </template>
     </ModalDialog>
 
-    <ModalDialog modalId="inverterDelete" small :title="$t('inverteradmin.DeleteInverter')"
-        :closeText="$t('inverteradmin.Cancel')">
-        {{ $t('inverteradmin.DeleteMsg', {
-            name: selectedInverterData.name,
-            serial: selectedInverterData.serial
-        })
+    <ModalDialog
+        modalId="inverterDelete"
+        small
+        :title="$t('inverteradmin.DeleteInverter')"
+        :closeText="$t('inverteradmin.Cancel')"
+    >
+        {{
+            $t('inverteradmin.DeleteMsg', {
+                name: selectedInverterData.name,
+                serial: selectedInverterData.serial,
+            })
         }}
         <template #footer>
             <button type="button" class="btn btn-danger" @click="onDelete">
-                {{ $t('inverteradmin.Delete') }}</button>
+                {{ $t('inverteradmin.Delete') }}
+            </button>
         </template>
     </ModalDialog>
 </template>
 
 <script lang="ts">
 import BasePage from '@/components/BasePage.vue';
-import BootstrapAlert from "@/components/BootstrapAlert.vue";
+import BootstrapAlert from '@/components/BootstrapAlert.vue';
 import CardElement from '@/components/CardElement.vue';
 import InputElement from '@/components/InputElement.vue';
 import InputSerial from '@/components/InputSerial.vue';
@@ -299,7 +440,7 @@ export default defineComponent({
     methods: {
         getInverters() {
             this.dataLoading = true;
-            fetch("/api/inverter/list", { headers: authHeader() })
+            fetch('/api/inverter/list', { headers: authHeader() })
                 .then((response) => handleResponse(response, this.$emitter, this.$router))
                 .then((data) => {
                     this.inverters = data.inverter.slice().sort((a: Inverter, b: Inverter) => {
@@ -321,10 +462,10 @@ export default defineComponent({
         },
         callInverterApiEndpoint(endpoint: string, jsonData: string) {
             const formData = new FormData();
-            formData.append("data", jsonData);
+            formData.append('data', jsonData);
 
-            fetch("/api/inverter/" + endpoint, {
-                method: "POST",
+            fetch('/api/inverter/' + endpoint, {
+                method: 'POST',
                 headers: authHeader(),
                 body: formData,
             })
@@ -337,15 +478,15 @@ export default defineComponent({
                 });
         },
         onSubmit() {
-            this.callInverterApiEndpoint("add", JSON.stringify(this.newInverterData));
+            this.callInverterApiEndpoint('add', JSON.stringify(this.newInverterData));
             this.newInverterData = {manufacturer:"Hoymiles"} as Inverter;
         },
         onDelete() {
-            this.callInverterApiEndpoint("del", JSON.stringify({ id: this.selectedInverterData.id }));
+            this.callInverterApiEndpoint('del', JSON.stringify({ id: this.selectedInverterData.id }));
             this.onCloseModal(this.modalDelete);
         },
         onEditSubmit() {
-            this.callInverterApiEndpoint("edit", JSON.stringify(this.selectedInverterData));
+            this.callInverterApiEndpoint('edit', JSON.stringify(this.selectedInverterData));
             this.onCloseModal(this.modal);
         },
         onOpenModal(modal: bootstrap.Modal, inverter: Inverter) {
@@ -360,7 +501,7 @@ export default defineComponent({
             modal.hide();
         },
         onSaveOrder() {
-            this.callInverterApiEndpoint("order", JSON.stringify({ order: this.sortable.toArray() }));
+            this.callInverterApiEndpoint('order', JSON.stringify({ order: this.sortable.toArray() }));
         },
     },
 });
