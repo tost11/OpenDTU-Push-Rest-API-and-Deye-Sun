@@ -799,7 +799,6 @@ export default defineComponent({
             this.gridProfileView.show();
         },
         onShowLimitSettings(serial: string,manufacturer: string) {
-            this.targetLimitList.serial = 0;
             this.showAlertLimit = false;
             this.targetLimitList.serial = '';
             this.targetLimitList.limit_value = 0;

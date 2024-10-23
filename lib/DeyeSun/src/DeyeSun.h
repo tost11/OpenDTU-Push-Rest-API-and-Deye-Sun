@@ -13,7 +13,7 @@
 #include "parser/StatisticsParser.h"
 #include "inverters/DeyeInverter.h"
 
-class DeyeSunClass: public BaseInverterHandler<DeyeInverter,DeyeStatistics,DeyeDevInfo,DeyeSystemConfigPara,DeyeAlarmLog,DeyeGridProfile,PowerCommandParser> {
+class DeyeSunClass: public BaseInverterHandler<DeyeInverter,StatisticsParser,DeyeDevInfo,DeyeSystemConfigPara,DeyeAlarmLog,DeyeGridProfile,PowerCommandParser> {
 public:
     DeyeSunClass();
 

@@ -2,7 +2,6 @@
 
 #include "types.h"
 #include "BaseInverter.h"
-#include "parser/DeyeStatistics.h"
 #include "parser/DeyeDevInfo.h"
 #include "parser/DeyeSystemConfigPara.h"
 #include "parser/DeyeAlarmLog.h"

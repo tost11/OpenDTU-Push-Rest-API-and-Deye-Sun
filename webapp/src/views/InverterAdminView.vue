@@ -15,7 +15,8 @@
             <form class="form-inline" v-on:submit.prevent="onSubmit">
                 <div class="form-group">
                     <label>{{ $t('inverteradmin.Serial') }}</label>
-                    <InputSerial v-model="newInverterData.serial" inputClass="ml-sm-2 mr-sm-4 my-2" required />
+                    <InputSerial v-if="newInverterData.manufacturer == 'DeyeSun'" type="DeyeSun" v-model="newInverterData.serial" inputClass="ml-sm-2 mr-sm-4 my-2" required />
+                    <InputSerial v-if="newInverterData.manufacturer == 'Hoymiles'" type="Hoymiles" v-model="newInverterData.serial" inputClass="ml-sm-2 mr-sm-4 my-2" required />
                 </div>
                 <div class="form-group">
                     <label>{{ $t('inverteradmin.Name') }}</label>

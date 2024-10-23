@@ -46,11 +46,11 @@ static const byteAssign_t byteAssignment[] = {
         { TYPE_INV, CH0, FLD_EVT_LOG, UNIT_NONE, 34, 2, 1, false, 0 },//current status
 
         //{ TYPE_AC, CH0, FLD_YD, UNIT_WH, CALC_YD_CH0, 0, CMD_CALC, false, 0 },
-        { TYPE_AC, CH0, FLD_YD, UNIT_KWH, 36, 2, 100, false, 1 },
+        { TYPE_INV, CH0, FLD_YD, UNIT_KWH, 36, 2, 100, false, 1 },
         //{ TYPE_AC, CH0, FLD_YT, UNIT_KWH, CALC_YT_CH0, 0, CMD_CALC, false, 3 },
-        { TYPE_AC, CH0, FLD_YT, UNIT_KWH, 38, 4, 10, false, 0 },
-        { TYPE_AC, CH0, FLD_PDC, UNIT_W, CALC_TOTAL_PDC, 0, CMD_CALC, false, 1 },
-        { TYPE_AC, CH0, FLD_EFF, UNIT_PCT, CALC_TOTAL_EFF, 0, CMD_CALC, false, 3 }
+        { TYPE_INV, CH0, FLD_YT, UNIT_KWH, 38, 4, 10, false, 0 },
+        { TYPE_INV, CH0, FLD_PDC, UNIT_W, CALC_TOTAL_PDC, 0, CMD_CALC, false, 1 },
+        { TYPE_INV, CH0, FLD_EFF, UNIT_PCT, CALC_TOTAL_EFF, 0, CMD_CALC, false, 3 }
 };
 
 DS_1CH::DS_1CH(uint64_t serial,const String & modelType,Print & print):

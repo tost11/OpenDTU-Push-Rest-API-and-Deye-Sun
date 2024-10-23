@@ -38,9 +38,6 @@ public:
     bool isProducing() override;
     bool isReachable() override;
 
-    void setClearEventlogOnMidnight(const bool enabled);
-    bool getClearEventlogOnMidnight() const;
-
     int8_t getLastRssi() const;
 
     void clearRxFragmentBuffer();

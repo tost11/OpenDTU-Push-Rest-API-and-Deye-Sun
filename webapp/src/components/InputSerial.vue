@@ -18,6 +18,7 @@ export default defineComponent({
         id: String,
         inputClass: String,
         required: Boolean,
+        type: String
     },
     data() {
         return {
@@ -43,6 +44,9 @@ export default defineComponent({
             this.inputSerial = val;
         },
         inputSerial: function (val) {
+
+            console.log(this.type)
+
             const serial = val.toString().toUpperCase(); // Convert to lowercase for case-insensitivity
 
             if (serial == '') {
@@ -53,36 +57,47 @@ export default defineComponent({
 
             this.formatShow = 'info';
 
-            // Contains only numbers
-            if (/^1{1}[\dA-F]{11}$/.test(serial)) {
+            if(this.type === 'Hoymiles') {
+              // Contains only numbers
+              if (/^1{1}[\dA-F]{11}$/.test(serial)) {
                 this.model = serial;
                 this.formatHint = this.$t('inputserial.format_hoymiles');
-            }
+              }
 
-            // Contains numbers and hex characters but at least one number
-            else if (/^(?=.*\d)[\dA-F]{12}$/.test(serial)) {
+              // Contains numbers and hex characters but at least one number
+              else if (/^(?=.*\d)[\dA-F]{12}$/.test(serial)) {
                 this.model = serial;
                 this.formatHint = this.$t('inputserial.format_converted');
-            }
+              }
 
-            // Has format: xxxxxxxxx-xxx
-            else if (/^((A01)|(A11)|(A21))[\dA-HJ-NR-YP]{6}-[\dA-HJ-NP-Z]{3}$/.test(serial)) {
+              // Has format: xxxxxxxxx-xxx
+              else if (/^((A01)|(A11)|(A21))[\dA-HJ-NR-YP]{6}-[\dA-HJ-NP-Z]{3}$/.test(serial)) {
                 if (this.checkHerfChecksum(serial)) {
-                    this.model = this.convertHerfToHoy(serial);
-                    this.$nextTick(() => {
-                        this.formatHint = this.$t('inputserial.format_herf_valid', {
-                            serial: this.model,
-                        });
+                  this.model = this.convertHerfToHoy(serial);
+                  this.$nextTick(() => {
+                    this.formatHint = this.$t('inputserial.format_herf_valid', {
+                      serial: this.model,
                     });
+                  });
                 } else {
-                    this.formatHint = this.$t('inputserial.format_herf_invalid');
-                    this.formatShow = 'danger';
+                  this.formatHint = this.$t('inputserial.format_herf_invalid');
+                  this.formatShow = 'danger';
                 }
 
                 // Any other format
-            } else {
+              } else {
                 this.formatHint = this.$t('inputserial.format_unknown');
                 this.formatShow = 'danger';
+              }
+            }else if(this.type === 'DeyeSun'){
+              // Contains only numbers
+              if (/^[0-9]{10}$/.test(serial)) {
+                this.model = serial;
+                this.formatHint = this.$t('inputserial.format_deye');
+              }else {
+                this.formatHint = this.$t('inputserial.format_unknown');
+                this.formatShow = 'danger';
+              }
             }
         },
     },
