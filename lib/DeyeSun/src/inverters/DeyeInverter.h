@@ -2,7 +2,6 @@
 
 #include "types.h"
 #include "BaseInverter.h"
-#include "parser/DeyeStatistics.h"
 #include "parser/DeyeDevInfo.h"
 #include "parser/DeyeSystemConfigPara.h"
 #include "parser/DeyeAlarmLog.h"
@@ -79,6 +78,7 @@ private:
     int handleRegisterWrite(size_t length);
 
     static String lengthToString(uint8_t length,int fill = 4);
+    String lengthToHexString(uint8_t length,int fill = 4);
     String filterReceivedResponse(size_t length);
 
     bool resolveHostname();
@@ -111,7 +111,7 @@ private:
     static const uint32_t TIMER_BETWEEN_SENDS = 200;
     static const uint32_t TIMER_RESOLVE_HOSTNAME = 30 * 1000;
     static const uint32_t TIMER_TIMEOUT = 1200;
-    static const uint32_t TIMER_COUNTER_ERROR_TIMEOUT = 3 * 60 * 1000;
+    static const uint32_t TIMER_COUNTER_ERROR_TIMEOUT = 1 * 60 * 1000;
 
     //TODO move to inverter classes
     static const uint32_t INIT_COMMAND_START_SKIP = 2;
@@ -144,6 +144,7 @@ private:
     uint8_t _payloadStatisticBuffer[STATISTIC_PACKET_SIZE] = {};
 
     static unsigned int hex_char_to_int(char c);
+    String int_to_string_hex(uint8_t num);
 
     static unsigned short modbusCRC16FromHex(const String &message);
 

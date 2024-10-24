@@ -7,23 +7,10 @@
 #include "MessageOutput.h"
 #include "PinMapping.h"
 #include "SunPosition.h"
-#include "Hoymiles.h"
+#include <Hoymiles.h>
+#include <SpiManager.h>
 #include "DeyeSun.h"
 #include <InverterHandler.h>
-
-// the NRF shall use the second externally usable HW SPI controller
-// for ESP32 that is the so-called VSPI, for ESP32-S2/S3 it is now called implicitly
-// HSPI, as it has shifted places for these chip generations
-// for all generations, this is equivalent to SPI3_HOST in the lower level driver
-// For ESP32-C2, the only externally usable HW SPI controller is SPI2, its signal names
-// being prefixed with FSPI.
-#if CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3
-#define SPI_NRF HSPI
-#elif CONFIG_IDF_TARGET_ESP32C3
-#define SPI_NRF FSPI
-#else
-#define SPI_NRF VSPI
-#endif
 
 InverterSettingsClass InverterSettings;
 
@@ -78,16 +65,19 @@ void InverterSettingsClass::init(Scheduler& scheduler)
 
     if (PinMapping.isValidNrf24Config() || PinMapping.isValidCmt2300Config()) {
         if (PinMapping.isValidNrf24Config()) {
-            SPIClass* spiClass = new SPIClass(SPI_NRF);
+            auto spi_bus = SpiManagerInst.claim_bus_arduino();
+            ESP_ERROR_CHECK(spi_bus ? ESP_OK : ESP_FAIL);
+
+            SPIClass* spiClass = new SPIClass(*spi_bus);
             spiClass->begin(pin.nrf24_clk, pin.nrf24_miso, pin.nrf24_mosi, pin.nrf24_cs);
             Hoymiles.initNRF(spiClass, pin.nrf24_en, pin.nrf24_irq);
         }
 
         if (PinMapping.isValidCmt2300Config()) {
             Hoymiles.initCMT(pin.cmt_sdio, pin.cmt_clk, pin.cmt_cs, pin.cmt_fcs, pin.cmt_gpio2, pin.cmt_gpio3);
-            MessageOutput.println(F("  Setting country mode... "));
+            MessageOutput.println("  Setting country mode... ");
             Hoymiles.getRadioCmt()->setCountryMode(static_cast<CountryModeId_t>(config.Dtu.Cmt.CountryMode));
-            MessageOutput.println(F("  Setting CMT target frequency... "));
+            MessageOutput.println("  Setting CMT target frequency... ");
             Hoymiles.getRadioCmt()->setInverterTargetFrequency(config.Dtu.Cmt.Frequency);
         }
 
@@ -116,6 +106,7 @@ void InverterSettingsClass::init(Scheduler& scheduler)
                     inv->setReachableThreshold(config.Inverter[i].ReachableThreshold);
                     inv->setZeroValuesIfUnreachable(config.Inverter[i].ZeroRuntimeDataIfUnrechable);
                     inv->setZeroYieldDayOnMidnight(config.Inverter[i].ZeroYieldDayOnMidnight);
+                    inv->setClearEventlogOnMidnight(config.Inverter[i].ClearEventlogOnMidnight);
                     inv->Statistics()->setYieldDayCorrection(config.Inverter[i].YieldDayCorrection);
                     for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
                         inv->Statistics()->setStringMaxPower(c, config.Inverter[i].channel[c].MaxChannelPower);

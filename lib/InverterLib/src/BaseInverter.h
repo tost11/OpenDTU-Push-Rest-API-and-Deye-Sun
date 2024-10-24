@@ -56,6 +56,8 @@ protected:
     bool _zeroValuesIfUnreachable = false;
     bool _zeroYieldDayOnMidnight = false;
 
+    bool _clearEventlogOnMidnight = false;
+
     std::unique_ptr<StatT> _statisticsParser;
     std::unique_ptr<DevT> _devInfoParser;
     std::unique_ptr<SysT> _systemConfigParaParser;
@@ -133,6 +135,30 @@ public:
     bool getEnableCommands() const
     {
         return _enableCommands;
+    }
+
+
+    void setClearEventlogOnMidnight(const bool enabled)
+    {
+        _clearEventlogOnMidnight = enabled;
+    }
+
+    bool getClearEventlogOnMidnight() const
+    {
+        return _clearEventlogOnMidnight;
+    }
+
+    virtual void performDailyTask()
+    {
+        // Have to reset the offets first, otherwise it will
+        // Substract the offset from zero which leads to a high value
+        Statistics()->resetYieldDayCorrection();
+        if (getZeroYieldDayOnMidnight()) {
+            Statistics()->zeroDailyData();
+        }
+        if (getClearEventlogOnMidnight()) {
+            EventLog()->clearBuffer();
+        }
     }
 };
 

@@ -7,7 +7,7 @@
 #include "defines.h"
 
 #define CONFIG_FILENAME "/config.json"
-#define CONFIG_VERSION 0x00011b00 // 0.1.27 // make sure to clean all after change
+#define CONFIG_VERSION 0x00011c00 // 0.1.28 // make sure to clean all after change
 
 #define WIFI_MAX_SSID_STRLEN 32
 #define WIFI_MAX_PASSWORD_STRLEN 64
@@ -22,6 +22,7 @@
 #define TOST_MAX_TOKEN_STRLEN 64
 
 #define MQTT_MAX_HOSTNAME_STRLEN 128
+#define MQTT_MAX_CLIENTID_STRLEN 64
 #define MQTT_MAX_USERNAME_STRLEN 64
 #define MQTT_MAX_PASSWORD_STRLEN 64
 #define MQTT_MAX_TOPIC_STRLEN 32
@@ -36,8 +37,6 @@
 #define CHAN_MAX_NAME_STRLEN 31
 
 #define DEV_MAX_MAPPING_NAME_STRLEN 63
-
-#define JSON_BUFFER_SIZE 12288
 
 struct CHANNEL_CONFIG_T {
     uint16_t MaxChannelPower;
@@ -59,6 +58,7 @@ struct INVERTER_CONFIG_T {
     uint8_t ReachableThreshold;
     bool ZeroRuntimeDataIfUnrechable;
     bool ZeroYieldDayOnMidnight;
+    bool ClearEventlogOnMidnight;
     bool YieldDayCorrection;
     CHANNEL_CONFIG_T channel[INV_MAX_CHAN_COUNT];
 };
@@ -107,6 +107,7 @@ struct CONFIG_T {
         bool Enabled;
         char Hostname[MQTT_MAX_HOSTNAME_STRLEN + 1];
         uint32_t Port;
+        char ClientId[MQTT_MAX_CLIENTID_STRLEN + 1];
         char Username[MQTT_MAX_USERNAME_STRLEN + 1];
         char Password[MQTT_MAX_PASSWORD_STRLEN + 1];
         char Topic[MQTT_MAX_TOPIC_STRLEN + 1];
@@ -186,6 +187,7 @@ public:
 
     INVERTER_CONFIG_T* getFreeInverterSlot();
     INVERTER_CONFIG_T* getInverterConfig(const uint64_t serial);
+    void deleteInverterById(const uint8_t id);
 };
 
 extern ConfigurationClass Configuration;

@@ -38,9 +38,35 @@ public:
     bool isProducing() override;
     bool isReachable() override;
 
+    int8_t getLastRssi() const;
+
     void clearRxFragmentBuffer();
-    void addRxFragment(const uint8_t fragment[], const uint8_t len);
+    void addRxFragment(const uint8_t fragment[], const uint8_t len, const int8_t rssi);
     uint8_t verifyAllFragments(CommandAbstract& cmd);
+
+    void performDailyTask() override;
+
+    void resetRadioStats();
+
+    struct {
+        // TX Request Data
+        uint32_t TxRequestData;
+
+        // TX Re-Request Fragment
+        uint32_t TxReRequestFragment;
+
+        // RX Success
+        uint32_t RxSuccess;
+
+        // RX Fail Partial Answer
+        uint32_t RxFailPartialAnswer;
+
+        // RX Fail No Answer
+        uint32_t RxFailNoAnswer;
+
+        // RX Fail Corrupt Data
+        uint32_t RxFailCorruptData;
+    } RadioStats = {};
 
     virtual bool sendStatsRequest() = 0;
     virtual bool sendAlarmLogRequest(const bool force = false) = 0;
@@ -62,6 +88,8 @@ protected:
 
 private:
     serial_u _serial;
+
+    int8_t _lastRssi = -127;
 
     fragment_t _rxFragmentBuffer[MAX_RF_FRAGMENT_COUNT];
     uint8_t _rxFragmentMaxPacketId = 0;

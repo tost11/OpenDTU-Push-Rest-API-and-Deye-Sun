@@ -5,13 +5,12 @@
 #include <array>
 #include <cstdint>
 
-#define ALARM_LOG_ENTRY_SIZE 12
 #define ALARM_LOG_PAYLOAD_SIZE (ALARM_LOG_ENTRY_COUNT * ALARM_LOG_ENTRY_SIZE + 4)
 
 class AlarmLogParser : public Parser, public BaseAlarmLog {
 public:
     AlarmLogParser();
-    void clearBuffer();
+    void clearBuffer() override;
     void appendFragment(const uint8_t offset, const uint8_t* payload, const uint8_t len);
 
     uint8_t getEntryCount()const override;

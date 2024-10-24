@@ -8,10 +8,11 @@ class WebApiWsConsoleClass {
 public:
     WebApiWsConsoleClass();
     void init(AsyncWebServer& server, Scheduler& scheduler);
+    void reload();
 
 private:
-    AsyncWebServer* _server;
     AsyncWebSocket _ws;
+    AuthenticationMiddleware _simpleDigestAuth;
 
     Task _wsCleanupTask;
     void wsCleanupTaskCb();
