@@ -211,7 +211,7 @@
                                 </div>
                             </BootstrapAlert>
 
-                            <div class="accordion mt-5" id="accordionExample">
+                            <div v-if="inverter.radio_stats" class="accordion mt-5" id="accordionExample">
                                 <div class="accordion-item">
                                     <h2 class="accordion-header">
                                         <button
