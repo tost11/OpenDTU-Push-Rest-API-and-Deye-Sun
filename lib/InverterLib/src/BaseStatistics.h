@@ -1,7 +1,6 @@
 #pragma once
 
 #include <list>
-#include <cstdint>
 #include <WString.h>
 #include "Updater.h"
 

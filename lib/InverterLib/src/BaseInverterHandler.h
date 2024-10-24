@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstddef>
-#include <cstdint>
 #include <memory>
 #include "BaseInverter.h"
 #include "InverterUtils.h"
@@ -52,8 +50,5 @@ protected:
     }
 public:
 };
-
-
-
 
 using BaseInverterHandlerClass = BaseInverterHandler<BaseInverterClass ,BaseStatistics,BaseDevInfo,BaseSystemConfigPara,BaseAlarmLog,BaseGridProfile,BasePowerCommand>;

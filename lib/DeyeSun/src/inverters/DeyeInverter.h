@@ -9,13 +9,8 @@
 #include "parser/StatisticsParser.h"
 #include "parser/SystemConfigParaParser.h"
 #include "parser/PowerCommandParser.h"
-#include <Arduino.h>
 #include <cstdint>
 #include <list>
-#include <Ethernet.h>
-#include <EthernetUdp.h>
-#include <WiFi.h>
-#include <WiFiUdp.h>
 
 #define MAX_NAME_HOST 32
 
