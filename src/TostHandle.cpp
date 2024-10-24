@@ -81,10 +81,6 @@ void TostHandleClass::loop()
         }
     }
 
-    //DynamicJsonDocument data(4096);
-    //data["duration"] = Configuration.get().Tost.Duration;
-    //JsonArray devices = data.createNestedArray("devicses");
-
     for (uint8_t i = 0; i < InverterHandler.getNumInverters(); i++) {
 
         auto inv = InverterHandler.getInverterByPos(i);
@@ -119,7 +115,7 @@ void TostHandleClass::loop()
         MessageOutput.printf("-> New data to push for Inverter %llu\n\r", id);
         _lastPublishedInverters[uniqueID] = lastUpdate;
 
-        DynamicJsonDocument data(4096);
+        JsonDocument data;
 
         float duration = (float)diff / 1000;
 
@@ -129,12 +125,12 @@ void TostHandleClass::loop()
 
         data["duration"] = duration;
 
-        auto devices = data.createNestedArray("devices");
-        auto device = devices.createNestedObject();
+        JsonArray devices = data["devices"].to<JsonArray>();
+        JsonObject device = devices.add<JsonObject>();
         device["id"] = id;
 
-        JsonArray inputs = device.createNestedArray("inputsDC");
-        JsonArray outputs = device.createNestedArray("outputsAC");
+        JsonArray inputs = device["inputsDC"].to<JsonArray>();
+        JsonArray outputs = device["outputsAC"].to<JsonArray>();
 
         int inputCount = 0;
         int outputCount = 0;
@@ -149,7 +145,7 @@ void TostHandleClass::loop()
 
                 if(channelType == 0){//inverter
                     isData = true;
-                    DynamicJsonDocument output(256);
+                    JsonDocument output;
                     output["id"] = outputCount++;
                     output["voltage"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_UAC);
                     output["ampere"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_IAC);
@@ -159,7 +155,7 @@ void TostHandleClass::loop()
                     outputs.add(output);
                 }else if(channelType == 1){
                     isData = true;
-                    DynamicJsonDocument input(256);
+                    JsonDocument input;
                     input["id"] = inputCount++;
                     input["voltage"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_UDC);
                     input["ampere"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_IDC);
@@ -271,13 +267,13 @@ void TostHandleClass::handleResponse()
             MessageOutput.printf("Tost's Solar Monitoring Error on rest call: %s\n\r",lastErrorMessage.c_str());
 
             // ArduinoJson 6
-            DynamicJsonDocument doc(512);
+            JsonDocument doc;
             // ArduinoJson 6
             DeserializationError error = deserializeJson(doc, payload);
             if (error){
                 lastErrorMessage = std::string("Error on serializing response from Server. Data is: ")+payload.c_str();
             }else{
-                if(!doc.containsKey("error")){
+                if(!doc["error"].is<String>()){
                     lastErrorMessage = std::string("Error json response missing 'error' key Data is: ")+payload.c_str();
                 }else{
                     const char* err = doc["error"];
