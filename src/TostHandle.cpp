@@ -266,9 +266,7 @@ void TostHandleClass::handleResponse()
             lastErrorTimestamp = lastTimestamp;
             MessageOutput.printf("Tost's Solar Monitoring Error on rest call: %s\n\r",lastErrorMessage.c_str());
 
-            // ArduinoJson 6
             JsonDocument doc;
-            // ArduinoJson 6
             DeserializationError error = deserializeJson(doc, payload);
             if (error){
                 lastErrorMessage = std::string("Error on serializing response from Server. Data is: ")+payload.c_str();
