@@ -83,7 +83,7 @@ void TostHandleClass::loop()
 
     //DynamicJsonDocument data(4096);
     //data["duration"] = Configuration.get().Tost.Duration;
-    //JsonArray devices = data.createNestedArray("devices");
+    //JsonArray devices = data.createNestedArray("devicses");
 
     for (uint8_t i = 0; i < InverterHandler.getNumInverters(); i++) {
 
@@ -209,7 +209,7 @@ void TostHandleClass::loop()
 
         auto cfg = esp_pthread_get_default_config();
         cfg.thread_name = "other thread"; // adjust to name your thread
-        cfg.stack_size = 4096; // adjust as needed
+        cfg.stack_size = 8192; // adjust as needed
         esp_pthread_set_cfg(&cfg);
         _runningThread = std::thread(std::bind(&TostHandleClass::runNextHttpRequest,this));
         //runningHttpRequest = std::async(&TostHandleClass::runNextHttpRequest,this,std::move(data));
@@ -233,6 +233,8 @@ void TostHandleClass::runNextHttpRequest() {
     http->addHeader("clientToken",Configuration.get().Tost.Token);
     http->addHeader("Content-Type", "application/json");
     http->setTimeout(20 * 1000);//20 sec timout
+
+    MessageOutput.println("Before post data");
 
     int statusCode = http->POST(_currentlySendingData->data);
 

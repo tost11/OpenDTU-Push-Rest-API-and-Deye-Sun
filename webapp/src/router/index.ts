@@ -93,7 +93,7 @@ const router = createRouter({
         {
             path: '/settings/tost',
             name: 'Tost Settings',
-            component: TostAdminView
+            component: TostAdminView,
         },
         {
             path: '/settings/inverter',
