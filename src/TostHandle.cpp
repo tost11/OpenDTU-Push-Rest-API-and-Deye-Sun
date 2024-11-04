@@ -124,6 +124,14 @@ void TostHandleClass::loop()
         }
 
         data["duration"] = duration;
+        struct tm timeinfo;
+        if (getLocalTime(&timeinfo)) {
+            time_t now;
+            time(&now);
+            data["timeUnit"] = "SECONDS";
+            data["timestamp"] = time(&now);
+            MessageOutput.printf("Time set on new inverter info manually %llu\n\r", time(&now));
+        }
 
         JsonArray devices = data["devices"].to<JsonArray>();
         JsonObject device = devices.add<JsonObject>();
