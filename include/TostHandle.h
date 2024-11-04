@@ -19,7 +19,7 @@ private:
     void loop();
 
     std::optional<std::pair<int,std::unique_ptr<HTTPClient>>> _lastRequestResponse;
-    std::unique_ptr<String> _currentlySendingData;
+    String * _currentlySendingData;
 
     //TimeoutHelper _lastPublish;
     TimeoutHelper _cleanupCheck;
@@ -33,6 +33,7 @@ private:
 
     long lastErrorTimestamp;
     long lastSuccessfullyTimestamp;
+    TimeoutHelper restTimeout;
 
     const long TIMER_CLEANUP = 1000 * 60 * 5;
 
