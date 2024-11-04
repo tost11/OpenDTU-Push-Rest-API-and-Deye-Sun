@@ -184,12 +184,12 @@ void TostHandleClass::loop()
         if(isData){
             if(requestsToSend.size() < 10 ) {
 
-                auto toSend = std::make_unique<http_requests_to_send>(millis());
+                String toSend;
 
-                serializeJson(data, toSend->data);
+                serializeJson(data, toSend);
 
                 MessageOutput.println("adding new request to queue");
-                requestsToSend.push(std::move(toSend));
+                requestsToSend.push(std::make_unique<String>(std::move(toSend)));
             }
         }
     }
@@ -225,7 +225,7 @@ void TostHandleClass::runNextHttpRequest() {
 
     MessageOutput.println("start thread");
 
-    MessageOutput.println(_currentlySendingData->data);
+    MessageOutput.println(*_currentlySendingData);
 
     auto http = std::make_unique<HTTPClient>();
 
@@ -240,7 +240,7 @@ void TostHandleClass::runNextHttpRequest() {
 
     MessageOutput.println("Before post data");
 
-    int statusCode = http->POST(_currentlySendingData->data);
+    int statusCode = http->POST(*_currentlySendingData);
 
     MessageOutput.println("Thread finished request");
 
@@ -277,10 +277,10 @@ void TostHandleClass::handleResponse()
             JsonDocument doc;
             DeserializationError error = deserializeJson(doc, payload);
             if (error){
-                lastErrorMessage = std::string("Error on serializing response from Server. Data is: ")+payload.c_str();
+                lastErrorMessage = String("Error on serializing response from Server. Data is: ") + payload;
             }else{
                 if(!doc["error"].is<String>()){
-                    lastErrorMessage = std::string("Error json response missing 'error' key Data is: ")+payload.c_str();
+                    lastErrorMessage = String("Error json response missing 'error' key Data is: ") + payload;
                 }else{
                     const char* err = doc["error"];
                     lastErrorMessage = err;
