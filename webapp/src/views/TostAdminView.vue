@@ -31,7 +31,7 @@
 
           <InputElement :label="$t('tostadmin.Duration')"
                         v-model="tostConfigList.tost_duration"
-                        type="number" min="10" max="120"
+                        type="number" min="10" max="600"
                         :postfix="$t('tostadmin.Seconds')"/>
 
         </CardElement>

@@ -129,8 +129,8 @@ void WebApiTostClass::onTostAdminPost(AsyncWebServerRequest* request)
             return;
         }
 
-        if (root["tost_duration"].as<uint>() == 0 || root["tost_duration"].as<uint>() > 1000) {
-            retMsg["message"] = "Port must be a number between 0 and 1000!";
+        if (root["tost_duration"].as<uint>() == 0 || root["tost_duration"].as<uint>() > 60 * 100 +1) {//10 min
+            retMsg["message"] = "Port must be a number between 0 and 600!";
             retMsg["code"] = WebApiError::TostDuration;
             WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
             return;

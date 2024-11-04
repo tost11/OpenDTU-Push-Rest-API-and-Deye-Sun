@@ -21,6 +21,7 @@ void TostHandleClass::init(Scheduler& scheduler)
     lastErrorStatusCode = 0;
     lastErrorTimestamp = 0;
     lastSuccessfullyTimestamp = 0;
+    restTimeout.set(0);
     lastErrorMessage = "";
 
     scheduler.addTask(_loopTask);
@@ -130,7 +131,7 @@ void TostHandleClass::loop()
             time(&now);
             data["timeUnit"] = "SECONDS";
             data["timestamp"] = time(&now);
-            MessageOutput.printf("Time set on new inverter info manually %llu\n\r", time(&now));
+            MessageOutput.printf("Time set on new inverter info manually %lu\n\r", time(&now));
         }
 
         JsonArray devices = data["devices"].to<JsonArray>();
@@ -203,13 +204,12 @@ void TostHandleClass::loop()
         _lastRequestResponse.reset();
     }
 
-    if(!_lastRequestResponse.has_value() && _currentlySendingData == nullptr && requestsToSend.size() > 0){
+    if(!_lastRequestResponse.has_value() && _currentlySendingData == nullptr && requestsToSend.size() > 0 && restTimeout.occured()){
         //send new request
-        MessageOutput.println("start new http request");
+        MessageOutput.printf("start new http request send queue size is: %d\r\n",requestsToSend.size());
         //runNextHttpRequest(std::move(data));
 
-        _currentlySendingData = std::move(requestsToSend.front());
-        requestsToSend.pop();
+        _currentlySendingData = requestsToSend.front().get();
 
         auto cfg = esp_pthread_get_default_config();
         cfg.thread_name = "other thread"; // adjust to name your thread
@@ -225,7 +225,7 @@ void TostHandleClass::runNextHttpRequest() {
 
     MessageOutput.println("start thread");
 
-    MessageOutput.println(*_currentlySendingData);
+    MessageOutput.println(_currentlySendingData->c_str());
 
     auto http = std::make_unique<HTTPClient>();
 
@@ -287,5 +287,15 @@ void TostHandleClass::handleResponse()
                 }
             }
         }
+    }
+
+
+    if(statusCode > 0 && statusCode != 403 && statusCode != 401){
+        //clear if not connection error or forbidden (bad request/internal server error => ok, because of mostly data error)
+        requestsToSend.pop();
+    }else{
+        MessageOutput.println("Tost's Solar Monitoring use rest send pause (1 min) because last request failed, queue is\n\r");
+        restTimeout.set(60 * 1000);
+
     }
 }
