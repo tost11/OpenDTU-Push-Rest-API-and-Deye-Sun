@@ -4,11 +4,11 @@
 #include <TimeoutHelper.h>
 #include "Configuration.h"
 #include <TaskSchedulerDeclarations.h>
+#include <ArduinoJson.h>
+#include <future>
+#include <HTTPClient.h>
 #include <BaseInverter.h>
 #include <queue>
-#include <thread>
-
-class HTTPClient;
 
 struct http_requests_to_send{
     http_requests_to_send(uint32_t timestamp):
