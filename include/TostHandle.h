@@ -10,13 +10,6 @@
 
 class HTTPClient;
 
-struct http_requests_to_send{
-    http_requests_to_send(uint32_t timestamp):
-            timestamp(timestamp){}
-    String data;
-    uint32_t timestamp;
-};
-
 class TostHandleClass {
 public:
     void init(Scheduler& scheduler);
@@ -26,17 +19,17 @@ private:
     void loop();
 
     std::optional<std::pair<int,std::unique_ptr<HTTPClient>>> _lastRequestResponse;
-    std::unique_ptr<http_requests_to_send> _currentlySendingData;
+    std::unique_ptr<String> _currentlySendingData;
 
     //TimeoutHelper _lastPublish;
     TimeoutHelper _cleanupCheck;
 
     std::unordered_map<std::string,uint32_t> _lastPublishedInverters;
 
-    std::queue<std::unique_ptr<http_requests_to_send>> requestsToSend;
+    std::queue<std::unique_ptr<String>> requestsToSend;
 
     int lastErrorStatusCode;
-    std::string lastErrorMessage;
+    String lastErrorMessage;
 
     long lastErrorTimestamp;
     long lastSuccessfullyTimestamp;
@@ -53,7 +46,7 @@ public:
     unsigned long getLastErrorTimestamp()const{return lastErrorTimestamp;}
     unsigned long getLastSuccessfullyTimestamp()const{return lastSuccessfullyTimestamp;}
     int getLastErrorStatusCode()const{return lastErrorStatusCode;}
-    const std::string & getLastErrorMessage()const{return lastErrorMessage;}
+    const String & getLastErrorMessage()const{return lastErrorMessage;}
 
 };
 
