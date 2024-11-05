@@ -16,6 +16,7 @@
 #include <EthernetUdp.h>
 #include <WiFi.h>
 #include <WiFiUdp.h>
+#include <TimeoutHelper.h>
 
 #define MAX_NAME_HOST 32
 
@@ -105,7 +106,7 @@ private:
     std::unique_ptr<WriteRegisterMapping> _currentWritCommand;
 
     //these timers seem to work good no idea what's best and what causes what
-    static const uint32_t TIMER_FETCH_DATA = 5 * 60 * 1000;
+    static const uint32_t TIMER_FULL_POLL = 5 * 60 * 1000;
     static const uint32_t TIMER_HEALTH_CHECK = 20 * 1000;
     static const uint32_t TIMER_ERROR_BACKOFF = 3 * 1000;
     static const uint32_t TIMER_BETWEEN_SENDS = 200;
@@ -119,13 +120,13 @@ private:
 
     bool _needInitData;
 
-    uint32_t _timerFullPoll = 0;
-    uint32_t _timerHealthCheck = 0;
-    uint32_t _timerErrorBackOff = 0;
+    TimeoutHelper _timerFullPoll;
+    TimeoutHelper _timerHealthCheck;
+    TimeoutHelper _timerErrorBackOff;
     uint32_t _timerBetweenSends = 0;
-    uint32_t _timerTimeoutCheck = 0;
-    uint32_t _timerResolveHostname = 0;
-    uint32_t _timerAfterCounterTimout = 0;
+    TimeoutHelper _timerTimeoutCheck;
+    TimeoutHelper _timerResolveHostname;
+    TimeoutHelper _timerAfterCounterTimout;
     uint32_t _commandPosition;
 
     bool _waitLongAfterTimeout;

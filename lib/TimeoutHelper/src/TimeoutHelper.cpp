@@ -31,3 +31,11 @@ bool TimeoutHelper::occured() const
 {
     return millis() > (startMillis + timeout);
 }
+
+uint32_t TimeoutHelper::currentMillis() const {
+    return startMillis;
+}
+
+uint32_t TimeoutHelper::dist() const {
+    return millis() - startMillis;
+}

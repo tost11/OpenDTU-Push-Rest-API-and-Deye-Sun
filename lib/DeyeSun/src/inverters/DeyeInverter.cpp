@@ -98,6 +98,7 @@ _logDebug(false){
 
     _needInitData = true;
     _commandPosition = 0;
+    _errorCounter = -1;
 
     _ipAdress = nullptr;
 }
@@ -106,12 +107,11 @@ void DeyeInverter::sendSocketMessage(String message) {
 
     println("Sending deye message: "+message, true);
 
-    //IPAddress RecipientIP(192, 168, 1, 138);
     _socket->beginPacket(*_ipAdress, _port);
     _socket->print(message);
     _socket->endPacket();
 
-    _timerTimeoutCheck = millis();
+    _timerTimeoutCheck.set(TIMER_TIMEOUT);
 }
 
 
@@ -125,8 +125,8 @@ void DeyeInverter::update() {
     }
 
     if (_ipAdress == nullptr) {
-        if (_timerResolveHostname == 0 or ((millis() - _timerResolveHostname) > TIMER_RESOLVE_HOSTNAME)) {
-            _timerResolveHostname = millis();
+        if (_timerResolveHostname.occured()) {
+            _timerResolveHostname.set(TIMER_RESOLVE_HOSTNAME);
             resolveHostname();
         }
     }
@@ -135,7 +135,7 @@ void DeyeInverter::update() {
         return;
     }
 
-    if(_timerAfterCounterTimout != 0 && ((millis() - _timerAfterCounterTimout) < TIMER_COUNTER_ERROR_TIMEOUT)) {
+    if(!_timerAfterCounterTimout.occured()) {
         //wait after error for try again
         return;
     }
@@ -181,7 +181,7 @@ bool DeyeInverter::isProducing() {
 }
 
 bool DeyeInverter::isReachable() {
-    return millis() - _timerHealthCheck < 60 * 1000;
+    return _timerHealthCheck.dist() < 60 * 1000;
 }
 
 bool DeyeInverter::sendActivePowerControlRequest(float limit, PowerLimitControlType type) {
@@ -527,8 +527,7 @@ bool DeyeInverter::handleRead() {
         return false;
     }
 
-
-    if (_timerHealthCheck != 0 and millis() - _timerHealthCheck < (TIMER_HEALTH_CHECK)) {
+    if (!_timerHealthCheck.occured()) {
         //no fetch needed
         return false;
     }
@@ -537,12 +536,12 @@ bool DeyeInverter::handleRead() {
         _errorCounter++;
         if(_errorCounter > 50){//give up after some failed attempts and wait long
             _commandPosition = _needInitData ? 0 : INIT_COMMAND_START_SKIP;
-            _timerAfterCounterTimout = millis();
+            _timerAfterCounterTimout.set(TIMER_COUNTER_ERROR_TIMEOUT);
             _errorCounter = -1;
             println("Read Data of Timeout (or not reachable) of Deye Sun Inverter: " + String(name()));
             return true;//busy true so timeout works and so write is send
         }
-        if (millis() - _timerErrorBackOff < (TIMER_ERROR_BACKOFF)) {
+        if (!_timerErrorBackOff.occured()) {
             //wait after error for try again
             return true;
         }
@@ -558,7 +557,7 @@ bool DeyeInverter::handleRead() {
         println("Recevied new package",true);
         size_t num = _socket->read(_readBuff,packetSize);
         _socket->flush();
-        _timerTimeoutCheck = millis();
+        _timerTimeoutCheck.set(TIMER_TIMEOUT);
         if(_startCommand){
             if(!parseInitInformation(num)){
                 endSocket();
@@ -567,15 +566,14 @@ bool DeyeInverter::handleRead() {
             }
             _startCommand = false;
             sendSocketMessage("+ok");
-            //sendCurrentRegisterRead();
             _timerBetweenSends = millis();
         }else{
             int ret = handleRegisterRead(num);
             if(ret == 0){//ok
-                if(_commandPosition == LAST_HEALTHCHECK_COMMEND && !_needInitData && (millis() - _timerFullPoll < (TIMER_FETCH_DATA))){
+                if(_commandPosition == LAST_HEALTHCHECK_COMMEND && !_needInitData && !_timerFullPoll.occured()){
                     endSocket();
                     _commandPosition = INIT_COMMAND_START_SKIP;
-                    _timerHealthCheck = millis();
+                    _timerHealthCheck.set(TIMER_HEALTH_CHECK);
                     swapBuffers(false);
                     _errorCounter = -1;
                     println("Succesfully healtcheck");
@@ -585,15 +583,15 @@ bool DeyeInverter::handleRead() {
                     endSocket();
                     _commandPosition = INIT_COMMAND_START_SKIP;
                     swapBuffers(true);
-                    _timerHealthCheck = millis();
+                    _timerHealthCheck.set(TIMER_HEALTH_CHECK);
                     _errorCounter = -1;
                     if(_needInitData){
                         _needInitData = false;
-                        _timerFullPoll = millis();
+                        _timerFullPoll.set(TIMER_FULL_POLL);
                     }else{
                         //so do exactly match 5 minutes of logger checking data
-                        while(millis() - _timerFullPoll > (TIMER_FETCH_DATA)){
-                            _timerFullPoll += TIMER_FETCH_DATA;
+                        while(_timerFullPoll.occured()){
+                            _timerFullPoll.extend(TIMER_FULL_POLL);
                         }
                     }
                     println("Red succesfull all values");
@@ -604,7 +602,7 @@ bool DeyeInverter::handleRead() {
                 //pollWait = true;
                 //sendCurrentRegisterRead();
             }else{
-                _timerErrorBackOff = millis();
+                _timerErrorBackOff.set(TIMER_ERROR_BACKOFF);
                 endSocket();
                 return true;
             }
@@ -619,7 +617,7 @@ bool DeyeInverter::handleRead() {
         }
     }else {
         //timeout of one ca. second
-        if (millis() - _timerTimeoutCheck > TIMER_TIMEOUT) {
+        if (_timerTimeoutCheck.occured()) {
             println("Max poll time overtook try again",true);
             endSocket();
         }
@@ -651,7 +649,7 @@ void DeyeInverter::handleWrite() {
             _currentWritCommand = nullptr;
             return;
         }
-        if (millis() - _timerErrorBackOff < (TIMER_ERROR_BACKOFF)) {
+        if (!_timerErrorBackOff.occured()) {
             //wait after error for try again
             return;
         }
@@ -667,7 +665,7 @@ void DeyeInverter::handleWrite() {
         println("Recevied new package for write",true);
         size_t num = _socket->read(_readBuff,packetSize);
         _socket->flush();
-        _timerTimeoutCheck = millis();
+        _timerTimeoutCheck.set(TIMER_TIMEOUT);
         if(_startCommand){
             if(!parseInitInformation(num)){
                 _errorCounter = 1000;
@@ -690,7 +688,7 @@ void DeyeInverter::handleWrite() {
                 _currentWritCommand = nullptr;
                 return;
             }
-            _timerErrorBackOff = millis();
+            _timerErrorBackOff.set(TIMER_ERROR_BACKOFF);
             endSocket();
             return;
         }
@@ -704,7 +702,7 @@ void DeyeInverter::handleWrite() {
         }
     }else {
         //timeout of one second
-        if (millis() - _timerTimeoutCheck > TIMER_TIMEOUT) {
+        if (_timerTimeoutCheck.occured()) {
             println("Max poll time for write overtook from write, try again",true);
             endSocket();
         }
