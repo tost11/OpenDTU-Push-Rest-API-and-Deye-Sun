@@ -228,7 +228,7 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
     if (!(root["id"].is<uint8_t>()
             && root["serial"].is<String>()
             && root["name"].is<String>()
-            && root["manufacturer"].is<JsonArray>()
+            && root["manufacturer"].is<String>()
             && root["channel"].is<JsonArray>())) {
         retMsg["message"] = "Values are missing!";
         retMsg["code"] = WebApiError::GenericValueMissing;

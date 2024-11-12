@@ -22,7 +22,7 @@ export default defineComponent({
     },
     data() {
         return {
-            inputSerial: '',
+            inputSerial: this.modelValue,
             formatHint: '',
             formatShow: 'info',
         };
@@ -44,8 +44,6 @@ export default defineComponent({
             this.inputSerial = val;
         },
         inputSerial: function (val) {
-
-            console.log(this.type)
 
             const serial = val.toString().toUpperCase(); // Convert to lowercase for case-insensitivity
 

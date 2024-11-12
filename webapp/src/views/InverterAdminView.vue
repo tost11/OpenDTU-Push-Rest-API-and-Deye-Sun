@@ -15,8 +15,8 @@
             <form class="form-inline" v-on:submit.prevent="onSubmit">
                 <div class="form-group">
                     <label>{{ $t('inverteradmin.Serial') }}</label>
-                    <InputSerial v-if="newInverterData.manufacturer == 'DeyeSun'" type="DeyeSun" v-model="newInverterData.serial" inputClass="ml-sm-2 mr-sm-4 my-2" required />
-                    <InputSerial v-if="newInverterData.manufacturer == 'Hoymiles'" type="Hoymiles" v-model="newInverterData.serial" inputClass="ml-sm-2 mr-sm-4 my-2" required />
+                    <InputSerial v-if="newInverterData.manufacturer === 'DeyeSun'" type="DeyeSun" v-model="newInverterData.serial" inputClass="ml-sm-2 mr-sm-4 my-2" required />
+                    <InputSerial v-if="newInverterData.manufacturer === 'Hoymiles'" type="Hoymiles" v-model="newInverterData.serial" inputClass="ml-sm-2 mr-sm-4 my-2" required />
                 </div>
                 <div class="form-group">
                     <label>{{ $t('inverteradmin.Name') }}</label>
@@ -164,7 +164,8 @@
                     <label for="inverter-serial" class="col-form-label">
                         {{ $t('inverteradmin.InverterSerial') }}
                     </label>
-                    <InputSerial v-model="selectedInverterData.serial" id="inverter-serial" />
+                    <InputSerial v-if="selectedInverterData.manufacturer === 'DeyeSun'" type="DeyeSun" v-model="selectedInverterData.serial" id="inverter-serial"/>
+                    <InputSerial v-if="selectedInverterData.manufacturer === 'Hoymiles'" type="Hoymiles" v-model="selectedInverterData.serial" id="inverter-serial"/>
                     <label for="inverter-name" class="col-form-label"
                         >{{ $t('inverteradmin.InverterName') }}
                         <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterNameHint')" />
@@ -423,7 +424,7 @@ export default defineComponent({
         return {
             modal: {} as bootstrap.Modal,
             modalDelete: {} as bootstrap.Modal,
-            newInverterData: {manufacturer:"Hoymiles",port:48899} as Inverter,
+            newInverterData: {serial: "",manufacturer:"Hoymiles",port:48899} as Inverter,
             selectedInverterData: {} as Inverter,
             inverters: [] as Inverter[],
             dataLoading: true,
@@ -480,7 +481,7 @@ export default defineComponent({
         },
         onSubmit() {
             this.callInverterApiEndpoint('add', JSON.stringify(this.newInverterData));
-            this.newInverterData = {manufacturer:"Hoymiles"} as Inverter;
+            this.newInverterData = {serial: "",manufacturer:"Hoymiles",port:48899} as Inverter;
         },
         onDelete() {
             this.callInverterApiEndpoint('del', JSON.stringify({ id: this.selectedInverterData.id }));
@@ -494,9 +495,6 @@ export default defineComponent({
             // deep copy inverter object for editing/deleting
             this.selectedInverterData = JSON.parse(JSON.stringify(inverter)) as Inverter;
             modal.show();
-        },
-        inverterTypeChanges(event:Event) {
-            console.log(event);
         },
         onCloseModal(modal: bootstrap.Modal) {
             modal.hide();
