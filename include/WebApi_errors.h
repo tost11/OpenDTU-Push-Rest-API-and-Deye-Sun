@@ -96,6 +96,7 @@ enum WebApiError {
 
     TostBase = 13000,
     TostUrlLength,
+    TostSecondUrlLength,
     TostSystemIdLength,
     TostTokenLength,
     TostDuration,

@@ -229,9 +229,11 @@ void TostHandleClass::runNextHttpRequest() {
 
     auto http = std::make_unique<HTTPClient>();
 
-    std::string url = Configuration.get().Tost.Url;
+    String url = Configuration.get().Tost.Url;
     url+="/api/solar/data?systemId=";
     url+=Configuration.get().Tost.SystemId;
+    MessageOutput.print("Send reqeust to: ");
+    MessageOutput.println(url.c_str());
 
     http->begin(url.c_str());
     http->addHeader("clientToken",Configuration.get().Tost.Token);

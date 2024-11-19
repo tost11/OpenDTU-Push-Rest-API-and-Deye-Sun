@@ -19,6 +19,11 @@
                         type="text" maxlength="128"
                         :placeholder="$t('tostadmin.UrlHint')"/>
 
+          <InputElement :label="$t('tostadmin.SecondUrl')"
+                        v-model="tostConfigList.tost_second_url"
+                        type="text" maxlength="128"
+                        :placeholder="$t('tostadmin.UrlHint')"/>
+
           <InputElement :label="$t('tostadmin.SystemId')"
                         v-model="tostConfigList.tost_system_id"
                         type="text" maxlength="64"

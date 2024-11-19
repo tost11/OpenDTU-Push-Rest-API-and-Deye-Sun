@@ -15,6 +15,10 @@
                             <td>{{ tostDataList.tost_url }}</td>
                         </tr>
                         <tr>
+                            <th>{{ $t('tostinfo.SecondUrl') }}</th>
+                            <td>{{ tostDataList.tost_second_url }}</td>
+                        </tr>
+                        <tr>
                             <th>{{ $t('tostinfo.SystemId') }}</th>
                             <td>{{ tostDataList.tost_system_id }}</td>
                         </tr>

@@ -41,6 +41,7 @@ void WebApiTostClass::onTostStatus(AsyncWebServerRequest* request)
 
     root["tost_enabled"] = config.Tost.Enabled;
     root["tost_url"] = config.Tost.Url;
+    root["tost_second_url"] = config.Tost.SecondUrl;
     root["tost_system_id"] = config.Tost.SystemId;
     root["tost_duration"] = config.Tost.Duration;
     root["tost_status_successfully_timestamp"] = successStamp == 0 ? successStamp : millis() - successStamp;
@@ -63,6 +64,7 @@ void WebApiTostClass::onTostAdminGet(AsyncWebServerRequest* request)
 
     root["tost_enabled"] = config.Tost.Enabled;
     root["tost_url"] = config.Tost.Url;
+    root["tost_second_url"] = config.Tost.SecondUrl;
     root["tost_system_id"] = config.Tost.SystemId;
     root["tost_token"] = config.Tost.Token;
     root["tost_duration"] = config.Tost.Duration;
@@ -96,6 +98,7 @@ void WebApiTostClass::onTostAdminPost(AsyncWebServerRequest* request)
 
     if (!(root["tost_enabled"].is<bool>()
             && root["tost_url"].is<String>()
+            && root["tost_second_url"].is<String>()
             && root["tost_system_id"].is<String>()
             && root["tost_token"].is<String>()
             && root["tost_duration"].is<uint>())) {
@@ -109,6 +112,14 @@ void WebApiTostClass::onTostAdminPost(AsyncWebServerRequest* request)
         if (root["tost_url"].as<String>().length() == 0 || root["tost_url"].as<String>().length() > TOST_MAX_URL_STRLEN) {
             retMsg["message"] = "Monitoring Url must between 1 and " STR(TOST_MAX_URL_STRLEN) " characters long!";
             retMsg["code"] = WebApiError::TostUrlLength;
+            retMsg["param"]["max"] = TOST_MAX_URL_STRLEN;
+            WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
+            return;
+        }
+
+        if (root["tost_second_url"].as<String>().length() > TOST_MAX_URL_STRLEN) {
+            retMsg["message"] = "Second Monitoring Url must between 1 and " STR(TOST_MAX_URL_STRLEN) " characters long!";
+            retMsg["code"] = WebApiError::TostSecondUrlLength;
             retMsg["param"]["max"] = TOST_MAX_URL_STRLEN;
             WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
             return;
@@ -129,9 +140,11 @@ void WebApiTostClass::onTostAdminPost(AsyncWebServerRequest* request)
             return;
         }
 
-        if (root["tost_duration"].as<uint>() == 0 || root["tost_duration"].as<uint>() > 60 * 100 +1) {//10 min
+        if ( root["tost_duration"].as<uint>() > 60 * 100) {//10 min
             retMsg["message"] = "Port must be a number between 0 and 600!";
             retMsg["code"] = WebApiError::TostDuration;
+            retMsg["param"]["min"] = 0;
+            retMsg["param"]["max"] = 60 * 100;
             WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
             return;
         }
@@ -141,6 +154,7 @@ void WebApiTostClass::onTostAdminPost(AsyncWebServerRequest* request)
     config.Tost.Enabled = root["tost_enabled"].as<bool>();
     config.Tost.Duration = root["tost_duration"].as<uint>();
     strlcpy(config.Tost.Url, root["tost_url"].as<String>().c_str(), sizeof(config.Tost.Url));
+    strlcpy(config.Tost.SecondUrl, root["tost_second_url"].as<String>().c_str(), sizeof(config.Tost.SecondUrl));
     strlcpy(config.Tost.SystemId, root["tost_system_id"].as<String>().c_str(), sizeof(config.Tost.SystemId));
     strlcpy(config.Tost.Token, root["tost_token"].as<String>().c_str(), sizeof(config.Tost.Token));
     Configuration.write();
