@@ -220,16 +220,9 @@ void TostHandleClass::loop()
     }
 }
 
-
-void TostHandleClass::runNextHttpRequest() {
-
-    MessageOutput.println("start thread");
-
-    MessageOutput.println(_currentlySendingData->c_str());
-
+int TostHandleClass::doRequest(String url,uint16_t timeout){
     auto http = std::make_unique<HTTPClient>();
 
-    String url = Configuration.get().Tost.Url;
     url+="/api/solar/data?systemId=";
     url+=Configuration.get().Tost.SystemId;
     MessageOutput.print("Send reqeust to: ");
@@ -238,15 +231,35 @@ void TostHandleClass::runNextHttpRequest() {
     http->begin(url.c_str());
     http->addHeader("clientToken",Configuration.get().Tost.Token);
     http->addHeader("Content-Type", "application/json");
-    http->setTimeout(20 * 1000);//20 sec timout
+    http->setTimeout(timeout);
 
-    MessageOutput.println("Before post data");
+    MessageOutput.println(String("Begin post data to: ") + url);
 
     int statusCode = http->POST(*_currentlySendingData);
 
-    MessageOutput.println("Thread finished request");
+    MessageOutput.println(String("Finished post data response: ") + statusCode);
 
     _lastRequestResponse = std::make_pair(statusCode,std::move(http));
+
+    return statusCode;
+}
+
+void TostHandleClass::runNextHttpRequest() {
+
+    MessageOutput.println("start reqeust thread");
+    //MessageOutput.println(_currentlySendingData->c_str());
+
+    int statusCode = doRequest(Configuration.get().Tost.Url,15 * 1000);//15 sec
+
+    if(statusCode <= 0 && strlen(Configuration.get().Tost.SecondUrl) > 0 ){
+
+        MessageOutput.println("First post url not working try second one");
+
+        statusCode = doRequest(Configuration.get().Tost.SecondUrl,10 * 1000);//10 sec
+    }
+
+    MessageOutput.println("Thread finished request");
+
     _currentlySendingData = nullptr;
 }
 
