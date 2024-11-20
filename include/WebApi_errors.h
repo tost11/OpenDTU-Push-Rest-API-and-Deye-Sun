@@ -100,4 +100,15 @@ enum WebApiError {
     TostSystemIdLength,
     TostTokenLength,
     TostDuration,
+
+    ServoBase = 14000,
+    ServoFrequency,
+    ServoResolution,
+    ServoPin,
+    ServoMin,
+    ServoMax,
+    ServoRange,
+    ServoSerial,
+    ServoIndex,
+    ServoPower
 };

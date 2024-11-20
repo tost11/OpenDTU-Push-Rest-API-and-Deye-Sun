@@ -65,7 +65,7 @@
     }
   },
   {
-    "name": "Generic NodeMCU 38 pin with SSD1306 no ethernet",
+    "name": "Generic NodeMCU 38 pin with SSD1306, servo pin, no ethernet",
     "nrf24": {
       "miso": 19,
       "mosi": 23,
@@ -78,6 +78,9 @@
       "type": 2,
       "data": 21,
       "clk": 22
+    },
+    "servo": {
+      "pwm": 13
     }
   }
 ]

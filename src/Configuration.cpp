@@ -150,6 +150,15 @@ bool ConfigurationClass::write()
         }
     }
 
+    JsonObject servo = doc["servo"].to<JsonObject>();
+    servo["resolution"] = config.Servo.Resolution;
+    servo["frequency"] = config.Servo.Frequency;
+    servo["range_min"] = config.Servo.RangeMin;
+    servo["range_max"] = config.Servo.RangeMax;
+    servo["serial"] = config.Servo.Serial;
+    servo["input_index"] = config.Servo.InputIndex;
+    servo["power"] = config.Servo.Power;
+
     if (!Utils::checkJsonAlloc(doc, __FUNCTION__, __LINE__)) {
         return false;
     }
@@ -332,6 +341,15 @@ bool ConfigurationClass::read()
             strlcpy(config.Inverter[i].channel[c].Name, channel[c]["name"] | "", sizeof(config.Inverter[i].channel[c].Name));
         }
     }
+
+    JsonObject servo = doc["servo"];
+    config.Servo.Resolution = servo["resolution"] | 8;
+    config.Servo.Frequency = servo["frequency"] | 50;
+    config.Servo.RangeMin = servo["range_min"] | 32;
+    config.Servo.RangeMax = servo["range_max"] | 7;
+    config.Servo.Serial = servo["serial"] | 0ULL;
+    config.Servo.InputIndex = servo["input_index"] | 0;
+    config.Servo.Power = servo["power"] | 600;
 
     f.close();
     return true;

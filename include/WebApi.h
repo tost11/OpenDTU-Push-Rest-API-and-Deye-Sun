@@ -23,6 +23,7 @@
 #include "WebApi_webapp.h"
 #include "WebApi_ws_console.h"
 #include "WebApi_ws_live.h"
+#include "WebApi_servo.h"
 #include <AsyncJson.h>
 #include <ESPAsyncWebServer.h>
 #include <TaskSchedulerDeclarations.h>
