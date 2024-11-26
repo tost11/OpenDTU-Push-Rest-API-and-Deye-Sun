@@ -150,7 +150,7 @@ void TostHandleClass::loop()
         for (auto& channelType : inv->Statistics()->getChannelTypes()) {
             for (auto& c : inv->Statistics()->getChannelsByType(channelType)) {
 
-                MessageOutput.printf("Next Channel: %d\n\r",channelType);
+                //MessageOutput.printf("Next Channel: %d\n\r",channelType);
 
                 if(channelType == 0){//inverter
                     isData = true;
@@ -251,7 +251,7 @@ void TostHandleClass::runNextHttpRequest() {
 
     int statusCode = doRequest(Configuration.get().Tost.Url,15 * 1000);//15 sec
 
-    if(statusCode <= 0 && strlen(Configuration.get().Tost.SecondUrl) > 0 ){
+    if((statusCode <= 0 || statusCode == 502) && strlen(Configuration.get().Tost.SecondUrl) > 0 ){
 
         MessageOutput.println("First post url not working try second one");
 
