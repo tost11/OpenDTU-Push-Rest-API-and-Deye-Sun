@@ -23,21 +23,6 @@ void ServoHandleClass::init(Scheduler &scheduler,uint8_t pin){
     _lastFrequency = Configuration.get().Servo.Frequency;
     _lastResolution = Configuration.get().Servo.Resolution;
 
-    //TODO move this to extra feature
-    //debug time set
-    tm local;
-    local.tm_sec = 0;
-    local.tm_min = 0;
-    local.tm_hour = 0;
-    local.tm_mday = 0;
-    local.tm_mon = 0;
-    local.tm_year = 2024;
-    local.tm_isdst = -1;
-
-    time_t t = mktime(&local);
-    struct timeval now = { .tv_sec = t, .tv_usec = 0 };
-    settimeofday(&now, NULL);
-
     _pin = pin;
 
     if(_pin > 0){
@@ -125,7 +110,7 @@ int ServoHandleClass::calculatePosition(){
         setTo = std::max(setTo,(int)Configuration.get().Servo.RangeMax);
     }
 
-    //Serial.printf("Watt is: %f so set to %d\n",value,setTo);
+    Serial.printf("Watt is: %f so set to %d\n",value,setTo);
     return setTo;
 }
 
