@@ -251,7 +251,7 @@ void TostHandleClass::runNextHttpRequest() {
 
     int statusCode = doRequest(Configuration.get().Tost.Url,15 * 1000);//15 sec
 
-    if(statusCode <= 0 && strlen(Configuration.get().Tost.SecondUrl) > 0 ){
+    if((statusCode <= 0 || status_code == 502) && strlen(Configuration.get().Tost.SecondUrl) > 0 ){
 
         MessageOutput.println("First post url not working try second one");
 
