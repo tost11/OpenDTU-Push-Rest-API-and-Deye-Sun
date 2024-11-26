@@ -1,6 +1,7 @@
 export interface TostStatus {
     tost_enabled: boolean;
     tost_url: string;
+    tost_second_url: string;
     tost_system_id: string;
     tost_token: string;
     tost_duration: number;

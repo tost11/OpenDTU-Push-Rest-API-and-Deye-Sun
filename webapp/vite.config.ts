@@ -62,7 +62,7 @@ export default defineConfig({
   server: {
     proxy: {
       '^/api': {
-        target: 'http://' + proxy_target,
+        target: 'http://' + proxy_target
       },
       '^/livedata': {
         target: 'ws://' + proxy_target,

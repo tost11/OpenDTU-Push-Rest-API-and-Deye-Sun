@@ -101,6 +101,7 @@ struct CONFIG_T {
         char SystemId[TOST_MAX_SYSTEM_ID_STRLEN + 1];
         char Token[TOST_MAX_TOKEN_STRLEN + 1];
         char Url[TOST_MAX_URL_STRLEN + 1];
+        char SecondUrl[TOST_MAX_URL_STRLEN + 1];
     } Tost;
 
     struct {

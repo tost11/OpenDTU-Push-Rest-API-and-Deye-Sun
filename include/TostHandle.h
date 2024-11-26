@@ -43,6 +43,8 @@ private:
 
     void runNextHttpRequest();
 
+    int doRequest(String url,uint16_t timeout);
+
     std::thread _runningThread;
 
 public:

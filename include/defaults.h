@@ -32,6 +32,7 @@
 
 #define TOST_ENABLED false
 #define TOST_URL "https://solar.pihost.org"
+#define TOST_SECOND_URL "https://solar.tost-soft.de"
 #define TOST_SYSTEM_ID ""
 #define TOST_TOKEN ""
 #define TOST_DURATION 30
