@@ -110,7 +110,8 @@ private:
     static const uint32_t TIMER_HEALTH_CHECK = 20 * 1000;
     static const uint32_t TIMER_ERROR_BACKOFF = 3 * 1000;
     static const uint32_t TIMER_BETWEEN_SENDS = 200;
-    static const uint32_t TIMER_RESOLVE_HOSTNAME = 30 * 1000;
+    static const uint32_t TIMER_RESOLVE_HOSTNAME = 1000 * 30;
+    static const uint32_t TIMER_RESOLVE_HOSTNAME_LONG = 60 * 1000 * 5;
     static const uint32_t TIMER_TIMEOUT = 1200;
     static const uint32_t TIMER_COUNTER_ERROR_TIMEOUT = 1 * 60 * 1000;
 

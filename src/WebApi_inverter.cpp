@@ -357,6 +357,11 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
     } else if (inv != nullptr && new_serial == old_serial) {
         // Valid inverter exists and serial stays the same --> update name
         inv->setName(inverter.Name);
+        if(root["manufacturer"].as<String>() == "DeyeSun"){
+            auto deye_inv = reinterpret_cast<DeyeInverter*>(inv.get());
+            deye_inv->setHostnameOrIp(inverter.HostnameOrIp);
+            deye_inv->setPort(inverter.Port);
+        }
     } else if (inv == nullptr) {
         // Valid inverter did not exist --> try to create one
         if (inverter.Type == inverter_type::Inverter_Hoymiles) {

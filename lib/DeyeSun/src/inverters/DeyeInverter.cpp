@@ -126,8 +126,21 @@ void DeyeInverter::update() {
 
     if (_ipAdress == nullptr) {
         if (_timerResolveHostname.occured()) {
-            _timerResolveHostname.set(TIMER_RESOLVE_HOSTNAME);
-            resolveHostname();
+            if(resolveHostname()){
+                _timerResolveHostname.set(TIMER_RESOLVE_HOSTNAME_LONG);
+            }else{
+                _timerResolveHostname.set(TIMER_RESOLVE_HOSTNAME);
+            }
+        }
+    }else{
+        if (_timerResolveHostname.occured()) {
+            if(resolveHostname()){
+                _timerResolveHostname.set(TIMER_RESOLVE_HOSTNAME_LONG);
+            }else{
+                println("Resolved hostname isn't valid anymore -> reset resolved ip");
+                _ipAdress = nullptr;
+                _timerResolveHostname.set(TIMER_RESOLVE_HOSTNAME);
+            }
         }
     }
 
