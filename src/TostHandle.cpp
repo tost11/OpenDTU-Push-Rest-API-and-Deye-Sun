@@ -150,7 +150,7 @@ void TostHandleClass::loop()
         for (auto& channelType : inv->Statistics()->getChannelTypes()) {
             for (auto& c : inv->Statistics()->getChannelsByType(channelType)) {
 
-                MessageOutput.printf("Next Channel: %d\n\r",channelType);
+                //MessageOutput.printf("Next Channel: %d\n\r",channelType);
 
                 if(channelType == 0){//inverter
                     isData = true;
@@ -285,9 +285,7 @@ void TostHandleClass::handleResponse()
             lastErrorTimestamp = lastTimestamp;
             MessageOutput.printf("Tost's Solar Monitoring Error on rest call: %s\n\r",lastErrorMessage.c_str());
 
-            // ArduinoJson 6
             JsonDocument doc;
-            // ArduinoJson 6
             DeserializationError error = deserializeJson(doc, payload);
             if (error){
                 lastErrorMessage = String("Error on serializing response from Server. Data is: ") + payload;
