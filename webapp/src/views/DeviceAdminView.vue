@@ -430,7 +430,7 @@ export default defineComponent({
                     this.showAlert = true;
                 });
         },
-        startServoTest(e:Event){
+        startServoTest(){
             fetch('/api/device/servo', {
                 method: 'POST',
                 headers: authHeader()
