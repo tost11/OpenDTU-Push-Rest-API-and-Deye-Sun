@@ -13,6 +13,8 @@ _loopTask(TASK_IMMEDIATE, TASK_FOREVER, std::bind(&ServoHandleClass::loop, this)
     _lastPosition = -1;
     _lastFrequency = 0;
     _lastUpdate = 0;
+    _selfTestStep = -1;
+    _selfTestTimer.set(1000);
 }
 
 void ServoHandleClass::init(Scheduler &scheduler,uint8_t pin){
@@ -30,9 +32,44 @@ void ServoHandleClass::init(Scheduler &scheduler,uint8_t pin){
         ledcWrite(_ledChannel, _lastPosition);
         ledcAttachPin(pin,_ledChannel);
     }
+
+    startSelfTest();
+}
+
+void ServoHandleClass::startSelfTest(){
+    _selfTestStep = Configuration.get().Servo.RangeMin;
+    _selfTestTimer.reset();
+    _lastPosition = Configuration.get().Servo.RangeMax;//so to max so it is different (will be overwritten)
+}
+
+int ServoHandleClass::handleSelfTest(){
+    Serial.printf("Handle self test\n");
+    if(_selfTestTimer.occured()){
+        Serial.printf("Test occured\n");
+        _selfTestTimer.reset();
+        if(Configuration.get().Servo.RangeMin > Configuration.get().Servo.RangeMax){
+            _selfTestStep--;
+            if(_selfTestStep < Configuration.get().Servo.RangeMax){
+                _selfTestStep = -1;
+                return Configuration.get().Servo.RangeMin;
+            }
+        }else{
+            _selfTestStep++;
+            if(_selfTestStep > Configuration.get().Servo.RangeMax){
+                _selfTestStep = -1;
+                return Configuration.get().Servo.RangeMin;
+            }
+        }
+        return _selfTestStep;
+    }
+    return _lastPosition;
 }
 
 int ServoHandleClass::calculatePosition(){
+
+    if(_selfTestStep >= 0){
+        return handleSelfTest();
+    }
 
     int setTo = Configuration.get().Servo.RangeMin;
 

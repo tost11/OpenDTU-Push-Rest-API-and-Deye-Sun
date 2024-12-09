@@ -10,6 +10,7 @@
 #include "WebApi.h"
 #include "WebApi_errors.h"
 #include "helper.h"
+#include "ServoHandle.h"
 #include <AsyncJson.h>
 
 void WebApiDeviceClass::init(AsyncWebServer& server, Scheduler& scheduler)
@@ -18,6 +19,7 @@ void WebApiDeviceClass::init(AsyncWebServer& server, Scheduler& scheduler)
 
     server.on("/api/device/config", HTTP_GET, std::bind(&WebApiDeviceClass::onDeviceAdminGet, this, _1));
     server.on("/api/device/config", HTTP_POST, std::bind(&WebApiDeviceClass::onDeviceAdminPost, this, _1));
+    server.on("/api/device/servo", HTTP_POST, std::bind(&WebApiDeviceClass::onServoTest, this, _1));
 }
 
 void WebApiDeviceClass::onDeviceAdminGet(AsyncWebServerRequest* request)
@@ -108,6 +110,22 @@ void WebApiDeviceClass::onDeviceAdminGet(AsyncWebServerRequest* request)
     servo["input_index"] = config.Servo.InputIndex;
     servo["power"] = config.Servo.Power;
 
+    WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
+}
+
+void WebApiDeviceClass::onServoTest(AsyncWebServerRequest* request){
+    if (!WebApi.checkCredentials(request)) {
+        return;
+    }
+
+    AsyncJsonResponse* response = new AsyncJsonResponse();
+    auto& retMsg = response->getRoot();
+
+    ServoHandle.startSelfTest();
+
+    retMsg["type"] = "success";
+    retMsg["message"] = "servo test started";
+    retMsg["code"] = WebApiError::ServoTestStarted;
     WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
 }
 

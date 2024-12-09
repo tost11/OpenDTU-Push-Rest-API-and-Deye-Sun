@@ -103,5 +103,6 @@ enum WebApiError {
     ServoRange,
     ServoSerial,
     ServoIndex,
-    ServoPower
+    ServoPower,
+    ServoTestStarted
 };
