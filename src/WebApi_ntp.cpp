@@ -275,6 +275,8 @@ void WebApiNtpClass::onNtpTimePost(AsyncWebServerRequest* request)
     struct timeval now = { .tv_sec = t, .tv_usec = 0 };
     settimeofday(&now, NULL);
 
+    NtpSettings.setTimeInSync(true);
+
     retMsg["type"] = "success";
     retMsg["message"] = "Time updated!";
     retMsg["code"] = WebApiError::NtpTimeUpdated;
