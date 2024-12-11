@@ -304,9 +304,13 @@
                     </div>
                 </div>
             </div>
-
             <FormFooter @reload="getDeviceConfig" />
         </form>
+        <br/>
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <button @click="startServoTest" class="btn btn-primary">{{ $t('deviceadmin.testServo') }}</button>
+        </div>
+        <br/>
     </BasePage>
 </template>
 
@@ -425,6 +429,18 @@ export default defineComponent({
                     this.alertType = response.type;
                     this.showAlert = true;
                 });
+        },
+        startServoTest(){
+            fetch('/api/device/servo', {
+                method: 'POST',
+                headers: authHeader()
+            })
+            .then((response) => handleResponse(response, this.$emitter, this.$router))
+            .then((response) => {
+                this.alertMessage = this.$t('apiresponse.' + response.code, response.param);
+                this.alertType = response.type;
+                this.showAlert = true;
+            });
         },
         getLedIdFromNumber(ledNo: number): string {
             return 'inputLED' + ledNo + 'Brightness';

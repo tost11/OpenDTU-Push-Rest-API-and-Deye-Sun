@@ -114,7 +114,8 @@
         "13002": "Secondary URL must between 1 and {max} characters long!",
         "13003": "System Id must between 1 and {max} characters long!",
         "13004": "System Token must between 1 and {max} characters long!",
-        "13005": "Duration must be a number between {min} and {max}!"
+        "13005": "Duration must be a number between {min} and {max}!",
+        "14010": "servo test started!"
     },
     "home": {
         "LiveData": "Live Data",
@@ -705,7 +706,8 @@
         "servoUnitPower": "W",
         "servoHintPower": "Value on that Servo Display is at max",
         "servoHintSerial": "Serial of inverter to use (0 = first one found)",
-        "servoHintInputIndex": "Index of DC Input that is used for calculation (0 = all)"
+        "servoHintInputIndex": "Index of DC Input that is used for calculation (0 = all)",
+        "testServo": "test servo"
     },
     "pininfo": {
         "PinOverview": "Connection overview",
