@@ -85,6 +85,18 @@ void setup()
     auto& config = Configuration.get();
     MessageOutput.println("done");
 
+    //setting up init time
+    if(config.Ntp.StartupDate != 0) {
+        struct timeval now;
+        now.tv_sec = config.Ntp.StartupDate;
+        now.tv_usec = 0;
+
+        settimeofday(&now, NULL);
+
+        time_t t = time(NULL);
+        struct tm tm = *localtime(&t);
+        printf("Manual initial start date: %d-%02d-%02d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
+    }
     // Load PinMapping
     MessageOutput.print("Reading PinMapping... ");
     if (PinMapping.init(String(Configuration.get().Dev_PinMapping))) {
@@ -175,6 +187,7 @@ void setup()
 
     Datastore.init(scheduler);
     RestartHelper.init(scheduler);
+
 }
 
 void loop()

@@ -6,6 +6,7 @@
 #include "Configuration.h"
 #include <Arduino.h>
 #include <time.h>
+#include "esp_sntp.h"
 
 NtpSettingsClass::NtpSettingsClass()
 {

@@ -82,6 +82,7 @@ void WebApiNtpClass::onNtpAdminGet(AsyncWebServerRequest* request)
     root["longitude"] = config.Ntp.Longitude;
     root["latitude"] = config.Ntp.Latitude;
     root["sunsettype"] = config.Ntp.SunsetType;
+    root["startup_date"] = config.Ntp.StartupDate;
 
     WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
 }
@@ -104,7 +105,8 @@ void WebApiNtpClass::onNtpAdminPost(AsyncWebServerRequest* request)
             && root["ntp_timezone"].is<String>()
             && root["longitude"].is<double>()
             && root["latitude"].is<double>()
-            && root["sunsettype"].is<uint8_t>())) {
+            && root["sunsettype"].is<uint8_t>()
+            && root["startup_date"].is<uint32_t>())) {
         retMsg["message"] = "Values are missing!";
         retMsg["code"] = WebApiError::GenericValueMissing;
         WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
@@ -142,6 +144,7 @@ void WebApiNtpClass::onNtpAdminPost(AsyncWebServerRequest* request)
     config.Ntp.Latitude = root["latitude"].as<double>();
     config.Ntp.Longitude = root["longitude"].as<double>();
     config.Ntp.SunsetType = root["sunsettype"].as<uint8_t>();
+    config.Ntp.StartupDate = root["startup_date"].as<uint32_t>();
 
     WebApi.writeConfig(retMsg);
 
