@@ -18,6 +18,7 @@ typedef enum {
 enum inverter_type {
     Inverter_Hoymiles = 0,
     Inverter_DeyeSun,
+    Inverter_HoymilesW,
 
     Inverter_count
 };

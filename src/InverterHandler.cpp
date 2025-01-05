@@ -2,6 +2,7 @@
 #include "InverterHandler.h"
 #include "Hoymiles.h"
 #include "DeyeSun.h"
+#include "HoymilesW.h"
 
 InverterHandlerClass InverterHandler;
 
