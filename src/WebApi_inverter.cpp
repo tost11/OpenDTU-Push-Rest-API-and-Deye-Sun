@@ -10,6 +10,7 @@
 #include "defaults.h"
 #include "helper.h"
 #include "DeyeSun.h"
+#include "HoymilesW.h"
 #include <AsyncJson.h>
 #include <InverterHandler.h>
 
@@ -43,7 +44,7 @@ void WebApiInverterClass::onInverterList(AsyncWebServerRequest* request)
             obj["id"] = i;
             obj["name"] = String(config.Inverter[i].Name);
             obj["order"] = config.Inverter[i].Order;
-            obj["manufacturer"] = config.Inverter[i].Type == inverter_type::Inverter_Hoymiles ? "Hoymiles": "DeyeSun";
+            obj["manufacturer"] = from_inverter_type(config.Inverter[i].Type);
 
             // Inverter Serial is read as HEX
             char buffer[sizeof(uint64_t) * 8 + 1];
@@ -128,7 +129,9 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
         return;
     }
 
-    if (root["manufacturer"].as<String>() != from_inverter_type(inverter_type::Inverter_Hoymiles) && root["manufacturer"].as<String>() != from_inverter_type(inverter_type::Inverter_DeyeSun) ) {
+    if (root["manufacturer"].as<String>() != from_inverter_type(inverter_type::Inverter_Hoymiles)
+      && root["manufacturer"].as<String>() != from_inverter_type(inverter_type::Inverter_DeyeSun)
+      && root["manufacturer"].as<String>() != from_inverter_type(inverter_type::Inverter_HoymilesW)) {
         retMsg["message"] = "Unknown Inverter Type: " + root["manufacturer"].as<String>();
         retMsg["code"] = WebApiError::InverterType;
         retMsg["param"]["max"] = INV_MAX_NAME_STRLEN;
@@ -136,8 +139,8 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
         return;
     }
 
-    if(root["manufacturer"].as<String>() == "DeyeSun"){
-        //validate Deye Sun Data
+    if(root["manufacturer"].as<String>() == "DeyeSun" || root["manufacturer"].as<String>() == "HoymilesW"){
+        //validate Deye Sun or HoymilesW Data
         if (!root["hostname_or_ip"].is<String>()
                 || root["hostname_or_ip"].as<String>().length() == 0
                 || root["hostname_or_ip"].as<String>().length() > INV_MAX_HOSTNAME_STRLEN) {
@@ -181,6 +184,10 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
         strncpy(inverter->HostnameOrIp, root["hostname_or_ip"].as<String>().c_str(), INV_MAX_HOSTNAME_STRLEN);
         inverter->Port = root["port"].as<uint16_t>();
         inverter->Type = inverter_type::Inverter_DeyeSun;
+    }else if(root["manufacturer"].as<String>() == from_inverter_type(inverter_type::Inverter_HoymilesW)){
+        strncpy(inverter->HostnameOrIp, root["hostname_or_ip"].as<String>().c_str(), INV_MAX_HOSTNAME_STRLEN);
+        inverter->Port = root["port"].as<uint16_t>();
+        inverter->Type = inverter_type::Inverter_HoymilesW;
     }
 
     WebApi.writeConfig(retMsg, WebApiError::InverterAdded, "Inverter created!");
@@ -200,6 +207,8 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
         inv = std::reinterpret_pointer_cast<BaseInverterClass>(Hoymiles.addInverter(inverter->Name, inverter->Serial));
     }else if(root["manufacturer"].as<String>() == from_inverter_type(inverter_type::Inverter_DeyeSun)){
         inv = std::reinterpret_pointer_cast<BaseInverterClass>(DeyeSun.addInverter(inverter->Name, inverter->Serial,inverter->HostnameOrIp,inverter->Port));
+    }else if(root["manufacturer"].as<String>() == from_inverter_type(inverter_type::Inverter_HoymilesW)){
+        inv = std::reinterpret_pointer_cast<BaseInverterClass>(HoymilesW.addInverter(inverter->Name, inverter->Serial,inverter->HostnameOrIp,inverter->Port));
     }
 
     if (inv != nullptr) {
@@ -261,14 +270,16 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
         return;
     }
 
-    if (root["manufacturer"].as<String>() != "Hoymiles" && root["manufacturer"].as<String>() != "DeyeSun" ) {
+    if (root["manufacturer"].as<String>() != "Hoymiles" 
+        && root["manufacturer"].as<String>() != "DeyeSun"
+        && root["manufacturer"].as<String>() != "HoymilesW" ) {
         retMsg["message"] = "Unknown Inverter Type: " + root["manufacturer"].as<String>();
         retMsg["code"] = WebApiError::InverterType;
         WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
         return;
     }
 
-    if(root["manufacturer"].as<String>() == "DeyeSun"){
+    if(root["manufacturer"].as<String>() == "DeyeSun" || root["manufacturer"].as<String>() == "HoymilesW"){
         //validate Deye Sun Data
         if (!root["hostname_or_ip"].is<String>()
                 || root["hostname_or_ip"].as<String>().length() == 0
@@ -317,7 +328,7 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
     // Interpret the string as a hex value and convert it to uint64_t
     inverter.Serial = new_serial;
     strncpy(inverter.Name, root["name"].as<String>().c_str(), INV_MAX_NAME_STRLEN);
-    if(inverter.Type == inverter_type::Inverter_DeyeSun){
+    if(inverter.Type == inverter_type::Inverter_DeyeSun || inverter.Type == inverter_type::Inverter_HoymilesW){
         strncpy(inverter.HostnameOrIp, root["hostname_or_ip"].as<String>().c_str(), INV_MAX_HOSTNAME_STRLEN);
         inverter.Port = root["port"].as<uint16_t>();
     }
@@ -353,6 +364,8 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
             inv = std::reinterpret_pointer_cast<BaseInverterClass>(Hoymiles.addInverter(inverter.Name, inverter.Serial));
         }else if(inverter.Type == inverter_type::Inverter_DeyeSun){
             inv = std::reinterpret_pointer_cast<BaseInverterClass>(DeyeSun.addInverter(inverter.Name, inverter.Serial,inverter.HostnameOrIp,inverter.Port));
+        }else if(inverter.Type == inverter_type::Inverter_HoymilesW){
+            inv = std::reinterpret_pointer_cast<BaseInverterClass>(HoymilesW.addInverter(inverter.Name, inverter.Serial,inverter.HostnameOrIp,inverter.Port));
         }
     } else if (inv != nullptr && new_serial == old_serial) {
         // Valid inverter exists and serial stays the same --> update name
@@ -361,6 +374,10 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
             auto deye_inv = reinterpret_cast<DeyeInverter*>(inv.get());
             deye_inv->setHostnameOrIp(inverter.HostnameOrIp);
             deye_inv->setPort(inverter.Port);
+        }else if(root["manufacturer"].as<String>() == "HoymilesW"){
+            auto hoy_inv = reinterpret_cast<HoymilesWInverter*>(inv.get());
+            hoy_inv->setHostnameOrIp(inverter.HostnameOrIp);
+            hoy_inv->setPort(inverter.Port);
         }
     } else if (inv == nullptr) {
         // Valid inverter did not exist --> try to create one
@@ -368,6 +385,8 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
             inv = std::reinterpret_pointer_cast<BaseInverterClass>(Hoymiles.addInverter(inverter.Name, inverter.Serial));
         }else if(inverter.Type == inverter_type::Inverter_DeyeSun){
             inv = std::reinterpret_pointer_cast<BaseInverterClass>(DeyeSun.addInverter(inverter.Name, inverter.Serial,inverter.HostnameOrIp,inverter.Port));
+        }else if(inverter.Type == inverter_type::Inverter_HoymilesW){
+            inv = std::reinterpret_pointer_cast<BaseInverterClass>(HoymilesW.addInverter(inverter.Name, inverter.Serial,inverter.HostnameOrIp,inverter.Port));
         }
     }
 

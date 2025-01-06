@@ -559,7 +559,7 @@
         "InverterHostnameOrIp": "Hostname oder Ip",
         "InverterHostnameOrIpHint": "Ip Adresse oder Name des Gerätes im Netzwerk",
         "InverterPort": "Port",
-        "InverterPortHint": "Udp kommunikations Port des Gerätes, standart: 48899",
+        "InverterPortHint": "Kommunikations Port des Gerätes, standart: 48899(Deye Sun), Hoymiles(10081)",
         "ManufacturerSelect": "Wähle Hersteller des Gerätes zum hinzufügen"
     },
     "configadmin": {

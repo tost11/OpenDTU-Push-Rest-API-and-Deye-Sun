@@ -20,6 +20,7 @@ bool InverterHandlerClass::isAllRadioIdle() {
 void InverterHandlerClass::init() {
     _handlers.push_back(reinterpret_cast<BaseInverterHandlerClass*>(&Hoymiles));
     _handlers.push_back(reinterpret_cast<BaseInverterHandlerClass*>(&DeyeSun));
+    _handlers.push_back(reinterpret_cast<BaseInverterHandlerClass*>(&HoymilesW));
 }
 
 size_t InverterHandlerClass::getNumInverters() {
@@ -60,6 +61,9 @@ std::shared_ptr<BaseInverterClass> InverterHandlerClass::getInverterBySerial(uin
     if(inverterType == inverter_type::Inverter_DeyeSun){
         return std::reinterpret_pointer_cast<BaseInverterClass>(DeyeSun.getInverterBySerial(serial));
     }
+    if(inverterType == inverter_type::Inverter_HoymilesW){
+        return std::reinterpret_pointer_cast<BaseInverterClass>(HoymilesW.getInverterBySerial(serial));
+    }
     return nullptr;
 }
 
@@ -67,6 +71,8 @@ void InverterHandlerClass::removeInverterBySerial(uint64_t serial,inverter_type 
     if(inverterType == inverter_type::Inverter_Hoymiles){
         Hoymiles.removeInverterBySerial(serial);
     }else if(inverterType == Inverter_DeyeSun){
+        DeyeSun.removeInverterBySerial(serial);
+    }else if(inverterType == Inverter_HoymilesW){
         DeyeSun.removeInverterBySerial(serial);
     }
 }

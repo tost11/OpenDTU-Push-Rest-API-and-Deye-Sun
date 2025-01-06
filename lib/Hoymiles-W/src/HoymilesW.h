@@ -31,7 +31,6 @@ public:
     bool isAllRadioIdle() const override;
 
     void init() override;
-
 private:
     std::vector<std::shared_ptr<HoymilesWInverter>> & _inverters;
 

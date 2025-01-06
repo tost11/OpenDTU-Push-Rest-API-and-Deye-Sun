@@ -30,6 +30,9 @@ static inline inverter_type to_inverter_type(const String & type){
     if(type == "DeyeSun"){
         return inverter_type::Inverter_DeyeSun;
     }
+    if(type == "HoymilesW"){
+        return inverter_type::Inverter_HoymilesW;
+    }
     return inverter_type::Inverter_count;
 }
 
@@ -39,6 +42,9 @@ static inline String from_inverter_type(inverter_type type){
     }
     if(type == inverter_type::Inverter_DeyeSun){
         return "DeyeSun";
+    }
+    if(type == inverter_type::Inverter_HoymilesW){
+        return "HoymilesW";
     }
     return "";
 }

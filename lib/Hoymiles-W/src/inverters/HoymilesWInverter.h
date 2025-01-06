@@ -17,6 +17,7 @@
 #include <WiFi.h>
 #include <WiFiUdp.h>
 #include <TimeoutHelper.h>
+#include "../dtuInterface.h"
 
 #define MAX_NAME_HOST 32
 
@@ -48,7 +49,16 @@ public:
     static String serialToModel(uint64_t serial);
 
     void setEnableCommands(const bool enabled) override;
+
+    void setHostnameOrIp(const char * hostOrIp);
+    void setPort(uint16_t port);
+
+    void startConnection();
 private:
     Print & _messageOutput;
     uint64_t _serial;
+
+    DTUInterface _dtuInterface;
+
+    TimeoutHelper _dataUpdateTimer;
 };

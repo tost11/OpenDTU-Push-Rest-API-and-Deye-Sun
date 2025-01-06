@@ -8,6 +8,7 @@
         <select class="form-select" v-model="newInverterData.manufacturer">
           <option selected>Hoymiles</option>
           <option>DeyeSun</option>
+          <option value="HoymilesW">Hoymiles W-Series</option>
         </select>
         <br/>
 
@@ -17,6 +18,7 @@
                     <label>{{ $t('inverteradmin.Serial') }}</label>
                     <InputSerial v-if="newInverterData.manufacturer === 'DeyeSun'" type="DeyeSun" v-model="newInverterData.serial" inputClass="ml-sm-2 mr-sm-4 my-2" required />
                     <InputSerial v-if="newInverterData.manufacturer === 'Hoymiles'" type="Hoymiles" v-model="newInverterData.serial" inputClass="ml-sm-2 mr-sm-4 my-2" required />
+                    <InputSerial v-if="newInverterData.manufacturer === 'HoymilesW'" type="DeyeSun" v-model="newInverterData.serial" inputClass="ml-sm-2 mr-sm-4 my-2" required />
                 </div>
                 <div class="form-group">
                     <label>{{ $t('inverteradmin.Name') }}</label>
@@ -28,12 +30,12 @@
                         required
                     />
                 </div>
-              <div v-if="newInverterData.manufacturer == 'DeyeSun'" class="form-group">
+              <div v-if="newInverterData.manufacturer == 'DeyeSun' || newInverterData.manufacturer == 'HoymilesW'" class="form-group">
                 <label>{{ $t('inverteradmin.InverterHostnameOrIp') }} <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterHostnameOrIpHint')" /></label>
                 <input v-model="newInverterData.hostname_or_ip" type="text" class="form-control ml-sm-2 mr-sm-4 my-2"
                        maxlength="31" required />
               </div>
-                <div v-if="newInverterData.manufacturer == 'DeyeSun'" class="form-group">
+                <div v-if="newInverterData.manufacturer == 'DeyeSun' || newInverterData.manufacturer == 'HoymilesW'" class="form-group">
                   <label>{{ $t('inverteradmin.InverterPort') }} <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterPortHint')" /></label>
                   <input v-model="newInverterData.port" type="number" class="form-control ml-sm-2 mr-sm-4 my-2" maxlength="5"
                          required />
@@ -166,6 +168,7 @@
                     </label>
                     <InputSerial v-if="selectedInverterData.manufacturer === 'DeyeSun'" type="DeyeSun" v-model="selectedInverterData.serial" id="inverter-serial"/>
                     <InputSerial v-if="selectedInverterData.manufacturer === 'Hoymiles'" type="Hoymiles" v-model="selectedInverterData.serial" id="inverter-serial"/>
+                    <InputSerial v-if="selectedInverterData.manufacturer === 'HoymilesW'" type="DeyeSun" v-model="selectedInverterData.serial" id="inverter-serial"/>
                     <label for="inverter-name" class="col-form-label"
                         >{{ $t('inverteradmin.InverterName') }}
                         <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterNameHint')" />
@@ -177,7 +180,7 @@
                         class="form-control"
                         maxlength="31"
                     />
-                    <span v-if="selectedInverterData.manufacturer=='DeyeSun'">
+                    <span v-if="selectedInverterData.manufacturer=='DeyeSun' || selectedInverterData.manufacturer=='HoymilesW'">
                         <label for="inverter-hostname" class="col-form-label">{{ $t('inverteradmin.InverterHostnameOrIp') }}
                           <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterHostnameOrIpHint')" />
                         </label>
@@ -424,7 +427,7 @@ export default defineComponent({
         return {
             modal: {} as bootstrap.Modal,
             modalDelete: {} as bootstrap.Modal,
-            newInverterData: {serial: "",manufacturer:"Hoymiles",port:48899} as Inverter,
+            newInverterData: {serial: "",manufacturer:"Hoymiles",port:10081} as Inverter,//deye 48899
             selectedInverterData: {} as Inverter,
             inverters: [] as Inverter[],
             dataLoading: true,

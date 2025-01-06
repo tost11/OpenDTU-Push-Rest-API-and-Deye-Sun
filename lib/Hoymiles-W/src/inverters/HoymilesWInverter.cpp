@@ -27,10 +27,37 @@ _messageOutput(print)
 
     _devInfoParser->setMaxPowerDevider(10);
 
+    _dataUpdateTimer.set(30 * 1000);
+
+    _enablePolling = true;//TODO make better
 }
 
+
+String HoymilesWInverter::serialToModel(uint64_t serial) {
+    char serial_buff[sizeof(uint64_t) * 8 + 1];
+    snprintf(serial_buff, sizeof(serial_buff), "%0x%08x",
+             ((uint32_t)((serial >> 32) & 0xFFFFFFFF)),
+             ((uint32_t)(serial & 0xFFFFFFFF)));
+    String serialString = serial_buff;
+
+    return "Unknown";
+}
+
+
 void HoymilesWInverter::update() {
+
     EventLog()->checkErrorsForTimeout();
+
+    if(_dataUpdateTimer.occured()){
+        Serial.println("Fetch new HomilesW inverter data");
+        _dataUpdateTimer.reset();
+        _dtuInterface.getDataUpdate();
+    }
+    
+    if(dtuGlobalData.updateReceived){
+        _dtuInterface.printDataAsTextToSerial();
+        dtuGlobalData.updateReceived = false;
+    }
 }
 
 uint64_t HoymilesWInverter::serial() const {
@@ -79,4 +106,16 @@ inverter_type HoymilesWInverter::getInverterType() const {
 
 void HoymilesWInverter::setEnableCommands(const bool enabled) {
     BaseInverter::setEnableCommands(enabled);
+}
+
+void HoymilesWInverter::setHostnameOrIp(const char * hostOrIp){
+    _dtuInterface.setServer(hostOrIp);
+}
+
+void HoymilesWInverter::setPort(uint16_t port){
+    _dtuInterface.setPort(port);
+}
+
+void HoymilesWInverter::startConnection(){
+        _dtuInterface.setup();
 }
