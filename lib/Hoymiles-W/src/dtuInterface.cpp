@@ -1,8 +1,6 @@
 #include "dtuInterface.h"
 #include <Arduino.h>
-
-struct connectionControl dtuConnection;
-struct inverterData dtuGlobalData;
+#include <functional>
 
 DTUInterface::DTUInterface(const char *server, uint16_t port) : serverIP(server), serverPort(port), client(nullptr) {}
 
@@ -25,11 +23,12 @@ void DTUInterface::setup()
         client = new AsyncClient();
         if (client)
         {
+            //std::function<void(void*, AsyncClient*)> f = std::bind(&dtuInterface,client);
             Serial.println("DTUinterface:\t setup for DTU '"+String(serverIP)+":"+String(serverPort)+"'");
-            client->onConnect(onConnect, this);
-            client->onDisconnect(onDisconnect, this);
-            client->onError(onError, this);
-            client->onData(onDataReceived, this);
+            client->onConnect([&](void * arg, AsyncClient * client){this->onConnect();});
+            client->onDisconnect([&](void * arg, AsyncClient * client){this->onDisconnect();});
+            client->onError([&](void * arg, AsyncClient * client,int8_t error){this->onError(error);});
+            client->onData([&](void * arg, AsyncClient * client,void *data, size_t len){this->onDataReceived(data,len);});
 
             initializeCRC();
         }
@@ -284,42 +283,34 @@ void DTUInterface::flushConnection()
 }
 
 // event driven methods
-void DTUInterface::onConnect(void *arg, AsyncClient *c)
+void DTUInterface::onConnect()
 {
     // Connection established
     dtuConnection.dtuConnectState = DTU_STATE_CONNECTED;
     // DTUInterface *conn = static_cast<DTUInterface *>(arg);
     Serial.println(F("DTUinterface:\t connected to DTU"));
-    DTUInterface *dtuInterface = static_cast<DTUInterface *>(arg);
-    if (dtuInterface)
-    {
-        Serial.println(F("DTUinterface:\t starting keep-alive timer..."));
-        dtuInterface->keepAliveTimer.attach(10, DTUInterface::keepAliveStatic, dtuInterface);
-    }
+    Serial.println(F("DTUinterface:\t starting keep-alive timer..."));
+    keepAliveTimer.attach(10, DTUInterface::keepAliveStatic, this);
     // initiate next data update immediately (at startup or re-connect)
 
     //TODO check what this here is fore
     //platformData.dtuNextUpdateCounterSeconds = dtuGlobalData.currentTimestamp - userConfig.dtuUpdateTime + 5;
 }
 
-void DTUInterface::onDisconnect(void *arg, AsyncClient *c)
+void DTUInterface::onDisconnect()
 {
     // Connection lost
     Serial.println(F("DTUinterface:\t disconnected from DTU"));
     dtuConnection.dtuConnectState = DTU_STATE_OFFLINE;
     // dtuGlobalData.dtuRssi = 0;
-    DTUInterface *dtuInterface = static_cast<DTUInterface *>(arg);
-    if (dtuInterface)
-    {
-        // Serial.println(F("DTUinterface:\t stopping keep-alive timer..."));
-        dtuInterface->keepAliveTimer.detach();
-    }
+    // Serial.println(F("DTUinterface:\t stopping keep-alive timer..."));
+    keepAliveTimer.detach();
 }
 
-void DTUInterface::onError(void *arg, AsyncClient *c, int8_t error)
+void DTUInterface::onError(int8_t error)
 {
     // Connection error
-    String errorStr = c->errorToString(error);
+    String errorStr = client->errorToString(error);
     Serial.println("DTUinterface:\t DTU Connection error: " + errorStr + " (" + String(error) + ")");
     dtuConnection.dtuConnectState = DTU_STATE_CONNECT_ERROR;
     dtuGlobalData.dtuRssi = 0;
@@ -340,33 +331,32 @@ void DTUInterface::handleError(uint8_t errorState)
 }
 
 // Callback method to handle incoming data
-void DTUInterface::onDataReceived(void *arg, AsyncClient *client, void *data, size_t len)
+void DTUInterface::onDataReceived(void *data, size_t len)
 {
     txrxStateObserver();
-    DTUInterface *dtuInterface = static_cast<DTUInterface *>(arg);
     // first 10 bytes are header or similar and actual data starts from the 11th byte
     pb_istream_t istream = pb_istream_from_buffer(static_cast<uint8_t *>(data) + 10, len - 10);
 
     switch (dtuConnection.dtuTxRxState)
     {
     case DTU_TXRX_STATE_WAIT_REALDATANEW:
-        dtuInterface->readRespRealDataNew(istream);
+        readRespRealDataNew(istream);
         // if real data received, then request config for powerlimit
-        dtuInterface->writeReqGetConfig();
+        writeReqGetConfig();
         break;
     case DTU_TXRX_STATE_WAIT_APPGETHISTPOWER:
-        dtuInterface->readRespAppGetHistPower(istream);
+        readRespAppGetHistPower(istream);
         break;
     case DTU_TXRX_STATE_WAIT_GETCONFIG:
-        dtuInterface->readRespGetConfig(istream);
+        readRespGetConfig(istream);
         break;
     case DTU_TXRX_STATE_WAIT_COMMAND:
-        dtuInterface->readRespCommand(istream);
+        readRespCommand(istream);
         // get updated power setting
-        dtuInterface->writeReqGetConfig();
+        writeReqGetConfig();
         break;
     case DTU_TXRX_STATE_WAIT_RESTARTDEVICE:
-        dtuInterface->readRespCommandRestartDevice(istream);
+        readRespCommandRestartDevice(istream);
         break;
     default:
         Serial.println(F("DTUinterface:\t onDataReceived - no valid or known state"));

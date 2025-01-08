@@ -88,14 +88,9 @@ struct inverterData
   boolean uptodate = false;
   boolean updateReceived = false;
   int dtuResetRequested = 0;
-  uint8_t readDataBuff[1000];
 };
 
-extern inverterData dtuGlobalData;
-extern connectionControl dtuConnection;
-
 typedef void (*DataRetrievalCallback)(const char* data, size_t dataSize, void* userContext);
-
 
 class DTUInterface {
 public:
@@ -119,6 +114,10 @@ public:
 
     FetchedDataSample getLastFetchedData();
 private:
+
+    connectionControl dtuConnection;
+    inverterData dtuGlobalData;
+
     Ticker keepAliveTimer; // Timer to send keep-alive messages
     static void keepAliveStatic(DTUInterface* dtuInterface); // Static method for timer callback
     void keepAlive(); // Method to send keep-alive messages
@@ -127,16 +126,15 @@ private:
     static void dtuLoopStatic(DTUInterface* instance);
     void dtuLoop();
        
-
-    static void onConnect(void* arg, AsyncClient* c);
-    static void onDisconnect(void* arg, AsyncClient* c);
-    static void onError(void* arg, AsyncClient* c, int8_t error);
-    static void onDataReceived(void* arg, AsyncClient* client, void* data, size_t len);
+    void onConnect();
+    void onDisconnect();
+    void onError(int8_t error);
+    void onDataReceived(void* data, size_t len);
 
     void handleError(uint8_t errorState = DTU_ERROR_NO_ERROR);
     void initializeCRC();
 
-    static void txrxStateObserver();
+    void txrxStateObserver();
     boolean lastOnlineOfflineState = false;
     unsigned long lastOnlineOfflineChange = 0;
     void dtuConnectionObserver();
