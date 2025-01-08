@@ -6,8 +6,8 @@
 #include "../parser/DevInfoParser.h"
 #include "../parser/GridProfileParser.h"
 #include "../parser/PowerCommandParser.h"
-#include "../parser/StatisticsParser.h"
 #include "../parser/SystemConfigParaParser.h"
+#include <DefaultStatisticsParser.h>
 #include "HoymilesRadio.h"
 #include "types.h"
 #include "BaseInverter.h"
@@ -27,7 +27,7 @@ enum {
 
 class CommandAbstract;
 
-class InverterAbstract : public BaseInverter<StatisticsParser,DevInfoParser,SystemConfigParaParser,AlarmLogParser,GridProfileParser,PowerCommandParser> {
+class InverterAbstract : public BaseInverter<DefaultStatisticsParser,DevInfoParser,SystemConfigParaParser,AlarmLogParser,GridProfileParser,PowerCommandParser> {
 public:
     explicit InverterAbstract(HoymilesRadio* radio, const uint64_t serial);
     void init();

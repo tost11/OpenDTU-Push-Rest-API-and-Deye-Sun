@@ -91,7 +91,7 @@ _logDebug(false){
     _devInfoParser.reset(new DeyeDevInfo());
     _gridProfileParser.reset(new DeyeGridProfile());
     _powerCommandParser.reset(new PowerCommandParser());
-    _statisticsParser.reset(new StatisticsParser());
+    _statisticsParser.reset(new DefaultStatisticsParser());
     _systemConfigParaParser.reset(new SystemConfigParaParser());
 
     _devInfoParser->setMaxPowerDevider(10);

@@ -612,6 +612,11 @@ void DTUInterface::writeReqRealDataNew()
     // readRespRealDataNew(locTimeSec);
 }
 
+FetchedDataSample DTUInterface::getLastFetchedData(){
+    std::lock_guard<std::mutex> lock(_lastFetchedDataMutex);
+    return _lastFetchedData;
+}
+
 void DTUInterface::readRespRealDataNew(pb_istream_t istream)
 {
     dtuConnection.dtuTxRxState = DTU_TXRX_STATE_IDLE;
@@ -695,6 +700,12 @@ void DTUInterface::readRespRealDataNew(pb_istream_t istream)
 
         // checking for hanging values on DTU side and set control state
         checkingDataUpdate();
+
+        std::lock_guard<std::mutex> lock(_lastFetchedDataMutex);
+        memset(&_lastFetchedData,0,sizeof(FetchedDataSample));
+        _lastFetchedData.gridData = gridData;
+        _lastFetchedData.pvData[0] = pvData0;
+        _lastFetchedData.pvData[1] = pvData1;
     }
     else
     {

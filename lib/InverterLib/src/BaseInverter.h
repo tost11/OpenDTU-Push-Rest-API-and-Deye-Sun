@@ -4,6 +4,7 @@
 #include <WString.h>
 #include <memory>
 #include "BaseStatistics.h"
+#include "StatisticsParser.h"
 #include "BaseDevInfo.h"
 #include "BaseSystemConfigPara.h"
 #include "defines.h"
@@ -14,7 +15,7 @@
 #define MAX_NAME_LENGTH 32
 
 template<class StatT,class DevT,class SysT,class AlarmT,class GridT,class PowerT,
-        typename = std::enable_if_t<std::is_base_of<BaseStatistics,StatT>::value>,
+        typename = std::enable_if<std::is_base_of<BaseStatistics,StatT>::value>,
         typename = std::enable_if<std::is_base_of<BaseDevInfo,DevT>::value>,
         typename = std::enable_if<std::is_base_of<BaseSystemConfigPara,SysT>::value>,
         typename = std::enable_if<std::is_base_of<BaseAlarmLog,AlarmT>::value>,

@@ -22,7 +22,7 @@ InverterAbstract::InverterAbstract(HoymilesRadio* radio, const uint64_t serial)
     _devInfoParser.reset(new DevInfoParser());
     _gridProfileParser.reset(new GridProfileParser());
     _powerCommandParser.reset(new PowerCommandParser());
-    _statisticsParser.reset(new StatisticsParser());
+    _statisticsParser.reset(new DefaultStatisticsParser());
     _systemConfigParaParser.reset(new SystemConfigParaParser());
 }
 

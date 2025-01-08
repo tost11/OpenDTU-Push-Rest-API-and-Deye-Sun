@@ -6,14 +6,9 @@
 #include <mutex>
 #include <HardwareSerial.h>
 #include "BaseInverterHandler.h"
-#include "parser/HoymilesWDevInfo.h"
-#include "parser/HoymilesWSystemConfigPara.h"
-#include "parser/HoymilesWAlarmLog.h"
-#include "parser/HoymilesWGridProfile.h"
-#include "parser/StatisticsParser.h"
 #include "inverters/HoymilesWInverter.h"
 
-class HoymilesWClass: public BaseInverterHandler<HoymilesWInverter,StatisticsParser,HoymilesWDevInfo,HoymilesWSystemConfigPara,HoymilesWAlarmLog,HoymilesWGridProfile,PowerCommandParser> {
+class HoymilesWClass: public BaseInverterHandler<HoymilesWInverter,HoymilesWStatisticsParser,HoymilesWDevInfo,HoymilesWSystemConfigPara,HoymilesWAlarmLog,HoymilesWGridProfile,PowerCommandParser> {
 public:
     HoymilesWClass();
 

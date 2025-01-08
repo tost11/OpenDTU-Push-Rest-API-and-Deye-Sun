@@ -6,7 +6,7 @@
 #include "parser/HoymilesWSystemConfigPara.h"
 #include "parser/HoymilesWAlarmLog.h"
 #include "parser/HoymilesWGridProfile.h"
-#include "parser/StatisticsParser.h"
+#include "parser/HoymilesWStatisticsParser.h"
 #include "parser/SystemConfigParaParser.h"
 #include "parser/PowerCommandParser.h"
 #include <Arduino.h>
@@ -21,7 +21,7 @@
 
 #define MAX_NAME_HOST 32
 
-class HoymilesWInverter : public BaseInverter<StatisticsParser,HoymilesWDevInfo,SystemConfigParaParser,HoymilesWAlarmLog,HoymilesWGridProfile,PowerCommandParser> {
+class HoymilesWInverter : public BaseInverter<HoymilesWStatisticsParser,HoymilesWDevInfo,SystemConfigParaParser,HoymilesWAlarmLog,HoymilesWGridProfile,PowerCommandParser> {
 public:
     explicit HoymilesWInverter(uint64_t serial,Print & print);
     virtual ~HoymilesWInverter() = default;
@@ -54,6 +54,8 @@ public:
     void setPort(uint16_t port);
 
     void startConnection();
+
+    void swapBuffers(const FetchedDataSample *data);
 private:
     Print & _messageOutput;
     uint64_t _serial;

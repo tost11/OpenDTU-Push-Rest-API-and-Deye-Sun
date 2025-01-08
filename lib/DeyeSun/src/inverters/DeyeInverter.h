@@ -6,7 +6,7 @@
 #include "parser/DeyeSystemConfigPara.h"
 #include "parser/DeyeAlarmLog.h"
 #include "parser/DeyeGridProfile.h"
-#include "parser/StatisticsParser.h"
+#include <DefaultStatisticsParser.h>
 #include "parser/SystemConfigParaParser.h"
 #include "parser/PowerCommandParser.h"
 #include <Arduino.h>
@@ -41,7 +41,7 @@ struct WriteRegisterMapping{
     valueToWrite(valueToWrite){}
 };
 
-class DeyeInverter : public BaseInverter<StatisticsParser,DeyeDevInfo,SystemConfigParaParser,DeyeAlarmLog,DeyeGridProfile,PowerCommandParser> {
+class DeyeInverter : public BaseInverter<DefaultStatisticsParser,DeyeDevInfo,SystemConfigParaParser,DeyeAlarmLog,DeyeGridProfile,PowerCommandParser> {
 public:
     explicit DeyeInverter(uint64_t serial,Print & print);
     virtual ~DeyeInverter() = default;

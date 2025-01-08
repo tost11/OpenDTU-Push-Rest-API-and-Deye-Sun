@@ -6,7 +6,6 @@
 #include <ios>
 #include <iomanip>
 
-
 HoymilesWInverter::HoymilesWInverter(uint64_t serial,Print & print):
 _messageOutput(print)
 {
@@ -22,7 +21,7 @@ _messageOutput(print)
     _devInfoParser.reset(new HoymilesWDevInfo());
     _gridProfileParser.reset(new HoymilesWGridProfile());
     _powerCommandParser.reset(new PowerCommandParser());
-    _statisticsParser.reset(new StatisticsParser());
+    _statisticsParser.reset(new HoymilesWStatisticsParser());
     _systemConfigParaParser.reset(new SystemConfigParaParser());
 
     _devInfoParser->setMaxPowerDevider(10);
@@ -44,6 +43,20 @@ String HoymilesWInverter::serialToModel(uint64_t serial) {
 }
 
 
+int32_t changeEndianness32(int32_t val)
+{
+    return (val << 24) |
+          ((val <<  8) & 0x00ff0000) |
+          ((val >>  8) & 0x0000ff00) |
+          ((val >> 24) & 0x000000ff);
+}
+
+int16_t changeEndianness16(int16_t val)
+{
+    return (val << 8) |          // left-shift always fills with zeros
+          ((val >> 8) & 0x00ff); // right-shift sign-extends, so force to zero
+}
+
 void HoymilesWInverter::update() {
 
     EventLog()->checkErrorsForTimeout();
@@ -56,8 +69,32 @@ void HoymilesWInverter::update() {
     
     if(dtuGlobalData.updateReceived){
         _dtuInterface.printDataAsTextToSerial();
+        FetchedDataSample data = _dtuInterface.getLastFetchedData();
+        int32_t * buff = (int32_t *)&data;
+        for(int i=0;i<sizeof(FetchedDataSample)/4;i++){
+            buff[i] = changeEndianness32(buff[i]);
+        }
         dtuGlobalData.updateReceived = false;
+        Serial.printf("Size: %d\n",sizeof(FetchedDataSample));
+
+        swapBuffers(&data);
     }
+
+}
+
+void HoymilesWInverter::swapBuffers(const FetchedDataSample *data) {
+    _statisticsParser->beginAppendFragment();
+    _statisticsParser->clearBuffer();
+    _statisticsParser->appendFragment(0, (const uint8_t*)data, sizeof(FetchedDataSample));
+    _statisticsParser->setLastUpdate(millis());
+    _statisticsParser->resetRxFailureCount();
+    _statisticsParser->endAppendFragment();
+
+    /*
+    _devInfoParser->clearBuffer();
+    _devInfoParser->appendFragment(0,_payloadStatisticBuffer+44,2);
+    _devInfoParser->setLastUpdate(millis());
+    */
 }
 
 uint64_t HoymilesWInverter::serial() const {
@@ -81,7 +118,7 @@ bool HoymilesWInverter::isProducing() {
 }
 
 bool HoymilesWInverter::isReachable() {
-    return false;//TODO iplement
+    return dtuConnection.dtuConnectionOnline;
 }
 
 bool HoymilesWInverter::sendActivePowerControlRequest(float limit, PowerLimitControlType type) {
@@ -98,6 +135,7 @@ bool HoymilesWInverter::sendRestartControlRequest() {
 }
 
 bool HoymilesWInverter::sendPowerControlRequest(bool turnOn) {
+    return false;
 }
 
 inverter_type HoymilesWInverter::getInverterType() const {

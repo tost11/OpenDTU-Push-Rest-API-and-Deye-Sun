@@ -6,14 +6,9 @@
 #include <mutex>
 #include <HardwareSerial.h>
 #include "BaseInverterHandler.h"
-#include "parser/DeyeDevInfo.h"
-#include "parser/DeyeSystemConfigPara.h"
-#include "parser/DeyeAlarmLog.h"
-#include "parser/DeyeGridProfile.h"
-#include "parser/StatisticsParser.h"
 #include "inverters/DeyeInverter.h"
 
-class DeyeSunClass: public BaseInverterHandler<DeyeInverter,StatisticsParser,DeyeDevInfo,DeyeSystemConfigPara,DeyeAlarmLog,DeyeGridProfile,PowerCommandParser> {
+class DeyeSunClass: public BaseInverterHandler<DeyeInverter,DefaultStatisticsParser,DeyeDevInfo,DeyeSystemConfigPara,DeyeAlarmLog,DeyeGridProfile,PowerCommandParser> {
 public:
     DeyeSunClass();
 

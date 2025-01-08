@@ -7,7 +7,7 @@
 #include "InverterUtils.h"
 
 template<class InverterType,class StatT,class DevT,class SysT,class AlarmT,class GridT,
-        typename = std::enable_if_t<std::is_base_of<BaseStatistics,StatT>::value>,
+        typename = std::enable_if<std::is_base_of<BaseStatistics,StatT>::value>,
         typename = std::enable_if<std::is_base_of<BaseDevInfo,DevT>::value>,
         typename = std::enable_if<std::is_base_of<BaseSystemConfigPara,SysT>::value>,
         typename = std::enable_if<std::is_base_of<BaseAlarmLog,AlarmT>::value>,

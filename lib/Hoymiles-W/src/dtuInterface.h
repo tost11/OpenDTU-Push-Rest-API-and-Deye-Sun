@@ -1,6 +1,8 @@
 #ifndef DTUINTERFACE_H
 #define DTUINTERFACE_H
 
+#include <mutex>
+
 #include <Arduino.h>
 #include <ArduinoJson.h>
 
@@ -17,6 +19,7 @@
 #include "CommandPB.pb.h"
 #include "CRC16.h"
 #include "dtuConst.h"
+#include "parser/HoymilesWStatisticsParser.h"
 
 #include <Config.h>
 
@@ -85,9 +88,8 @@ struct inverterData
   boolean uptodate = false;
   boolean updateReceived = false;
   int dtuResetRequested = 0;
+  uint8_t readDataBuff[1000];
 };
-
-
 
 extern inverterData dtuGlobalData;
 extern connectionControl dtuConnection;
@@ -115,6 +117,7 @@ public:
     void printDataAsTextToSerial();
     void printDataAsJsonToSerial();  
 
+    FetchedDataSample getLastFetchedData();
 private:
     Ticker keepAliveTimer; // Timer to send keep-alive messages
     static void keepAliveStatic(DTUInterface* dtuInterface); // Static method for timer callback
@@ -168,6 +171,9 @@ private:
     unsigned long lastSwOff = 0;
 
     static float calcValue(int32_t value, int32_t divider = 10);
+
+    std::mutex _lastFetchedDataMutex;
+    FetchedDataSample _lastFetchedData;
 };
 
 extern DTUInterface dtuInterface;
