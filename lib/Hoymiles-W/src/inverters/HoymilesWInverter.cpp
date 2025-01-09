@@ -42,21 +42,6 @@ String HoymilesWInverter::serialToModel(uint64_t serial) {
     return "Unknown";
 }
 
-
-int32_t changeEndianness32(int32_t val)
-{
-    return (val << 24) |
-          ((val <<  8) & 0x00ff0000) |
-          ((val >>  8) & 0x0000ff00) |
-          ((val >> 24) & 0x000000ff);
-}
-
-int16_t changeEndianness16(int16_t val)
-{
-    return (val << 8) |          // left-shift always fills with zeros
-          ((val >> 8) & 0x00ff); // right-shift sign-extends, so force to zero
-}
-
 void HoymilesWInverter::update() {
 
     EventLog()->checkErrorsForTimeout();
@@ -67,25 +52,22 @@ void HoymilesWInverter::update() {
         _dtuInterface.getDataUpdate();
     }
     
-    if(dtuGlobalData.updateReceived){
+    auto data = _dtuInterface.newDataAvailable();
+    //TODO refactor
+    if(data.get() != nullptr){
         _dtuInterface.printDataAsTextToSerial();
-        FetchedDataSample data = _dtuInterface.getLastFetchedData();
-        int32_t * buff = (int32_t *)&data;
-        for(int i=0;i<sizeof(FetchedDataSample)/4;i++){
-            buff[i] = changeEndianness32(buff[i]);
-        }
-        dtuGlobalData.updateReceived = false;
-        Serial.printf("Size: %d\n",sizeof(FetchedDataSample));
+        Serial.printf("Voltage: %u\n",data.get()->grid.voltage);
+        Serial.printf("Size: %d\n",sizeof(InverterData));
 
-        swapBuffers(&data);
+        swapBuffers(data.get());
     }
 
 }
 
-void HoymilesWInverter::swapBuffers(const FetchedDataSample *data) {
+void HoymilesWInverter::swapBuffers(const InverterData *data) {
     _statisticsParser->beginAppendFragment();
     _statisticsParser->clearBuffer();
-    _statisticsParser->appendFragment(0, (const uint8_t*)data, sizeof(FetchedDataSample));
+    _statisticsParser->appendFragment(0, (const uint8_t*)data, sizeof(InverterData));
     _statisticsParser->setLastUpdate(millis());
     _statisticsParser->resetRxFailureCount();
     _statisticsParser->endAppendFragment();
@@ -118,7 +100,7 @@ bool HoymilesWInverter::isProducing() {
 }
 
 bool HoymilesWInverter::isReachable() {
-    return dtuConnection.dtuConnectionOnline;
+    return _dtuInterface.isSocketConnected();
 }
 
 bool HoymilesWInverter::sendActivePowerControlRequest(float limit, PowerLimitControlType type) {

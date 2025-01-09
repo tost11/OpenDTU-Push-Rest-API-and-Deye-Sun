@@ -47,6 +47,7 @@ typedef struct {
     uint8_t num; // number of bytes in buffer
     uint16_t div; // divisor / calc command
     bool isSigned; // allow negative numbers
+    bool littleEndian; // allow little Endian numbers
     uint8_t digits; // number of valid digits after the decimal point
 } byteAssign_t;
 

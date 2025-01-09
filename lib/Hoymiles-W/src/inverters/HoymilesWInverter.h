@@ -55,7 +55,7 @@ public:
 
     void startConnection();
 
-    void swapBuffers(const FetchedDataSample *data);
+    void swapBuffers(const InverterData *data);
 private:
     Print & _messageOutput;
     uint64_t _serial;

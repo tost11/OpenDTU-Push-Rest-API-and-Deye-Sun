@@ -47,7 +47,7 @@
 #define DTU_TXRX_STATE_ERROR 99
 
 
-struct connectionControl
+struct ConnectionControl
 {
   boolean preventCloudErrors = true;
   boolean dtuConnectionOnline = true;          // true if connection is online as valued a summary
@@ -59,35 +59,6 @@ struct connectionControl
   uint8_t dtuConnectRetriesShort = 0;
   uint8_t dtuConnectRetriesLong = 0;
   unsigned long pauseStartTime = 0;
-};
-
-struct baseData
-{
-  float current = 0;
-  float voltage = 0;
-  float power = -1;
-  float dailyEnergy = 0;
-  float totalEnergy = 0;
-};
-
-struct inverterData
-{
-  baseData grid;
-  baseData pv0;
-  baseData pv1;
-  float gridFreq = 0;
-  float inverterTemp = 0;
-  uint8_t powerLimit = 254;
-  uint8_t powerLimitSet = 101; // init with not possible value for startup
-  boolean powerLimitSetUpdate = false;
-  uint32_t dtuRssi = 0;
-  uint32_t wifi_rssi_gateway = 0;
-  uint32_t respTimestamp = 1704063600;     // init with start time stamp > 0
-  uint32_t lastRespTimestamp = 1704063600; // init with start time stamp > 0
-  uint32_t currentTimestamp = 1704063600; // init with start time stamp > 0
-  boolean uptodate = false;
-  boolean updateReceived = false;
-  int dtuResetRequested = 0;
 };
 
 typedef void (*DataRetrievalCallback)(const char* data, size_t dataSize, void* userContext);
@@ -110,13 +81,15 @@ public:
     void requestRestartDevice();
 
     void printDataAsTextToSerial();
-    void printDataAsJsonToSerial();  
 
-    FetchedDataSample getLastFetchedData();
+    bool isSocketConnected();
+
+    std::unique_ptr<InverterData> newDataAvailable();
 private:
 
-    connectionControl dtuConnection;
-    inverterData dtuGlobalData;
+    ConnectionControl dtuConnection;
+    InverterData inverterData;
+    std::mutex inverterDataMutex;
 
     Ticker keepAliveTimer; // Timer to send keep-alive messages
     static void keepAliveStatic(DTUInterface* dtuInterface); // Static method for timer callback
@@ -169,9 +142,6 @@ private:
     unsigned long lastSwOff = 0;
 
     static float calcValue(int32_t value, int32_t divider = 10);
-
-    std::mutex _lastFetchedDataMutex;
-    FetchedDataSample _lastFetchedData;
 };
 
 extern DTUInterface dtuInterface;

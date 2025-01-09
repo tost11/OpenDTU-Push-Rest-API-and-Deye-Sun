@@ -144,6 +144,15 @@ fieldSettings_t* StatisticsParser::getSettingByChannelField(const ChannelType_t 
     return nullptr;
 }
 
+uint32_t changeEndianness32(uint32_t val)
+{
+    return (val << 24) |
+          ((val <<  8) & 0x00ff0000) |
+          ((val >>  8) & 0x0000ff00) |
+          ((val >> 24) & 0x000000ff);
+}
+
+
 float StatisticsParser::getChannelFieldValue(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId)
 {
     const byteAssign_t* pos = getAssignmentByChannelField(type, channel, fieldId);
@@ -151,20 +160,39 @@ float StatisticsParser::getChannelFieldValue(const ChannelType_t type, const Cha
         return 0;
     }
 
-    uint8_t ptr = pos->start;
-    const uint8_t end = ptr + pos->num;
-    const uint16_t div = pos->div;
-
-    if (CMD_CALC != div) {
+    if (CMD_CALC != pos->div) {
         // Value is a static value
         uint32_t val = 0;
         HOY_SEMAPHORE_TAKE();
-        do {
-            val <<= 8;
-            val |= _payloadStatistic[ptr];
-        } while (++ptr != end);
+        if(pos->littleEndian){
+            uint8_t ptr = pos->start;
+            const uint8_t end = ptr + pos->num;
+            do {
+                val <<= 8;
+                val |= _payloadStatistic[ptr];
+            } while (++ptr != end);
+        }else{
+            uint8_t ptr = pos->start + pos->num;
+            const uint8_t end = pos->start;
+            do {
+                val <<= 8;
+                val |= _payloadStatistic[ptr-1];
+            } while (--ptr != end);
+        }
         HOY_SEMAPHORE_GIVE();
 
+        /*
+        if(!pos->littleEndian){
+            if(pos->digits == 2){
+                val <<= 16;
+            }
+            if(pos->digits == 1){
+                val <<= 24;
+            }
+            val = changeEndianness32(val);
+        }
+        HOY_SEMAPHORE_GIVE();
+        */
         float result;
         if (pos->isSigned && pos->num == 2) {
             result = static_cast<float>(static_cast<int16_t>(val));
@@ -174,7 +202,7 @@ float StatisticsParser::getChannelFieldValue(const ChannelType_t type, const Cha
             result = static_cast<float>(val);
         }
 
-        result /= static_cast<float>(div);
+        result /= static_cast<float>(pos->div);
 
         const fieldSettings_t* setting = getSettingByChannelField(type, channel, fieldId);
         if (setting != nullptr && _statisticLength > 0) {
