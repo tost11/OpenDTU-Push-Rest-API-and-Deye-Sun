@@ -1,12 +1,12 @@
 #pragma once
 
-#include <Print.h>
 #include <memory>
 #include <vector>
 #include <mutex>
-#include <HardwareSerial.h>
 #include "BaseInverterHandler.h"
 #include "inverters/DeyeInverter.h"
+
+class Print;
 
 class DeyeSunClass: public BaseInverterHandler<DeyeInverter,DefaultStatisticsParser,DeyeDevInfo,DeyeSystemConfigPara,DeyeAlarmLog,DeyeGridProfile,PowerCommandParser> {
 public:

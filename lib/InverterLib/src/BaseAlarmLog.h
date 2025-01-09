@@ -2,12 +2,10 @@
 // Created by lukas on 24.11.23.
 //
 
-#ifndef OPENDTU_DEYE_SUN_BASEALARMLOG_H
-#define OPENDTU_DEYE_SUN_BASEALARMLOG_H
+#pragma once
 
 #include <ctime>
 #include <WString.h>
-#include <cstdint>
 #include <array>
 #include "Updater.h"
 
@@ -57,6 +55,3 @@ public:
 protected:
     static const std::array<const AlarmMessage_t, ALARM_MSG_COUNT> _alarmMessages;
 };
-
-
-#endif //OPENDTU_DEYE_SUN_BASEALARMLOG_H

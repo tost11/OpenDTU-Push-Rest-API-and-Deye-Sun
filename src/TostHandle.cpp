@@ -6,7 +6,7 @@
 #include "Configuration.h"
 #include "Datastore.h"
 #include "MessageOutput.h"
-#include <Hoymiles.h>
+#include "InverterHandler.h"
 #include <HTTPClient.h>
 #include <ctime>
 #include <ArduinoJson.h>
@@ -51,7 +51,7 @@ void TostHandleClass::loop()
     //channel 2 -> temperature
     //9: temperature
 
-    if (!Configuration.get().Tost.Enabled || !Hoymiles.isAllRadioIdle()) {
+    if (!Configuration.get().Tost.Enabled || !InverterHandler.isAllRadioIdle()) {
         //MessageOutput.println("tost skip");
         return;
     }
@@ -64,14 +64,14 @@ void TostHandleClass::loop()
 
         auto toClean = _lastPublishedInverters;
 
-        for (uint8_t i = 0; i < Hoymiles.getNumInverters(); i++) {
+        for (uint8_t i = 0; i < InverterHandler.getNumInverters(); i++) {
 
-            auto inv = Hoymiles.getInverterByPos(i);
+            auto inv = InverterHandler.getInverterByPos(i);
             if (inv->DevInfo()->getLastUpdate() <= 0) {
                 continue;
             }
 
-            std::string uniqueId = inv->serialString().c_str();
+            std::string uniqueId = generateUniqueId(*inv);
             toClean.erase(uniqueId);
         }
 
@@ -82,14 +82,14 @@ void TostHandleClass::loop()
         }
     }
 
-    for (uint8_t i = 0; i < Hoymiles.getNumInverters(); i++) {
+    for (uint8_t i = 0; i < InverterHandler.getNumInverters(); i++) {
 
-        auto inv = Hoymiles.getInverterByPos(i);
+        auto inv = InverterHandler.getInverterByPos(i);
         if (inv->DevInfo()->getLastUpdate() <= 0) {
             continue;
         }
 
-        std::string uniqueID = inv->serialString().c_str();
+        std::string uniqueID = generateUniqueId(*inv);
         uint32_t cachedLastUpdate = 0;
         auto it = _lastPublishedInverters.find(uniqueID);
         if(it != _lastPublishedInverters.end()){
@@ -261,6 +261,10 @@ void TostHandleClass::runNextHttpRequest() {
     MessageOutput.println("Thread finished request");
 
     _currentlySendingData = nullptr;
+}
+
+std::string TostHandleClass::generateUniqueId(const BaseInverterClass &inv) {
+    return (from_inverter_type(inv.getInverterType()) + inv.serialString()).c_str();
 }
 
 void TostHandleClass::handleResponse()

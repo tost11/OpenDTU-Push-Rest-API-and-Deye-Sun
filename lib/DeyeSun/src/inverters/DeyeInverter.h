@@ -9,7 +9,6 @@
 #include <DefaultStatisticsParser.h>
 #include "parser/SystemConfigParaParser.h"
 #include "parser/PowerCommandParser.h"
-#include <Arduino.h>
 #include <cstdint>
 #include <list>
 #include <Ethernet.h>
@@ -137,7 +136,7 @@ private:
 
     bool _startCommand;
     virtual const std::vector<RegisterMapping> & getRegisteresToRead() = 0;
-    int _errorCounter;
+    int _errorCounter = -1;
 
     uint64_t _serial;
     char _hostnameOrIp[MAX_NAME_HOST] = "";

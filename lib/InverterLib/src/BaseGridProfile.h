@@ -5,7 +5,6 @@
 
 
 #include <vector>
-#include <cstdint>
 #include "Updater.h"
 
 class BaseGridProfile : public Updater {

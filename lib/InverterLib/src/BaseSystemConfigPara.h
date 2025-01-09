@@ -2,11 +2,8 @@
 // Created by lukas on 24.11.23.
 //
 
-#ifndef OPENDTU_DEYE_SUN_BASESYSTEMCONFIGPARA_H
-#define OPENDTU_DEYE_SUN_BASESYSTEMCONFIGPARA_H
+#pragma once
 
-
-#include <cstdint>
 #include "defines.h"
 #include "Updater.h"
 
@@ -16,5 +13,3 @@ public:
     virtual LastCommandSuccess getLastLimitCommandSuccess() const = 0;
 };
 
-
-#endif //OPENDTU_DEYE_SUN_BASESYSTEMCONFIGPARA_H

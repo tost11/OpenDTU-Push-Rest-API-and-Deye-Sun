@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdint>
 #include <ctime>
 #include <WString.h>
 #include "Updater.h"

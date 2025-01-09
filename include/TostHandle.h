@@ -5,10 +5,10 @@
 #include "Configuration.h"
 #include <TaskSchedulerDeclarations.h>
 #include <ArduinoJson.h>
+#include <future>
+#include <HTTPClient.h>
+#include <BaseInverter.h>
 #include <queue>
-#include <thread>
-
-class HTTPClient;
 
 class TostHandleClass {
 public:
@@ -36,6 +36,8 @@ private:
     TimeoutHelper restTimeout;
 
     const long TIMER_CLEANUP = 1000 * 60 * 5;
+
+    std::string generateUniqueId(const BaseInverterClass & inv);
 
     void handleResponse();
 

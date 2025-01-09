@@ -6,6 +6,9 @@
 #include <sstream>
 #include <ios>
 #include <iomanip>
+#include <WiFi.h>
+#include <WiFiUdp.h>
+
 
 unsigned DeyeInverter::hex_char_to_int( char c ) {
     unsigned result = -1;

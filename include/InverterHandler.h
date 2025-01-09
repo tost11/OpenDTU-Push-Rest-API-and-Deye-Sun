@@ -2,7 +2,6 @@
 
 #include <vector>
 #include "BaseInverterHandler.h"
-#include "Configuration.h"
 
 class InverterHandlerClass {
 public:
