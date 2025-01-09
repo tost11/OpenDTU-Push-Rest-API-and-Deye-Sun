@@ -27,8 +27,11 @@ public:
     Print* getMessageOutput();
 
     std::shared_ptr<InverterAbstract> addInverter(const char* name, const uint64_t serial);
-    std::shared_ptr<InverterAbstract> getInverterByPos(const uint8_t pos) override;
-    std::shared_ptr<InverterAbstract> getInverterBySerial(const uint64_t serial) override;
+
+    std::shared_ptr<InverterAbstract> getInverterByPos(const uint8_t pos);
+    std::shared_ptr<InverterAbstract> getInverterBySerial(const uint64_t serial);
+    std::shared_ptr<InverterAbstract> getInverterBySerialString(const String & serialString);
+
     std::shared_ptr<InverterAbstract> getInverterByFragment(const fragment_t& fragment);
     void removeInverterBySerial(const uint64_t serial) override;
 

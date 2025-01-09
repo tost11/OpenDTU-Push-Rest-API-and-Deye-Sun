@@ -9,6 +9,7 @@
         "SecuritySettings": "Sicherheit",
         "DTUSettings": "DTU",
         "DeviceManager": "Hardware",
+        "ServoManager": "Servo Anzeige",
         "ConfigManagement": "Konfigurationsverwaltung",
         "FirmwareUpgrade": "Firmware-Aktualisierung",
         "DeviceReboot": "Neustart",
@@ -106,7 +107,8 @@
         "10002": "Authentifizierung erfolgreich!",
         "11001": "@:apiresponse.2001",
         "11002": "@:apiresponse:5004",
-        "12001": "Profil muss zwischen 1 und {max} Zeichen lang sein!"
+        "12001": "Profil muss zwischen 1 und {max} Zeichen lang sein!",
+        "14010": "Servo Test wurde gestartet!"
     },
     "home": {
         "LiveData": "Live-Daten",
@@ -655,7 +657,21 @@
         "fr": "Französisch",
         "Leds": "LEDs",
         "EqualBrightness": "Gleiche Helligkeit:",
-        "LedBrightness": "LED {led} Helligkeit ({brightness}):"
+        "LedBrightness": "LED {led} Helligkeit ({brightness}):",
+        "servo": "Servo",
+        "servoResoution": "Auflösung",
+        "servoRangeMin": "Anschlag Minium",
+        "servoRangeMax": "Anschlag Maximum",
+        "servoSerial": "Seriennumer",
+        "servoInputIndex": "Eingangs Index",
+        "servoPower": "Leistung",
+        "servoUnitFrequency": "Hz",
+        "servoFrequency": "Frequenz",
+        "servoUnitPower": "W",
+        "servoHintPower": "Wert ab dem die Anzeige am Maximum ist",
+        "servoHintSerial": "Seriennummer des zu verwenden Inverters (0 = erster gefundene)",
+        "servoHintInputIndex": "Index des DC Eingangs der für die Berechnung verwendet werden soll (0 = Alle)",
+        "testServo": "Servo testen"
     },
     "pininfo": {
         "PinOverview": "Anschlussübersicht",

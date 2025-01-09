@@ -9,6 +9,7 @@
         "SecuritySettings": "Security Settings",
         "DTUSettings": "DTU Settings",
         "DeviceManager": "Device-Manager",
+        "ServoManager": "Servo Display",
         "ConfigManagement": "Config Management",
         "FirmwareUpgrade": "Firmware Upgrade",
         "DeviceReboot": "Device Reboot",
@@ -109,7 +110,8 @@
         "10002": "Authentication successful!",
         "11001": "@:apiresponse.2001",
         "11002": "@:apiresponse:5004",
-        "12001": "Profil must between 1 and {max} characters long!"
+        "12001": "Profil must between 1 and {max} characters long!",
+        "14010": "servo test started!"
     },
     "home": {
         "LiveData": "Live Data",
@@ -658,7 +660,21 @@
         "fr": "French",
         "Leds": "LEDs",
         "EqualBrightness": "Equal brightness:",
-        "LedBrightness": "LED {led} brightness ({brightness}):"
+        "LedBrightness": "LED {led} brightness ({brightness}):",
+        "servo": "Servo",
+        "servoResolution": "Resolution",
+        "servoRangeMin": "Cap Min",
+        "servoRangeMax": "Cap Max",
+        "servoSerial": "Serial",
+        "servoInputIndex": "Input Index",
+        "servoPower": "Power",
+        "servoUnitFrequency": "Hz",
+        "servoFrequency": "Frequency",
+        "servoUnitPower": "W",
+        "servoHintPower": "Value on that Servo Display is at max",
+        "servoHintSerial": "Serial of inverter to use (0 = first one found)",
+        "servoHintInputIndex": "Index of DC Input that is used for calculation (0 = all)",
+        "testServo": "test servo"
     },
     "pininfo": {
         "PinOverview": "Connection overview",
