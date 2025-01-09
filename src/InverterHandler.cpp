@@ -73,6 +73,6 @@ void InverterHandlerClass::removeInverterBySerial(uint64_t serial,inverter_type 
     }else if(inverterType == Inverter_DeyeSun){
         DeyeSun.removeInverterBySerial(serial);
     }else if(inverterType == Inverter_HoymilesW){
-        DeyeSun.removeInverterBySerial(serial);
+        HoymilesW.removeInverterBySerial(serial);
     }
 }

@@ -20,6 +20,8 @@ struct InverterData
   BaseData pv[4];
   uint16_t gridFreq = 0;
   int16_t inverterTemp = 0;
+  uint16_t reactivePower = 0;
+  uint16_t powerFactor = 0;
   uint8_t powerLimit = 254;
   uint8_t powerLimitSet = 101; // init with not possible value for startup
   boolean powerLimitSetUpdate = false;

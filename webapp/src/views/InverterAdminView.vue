@@ -18,7 +18,7 @@
                     <label>{{ $t('inverteradmin.Serial') }}</label>
                     <InputSerial v-if="newInverterData.manufacturer === 'DeyeSun'" type="DeyeSun" v-model="newInverterData.serial" inputClass="ml-sm-2 mr-sm-4 my-2" required />
                     <InputSerial v-if="newInverterData.manufacturer === 'Hoymiles'" type="Hoymiles" v-model="newInverterData.serial" inputClass="ml-sm-2 mr-sm-4 my-2" required />
-                    <InputSerial v-if="newInverterData.manufacturer === 'HoymilesW'" type="DeyeSun" v-model="newInverterData.serial" inputClass="ml-sm-2 mr-sm-4 my-2" required />
+                    <InputSerial v-if="newInverterData.manufacturer === 'HoymilesW'" type="HoymilesW" v-model="newInverterData.serial" inputClass="ml-sm-2 mr-sm-4 my-2" required />
                 </div>
                 <div class="form-group">
                     <label>{{ $t('inverteradmin.Name') }}</label>
@@ -168,7 +168,7 @@
                     </label>
                     <InputSerial v-if="selectedInverterData.manufacturer === 'DeyeSun'" type="DeyeSun" v-model="selectedInverterData.serial" id="inverter-serial"/>
                     <InputSerial v-if="selectedInverterData.manufacturer === 'Hoymiles'" type="Hoymiles" v-model="selectedInverterData.serial" id="inverter-serial"/>
-                    <InputSerial v-if="selectedInverterData.manufacturer === 'HoymilesW'" type="DeyeSun" v-model="selectedInverterData.serial" id="inverter-serial"/>
+                    <InputSerial v-if="selectedInverterData.manufacturer === 'HoymilesW'" type="Hoymiles" v-model="selectedInverterData.serial" id="inverter-serial"/>
                     <label for="inverter-name" class="col-form-label"
                         >{{ $t('inverteradmin.InverterName') }}
                         <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterNameHint')" />
@@ -235,7 +235,7 @@
                 tabindex="0"
             >
                 <div v-for="(ch, index) in selectedInverterData.channel" :key="`${index}`">
-                <span v-if="selectedInverterData.manufacturer != 'DeyeSun' || index <2">
+                <span v-if="(selectedInverterData.manufacturer != 'DeyeSun' && selectedInverterData.manufacturer != 'HoymilesW') || index <2">
                     <div class="row g-2">
                         <div class="col-md">
                             <label :for="`inverter-name_${index}`" class="col-form-label">

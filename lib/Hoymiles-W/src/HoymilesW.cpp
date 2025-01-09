@@ -2,6 +2,8 @@
 #include "inverters/HoymilesWInverter.h"
 #include "inverters/HMS_W_1T.h"
 #include "inverters/HMS_W_2T.h"
+#include "inverters/HMS_W_3T.h"
+#include "inverters/HMS_W_4T.h"
 
 HoymilesWClass HoymilesW;
 
@@ -37,13 +39,17 @@ void HoymilesWClass::loop()
 std::shared_ptr<HoymilesWInverter> HoymilesWClass::addInverter(const char* name, uint64_t serial,const char* hostnameOrIp,uint16_t port)
 {
     std::shared_ptr<HoymilesWInverter> i = nullptr;
-
-    String type = HoymilesWInverter::serialToModel(serial);
-
-    if(type.startsWith("SUN300G3")){
-        i = std::reinterpret_pointer_cast<HoymilesWInverter>(std::make_shared<HMS_W_1T>(serial,type,*_messageOutput));
+    if (HMS_W_1T::isValidSerial(serial)) {
+        i = std::make_shared<HMS_W_1T>(serial,*_messageOutput);
+    }else if (HMS_W_2T::isValidSerial(serial)) {
+        i = std::make_shared<HMS_W_2T>(serial,*_messageOutput);
+    }else if (HMS_W_3T::isValidSerial(serial)) {
+        i = std::make_shared<HMS_W_3T>(serial,*_messageOutput);
+    }else if (HMS_W_4T::isValidSerial(serial)) {
+        i = std::make_shared<HMS_W_4T>(serial,*_messageOutput);
     }else{
-        i = std::reinterpret_pointer_cast<HoymilesWInverter>(std::make_shared<HMS_W_2T>(serial,type,*_messageOutput));
+        i = std::make_shared<HMS_W_4T>(serial,*_messageOutput);
+        i->DevInfo()->setHardwareModel("Unknown");
     }
 
     if (i) {

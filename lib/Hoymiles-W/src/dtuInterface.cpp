@@ -73,18 +73,38 @@ void DTUInterface::disconnect(uint8_t tgtState)
     }
 }
 
-void DTUInterface::getDataUpdate()
+bool DTUInterface::requestDataUpdate()
 {
     if (client->connected())
-        writeReqRealDataNew();
+        if(dtuConnection.dtuTxRxState == DTU_TXRX_STATE_IDLE){
+            writeReqRealDataNew();
+            return true;
+        }
     else
     {
         inverterData.uptodate = false;
-        Serial.println(F("DTUinterface:\t getDataUpdate - ERROR - not connected to DTU!"));
+        //Serial.println(F("DTUinterface:\t getDataUpdate - ERROR - not connected to DTU!"));
         // handleError(DTU_ERROR_NO_TIME);
     }
-
+    return false;
 }
+
+bool DTUInterface::requestStatisticUpdate()
+{
+    if (client->connected())
+        if(dtuConnection.dtuTxRxState == DTU_TXRX_STATE_IDLE){
+            writeReqAppGetHistPower();
+            return true;
+        }
+    else
+    {
+        inverterData.uptodate = false;
+        //Serial.println(F("DTUinterface:\t getDataUpdate - ERROR - not connected to DTU!"));
+        // handleError(DTU_ERROR_NO_TIME);
+    }
+    return false;
+}
+
 
 void DTUInterface::setServer(const char *server)
 {
@@ -608,7 +628,11 @@ void DTUInterface::readRespRealDataNew(pb_istream_t istream)
         inverterData.grid.current = static_cast<uint16_t>(gridData.current);
         inverterData.grid.voltage = static_cast<uint16_t>(gridData.voltage);
         inverterData.grid.power = static_cast<uint16_t>(gridData.active_power);
+
         inverterData.inverterTemp = static_cast<int16_t>(gridData.temperature);
+        inverterData.gridFreq = static_cast<uint16_t>(gridData.frequency);
+        inverterData.reactivePower = static_cast<uint16_t>(gridData.reactive_power);
+        inverterData.powerFactor = static_cast<uint16_t>(gridData.power_factor);
 
         for(int i=0;i<4;i++){
             inverterData.pv[i].current = static_cast<uint16_t>(pvData[i].current);
@@ -702,8 +726,8 @@ void DTUInterface::readRespAppGetHistPower(pb_istream_t istream)
 
     pb_decode(&istream, &AppGetHistPowerReqDTO_msg, &appgethistpowerreqdto);
 
-    inverterData.grid.dailyEnergy = appgethistpowerreqdto.daily_energy/1000;
-    inverterData.grid.totalEnergy = appgethistpowerreqdto.total_energy/1000;
+    inverterData.grid.dailyEnergy = appgethistpowerreqdto.daily_energy;
+    inverterData.grid.totalEnergy = appgethistpowerreqdto.total_energy;
 
     // Serial.printf("\n\n start_time: %i", appgethistpowerreqdto.start_time);
     // Serial.printf(" | step_time: %i", appgethistpowerreqdto.step_time);

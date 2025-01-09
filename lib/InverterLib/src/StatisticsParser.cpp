@@ -144,15 +144,6 @@ fieldSettings_t* StatisticsParser::getSettingByChannelField(const ChannelType_t 
     return nullptr;
 }
 
-uint32_t changeEndianness32(uint32_t val)
-{
-    return (val << 24) |
-          ((val <<  8) & 0x00ff0000) |
-          ((val >>  8) & 0x0000ff00) |
-          ((val >> 24) & 0x000000ff);
-}
-
-
 float StatisticsParser::getChannelFieldValue(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId)
 {
     const byteAssign_t* pos = getAssignmentByChannelField(type, channel, fieldId);
@@ -181,18 +172,6 @@ float StatisticsParser::getChannelFieldValue(const ChannelType_t type, const Cha
         }
         HOY_SEMAPHORE_GIVE();
 
-        /*
-        if(!pos->littleEndian){
-            if(pos->digits == 2){
-                val <<= 16;
-            }
-            if(pos->digits == 1){
-                val <<= 24;
-            }
-            val = changeEndianness32(val);
-        }
-        HOY_SEMAPHORE_GIVE();
-        */
         float result;
         if (pos->isSigned && pos->num == 2) {
             result = static_cast<float>(static_cast<int16_t>(val));

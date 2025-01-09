@@ -88,10 +88,21 @@ export default defineComponent({
                 this.formatShow = 'danger';
               }
             }else if(this.type === 'DeyeSun'){
+              //TODO find out Deye Sun serial validation
               // Contains only numbers
               if (/^[0-9]{10}$/.test(serial)) {
                 this.model = serial;
                 this.formatHint = this.$t('inputserial.format_deye');
+              }else {
+                this.formatHint = this.$t('inputserial.format_unknown');
+                this.formatShow = 'danger';
+              }
+            }else if(this.type === 'HoymilesW'){
+              //TODO understand serialnumber check from above hoymiles and add new numbers
+              // Contains only numbers
+              if (/^1412[0-9]{6}$/.test(serial)) {
+                this.model = serial;
+                this.formatHint = this.$t('inputserial.format_hoymiles_w');
               }else {
                 this.formatHint = this.$t('inputserial.format_unknown');
                 this.formatShow = 'danger';

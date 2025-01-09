@@ -12,6 +12,7 @@ public:
     bool occured() const;
     uint32_t currentMillis() const;
     uint32_t dist() const;
+    void zero();
     void print();
 private:
     uint32_t startMillis;

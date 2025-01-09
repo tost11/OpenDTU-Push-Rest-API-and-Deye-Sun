@@ -49,7 +49,6 @@
 
 struct ConnectionControl
 {
-  boolean preventCloudErrors = true;
   boolean dtuConnectionOnline = true;          // true if connection is online as valued a summary
   uint8_t dtuConnectState = DTU_STATE_OFFLINE;
   uint8_t dtuErrorState = DTU_ERROR_NO_ERROR;
@@ -76,7 +75,9 @@ public:
     void disconnect(uint8_t tgtState);
     void flushConnection();    
 
-    void getDataUpdate();
+    bool requestDataUpdate();
+    bool requestStatisticUpdate();
+
     void setPowerLimit(int limit);
     void requestRestartDevice();
 

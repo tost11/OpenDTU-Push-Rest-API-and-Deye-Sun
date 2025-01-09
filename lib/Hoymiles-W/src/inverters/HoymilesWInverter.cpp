@@ -27,38 +27,37 @@ _messageOutput(print)
     _devInfoParser->setMaxPowerDevider(10);
 
     _dataUpdateTimer.set(30 * 1000);
+    _dataUpdateTimer.zero();
+    _dataStatisticTimer.set(30 * 60 * 1000);
+    _dataStatisticTimer.zero();
 
     _enablePolling = true;//TODO make better
-}
-
-
-String HoymilesWInverter::serialToModel(uint64_t serial) {
-    char serial_buff[sizeof(uint64_t) * 8 + 1];
-    snprintf(serial_buff, sizeof(serial_buff), "%0x%08x",
-             ((uint32_t)((serial >> 32) & 0xFFFFFFFF)),
-             ((uint32_t)(serial & 0xFFFFFFFF)));
-    String serialString = serial_buff;
-
-    return "Unknown";
 }
 
 void HoymilesWInverter::update() {
 
     EventLog()->checkErrorsForTimeout();
 
-    if(_dataUpdateTimer.occured()){
-        Serial.println("Fetch new HomilesW inverter data");
-        _dataUpdateTimer.reset();
-        _dtuInterface.getDataUpdate();
+    if(_dtuInterface.isSocketConnected()){
+        if(_dataStatisticTimer.occured()){
+            if(_dtuInterface.requestStatisticUpdate()){
+                _dataStatisticTimer.reset();
+            }
+        }
+        if(_dataUpdateTimer.occured()){
+            if(_dtuInterface.requestDataUpdate()){
+                _dataUpdateTimer.reset();
+            }
+        }
+    }else{
+        _dataUpdateTimer.zero();
+        _dataStatisticTimer.zero();
     }
     
     auto data = _dtuInterface.newDataAvailable();
     //TODO refactor
     if(data.get() != nullptr){
         _dtuInterface.printDataAsTextToSerial();
-        Serial.printf("Voltage: %u\n",data.get()->grid.voltage);
-        Serial.printf("Size: %d\n",sizeof(InverterData));
-
         swapBuffers(data.get());
     }
 

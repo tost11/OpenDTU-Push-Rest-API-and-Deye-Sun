@@ -46,8 +46,6 @@ public:
 
     inverter_type getInverterType() const override;
 
-    static String serialToModel(uint64_t serial);
-
     void setEnableCommands(const bool enabled) override;
 
     void setHostnameOrIp(const char * hostOrIp);
@@ -63,4 +61,5 @@ private:
     DTUInterface _dtuInterface;
 
     TimeoutHelper _dataUpdateTimer;
+    TimeoutHelper _dataStatisticTimer;
 };
