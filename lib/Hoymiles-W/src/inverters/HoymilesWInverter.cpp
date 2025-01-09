@@ -71,11 +71,10 @@ void HoymilesWInverter::swapBuffers(const InverterData *data) {
     _statisticsParser->resetRxFailureCount();
     _statisticsParser->endAppendFragment();
 
-    /*
     _devInfoParser->clearBuffer();
-    _devInfoParser->appendFragment(0,_payloadStatisticBuffer+44,2);
+    //TODO implement
+    //_devInfoParser->appendFragment(0,_payloadStatisticBuffer+44,2);
     _devInfoParser->setLastUpdate(millis());
-    */
 }
 
 uint64_t HoymilesWInverter::serial() const {
