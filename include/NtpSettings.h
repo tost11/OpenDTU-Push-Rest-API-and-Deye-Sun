@@ -2,12 +2,17 @@
 #pragma once
 
 class NtpSettingsClass {
+private:
+    bool _timeInSync;
 public:
     NtpSettingsClass();
     void init();
 
     void setServer();
     void setTimezone();
+
+    bool isTimeInSync()const{return _timeInSync;}
+    void setTimeInSync(bool sync);
 };
 
 extern NtpSettingsClass NtpSettings;
