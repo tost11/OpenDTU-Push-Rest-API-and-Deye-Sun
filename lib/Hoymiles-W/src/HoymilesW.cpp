@@ -99,6 +99,15 @@ size_t HoymilesWClass::getNumInverters() const
     return _inverters.size();
 }
 
+std::shared_ptr<HoymilesWInverter> HoymilesWClass::getInverterBySerialString(const String & serialString)
+{
+    for (uint8_t i = 0; i < _inverters.size(); i++) {
+        if (_inverters[i]->serialString() == serialString) {
+            return _inverters[i];
+        }
+    }
+    return nullptr;
+}
 
 bool HoymilesWClass::isAllRadioIdle() const
 {

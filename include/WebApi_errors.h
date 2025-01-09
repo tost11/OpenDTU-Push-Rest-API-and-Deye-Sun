@@ -97,6 +97,13 @@ enum WebApiError {
     HardwareBase = 12000,
     HardwarePinMappingLength,
 
+    TostBase = 13000,
+    TostUrlLength,
+    TostSecondUrlLength,
+    TostSystemIdLength,
+    TostTokenLength,
+    TostDuration,
+
     ServoBase = 14000,
     ServoFrequency,
     ServoResolution,
@@ -108,4 +115,5 @@ enum WebApiError {
     ServoIndex,
     ServoPower,
     ServoTestStarted
+
 };

@@ -30,6 +30,13 @@
 #define NTP_LATITUDE 51.1657f
 #define NTP_SUNSETTYPE 1U
 
+#define TOST_ENABLED false
+#define TOST_URL "https://solar.pihost.org"
+#define TOST_SECOND_URL "https://solar.tost-soft.de"
+#define TOST_SYSTEM_ID ""
+#define TOST_TOKEN ""
+#define TOST_DURATION 30
+
 #define MQTT_ENABLED false
 #define MQTT_HOST ""
 #define MQTT_PORT 1883U

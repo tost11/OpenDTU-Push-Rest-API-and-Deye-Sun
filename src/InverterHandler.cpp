@@ -67,6 +67,43 @@ std::shared_ptr<BaseInverterClass> InverterHandlerClass::getInverterBySerial(uin
     return nullptr;
 }
 
+std::shared_ptr<BaseInverterClass> InverterHandlerClass::getInverterBySerial(uint64_t serial) {
+    auto ret =  std::reinterpret_pointer_cast<BaseInverterClass>(Hoymiles.getInverterBySerial(serial));
+    if(ret != nullptr){
+        return ret;
+    }
+    ret = std::reinterpret_pointer_cast<BaseInverterClass>(DeyeSun.getInverterBySerial(serial));
+    if(ret != nullptr){
+        return ret;
+    }
+ 
+    ret = std::reinterpret_pointer_cast<BaseInverterClass>(HoymilesW.getInverterBySerial(serial));
+    if(ret != nullptr){
+        return ret;
+    }
+
+    return nullptr;
+}
+
+
+std::shared_ptr<BaseInverterClass> InverterHandlerClass::getInverterBySerialString(const String & serial) {
+    auto ret = std::reinterpret_pointer_cast<BaseInverterClass>(Hoymiles.getInverterBySerialString(serial));
+    if(ret != nullptr){
+        return ret;
+    }
+    ret = std::reinterpret_pointer_cast<BaseInverterClass>(DeyeSun.getInverterBySerialString(serial));
+    if(ret != nullptr){
+        return ret;
+    }
+ 
+    ret = std::reinterpret_pointer_cast<BaseInverterClass>(HoymilesW.getInverterBySerialString(serial));
+    if(ret != nullptr){
+        return ret;
+    }
+    
+    return nullptr;
+}
+
 void InverterHandlerClass::removeInverterBySerial(uint64_t serial,inverter_type inverterType) {
     if(inverterType == inverter_type::Inverter_Hoymiles){
         Hoymiles.removeInverterBySerial(serial);

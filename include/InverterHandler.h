@@ -12,6 +12,8 @@ public:
 
     std::shared_ptr<BaseInverterClass> getInverterByPos(uint8_t pos);
     std::shared_ptr<BaseInverterClass> getInverterBySerial(uint64_t serial,inverter_type inverterTyp);
+    std::shared_ptr<BaseInverterClass> getInverterBySerial(uint64_t serial);
+    std::shared_ptr<BaseInverterClass> getInverterBySerialString(const String & serial);
 
     void init();
 

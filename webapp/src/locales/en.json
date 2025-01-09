@@ -5,6 +5,7 @@
         "NetworkSettings": "Network Settings",
         "NTPSettings": "NTP Settings",
         "MQTTSettings": "MQTT Settings",
+        "TostSettings": "Tost's Solar Monitoring Settings",
         "InverterSettings": "Inverter Settings",
         "SecuritySettings": "Security Settings",
         "DTUSettings": "DTU Settings",
@@ -18,6 +19,7 @@
         "Network": "Network",
         "NTP": "NTP",
         "MQTT": "MQTT",
+        "Tost": "Tost's Solar Monitoring",
         "Console": "Console",
         "About": "About",
         "Logout": "Logout",
@@ -111,6 +113,11 @@
         "11001": "@:apiresponse.2001",
         "11002": "@:apiresponse:5004",
         "12001": "Profil must between 1 and {max} characters long!",
+        "13001": "Primary URL must between 1 and {max} characters long!",
+        "13002": "Secondary URL must between 1 and {max} characters long!",
+        "13003": "System Id must between 1 and {max} characters long!",
+        "13004": "System Token must between 1 and {max} characters long!",
+        "13005": "Duration must be a number between {min} and {max}!",
         "14010": "servo test started!"
     },
     "home": {
@@ -325,6 +332,25 @@
         "Day": "Day",
         "Night": "Night"
     },
+    "tostinfo": {
+        "tostInformation": "Tost's Solar Monitoring Information",
+        "ConfigurationSummary": "@:ntpinfo.ConfigurationSummary",
+        "Status": "@:ntpinfo.Status",
+        "Enabled": "Enabled",
+        "Disabled": "Disabled",
+        "Url": "Primary URL",
+        "SecondUrl": "Secondary URL",
+        "SystemId": "System Id",
+        "Duration": "Publish Interval",
+        "Seconds": "{sec} seconds",
+        "LastSuccessTimestamp": "Last Time Send Successfull",
+        "LastErrorTimestamp": "Last Time Send Failed",
+        "LastErrorCode": "Last Http Error Code",
+        "LastErrorMessage": "Last Http Error Message",
+        "never": "never",
+        "Summary": "Status Summary",
+        "Error": "Error Summary"
+    },
     "mqttinfo": {
         "MqttInformation": "MQTT Information",
         "ConfigurationSummary": "@:ntpinfo.ConfigurationSummary",
@@ -468,6 +494,22 @@
         "Minutes": "minutes",
         "EnableMdns": "Enable mDNS",
         "MdnsSettings": "mDNS Settings"
+    },
+    "tostadmin": {
+        "TostSettings": "Tost's Solar Monitoring Settings",
+        "TostConfiguration": "Tost's Solar Monitoring Configuration",
+        "EnableTost": "Enable sending data:",
+        "TostParameters": "Client Push Parameter",
+        "Url": "Primary URL",
+        "SecondUrl": "Secondary URL",
+        "UrlHint": "Url or IP address with protocol and port(optinal)",
+        "SystemId": "System Id:",
+        "SystemIdHint": "System Id (looks like UUID)",
+        "Token": "Token:",
+        "TokenHint": "Token (looks like UUID)",
+        "Duration": "Zeit",
+        "Save": "@:base.Save",
+        "Seconds": "seconds"
     },
     "mqttadmin": {
         "MqttSettings": "MQTT Settings",

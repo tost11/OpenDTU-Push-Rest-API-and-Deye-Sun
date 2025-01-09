@@ -18,6 +18,8 @@ import NtpInfoView from '@/views/NtpInfoView.vue';
 import SecurityAdminView from '@/views/SecurityAdminView.vue';
 import SystemInfoView from '@/views/SystemInfoView.vue';
 import { createRouter, createWebHistory } from 'vue-router';
+import TostAdminView from "@/views/TostAdminView.vue";
+import TostInfoView from "@/views/TostInfoView.vue";
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -64,6 +66,11 @@ const router = createRouter({
             component: MqttInfoView,
         },
         {
+            path: '/info/tost',
+            name: 'Tost',
+            component: TostInfoView,
+        },
+        {
             path: '/info/console',
             name: 'Web Console',
             component: ConsoleInfoView,
@@ -82,6 +89,11 @@ const router = createRouter({
             path: '/settings/mqtt',
             name: 'MqTT Settings',
             component: MqttAdminView,
+        },
+        {
+            path: '/settings/tost',
+            name: 'Tost Settings',
+            component: TostAdminView,
         },
         {
             path: '/settings/inverter',

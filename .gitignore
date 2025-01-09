@@ -7,7 +7,8 @@
 platformio-device-monitor*.log
 logs/device-monitor*.log
 platformio_override.ini
-.DS_Store
-tmp
 .idea
 get-platformio.py
+.idea
+.DS_Store
+tmp

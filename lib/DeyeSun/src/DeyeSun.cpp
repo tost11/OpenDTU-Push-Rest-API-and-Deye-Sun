@@ -86,6 +86,16 @@ void DeyeSunClass::removeInverterBySerial(uint64_t serial)
     }
 }
 
+std::shared_ptr<DeyeInverter> DeyeSunClass::getInverterBySerialString(const String & serialString)
+{
+    for (uint8_t i = 0; i < _inverters.size(); i++) {
+        if (_inverters[i]->serialString() == serialString) {
+            return _inverters[i];
+        }
+    }
+    return nullptr;
+}
+
 size_t DeyeSunClass::getNumInverters() const
 {
     return _inverters.size();

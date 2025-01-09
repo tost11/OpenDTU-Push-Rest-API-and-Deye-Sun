@@ -3,7 +3,8 @@
 //
 
 #include "ServoHandle.h"
-#include "Hoymiles.h"
+#include <BaseInverter.h>
+#include "InverterHandler.h"
 #include "Configuration.h"
 #include <iterator>
 
@@ -86,16 +87,17 @@ int ServoHandleClass::calculatePosition(){
         return setTo;
     }
 
-    InverterAbstract * inv = nullptr;
+    BaseInverterClass * inv = nullptr;
     if(Configuration.get().Servo.Serial == 0){
-        for(int i=0;i<Hoymiles.getNumInverters();i++){
-            inv = Hoymiles.getInverterByPos(i).get();
+        for(int i=0;i<InverterHandler.getNumInverters();i++){
+            inv = InverterHandler.getInverterByPos(i).get();
             if(inv != nullptr){
                 break;
             }
         }
     }else{
-        inv = Hoymiles.getInverterBySerialString(std::to_string(Configuration.get().Servo.Serial).c_str()).get();
+        //this is not correct if some inverts have same id //TODO fix
+        inv = InverterHandler.getInverterBySerialString(std::to_string(Configuration.get().Servo.Serial).c_str()).get();
     }
 
     if(inv == nullptr){
