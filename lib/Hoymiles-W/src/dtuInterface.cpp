@@ -84,7 +84,7 @@ bool DTUInterface::requestDataUpdate()
     {
         inverterData.uptodate = false;
         //Serial.println(F("DTUinterface:\t getDataUpdate - ERROR - not connected to DTU!"));
-        // handleError(DTU_ERROR_NO_TIME);
+        //handleError(DTU_ERROR_NO_TIME);
     }
     return false;
 }
@@ -100,7 +100,7 @@ bool DTUInterface::requestStatisticUpdate()
     {
         inverterData.uptodate = false;
         //Serial.println(F("DTUinterface:\t getDataUpdate - ERROR - not connected to DTU!"));
-        // handleError(DTU_ERROR_NO_TIME);
+        //handleError(DTU_ERROR_NO_TIME);
     }
     return false;
 }
@@ -414,9 +414,9 @@ void DTUInterface::printDataAsTextToSerial()
     }
 }
 
-bool DTUInterface::isSocketConnected()
+bool DTUInterface::isConnected()
 {
-    return client != nullptr && client->connected();
+    return client != nullptr && dtuConnection.dtuConnectState == DTU_STATE_CONNECTED;
 }
 
 // helper methods
@@ -522,7 +522,7 @@ void DTUInterface::checkingDataUpdate()
         Serial.println(F("DTUinterface:\t checkingDataUpdate -> (DTU_ERROR_NO_TIME) - try to reboot DTU"));
         // stopping connection to DTU when response time error - try with reconnec
         //removed by me
-        //handleError(DTU_ERROR_NO_TIME);
+        handleError(DTU_ERROR_NO_TIME);
     }
     inverterData.lastRespTimestamp = inverterData.respTimestamp;
 }
@@ -655,7 +655,7 @@ void DTUInterface::readRespRealDataNew(pb_istream_t istream)
     {
         Serial.println(F("DTUinterface:\t readRespRealDataNew -> got timestamp == 0 (DTU_ERROR_NO_TIME) - try to reboot DTU"));
         //removed by me
-        //handleError(DTU_ERROR_NO_TIME);
+        handleError(DTU_ERROR_NO_TIME);
     }
 }
 
