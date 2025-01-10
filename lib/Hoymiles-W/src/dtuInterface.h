@@ -83,7 +83,7 @@ public:
 
     void printDataAsTextToSerial();
 
-    bool isSocketConnected();
+    bool isConnected();
 
     std::unique_ptr<InverterData> newDataAvailable();
 private:

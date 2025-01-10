@@ -28,8 +28,10 @@ _messageOutput(print)
 
     _dataUpdateTimer.set(30 * 1000);
     _dataUpdateTimer.zero();
-    _dataStatisticTimer.set(30 * 60 * 1000);
+    _dataStatisticTimer.set(30 * 59 * 1000);
     _dataStatisticTimer.zero();
+
+    _clearBufferOnDisconnect = false;
 
     _enablePolling = true;//TODO make better
 }
@@ -38,7 +40,7 @@ void HoymilesWInverter::update() {
 
     EventLog()->checkErrorsForTimeout();
 
-    if(_dtuInterface.isSocketConnected()){
+    if(_dtuInterface.isConnected()){
         if(_dataStatisticTimer.occured()){
             if(_dtuInterface.requestStatisticUpdate()){
                 _dataStatisticTimer.reset();
@@ -49,7 +51,15 @@ void HoymilesWInverter::update() {
                 _dataUpdateTimer.reset();
             }
         }
+        _clearBufferOnDisconnect = false;
     }else{
+        if(!_clearBufferOnDisconnect){//TODO make better
+            _clearBufferOnDisconnect = true;
+            _statisticsParser->beginAppendFragment();
+            _statisticsParser->clearBuffer();
+            _statisticsParser->incrementRxFailureCount();
+            _statisticsParser->endAppendFragment();
+        }
         _dataUpdateTimer.zero();
         _dataStatisticTimer.zero();
     }
@@ -98,7 +108,7 @@ bool HoymilesWInverter::isProducing() {
 }
 
 bool HoymilesWInverter::isReachable() {
-    return _dtuInterface.isSocketConnected();
+    return _dtuInterface.isConnected() && (millis() - _devInfoParser->getLastUpdate()) < 120000;//TOTO find better way to check timout
 }
 
 bool HoymilesWInverter::sendActivePowerControlRequest(float limit, PowerLimitControlType type) {
