@@ -616,6 +616,10 @@ void DTUInterface::readRespRealDataNew(pb_istream_t istream)
     Serial.println("DTUinterface:\t RealDataNew  - got remote (" + String(realdatanewreqdto.timestamp) + "):\t" + getTimeStringByTimestamp(realdatanewreqdto.timestamp));
     if (realdatanewreqdto.timestamp != 0)
     {
+
+        printf("firmwar version: %d\n",realdatanewreqdto.firmware_version);
+        printf("cumulative power: %d\n",realdatanewreqdto.cumulative_power);
+
         inverterData.respTimestamp = uint32_t(realdatanewreqdto.timestamp);
         // dtuGlobalData.updateReceived = true; // not needed here - everytime both request (realData and getConfig) will be set
         dtuConnection.dtuErrorState = DTU_ERROR_NO_ERROR;
@@ -844,10 +848,13 @@ void DTUInterface::readRespGetConfig(pb_istream_t istream)
     inverterData.powerLimit = ((powerLimit != 0) ? powerLimit : inverterData.powerLimit);
     inverterData.dtuRssi = getconfigreqdto.wifi_rssi;
     inverterData.updateReceived = true;
-    // no update if still init value
-    Serial.printf("Curretn powerlimit is: %u\n",inverterData.powerLimit);
-    if (inverterData.powerLimit != 254)//TODO find out why this isnt working anymore
-        inverterData.updateReceived = true;
+
+    if(inverterData.powerLimit > 100){
+        inverterData.powerLimit = 100;
+    }
+    /* There here sees not to work if this variable was never set so 254 = 100%
+    if (inverterData.powerLimit != 254)
+        inverterData.updateReceived = true;*/
 }
 
 boolean DTUInterface::writeReqCommand(uint8_t setPercent)

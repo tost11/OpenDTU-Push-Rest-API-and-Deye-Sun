@@ -442,7 +442,7 @@
                 {{ $t('home.SetPersistent') }}
             </button>
 
-            <button v-if="targetLimitList.manufacturer!='DeyeSun'" type="button" class="btn btn-danger" @click="onSetLimitSettings(false)">
+            <button v-if="targetLimitList.manufacturer!='DeyeSun' && targetLimitList.manufacturer!='HoymilesW'" type="button" class="btn btn-danger" @click="onSetLimitSettings(false)">
                 {{ $t('home.SetNonPersistent') }}
             </button>
         </template>

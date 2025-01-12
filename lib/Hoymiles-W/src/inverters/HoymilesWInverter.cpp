@@ -81,6 +81,8 @@ void HoymilesWInverter::swapBuffers(const InverterData *data) {
     _statisticsParser->resetRxFailureCount();
     _statisticsParser->endAppendFragment();
 
+    _systemConfigParaParser->setLimitPercent(data->powerLimit);
+
     _devInfoParser->clearBuffer();
     //TODO implement
     //_devInfoParser->appendFragment(0,_payloadStatisticBuffer+44,2);
@@ -112,7 +114,22 @@ bool HoymilesWInverter::isReachable() {
 }
 
 bool HoymilesWInverter::sendActivePowerControlRequest(float limit, PowerLimitControlType type) {
-    //TODO implement
+     uint16_t realLimit;
+    if(type == RelativPersistent){
+        realLimit = (uint16_t)(limit + 0.5);
+    }else{
+        uint16_t maxPower = _devInfoParser->getMaxPower();
+        if(maxPower == 0){
+            _alarmLogParser->addAlarm(6,10 * 60,"command not send because init data of device not received yet (max Power)");//alarm for 10 min
+            SystemConfigPara()->setLastLimitRequestSuccess(CMD_NOK);
+            return false;
+        }
+        realLimit = (uint16_t)(limit / (float)maxPower * 100);
+    }
+    if(realLimit > 100){
+        realLimit = 100;
+    }
+    _dtuInterface.setPowerLimit(realLimit);
     return true;
 }
 

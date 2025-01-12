@@ -42,8 +42,7 @@ String HoymilesWDevInfo::getHwVersion() const {
 }
 
 uint16_t HoymilesWDevInfo::getMaxPower() const {
-    //TODO implement
-    return 0;
+    return _maxPower;
 }
 
 String HoymilesWDevInfo::getHwModelName() const {
@@ -74,4 +73,8 @@ void HoymilesWDevInfo::setHardwareVersion(const String &version) {
 
 void HoymilesWDevInfo::setHardwareModel(const String &model) {
     _hardwareModel = model;
+}
+
+void HoymilesWDevInfo::setMaxPower(const uint16_t maxPower){
+    _maxPower = maxPower;
 }

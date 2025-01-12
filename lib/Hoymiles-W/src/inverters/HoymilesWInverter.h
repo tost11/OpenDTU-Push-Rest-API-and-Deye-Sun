@@ -63,4 +63,5 @@ private:
     TimeoutHelper _dataUpdateTimer;
     TimeoutHelper _dataStatisticTimer;
     bool _clearBufferOnDisconnect;
+protected:
 };

@@ -40,5 +40,5 @@ bool HMS_W_1T::isValidSerial(const uint64_t serial)
 
 String HMS_W_1T::typeName() const
 {
-    return "HMS-400W-1T";
+    return "HMS-*W-1T";
 }
