@@ -280,6 +280,9 @@
         "Quality": "Qualität",
         "Rssi": "RSSI"
     },
+    "wifistationDevices": {
+        "wifistationDevices": "WLAN-Verbundene Gerät (Access Point)"
+    },
     "wifiapinfo": {
         "WifiApInfo": "WLAN-Informationen (Access Point)",
         "Status": "@:wifistationinfo.Status",
