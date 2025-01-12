@@ -28,7 +28,7 @@ _messageOutput(print)
 
     _dataUpdateTimer.set(30 * 1000);
     _dataUpdateTimer.zero();
-    _dataStatisticTimer.set(30 * 59 * 1000);
+    _dataStatisticTimer.set(5 * 60 * 1000);
     _dataStatisticTimer.zero();
 
     _clearBufferOnDisconnect = false;

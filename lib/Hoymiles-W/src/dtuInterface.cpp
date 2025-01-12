@@ -169,7 +169,7 @@ void DTUInterface::dtuLoop()
         }
 
         // Proceed if not preventing cloud errors and if disconnected but WiFi is connected
-        if ((!client || !client->connected()) && WiFi.status() == WL_CONNECTED)
+        if ((!client || !client->connected())) // && WiFi.status() == WL_CONNECTED
         {
             // If not currently in phase for waiting to connect, attempt to connect
             if (dtuConnection.dtuConnectState != DTU_STATE_TRY_RECONNECT)
@@ -647,7 +647,6 @@ void DTUInterface::readRespRealDataNew(pb_istream_t istream)
             //inverterData.grid.totalEnergy += inverterData.pv[i].totalEnergy/1000;
         }
 
-
         // checking for hanging values on DTU side and set control state
         checkingDataUpdate();
     }
@@ -844,8 +843,10 @@ void DTUInterface::readRespGetConfig(pb_istream_t istream)
 
     inverterData.powerLimit = ((powerLimit != 0) ? powerLimit : inverterData.powerLimit);
     inverterData.dtuRssi = getconfigreqdto.wifi_rssi;
+    inverterData.updateReceived = true;
     // no update if still init value
-    if (inverterData.powerLimit != 254)
+    Serial.printf("Curretn powerlimit is: %u\n",inverterData.powerLimit);
+    if (inverterData.powerLimit != 254)//TODO find out why this isnt working anymore
         inverterData.updateReceived = true;
 }
 
