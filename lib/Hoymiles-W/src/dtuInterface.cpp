@@ -38,6 +38,7 @@ void DTUInterface::setup()
 
 void DTUInterface::connect()
 {
+    dtuConnection.dtuSerial = 0;//reset serial
     if (client && !client->connected())
     {
         Serial.println("DTUinterface:\t client not connected with DTU! try to connect (server: " + String(serverIP) + " - port: " + String(serverPort) + ") ...");
@@ -350,7 +351,7 @@ void DTUInterface::handleError(uint8_t errorState)
     }
 }
 
-// Callback method to handle incoming data
+// Callback method to handle incoming dataf
 void DTUInterface::onDataReceived(void *data, size_t len)
 {
     txrxStateObserver();
@@ -606,7 +607,6 @@ void DTUInterface::readRespRealDataNew(pb_istream_t istream)
     dtuConnection.dtuTxRxState = DTU_TXRX_STATE_IDLE;
     RealDataNewReqDTO realdatanewreqdto = RealDataNewReqDTO_init_default;
 
-    SGSMO gridData = SGSMO_init_zero;
     PvMO pvData[4];
     for(int i = 0;i<4;i++){
         pvData[i] = PvMO_init_zero;
@@ -616,18 +616,17 @@ void DTUInterface::readRespRealDataNew(pb_istream_t istream)
     Serial.println("DTUinterface:\t RealDataNew  - got remote (" + String(realdatanewreqdto.timestamp) + "):\t" + getTimeStringByTimestamp(realdatanewreqdto.timestamp));
     if (realdatanewreqdto.timestamp != 0)
     {
-
-        printf("firmwar version: %d\n",realdatanewreqdto.firmware_version);
-        printf("cumulative power: %d\n",realdatanewreqdto.cumulative_power);
-
         inverterData.respTimestamp = uint32_t(realdatanewreqdto.timestamp);
         // dtuGlobalData.updateReceived = true; // not needed here - everytime both request (realData and getConfig) will be set
         dtuConnection.dtuErrorState = DTU_ERROR_NO_ERROR;
 
-        gridData = realdatanewreqdto.sgs_data[0];
         for(int i=0;i<4;i++){
             pvData[i] = realdatanewreqdto.pv_data[i];
         }
+
+        SGSMO gridData = SGSMO_init_zero;
+        gridData = realdatanewreqdto.sgs_data[0];
+        dtuConnection.dtuSerial = gridData.serial_number;
 
         inverterData.grid.current = static_cast<uint16_t>(gridData.current);
         inverterData.grid.voltage = static_cast<uint16_t>(gridData.voltage);
@@ -829,7 +828,7 @@ void DTUInterface::readRespGetConfig(pb_istream_t istream)
 
     pb_decode(&istream, &GetConfigReqDTO_msg, &getconfigreqdto);
     // Serial.printf("\nsn: %lld, relative_power: %i, total_energy: %i, daily_energy: %i, warning_number: %i\n", appgethistpowerreqdto.serial_number, appgethistpowerreqdto.relative_power, appgethistpowerreqdto.total_energy, appgethistpowerreqdto.daily_energy,appgethistpowerreqdto.warning_number);
-    // Serial.printf("\ndevice_serial_number: %lld", realdatanewreqdto.device_serial_number);
+    //Serial.printf("\ndevice_serial_number: %lld", realdatanewreqdto.device_serial_number);
     // Serial.printf("\n\nwifi_rssi:\t %i %%", getconfigreqdto.wifi_rssi);
     // Serial.printf("\nserver_send_time:\t %i", getconfigreqdto.server_send_time);
     // Serial.printf("\nrequest_time (transl):\t %s", getTimeStringByTimestamp(getconfigreqdto.request_time));
@@ -1046,4 +1045,8 @@ boolean DTUInterface::readRespCommandRestartDevice(pb_istream_t istream)
     Serial.printf("\ncommand req: %i", int(commandreqdto.tid));
     Serial.printf("\ncommand req time: %i", commandreqdto.time);
     return true;
+}
+
+bool DTUInterface::isSerialValid(const uint64_t serial){
+    return dtuConnection.dtuSerial == serial;
 }

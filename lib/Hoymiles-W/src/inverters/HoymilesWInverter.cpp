@@ -68,9 +68,12 @@ void HoymilesWInverter::update() {
     //TODO refactor
     if(data.get() != nullptr){
         _dtuInterface.printDataAsTextToSerial();
-        swapBuffers(data.get());
+        if(_dtuInterface.isSerialValid(_serial)){
+            swapBuffers(data.get());
+        }else{
+            _alarmLogParser->addAlarm(6,60,"received inverter data not used because serials not matching (correct serial and ip?)");
+        }
     }
-
 }
 
 void HoymilesWInverter::swapBuffers(const InverterData *data) {
@@ -120,7 +123,7 @@ bool HoymilesWInverter::sendActivePowerControlRequest(float limit, PowerLimitCon
     }else{
         uint16_t maxPower = _devInfoParser->getMaxPower();
         if(maxPower == 0){
-            _alarmLogParser->addAlarm(6,10 * 60,"command not send because init data of device not received yet (max Power)");//alarm for 10 min
+            _alarmLogParser->addAlarm(6,10 * 60,"command not send (max Power) because no known limit for this inverter is available (serial uknown)");//alarm for 10 min
             SystemConfigPara()->setLastLimitRequestSuccess(CMD_NOK);
             return false;
         }
@@ -129,20 +132,29 @@ bool HoymilesWInverter::sendActivePowerControlRequest(float limit, PowerLimitCon
     if(realLimit > 100){
         realLimit = 100;
     }
+    if(!_dtuInterface.isSerialValid(_serial)){
+        _alarmLogParser->addAlarm(6,10 * 60,"command not send (max Power) because serials not matching (correct serial and ip?)");//alarm for 10 min
+        return false;
+    }
     _dtuInterface.setPowerLimit(realLimit);
     return true;
 }
 
 bool HoymilesWInverter::resendPowerControlRequest() {
-    return false;
+    return false;//TODO implement
 }
 
 bool HoymilesWInverter::sendRestartControlRequest() {
-    return false;
+    if(!_dtuInterface.isSerialValid(_serial)){
+        _alarmLogParser->addAlarm(6,10 * 60,"command not send (restart) because serials not matching (correct serial and ip?)");//alarm for 10 min
+        return false;
+    }
+    _dtuInterface.requestRestartDevice();
+    return true;
 }
 
 bool HoymilesWInverter::sendPowerControlRequest(bool turnOn) {
-    return false;
+    return false;//TODO implement
 }
 
 inverter_type HoymilesWInverter::getInverterType() const {
