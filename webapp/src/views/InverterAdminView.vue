@@ -5,7 +5,7 @@
         </BootstrapAlert>
 
         <label>{{ $t('inverteradmin.ManufacturerSelect') }}</label>
-        <select class="form-select" v-model="newInverterData.manufacturer">
+        <select class="form-select" v-model="newInverterData.manufacturer" @change="inverterTypeChanged()">
           <option selected>Hoymiles</option>
           <option>DeyeSun</option>
           <option value="HoymilesW">Hoymiles W-Series</option>
@@ -381,6 +381,7 @@
 </template>
 
 <script lang="ts">
+import { getInverterPortByManufacturer } from '@/utils/inverter';
 import BasePage from '@/components/BasePage.vue';
 import BootstrapAlert from '@/components/BootstrapAlert.vue';
 import CardElement from '@/components/CardElement.vue';
@@ -427,7 +428,7 @@ export default defineComponent({
         return {
             modal: {} as bootstrap.Modal,
             modalDelete: {} as bootstrap.Modal,
-            newInverterData: {serial: "",manufacturer:"Hoymiles",port:10081} as Inverter,//deye 48899
+            newInverterData: {serial: "",manufacturer:"Hoymiles",port:0,hostname_or_ip:""} as Inverter,//deye 48899
             selectedInverterData: {} as Inverter,
             inverters: [] as Inverter[],
             dataLoading: true,
@@ -443,8 +444,14 @@ export default defineComponent({
         this.getInverters();
     },
     methods: {
+        inverterTypeChanged(){
+            let newData = {...this.newInverterData} as Inverter
+            newData.port = getInverterPortByManufacturer(newData.manufacturer)
+            this.newInverterData = newData
+        },
         getInverters() {
             this.dataLoading = true;
+            let newData = {...this.newInverterData} as Inverter
             fetch('/api/inverter/list', { headers: authHeader() })
                 .then((response) => handleResponse(response, this.$emitter, this.$router))
                 .then((data) => {
@@ -463,6 +470,7 @@ export default defineComponent({
                             draggable: 'tr',
                         });
                     });
+                    this.newInverterData = newData
                 });
         },
         callInverterApiEndpoint(endpoint: string, jsonData: string) {
@@ -480,11 +488,13 @@ export default defineComponent({
                     this.alert = data;
                     this.alert.message = this.$t('apiresponse.' + data.code, data.param);
                     this.alert.show = true;
+                    if(data.type === "success"){
+                        this.newInverterData = {serial: "",manufacturer:this.newInverterData.manufacturer,port:getInverterPortByManufacturer(this.newInverterData.manufacturer),} as Inverter
+                    }
                 });
         },
         onSubmit() {
-            this.callInverterApiEndpoint('add', JSON.stringify(this.newInverterData));
-            this.newInverterData = {serial: "",manufacturer:"Hoymiles",port:48899} as Inverter;
+            this.callInverterApiEndpoint('add', JSON.stringify(this.newInverterData))
         },
         onDelete() {
             this.callInverterApiEndpoint('del', JSON.stringify({ id: this.selectedInverterData.id }));
