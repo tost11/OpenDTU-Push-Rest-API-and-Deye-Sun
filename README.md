@@ -49,9 +49,15 @@ The DTU-Connection code is mostly based on the code of [DTU-Gateway](https://git
 
 Original implementation for Hoymiles (Deye Sun) inverts will work in parallel.
 
-Also the firmware is to large for the two partion system so no over the air flashing is working.
-
 Tested with model: HMS-800W-2T
+
+#### Problems
+
+The firmware is to large for the two partion system so no over the air flashing is working (for now).
+
+The only real supported inverter by Serial is the 'HMS-800W-2T' because i dont know the other serials-number prefix to recognize them. So every other W-Series inverter will be shown as 4-PV input inverter.
+
+Support of 6T invertes not done yet (some OpenDTU changes are required in UI for that)
 
 #### Working
 
