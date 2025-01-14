@@ -45,19 +45,19 @@ bool AlarmDataCommand::handleResponse(const fragment_t fragment[], const uint8_t
 
     // Move all fragments into target buffer
     uint8_t offs = 0;
-    _inv->EventLog()->beginAppendFragment();
-    _inv->EventLog()->clearBuffer();
+    _inv->getEventLog()->beginAppendFragment();
+    _inv->getEventLog()->clearBuffer();
     for (uint8_t i = 0; i < max_fragment_id; i++) {
-        _inv->EventLog()->appendFragment(offs, fragment[i].fragment, fragment[i].len);
+        _inv->getEventLog()->appendFragment(offs, fragment[i].fragment, fragment[i].len);
         offs += (fragment[i].len);
     }
-    _inv->EventLog()->endAppendFragment();
-    _inv->EventLog()->setLastAlarmRequestSuccess(CMD_OK);
-    _inv->EventLog()->setLastUpdate(millis());
+    _inv->getEventLog()->endAppendFragment();
+    _inv->getEventLog()->setLastAlarmRequestSuccess(CMD_OK);
+    _inv->getEventLog()->setLastUpdate(millis());
     return true;
 }
 
 void AlarmDataCommand::gotTimeout()
 {
-    _inv->EventLog()->setLastAlarmRequestSuccess(CMD_NOK);
+    _inv->getEventLog()->setLastAlarmRequestSuccess(CMD_NOK);
 }

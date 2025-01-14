@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "StatisticsParser.h"
+#include <parser/StatisticsParser.h>
 #include "RealtimeDataNew.pb.h"
 
 #pragma pack(push, 1) // exact fit - no padding

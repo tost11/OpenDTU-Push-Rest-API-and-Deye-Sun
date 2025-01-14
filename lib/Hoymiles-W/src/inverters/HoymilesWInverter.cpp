@@ -19,7 +19,6 @@ _messageOutput(print)
 
     _alarmLogParser.reset(new HoymilesWAlarmLog());
     _devInfoParser.reset(new HoymilesWDevInfo());
-    _gridProfileParser.reset(new HoymilesWGridProfile());
     _powerCommandParser.reset(new PowerCommandParser());
     _statisticsParser.reset(new HoymilesWStatisticsParser());
     _systemConfigParaParser.reset(new SystemConfigParaParser());
@@ -38,7 +37,7 @@ _messageOutput(print)
 
 void HoymilesWInverter::update() {
 
-    EventLog()->checkErrorsForTimeout();
+    getEventLog()->checkErrorsForTimeout();
 
     if(_dtuInterface.isConnected()){
         if(_dataStatisticTimer.occured()){
@@ -101,7 +100,7 @@ String HoymilesWInverter::typeName() const {
 }
 
 bool HoymilesWInverter::isProducing() {
-    auto stats = Statistics();
+    auto stats = getStatistics();
     float totalAc = 0;
     for (auto& c : stats->getChannelsByType(TYPE_AC)) {
         if (stats->hasChannelFieldValue(TYPE_AC, c, FLD_PAC)) {
@@ -124,7 +123,7 @@ bool HoymilesWInverter::sendActivePowerControlRequest(float limit, PowerLimitCon
         uint16_t maxPower = _devInfoParser->getMaxPower();
         if(maxPower == 0){
             _alarmLogParser->addAlarm(6,10 * 60,"command not send (max Power) because no known limit for this inverter is available (serial uknown)");//alarm for 10 min
-            SystemConfigPara()->setLastLimitRequestSuccess(CMD_NOK);
+            getSystemConfigParaParser()->setLastLimitRequestSuccess(CMD_NOK);
             return false;
         }
         realLimit = (uint16_t)(limit / (float)maxPower * 100);

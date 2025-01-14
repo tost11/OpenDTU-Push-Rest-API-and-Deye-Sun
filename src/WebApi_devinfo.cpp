@@ -44,14 +44,14 @@ void WebApiDevInfoClass::onDevInfoStatus(AsyncWebServerRequest* request)
     auto inv = InverterHandler.getInverterBySerial(serial,type);
 
     if (inv != nullptr) {
-        root["valid_data"] = inv->DevInfo()->getLastUpdate() > 0;
-        root["fw_bootloader_version"] = inv->DevInfo()->getFwBootloaderVersion();
-        root["fw_build_version"] = inv->DevInfo()->getFwBuildVersion();
-        root["hw_part_number"] = inv->DevInfo()->getHwPartNumber();
-        root["hw_version"] = inv->DevInfo()->getHwVersion();
-        root["hw_model_name"] = inv->DevInfo()->getHwModelName();
-        root["max_power"] = inv->DevInfo()->getMaxPower();
-        root["fw_build_datetime"] = inv->DevInfo()->getFwBuildDateTimeStr();
+        root["valid_data"] = inv->getDevInfo()->getLastUpdate() > 0;
+        root["fw_bootloader_version"] = inv->getDevInfo()->getFwBootloaderVersion();
+        root["fw_build_version"] = inv->getDevInfo()->getFwBuildVersion();
+        root["hw_part_number"] = inv->getDevInfo()->getHwPartNumber();
+        root["hw_version"] = inv->getDevInfo()->getHwVersion();
+        root["hw_model_name"] = inv->getDevInfo()->getHwModelName();
+        root["max_power"] = inv->getDevInfo()->getMaxPower();
+        root["fw_build_datetime"] = inv->getDevInfo()->getFwBuildDateTimeStr();
     }
 
     WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);

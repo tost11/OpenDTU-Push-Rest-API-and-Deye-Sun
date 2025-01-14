@@ -46,7 +46,7 @@ bool SystemConfigParaCommand::handleResponse(const fragment_t fragment[], const 
     // In case of low power in the inverter it occours that some incomplete fragments
     // with a valid CRC are received.
     const uint8_t fragmentsSize = getTotalFragmentSize(fragment, max_fragment_id);
-    const uint8_t expectedSize = _inv->SystemConfigPara()->getExpectedByteCount();
+    const uint8_t expectedSize = _inv->getSystemConfigParaParser()->getExpectedByteCount();
     if (fragmentsSize < expectedSize) {
         Hoymiles.getMessageOutput()->printf("ERROR in %s: Received fragment size: %" PRId8 ", min expected size: %" PRId8 "\r\n",
             getCommandName().c_str(), fragmentsSize, expectedSize);
@@ -56,19 +56,19 @@ bool SystemConfigParaCommand::handleResponse(const fragment_t fragment[], const 
 
     // Move all fragments into target buffer
     uint8_t offs = 0;
-    _inv->SystemConfigPara()->beginAppendFragment();
-    _inv->SystemConfigPara()->clearBuffer();
+    _inv->getSystemConfigParaParser()->beginAppendFragment();
+    _inv->getSystemConfigParaParser()->clearBuffer();
     for (uint8_t i = 0; i < max_fragment_id; i++) {
-        _inv->SystemConfigPara()->appendFragment(offs, fragment[i].fragment, fragment[i].len);
+        _inv->getSystemConfigParaParser()->appendFragment(offs, fragment[i].fragment, fragment[i].len);
         offs += (fragment[i].len);
     }
-    _inv->SystemConfigPara()->endAppendFragment();
-    _inv->SystemConfigPara()->setLastUpdateRequest(millis());
-    _inv->SystemConfigPara()->setLastLimitRequestSuccess(CMD_OK);
+    _inv->getSystemConfigParaParser()->endAppendFragment();
+    _inv->getSystemConfigParaParser()->setLastUpdateRequest(millis());
+    _inv->getSystemConfigParaParser()->setLastLimitRequestSuccess(CMD_OK);
     return true;
 }
 
 void SystemConfigParaCommand::gotTimeout()
 {
-    _inv->SystemConfigPara()->setLastLimitRequestSuccess(CMD_NOK);
+    _inv->getSystemConfigParaParser()->setLastLimitRequestSuccess(CMD_NOK);
 }

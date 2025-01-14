@@ -32,10 +32,10 @@ void WebApiLimitClass::onLimitStatus(AsyncWebServerRequest* request)
 
         String serial = inv->serialString();
 
-        root[serial]["limit_relative"] = inv->SystemConfigPara()->getLimitPercent();
-        root[serial]["max_power"] = inv->DevInfo()->getMaxPower();
+        root[serial]["limit_relative"] = inv->getSystemConfigParaParser()->getLimitPercent();
+        root[serial]["max_power"] = inv->getDevInfo()->getMaxPower();
 
-        LastCommandSuccess status = inv->SystemConfigPara()->getLastLimitCommandSuccess();
+        LastCommandSuccess status = inv->getSystemConfigParaParser()->getLastLimitCommandSuccess();
         String limitStatus = "Unknown";
         if (status == LastCommandSuccess::CMD_OK) {
             limitStatus = "Ok";

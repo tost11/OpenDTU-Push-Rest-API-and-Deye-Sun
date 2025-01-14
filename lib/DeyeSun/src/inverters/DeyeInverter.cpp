@@ -89,10 +89,8 @@ _logDebug(false){
 
     _alarmLogParser.reset(new DeyeAlarmLog());
     _devInfoParser.reset(new DeyeDevInfo());
-    _gridProfileParser.reset(new DeyeGridProfile());
     _powerCommandParser.reset(new PowerCommandParser());
     _statisticsParser.reset(new DefaultStatisticsParser());
-    _systemConfigParaParser.reset(new SystemConfigParaParser());
 
     _devInfoParser->setMaxPowerDevider(10);
 
@@ -117,7 +115,7 @@ void DeyeInverter::sendSocketMessage(String message) {
 
 void DeyeInverter::update() {
 
-    EventLog()->checkErrorsForTimeout();
+    getEventLog()->checkErrorsForTimeout();
 
     if (!WiFi.isConnected()) {
         _socket = nullptr;
@@ -182,7 +180,7 @@ String DeyeInverter::typeName() const {
 }
 
 bool DeyeInverter::isProducing() {
-    auto stats = Statistics();
+    auto stats = getStatistics();
     float totalAc = 0;
     for (auto& c : stats->getChannelsByType(TYPE_AC)) {
         if (stats->hasChannelFieldValue(TYPE_AC, c, FLD_PAC)) {
@@ -214,7 +212,7 @@ bool DeyeInverter::sendActivePowerControlRequest(float limit, PowerLimitControlT
         uint16_t maxPower = _devInfoParser->getMaxPower();
         if(maxPower == 0){
             _alarmLogParser->addAlarm(6,10 * 60,"command not send because init data of device not received yet (max Power)");//alarm for 10 min
-            SystemConfigPara()->setLastLimitRequestSuccess(CMD_NOK);
+            getSystemConfigParaParser()->setLastLimitRequestSuccess(CMD_NOK);
             return false;
         }
         realLimit = (uint16_t)(limit / (float)maxPower * 100);
@@ -224,7 +222,7 @@ bool DeyeInverter::sendActivePowerControlRequest(float limit, PowerLimitControlT
     }
     Serial.print("RealLimit: ");
     Serial.println(realLimit);
-    SystemConfigPara()->setLastLimitRequestSuccess(CMD_PENDING);
+    getSystemConfigParaParser()->setLastLimitRequestSuccess(CMD_PENDING);
     _limitToSet = std::make_unique<uint16_t>(realLimit);
     return true;
 }
@@ -656,7 +654,7 @@ void DeyeInverter::handleWrite() {
                 _powerCommandParser->setLastPowerCommandSuccess(CMD_NOK);
                 _alarmLogParser->addAlarm(7,10 * 60);//alarm for 10 min
             }else if(_currentWritCommand->writeRegister == "0028") {
-                SystemConfigPara()->setLastLimitRequestSuccess(CMD_NOK);
+                _systemConfigParaParser->setLastLimitRequestSuccess(CMD_NOK);
                 _alarmLogParser->addAlarm(6,10 * 60);//alarm for 10 min
             }
             _currentWritCommand = nullptr;
@@ -696,7 +694,7 @@ void DeyeInverter::handleWrite() {
                 if(_currentWritCommand->writeRegister == "002B") {
                     _powerCommandParser->setLastPowerCommandSuccess(CMD_OK);
                 }else if(_currentWritCommand->writeRegister == "0028") {
-                    SystemConfigPara()->setLastLimitRequestSuccess(CMD_OK);
+                    _systemConfigParaParser->setLastLimitRequestSuccess(CMD_OK);
                 }
                 _currentWritCommand = nullptr;
                 return;

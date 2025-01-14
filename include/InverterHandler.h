@@ -13,6 +13,10 @@ public:
     std::shared_ptr<BaseInverterClass> getInverterByPos(uint8_t pos);
     std::shared_ptr<BaseInverterClass> getInverterBySerial(uint64_t serial,inverter_type inverterTyp);
 
+    //TODO find bettery way to use this (it might be posssible two manufacturers same serial)
+    std::shared_ptr<BaseInverterClass> getInverterBySerial(uint64_t serial);
+    std::shared_ptr<BaseInverterClass> getInverterBySerialString(const String & serial);
+
     void init();
 
     uint32_t PollInterval() const;

@@ -21,7 +21,7 @@ void DeyeSunClass::loop()
             }
 
             if (inv->getZeroValuesIfUnreachable() && !inv->isReachable()) {
-                inv->Statistics()->zeroRuntimeData();
+                inv->getStatistics()->zeroRuntimeData();
             }
 
             if (inv->getEnablePolling() || inv->getEnableCommands()) {
@@ -69,6 +69,16 @@ std::shared_ptr<DeyeInverter> DeyeSunClass::getInverterBySerial(uint64_t serial)
 {
     for (uint8_t i = 0; i < _inverters.size(); i++) {
         if (_inverters[i]->serial() == serial) {
+            return _inverters[i];
+        }
+    }
+    return nullptr;
+}
+
+std::shared_ptr<DeyeInverter> DeyeSunClass::getInverterBySerialString(const String & serial)
+{
+    for (uint8_t i = 0; i < _inverters.size(); i++) {
+        if (_inverters[i]->serialString() == serial) {
             return _inverters[i];
         }
     }

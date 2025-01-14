@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
-#include "Parser.h"
-#include "BaseDevInfo.h"
+
+#include <Parser.h>
+#include <parser/BaseDevInfo.h>
 
 #define DEV_INFO_SIZE 20
 

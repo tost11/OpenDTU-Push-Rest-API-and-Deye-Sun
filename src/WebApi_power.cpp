@@ -28,7 +28,7 @@ void WebApiPowerClass::onPowerStatus(AsyncWebServerRequest* request)
     for (uint8_t i = 0; i < InverterHandler.getNumInverters(); i++) {
         auto inv = InverterHandler.getInverterByPos(i);
 
-        LastCommandSuccess status = inv->PowerCommand()->getLastPowerCommandSuccess();
+        LastCommandSuccess status = inv->getPowerCommand()->getLastPowerCommandSuccess();
         String limitStatus = "Unknown";
         if (status == LastCommandSuccess::CMD_OK) {
             limitStatus = "Ok";

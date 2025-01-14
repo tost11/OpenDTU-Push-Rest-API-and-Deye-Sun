@@ -1,13 +1,10 @@
 #pragma once
 
 #include "types.h"
-#include <BaseNetworkInverter.h>
+#include <inverter/BaseNetworkInverter.h>
 #include "parser/DeyeDevInfo.h"
-#include "parser/DeyeSystemConfigPara.h"
 #include "parser/DeyeAlarmLog.h"
-#include "parser/DeyeGridProfile.h"
-#include <DefaultStatisticsParser.h>
-#include "parser/SystemConfigParaParser.h"
+#include <parser/DefaultStatisticsParser.h>
 #include "parser/PowerCommandParser.h"
 #include <Arduino.h>
 #include <cstdint>
@@ -39,7 +36,7 @@ struct WriteRegisterMapping{
     valueToWrite(valueToWrite){}
 };
 
-class DeyeInverter : public BaseNetworkInverter<DefaultStatisticsParser,DeyeDevInfo,SystemConfigParaParser,DeyeAlarmLog,DeyeGridProfile,PowerCommandParser> {
+class DeyeInverter : public BaseNetworkInverter<DefaultStatisticsParser,DeyeDevInfo,DeyeAlarmLog,PowerCommandParser> {
 public:
     explicit DeyeInverter(uint64_t serial,Print & print);
     virtual ~DeyeInverter() = default;

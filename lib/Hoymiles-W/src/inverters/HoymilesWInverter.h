@@ -1,13 +1,10 @@
 #pragma once
 
 #include "types.h"
-#include "BaseNetworkInverter.h"
+#include <inverter/BaseNetworkInverter.h>
 #include "parser/HoymilesWDevInfo.h"
-#include "parser/HoymilesWSystemConfigPara.h"
 #include "parser/HoymilesWAlarmLog.h"
-#include "parser/HoymilesWGridProfile.h"
 #include "parser/HoymilesWStatisticsParser.h"
-#include "parser/SystemConfigParaParser.h"
 #include "parser/PowerCommandParser.h"
 #include <Arduino.h>
 #include <cstdint>
@@ -19,7 +16,7 @@
 #include <TimeoutHelper.h>
 #include "../dtuInterface.h"
 
-class HoymilesWInverter : public BaseNetworkInverter<HoymilesWStatisticsParser,HoymilesWDevInfo,SystemConfigParaParser,HoymilesWAlarmLog,HoymilesWGridProfile,PowerCommandParser> {
+class HoymilesWInverter : public BaseNetworkInverter<HoymilesWStatisticsParser,HoymilesWDevInfo,HoymilesWAlarmLog,PowerCommandParser> {
 public:
     explicit HoymilesWInverter(uint64_t serial,Print & print);
     virtual ~HoymilesWInverter() = default;

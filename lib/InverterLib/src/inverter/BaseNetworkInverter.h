@@ -1,11 +1,11 @@
 #pragma once
 
-#include <BaseInverter.h>
+#include "BaseInverter.h"
 
 #define MAX_NAME_HOST 32
 
-template<class StatT,class DevT,class SysT,class AlarmT,class GridT,class PowerT>
-class BaseNetworkInverter :public BaseInverter<StatT,DevT,SysT,AlarmT,GridT,PowerT> {
+template<class StatT,class DevT,class AlarmT,class PowerT>
+class BaseNetworkInverter :public BaseInverter<StatT,DevT,AlarmT,PowerT> {
 public:
     BaseNetworkInverter() = default;
     ~BaseNetworkInverter() = default;

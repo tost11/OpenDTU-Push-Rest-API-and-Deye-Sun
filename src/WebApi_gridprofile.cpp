@@ -24,14 +24,14 @@ void WebApiGridProfileClass::onGridProfileStatus(AsyncWebServerRequest* request)
     AsyncJsonResponse* response = new AsyncJsonResponse();
     auto& root = response->getRoot();
     auto serial = WebApi.parseSerialFromRequest(request);
-    auto inv = Hoymiles.getInverterBySerial(serial);
+    auto inv = InverterHandler.getInverterBySerial(serial);
 
     if (inv != nullptr) {
-        root["name"] = inv->GridProfile()->getProfileName();
-        root["version"] = inv->GridProfile()->getProfileVersion();
+        root["name"] = inv->getGridProfileParser()->getProfileName();
+        root["version"] = inv->getGridProfileParser()->getProfileVersion();
 
         auto jsonSections = root["sections"].to<JsonArray>();
-        auto profSections = inv->GridProfile()->getProfile();
+        auto profSections = inv->getGridProfileParser()->getProfile();
 
         for (auto &profSection : profSections) {
             auto jsonSection = jsonSections.add<JsonObject>();
@@ -82,7 +82,7 @@ void WebApiGridProfileClass::onGridProfileRawdata(AsyncWebServerRequest* request
 
     if (inv != nullptr) {
         auto raw = root["raw"].to<JsonArray>();
-        auto data = inv->GridProfile()->getRawData();
+        auto data = inv->getGridProfileParser()->getRawData();
 
         copyArray(&data[0], data.size(), raw);
     }

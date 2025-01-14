@@ -4,7 +4,9 @@
 #include "WebApi_config.h"
 #include "WebApi_device.h"
 #include "WebApi_devinfo.h"
+#ifdef HOYMILES
 #include "WebApi_dtu.h"
+#endif
 #include "WebApi_errors.h"
 #include "WebApi_eventlog.h"
 #include "WebApi_firmware.h"
@@ -49,7 +51,9 @@ private:
     WebApiConfigClass _webApiConfig;
     WebApiDeviceClass _webApiDevice;
     WebApiDevInfoClass _webApiDevInfo;
+    #ifdef HOYMILES
     WebApiDtuClass _webApiDtu;
+    #endif
     WebApiEventlogClass _webApiEventlog;
     WebApiFirmwareClass _webApiFirmware;
     WebApiGridProfileClass _webApiGridprofile;

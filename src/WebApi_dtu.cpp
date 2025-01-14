@@ -1,3 +1,5 @@
+#ifdef HOYMILES
+
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
  * Copyright (C) 2022-2024 Thomas Basler and others
@@ -169,3 +171,5 @@ void WebApiDtuClass::onDtuAdminPost(AsyncWebServerRequest* request)
     _applyDataTask.enable();
     _applyDataTask.restart();
 }
+
+#endif

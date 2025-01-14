@@ -20,10 +20,8 @@ InverterAbstract::InverterAbstract(HoymilesRadio* radio, const uint64_t serial)
 
     _alarmLogParser.reset(new AlarmLogParser());
     _devInfoParser.reset(new DevInfoParser());
-    _gridProfileParser.reset(new GridProfileParser());
     _powerCommandParser.reset(new PowerCommandParser());
     _statisticsParser.reset(new DefaultStatisticsParser());
-    _systemConfigParaParser.reset(new SystemConfigParaParser());
 }
 
 void InverterAbstract::init()
@@ -32,7 +30,7 @@ void InverterAbstract::init()
     // Not possible in constructor --> virtual function
     // Not possible in verifyAllFragments --> Because no data if nothing is ever received
     // It has to be executed because otherwise the getChannelCount method in stats always returns 0
-    Statistics()->setByteAssignment(getByteAssignment(), getByteAssignmentSize());
+    getStatistics()->setByteAssignment(getByteAssignment(), getByteAssignmentSize());
 }
 
 uint64_t InverterAbstract::serial() const
@@ -42,7 +40,7 @@ uint64_t InverterAbstract::serial() const
 
 bool InverterAbstract::isProducing()
 {
-    auto stats = Statistics();
+    auto stats = getStatistics();
     float totalAc = 0;
     for (auto& c : stats->getChannelsByType(TYPE_AC)) {
         if (stats->hasChannelFieldValue(TYPE_AC, c, FLD_PAC)) {
@@ -55,7 +53,7 @@ bool InverterAbstract::isProducing()
 
 bool InverterAbstract::isReachable()
 {
-    return _enablePolling && Statistics()->getRxFailureCount() <= _reachableThreshold;
+    return _enablePolling && getStatistics()->getRxFailureCount() <= _reachableThreshold;
 }
 
 int8_t InverterAbstract::getLastRssi() const
