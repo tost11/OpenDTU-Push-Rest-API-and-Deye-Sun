@@ -18,7 +18,7 @@
 #include "DeyeSun.h"
 #endif
 
-#ifdef HOYMILESW
+#ifdef HOYMILES_W
 #include <HoymilesW.h>
 #endif
 
@@ -26,7 +26,7 @@ InverterSettingsClass InverterSettings;
 
 InverterSettingsClass::InverterSettingsClass()
     : _settingsTask(INVERTER_UPDATE_SETTINGS_INTERVAL, TASK_FOREVER, std::bind(&InverterSettingsClass::settingsLoop, this))
-    #ifdef HOYMIELS
+    #ifdef HOYMILES
     , _hoyTask(TASK_IMMEDIATE, TASK_FOREVER, std::bind(&InverterSettingsClass::hoyLoop, this))
     #endif
     #ifdef DEYE_SUN
@@ -78,7 +78,7 @@ void InverterSettingsClass::init(Scheduler& scheduler)
     MessageOutput.println("done");
     #endif
 
-    #ifdef HOYMIELS
+    #ifdef HOYMILES
     // Initialize inverter communication
     MessageOutput.print("Initialize Hoymiles interface... ");
 
@@ -187,7 +187,7 @@ void InverterSettingsClass::init(Scheduler& scheduler)
     _deyeTask.enable();
     #endif
 
-    #ifdef HOYMILESW
+    #ifdef HOYMILES_W
     scheduler.addTask(_hoyWTask);
     _hoyWTask.enable();
     #endif
@@ -234,7 +234,7 @@ void InverterSettingsClass::deyeLoop()
 }
 #endif
 
-#ifdef HOYMIELS_W
+#ifdef HOYMILES_W
 void InverterSettingsClass::hoyWLoop()
 {
     HoymilesW.loop();

@@ -10,6 +10,7 @@
 #include "WebApi_errors.h"
 #include <AsyncJson.h>
 #include <InverterHandler.h>
+#include <Hoymiles.h>
 
 WebApiDtuClass::WebApiDtuClass()
     : _applyDataTask(TASK_IMMEDIATE, TASK_ONCE, std::bind(&WebApiDtuClass::applyDataTaskCb, this))

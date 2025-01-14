@@ -544,7 +544,7 @@ void WebApiInverterClass::onInverterStatReset(AsyncWebServerRequest* request)
     if (inv != nullptr) {
         #ifdef HOYMILES
         if(inv->getInverterType() == inverter_type::Inverter_Hoymiles){
-            std::reinterpret_cast<InverterAbstract*>(inv.get())->resetRadioStats();
+            reinterpret_cast<InverterAbstract*>(inv.get())->resetRadioStats();
             retMsg["type"] = "success";
             retMsg["message"] = "Stats resetted";
             retMsg["code"] = WebApiError::InverterStatsResetted;

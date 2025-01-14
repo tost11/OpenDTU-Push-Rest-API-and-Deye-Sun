@@ -11,7 +11,7 @@
 #include "InverterHandler.h"
 #include <AsyncJson.h>
 
-#ifdef HOYMILE
+#ifdef HOYMILES
 #include <Hoymiles.h>
 #endif
 
@@ -160,7 +160,7 @@ void WebApiWsLiveClass::generateInverterCommonJsonResponse(JsonObject& root, std
     }
     #ifdef HOYMILES
     if(inv->getInverterType() == inverter_type::Inverter_Hoymiles) {
-        auto hoy = (InverterAbstract *) inv.get();
+        auto hoy = reinterpret_cast<InverterAbstract *>(inv.get());
         root["radio_stats"]["tx_request"] = hoy->RadioStats.TxRequestData;
         root["radio_stats"]["tx_re_request"] = hoy->RadioStats.TxReRequestFragment;
         root["radio_stats"]["rx_success"] = hoy->RadioStats.RxSuccess;

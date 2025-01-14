@@ -13,7 +13,6 @@ public:
 
 private:
     void settingsLoop();
-    void hoyLoop();
 
     Task _settingsTask;
 
@@ -27,7 +26,7 @@ private:
     void deyeLoop();
     #endif
 
-    #ifdef HOYMILESW
+    #ifdef HOYMILES_W
     Task _hoyWTask;
     void hoyWLoop();
     #endif
