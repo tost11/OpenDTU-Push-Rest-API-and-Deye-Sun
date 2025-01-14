@@ -1,7 +1,7 @@
 #pragma once
 
 #include "types.h"
-#include "BaseInverter.h"
+#include <BaseNetworkInverter.h>
 #include "parser/DeyeDevInfo.h"
 #include "parser/DeyeSystemConfigPara.h"
 #include "parser/DeyeAlarmLog.h"
@@ -17,8 +17,6 @@
 #include <WiFi.h>
 #include <WiFiUdp.h>
 #include <TimeoutHelper.h>
-
-#define MAX_NAME_HOST 32
 
 struct RegisterMapping{
     String readRegister;
@@ -41,7 +39,7 @@ struct WriteRegisterMapping{
     valueToWrite(valueToWrite){}
 };
 
-class DeyeInverter : public BaseInverter<DefaultStatisticsParser,DeyeDevInfo,SystemConfigParaParser,DeyeAlarmLog,DeyeGridProfile,PowerCommandParser> {
+class DeyeInverter : public BaseNetworkInverter<DefaultStatisticsParser,DeyeDevInfo,SystemConfigParaParser,DeyeAlarmLog,DeyeGridProfile,PowerCommandParser> {
 public:
     explicit DeyeInverter(uint64_t serial,Print & print);
     virtual ~DeyeInverter() = default;

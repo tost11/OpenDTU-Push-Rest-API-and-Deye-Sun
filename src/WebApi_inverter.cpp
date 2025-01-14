@@ -9,8 +9,12 @@
 #include "WebApi_errors.h"
 #include "defaults.h"
 #include "helper.h"
+#ifdef DEYE_SUN
 #include "DeyeSun.h"
+#endif
+#ifdef HOYMILES_W
 #include "HoymilesW.h"
+#endif
 #include <AsyncJson.h>
 #include <InverterHandler.h>
 
@@ -205,11 +209,17 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
     std::shared_ptr<BaseInverterClass> inv = nullptr;
     if (root["manufacturer"].as<String>() == from_inverter_type(inverter_type::Inverter_Hoymiles) ) {
         inv = std::reinterpret_pointer_cast<BaseInverterClass>(Hoymiles.addInverter(inverter->Name, inverter->Serial));
-    }else if(root["manufacturer"].as<String>() == from_inverter_type(inverter_type::Inverter_DeyeSun)){
+    }
+    #ifdef DEYE_SUN
+    if(root["manufacturer"].as<String>() == from_inverter_type(inverter_type::Inverter_DeyeSun)){
         inv = std::reinterpret_pointer_cast<BaseInverterClass>(DeyeSun.addInverter(inverter->Name, inverter->Serial,inverter->HostnameOrIp,inverter->Port));
-    }else if(root["manufacturer"].as<String>() == from_inverter_type(inverter_type::Inverter_HoymilesW)){
+    }
+    #endif
+    #ifdef HOYMILES_W
+    if(root["manufacturer"].as<String>() == from_inverter_type(inverter_type::Inverter_HoymilesW)){
         inv = std::reinterpret_pointer_cast<BaseInverterClass>(HoymilesW.addInverter(inverter->Name, inverter->Serial,inverter->HostnameOrIp,inverter->Port));
     }
+    #endif
 
     if (inv != nullptr) {
         for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
@@ -362,32 +372,49 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
         InverterHandler.removeInverterBySerial(old_serial,inverter.Type);
         if(inverter.Type == inverter_type::Inverter_Hoymiles){
             inv = std::reinterpret_pointer_cast<BaseInverterClass>(Hoymiles.addInverter(inverter.Name, inverter.Serial));
-        }else if(inverter.Type == inverter_type::Inverter_DeyeSun){
+        }
+        #ifdef DEYE_SUN
+        if(inverter.Type == inverter_type::Inverter_DeyeSun){
             inv = std::reinterpret_pointer_cast<BaseInverterClass>(DeyeSun.addInverter(inverter.Name, inverter.Serial,inverter.HostnameOrIp,inverter.Port));
-        }else if(inverter.Type == inverter_type::Inverter_HoymilesW){
+        }
+        #endif
+        #ifdef HOYMILES_W
+        if(inverter.Type == inverter_type::Inverter_HoymilesW){
             inv = std::reinterpret_pointer_cast<BaseInverterClass>(HoymilesW.addInverter(inverter.Name, inverter.Serial,inverter.HostnameOrIp,inverter.Port));
         }
+        #endif
     } else if (inv != nullptr && new_serial == old_serial) {
         // Valid inverter exists and serial stays the same --> update name
         inv->setName(inverter.Name);
+        #ifdef DEYE_SUN
         if(root["manufacturer"].as<String>() == "DeyeSun"){
             auto deye_inv = reinterpret_cast<DeyeInverter*>(inv.get());
             deye_inv->setHostnameOrIp(inverter.HostnameOrIp);
             deye_inv->setPort(inverter.Port);
-        }else if(root["manufacturer"].as<String>() == "HoymilesW"){
+        }
+        #endif
+        #ifdef HOYMILES_W
+        if(root["manufacturer"].as<String>() == "HoymilesW"){
             auto hoy_inv = reinterpret_cast<HoymilesWInverter*>(inv.get());
             hoy_inv->setHostnameOrIp(inverter.HostnameOrIp);
             hoy_inv->setPort(inverter.Port);
         }
+        #endif
     } else if (inv == nullptr) {
         // Valid inverter did not exist --> try to create one
         if (inverter.Type == inverter_type::Inverter_Hoymiles) {
             inv = std::reinterpret_pointer_cast<BaseInverterClass>(Hoymiles.addInverter(inverter.Name, inverter.Serial));
-        }else if(inverter.Type == inverter_type::Inverter_DeyeSun){
+        }
+        #ifdef DEYE_SUN
+        if(inverter.Type == inverter_type::Inverter_DeyeSun){
             inv = std::reinterpret_pointer_cast<BaseInverterClass>(DeyeSun.addInverter(inverter.Name, inverter.Serial,inverter.HostnameOrIp,inverter.Port));
-        }else if(inverter.Type == inverter_type::Inverter_HoymilesW){
+        }
+        #endif
+        #ifdef HOYMILES_W
+        if(inverter.Type == inverter_type::Inverter_HoymilesW){
             inv = std::reinterpret_pointer_cast<BaseInverterClass>(HoymilesW.addInverter(inverter.Name, inverter.Serial,inverter.HostnameOrIp,inverter.Port));
         }
+        #endif
     }
 
     if (inv != nullptr) {

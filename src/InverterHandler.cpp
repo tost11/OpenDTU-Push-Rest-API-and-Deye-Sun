@@ -1,8 +1,14 @@
 
 #include "InverterHandler.h"
 #include "Hoymiles.h"
+
+#ifdef DEYE_SUN
 #include "DeyeSun.h"
+#endif
+
+#ifdef HOYMILES_W
 #include "HoymilesW.h"
+#endif
 
 InverterHandlerClass InverterHandler;
 
@@ -19,8 +25,12 @@ bool InverterHandlerClass::isAllRadioIdle() {
 
 void InverterHandlerClass::init() {
     _handlers.push_back(reinterpret_cast<BaseInverterHandlerClass*>(&Hoymiles));
+    #ifdef DEYE_SUN
     _handlers.push_back(reinterpret_cast<BaseInverterHandlerClass*>(&DeyeSun));
+    #endif
+    #ifdef HOYMILES_W
     _handlers.push_back(reinterpret_cast<BaseInverterHandlerClass*>(&HoymilesW));
+    #endif
 }
 
 size_t InverterHandlerClass::getNumInverters() {
@@ -58,21 +68,31 @@ std::shared_ptr<BaseInverterClass> InverterHandlerClass::getInverterBySerial(uin
     if(inverterType == inverter_type::Inverter_Hoymiles){
         return std::reinterpret_pointer_cast<BaseInverterClass>(Hoymiles.getInverterBySerial(serial));
     }
+    #ifdef DEYE_SUN
     if(inverterType == inverter_type::Inverter_DeyeSun){
         return std::reinterpret_pointer_cast<BaseInverterClass>(DeyeSun.getInverterBySerial(serial));
     }
+    #endif
+    #ifdef HOYMILES_W
     if(inverterType == inverter_type::Inverter_HoymilesW){
         return std::reinterpret_pointer_cast<BaseInverterClass>(HoymilesW.getInverterBySerial(serial));
     }
+    #endif
     return nullptr;
 }
 
 void InverterHandlerClass::removeInverterBySerial(uint64_t serial,inverter_type inverterType) {
     if(inverterType == inverter_type::Inverter_Hoymiles){
         Hoymiles.removeInverterBySerial(serial);
-    }else if(inverterType == Inverter_DeyeSun){
+    }
+    #ifdef DEYE_SUN
+    if(inverterType == Inverter_DeyeSun){
         DeyeSun.removeInverterBySerial(serial);
-    }else if(inverterType == Inverter_HoymilesW){
+    }
+    #endif
+    #ifdef HOYMILES_W
+    if(inverterType == Inverter_HoymilesW){
         HoymilesW.removeInverterBySerial(serial);
     }
+    #endif
 }

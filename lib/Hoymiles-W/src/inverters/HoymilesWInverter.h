@@ -1,7 +1,7 @@
 #pragma once
 
 #include "types.h"
-#include "BaseInverter.h"
+#include "BaseNetworkInverter.h"
 #include "parser/HoymilesWDevInfo.h"
 #include "parser/HoymilesWSystemConfigPara.h"
 #include "parser/HoymilesWAlarmLog.h"
@@ -19,9 +19,7 @@
 #include <TimeoutHelper.h>
 #include "../dtuInterface.h"
 
-#define MAX_NAME_HOST 32
-
-class HoymilesWInverter : public BaseInverter<HoymilesWStatisticsParser,HoymilesWDevInfo,SystemConfigParaParser,HoymilesWAlarmLog,HoymilesWGridProfile,PowerCommandParser> {
+class HoymilesWInverter : public BaseNetworkInverter<HoymilesWStatisticsParser,HoymilesWDevInfo,SystemConfigParaParser,HoymilesWAlarmLog,HoymilesWGridProfile,PowerCommandParser> {
 public:
     explicit HoymilesWInverter(uint64_t serial,Print & print);
     virtual ~HoymilesWInverter() = default;
