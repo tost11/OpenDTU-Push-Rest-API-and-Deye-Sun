@@ -76,13 +76,12 @@ void DTUInterface::disconnect(uint8_t tgtState)
 
 bool DTUInterface::requestDataUpdate()
 {
-    if (client->connected())
+    if(client->connected()){
         if(dtuConnection.dtuTxRxState == DTU_TXRX_STATE_IDLE){
             writeReqRealDataNew();
             return true;
         }
-    else
-    {
+    }else{
         inverterData.uptodate = false;
         //Serial.println(F("DTUinterface:\t getDataUpdate - ERROR - not connected to DTU!"));
         //handleError(DTU_ERROR_NO_TIME);
@@ -92,13 +91,12 @@ bool DTUInterface::requestDataUpdate()
 
 bool DTUInterface::requestStatisticUpdate()
 {
-    if (client->connected())
+    if (client->connected()){
         if(dtuConnection.dtuTxRxState == DTU_TXRX_STATE_IDLE){
             writeReqAppGetHistPower();
             return true;
         }
-    else
-    {
+    }else{
         inverterData.uptodate = false;
         //Serial.println(F("DTUinterface:\t getDataUpdate - ERROR - not connected to DTU!"));
         //handleError(DTU_ERROR_NO_TIME);
@@ -298,8 +296,8 @@ void DTUInterface::flushConnection()
     }
 
     // Reset connection control and global data
-    memset(&dtuConnection, 0, sizeof(ConnectionControl));
-    memset(&inverterData, 0, sizeof(InverterData));
+    memset((void*)(&dtuConnection), 0, sizeof(ConnectionControl));
+    memset((void*)(&inverterData), 0, sizeof(InverterData));
     Serial.println(F("DTUinterface:\t Connection control and global data reset."));
 }
 

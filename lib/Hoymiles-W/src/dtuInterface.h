@@ -46,7 +46,6 @@
 #define DTU_TXRX_STATE_WAIT_RESTARTDEVICE 5
 #define DTU_TXRX_STATE_ERROR 99
 
-
 struct ConnectionControl
 {
   boolean dtuConnectionOnline = true;          // true if connection is online as valued a summary
