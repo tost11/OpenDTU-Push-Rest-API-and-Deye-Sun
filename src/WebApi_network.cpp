@@ -47,7 +47,7 @@ void WebApiNetworkClass::onNetworkStatus(AsyncWebServerRequest* request)
     root["ap_mac"] = WiFi.softAPmacAddress();
     root["ap_stationnum"] = WiFi.softAPgetStationNum();
 
-    auto ips = root.createNestedArray("ap_station_devices");
+    auto ips = root["ap_station_devices"].to<JsonArray>();
 
     if(WiFi.softAPgetStationNum() > 0){
         //collectmore wifi info
@@ -71,7 +71,7 @@ void WebApiNetworkClass::onNetworkStatus(AsyncWebServerRequest* request)
 
             const tcpip_adapter_sta_info_t station = adapter_sta_list.sta[i];
 
-            auto obj = ips.createNestedObject();
+            auto obj = ips.add<JsonObject>();
 
             Serial.print("MAC: ");
 
