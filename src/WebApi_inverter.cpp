@@ -95,6 +95,18 @@ void WebApiInverterClass::onInverterList(AsyncWebServerRequest* request)
         }
     }
 
+    JsonArray manufacturer = root["manufacturers"].to<JsonArray>();
+
+    #ifdef HOYMILES
+    manufacturer.add(from_inverter_type(inverter_type::Inverter_Hoymiles));
+    #endif
+    #ifdef DEYE_SUN
+    manufacturer.add(from_inverter_type(inverter_type::Inverter_DeyeSun));
+    #endif
+    #ifdef HOYMILES_W
+    manufacturer.add(from_inverter_type(inverter_type::Inverter_HoymilesW));
+    #endif
+
     WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
 }
 

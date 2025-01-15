@@ -6,9 +6,9 @@
 
         <label>{{ $t('inverteradmin.ManufacturerSelect') }}</label>
         <select class="form-select" v-model="newInverterData.manufacturer" @change="inverterTypeChanged()">
-          <option selected>Hoymiles</option>
-          <option>DeyeSun</option>
-          <option value="HoymilesW">Hoymiles W-Series</option>
+            <option v-for="manufacturer in manufacturers" :value="manufacturer">
+                {{manufacturer}}
+            </option>
         </select>
         <br/>
 
@@ -431,6 +431,7 @@ export default defineComponent({
             newInverterData: {serial: "",manufacturer:"Hoymiles",port:0,hostname_or_ip:""} as Inverter,//deye 48899
             selectedInverterData: {} as Inverter,
             inverters: [] as Inverter[],
+            manufacturers: [] as string[],
             dataLoading: true,
             alert: {} as AlertResponse,
             sortable: {} as Sortable,
@@ -458,6 +459,7 @@ export default defineComponent({
                     this.inverters = data.inverter.slice().sort((a: Inverter, b: Inverter) => {
                         return a.order - b.order;
                     });
+                    this.manufacturers = data.manufacturers;
                     this.dataLoading = false;
 
                     this.$nextTick(() => {
@@ -470,6 +472,11 @@ export default defineComponent({
                             draggable: 'tr',
                         });
                     });
+                    if(this.manufacturers.length > 0 && this.manufacturers.indexOf(newData.manufacturer)<0){
+                        // @ts-ignore
+                        newData.manufacturer = this.manufacturers.at(0);
+                        newData.port = getInverterPortByManufacturer(newData.manufacturer);
+                    }
                     this.newInverterData = newData
                 });
         },
@@ -484,13 +491,14 @@ export default defineComponent({
             })
                 .then((response) => handleResponse(response, this.$emitter, this.$router))
                 .then((data) => {
+                    if(data.type === "success"){
+                        console.log("reset inverter dta")
+                        this.newInverterData = {serial: "",manufacturer:this.newInverterData.manufacturer,port:getInverterPortByManufacturer(this.newInverterData.manufacturer),} as Inverter
+                    }
                     this.getInverters();
                     this.alert = data;
                     this.alert.message = this.$t('apiresponse.' + data.code, data.param);
                     this.alert.show = true;
-                    if(data.type === "success"){
-                        this.newInverterData = {serial: "",manufacturer:this.newInverterData.manufacturer,port:getInverterPortByManufacturer(this.newInverterData.manufacturer),} as Inverter
-                    }
                 });
         },
         onSubmit() {
