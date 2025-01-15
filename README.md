@@ -68,7 +68,6 @@ Support for 6T invertes not done yet
 
 - Showing Logs
 - Logs show hardware inverter errors
-- over the air flashing
 
 ### Rest push service
 
