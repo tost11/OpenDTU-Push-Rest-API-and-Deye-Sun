@@ -39,6 +39,37 @@ Tested with model: SUN300G3-EU-230
 - Logs show hardware inverter errors
 - restart inverter
 
+### Hoymiles W-Series Branch
+
+This feature branch is intended to read out Hoymiles W-Series PV Inverters and make use of the original project UI and features.
+
+The esp will connect via Network(tcp) to the configured ip/hostname and port of the Inverter.
+
+The DTU-Connection code is mostly based on the code of [DTU-Gateway](https://github.com/ohAnd/dtuGateway). I just mapped it to OpenDTU project. So all problems described there with setting limit also exist here.
+
+Original implementation for Hoymiles inverts will work in parallel.
+
+Tested with model: HMS-800W-2T
+
+#### Problems
+
+The only real supported inverter by Serial is currently the 'HMS-800W-2T' because i dont know the other serials-number prefix to recognize them. So every other W-Series inverter will be shown as 4-PV input inverter.
+
+Support for 6T invertes not done yet
+
+#### Working
+
+- Reading data
+- Configuring via UI
+- Setting limit
+- restart inverter
+
+#### Not working
+
+- Showing Logs
+- Logs show hardware inverter errors
+- over the air flashing
+
 ### Rest push service
 
 I have implemented an application that monitors solar systems on a server
