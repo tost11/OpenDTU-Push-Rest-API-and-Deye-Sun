@@ -73,8 +73,6 @@ void WebApiNetworkClass::onNetworkStatus(AsyncWebServerRequest* request)
 
             auto obj = ips.add<JsonObject>();
 
-            Serial.print("MAC: ");
-
             for(int i = 0; i< 6; i++){
                 sprintf(macBuff+i*3,"%02X", station.mac[i]);
                 if(i<5){
@@ -83,9 +81,7 @@ void WebApiNetworkClass::onNetworkStatus(AsyncWebServerRequest* request)
             }
 
             memset(ipBuff,0,16);
-            Serial.print("\nIP: ");
             esp_ip4addr_ntoa(&(station.ip),ipBuff,16);
-            Serial.println(ipBuff);
 
             obj["ip"] = std::string(ipBuff);
             obj["mac"] = std::string(macBuff);
