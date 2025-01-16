@@ -36,7 +36,6 @@ HMS_W_2T::HMS_W_2T(uint64_t serial,Print & print) :
 HoymilesWInverter(serial,print) {
     _devInfoParser->setHardwareModel(typeName());
     _statisticsParser->setByteAssignment(byteAssignment,sizeof(byteAssignment) / sizeof(byteAssignment[0]));
-    Serial.printf("Serial string is: %s",_serialString.c_str());
     if(_serialString.startsWith("1412")){
         _devInfoParser->setMaxPower(800);//TODO find other serials
     }

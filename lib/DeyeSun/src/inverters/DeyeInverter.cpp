@@ -219,8 +219,6 @@ bool DeyeInverter::sendActivePowerControlRequest(float limit, PowerLimitControlT
     if(realLimit > 100){
         realLimit = 100;
     }
-    Serial.print("RealLimit: ");
-    Serial.println(realLimit);
     getSystemConfigParaParser()->setLastLimitRequestSuccess(CMD_PENDING);
     _limitToSet = std::make_unique<uint16_t>(realLimit);
     return true;

@@ -18,6 +18,7 @@ ID   Source Addr   Target Addr   Idx  ?       Limit percent   ?       ?       ? 
 */
 #include "SystemConfigParaParser.h"
 #include <cstring>
+#include <MessageOutput.h>
 
 SystemConfigParaParser::SystemConfigParaParser()
 : Parser()
@@ -35,7 +36,7 @@ void SystemConfigParaParser::appendFragment(const uint8_t offset, const uint8_t*
 {
     if (offset + len > (SYSTEM_CONFIG_PARA_SIZE)) {
         //TODO fix logging
-        Serial.printf("FATAL: (%s, %d) stats packet too large for buffer\r\n", __FILE__, __LINE__);
+        MessageOutput.printf("FATAL: (%s, %d) stats packet too large for buffer\r\n", __FILE__, __LINE__);
         return;
     }
     memcpy(&_payload[offset], payload, len);
