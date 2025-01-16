@@ -21,6 +21,7 @@ ID   Target Addr   Source Addr   Idx  DT   ?    Time          Gap             Pa
 #include "RealTimeRunDataCommand.h"
 #include "Hoymiles.h"
 #include "inverters/InverterAbstract.h"
+#include <MessageOutput.h>
 
 RealTimeRunDataCommand::RealTimeRunDataCommand(InverterAbstract* inv, const uint64_t router_address, const time_t time)
     : MultiDataCommand(inv, router_address)
@@ -48,7 +49,7 @@ bool RealTimeRunDataCommand::handleResponse(const fragment_t fragment[], const u
     const uint8_t fragmentsSize = getTotalFragmentSize(fragment, max_fragment_id);
     const uint8_t expectedSize = _inv->getStatistics()->getExpectedByteCount();
     if (fragmentsSize < expectedSize) {
-        Hoymiles.getMessageOutput()->printf("ERROR in %s: Received fragment size: %" PRId8 ", min expected size: %" PRId8 "\r\n",
+        MessageOutput.printfDebug("ERROR in %s: Received fragment size: %" PRId8 ", min expected size: %" PRId8 "\r\n",
             getCommandName().c_str(), fragmentsSize, expectedSize);
 
         return false;

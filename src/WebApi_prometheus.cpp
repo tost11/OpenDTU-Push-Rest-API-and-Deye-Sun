@@ -5,7 +5,7 @@
  */
 #include "WebApi_prometheus.h"
 #include "Configuration.h"
-#include "MessageOutput.h"
+#include <MessageOutput.h>
 #include "NetworkSettings.h"
 #include "WebApi.h"
 #include "__compiled_constants.h"

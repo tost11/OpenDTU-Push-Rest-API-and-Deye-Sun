@@ -4,7 +4,7 @@
  */
 #include "InverterSettings.h"
 #include "Configuration.h"
-#include "MessageOutput.h"
+#include <MessageOutput.h>
 #include "PinMapping.h"
 #include "SunPosition.h"
 #include <SpiManager.h>
@@ -45,7 +45,6 @@ void InverterSettingsClass::init(Scheduler& scheduler)
 
     #ifdef DEYE_SUN
     MessageOutput.print("Initialize Deye interface... ");
-    DeyeSun.setMessageOutput(&MessageOutput);
     DeyeSun.init();
 
     MessageOutput.println("  Setting Deye poll interval... ");
@@ -82,7 +81,6 @@ void InverterSettingsClass::init(Scheduler& scheduler)
     // Initialize inverter communication
     MessageOutput.print("Initialize Hoymiles interface... ");
 
-    Hoymiles.setMessageOutput(&MessageOutput);
     Hoymiles.init();
 
     if (PinMapping.isValidNrf24Config() || PinMapping.isValidCmt2300Config()) {

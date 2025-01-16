@@ -16,6 +16,7 @@
 #include "inverters/HM_2CH.h"
 #include "inverters/HM_4CH.h"
 #include <Arduino.h>
+#include <MessageOutput.h>
 
 HoymilesClass Hoymiles;
 
@@ -66,8 +67,8 @@ void HoymilesClass::loop()
             }
 
             if (iv->getEnablePolling() || iv->getEnableCommands()) {
-                _messageOutput->print("Fetch inverter: ");
-                _messageOutput->println(iv->serial(), HEX);
+                MessageOutput.printf("Hoymiles Fetch inverter: %s\n",iv->serialString());
+                //MessageOutput.println(iv->serial(), HEX);
 
                 if (!iv->isReachable()) {
                     iv->sendChangeChannelRequest();
@@ -82,19 +83,19 @@ void HoymilesClass::loop()
                 // Fetch limit
                 if (((millis() - iv->getSystemConfigParaParser()->getLastUpdateRequest() > HOY_SYSTEM_CONFIG_PARA_POLL_INTERVAL)
                         && (millis() - iv->getSystemConfigParaParser()->getLastUpdateCommand() > HOY_SYSTEM_CONFIG_PARA_POLL_MIN_DURATION))) {
-                    _messageOutput->println("Request SystemConfigPara");
+                    MessageOutput.println("Hoymiles Request SystemConfigPara");
                     iv->sendSystemConfigParaRequest();
                 }
 
                 // Set limit if required
                 if (iv->getSystemConfigParaParser()->getLastLimitCommandSuccess() == CMD_NOK) {
-                    _messageOutput->println("Resend ActivePowerControl");
+                    MessageOutput.println("Hoymiles Resend ActivePowerControl");
                     iv->resendActivePowerControlRequest();
                 }
 
                 // Set power status if required
                 if (iv->getPowerCommand()->getLastPowerCommandSuccess() == CMD_NOK) {
-                    _messageOutput->println("Resend PowerCommand");
+                    MessageOutput.println("Hoymiles Resend PowerCommand");
                     iv->resendPowerControlRequest();
                 }
 
@@ -105,13 +106,13 @@ void HoymilesClass::loop()
                         && iv->getDevInfo()->getLastUpdateSimple() > 0;
 
                     if (invalidDevInfo) {
-                        _messageOutput->println("getDevInfo: No Valid Data");
+                        MessageOutput.println("Hoymiles getDevInfo: No Valid Data");
                     }
 
                     if ((iv->getDevInfo()->getLastUpdateAll() == 0)
                         || (iv->getDevInfo()->getLastUpdateSimple() == 0)
                         || invalidDevInfo) {
-                        _messageOutput->println("Request device info");
+                        MessageOutput.println("Hoymiles Request device info");
                         iv->sendDevInfoRequest();
                     }
                 }
@@ -252,14 +253,4 @@ HoymilesRadio_CMT* HoymilesClass::getRadioCmt()
 bool HoymilesClass::isAllRadioIdle() const
 {
     return _radioNrf.get()->isIdle() && _radioCmt.get()->isIdle();
-}
-
-void HoymilesClass::setMessageOutput(Print* output)
-{
-    _messageOutput = output;
-}
-
-Print* HoymilesClass::getMessageOutput()
-{
-    return _messageOutput;
 }

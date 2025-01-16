@@ -40,9 +40,9 @@ std::shared_ptr<DeyeInverter> DeyeSunClass::addInverter(const char* name, uint64
     String type = DeyeInverter::serialToModel(serial);
 
     if(type.startsWith("SUN300G3")){
-        i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<DS_1CH>(serial,type,*_messageOutput));
+        i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<DS_1CH>(serial,type));
     }else{
-        i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<DS_2CH>(serial,type,*_messageOutput));
+        i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<DS_2CH>(serial,type));
     }
 
     if (i) {
@@ -108,15 +108,6 @@ bool DeyeSunClass::isAllRadioIdle() const
     return true;
 }
 
-void DeyeSunClass::setMessageOutput(Print* output)
-{
-    _messageOutput = output;
-}
-
-Print* DeyeSunClass::getMessageOutput()
-{
-    return _messageOutput;
-}
 
 void DeyeSunClass::init() {
 

@@ -7,6 +7,7 @@
 #include "crc.h"
 #include <FunctionalInterrupt.h>
 #include <frozen/map.h>
+#include <MessageOutput.h>
 
 constexpr CountryFrequencyDefinition_t make_value(FrequencyBand_t Band, uint32_t Freq_Legal_Min, uint32_t Freq_Legal_Max, uint32_t Freq_Default, uint32_t Freq_StartUp)
 {
@@ -34,16 +35,16 @@ uint32_t HoymilesRadio_CMT::getFrequencyFromChannel(const uint8_t channel) const
 uint8_t HoymilesRadio_CMT::getChannelFromFrequency(const uint32_t frequency) const
 {
     if ((frequency % getChannelWidth()) != 0) {
-        Hoymiles.getMessageOutput()->printf("%.3f MHz is not divisible by %" PRId32 " kHz!\r\n", frequency / 1000000.0, getChannelWidth());
+        MessageOutput.printf("%.3f MHz is not divisible by %" PRId32 " kHz!\r\n", frequency / 1000000.0, getChannelWidth());
         return 0xFF; // ERROR
     }
     if (frequency < getMinFrequency() || frequency > getMaxFrequency()) {
-        Hoymiles.getMessageOutput()->printf("%.2f MHz is out of Hoymiles/CMT range! (%.2f MHz - %.2f MHz)\r\n",
+        MessageOutput.printf("%.2f MHz is out of Hoymiles/CMT range! (%.2f MHz - %.2f MHz)\r\n",
             frequency / 1000000.0, getMinFrequency() / 1000000.0, getMaxFrequency() / 1000000.0);
         return 0xFF; // ERROR
     }
     if (frequency < countryDefinition.at(_countryMode).Freq_Legal_Min || frequency > countryDefinition.at(_countryMode).Freq_Legal_Max) {
-        Hoymiles.getMessageOutput()->printf("!!! caution: %.2f MHz is out of region legal range! (%" PRId32 " - %" PRId32 " MHz)\r\n",
+        MessageOutput.printf("!!! caution: %.2f MHz is out of region legal range! (%" PRId32 " - %" PRId32 " MHz)\r\n",
             frequency / 1000000.0,
             static_cast<uint32_t>(countryDefinition.at(_countryMode).Freq_Legal_Min / 1e6),
             static_cast<uint32_t>(countryDefinition.at(_countryMode).Freq_Legal_Max / 1e6));
@@ -95,10 +96,10 @@ void HoymilesRadio_CMT::init(const int8_t pin_sdio, const int8_t pin_clk, const 
     cmtSwitchDtuFreq(_inverterTargetFrequency); // start dtu at work freqency, for fast Rx if inverter is already on and frequency switched
 
     if (!_radio->isChipConnected()) {
-        Hoymiles.getMessageOutput()->println("CMT: Connection error!!");
+        MessageOutput.printf("CMT: Connection error!!");
         return;
     }
-    Hoymiles.getMessageOutput()->println("CMT: Connection successful");
+    MessageOutput.printf("CMT: Connection successful");
 
     if (pin_gpio2 >= 0) {
         attachInterrupt(digitalPinToInterrupt(pin_gpio2), std::bind(&HoymilesRadio_CMT::handleInt1, this), RISING);
@@ -126,7 +127,7 @@ void HoymilesRadio_CMT::loop()
     }
 
     if (_packetReceived) {
-        Hoymiles.getMessageOutput()->println("Interrupt received");
+        MessageOutput.printlnDebug("Hoymiels CMT: Interrupt received");
         while (_radio->available()) {
             if (!(_rxBuffer.size() > FRAGMENT_BUFFER_SIZE)) {
                 fragment_t f;
@@ -142,7 +143,7 @@ void HoymilesRadio_CMT::loop()
                 _radio->read(f.fragment, f.len);
                 _rxBuffer.push(f);
             } else {
-                Hoymiles.getMessageOutput()->println("CMT: Buffer full");
+                MessageOutput.printlnDebug("Hoymiels CMT: Buffer full");
                 _radio->flush_rx();
             }
         }
@@ -165,18 +166,18 @@ void HoymilesRadio_CMT::loop()
 
                     if (nullptr != inv) {
                         // Save packet in inverter rx buffer
-                        Hoymiles.getMessageOutput()->printf("RX %.2f MHz --> ", getFrequencyFromChannel(f.channel) / 1000000.0);
+                        MessageOutput.printfDebug("RX %.2f MHz --> ", getFrequencyFromChannel(f.channel) / 1000000.0);
                         dumpBuf(f.fragment, f.len, false);
-                        Hoymiles.getMessageOutput()->printf("| %" PRId8 " dBm\r\n", f.rssi);
+                        MessageOutput.printfDebug("| %" PRId8 " dBm\r\n", f.rssi);
 
                         inv->addRxFragment(f.fragment, f.len, f.rssi);
                     } else {
-                        Hoymiles.getMessageOutput()->println("Inverter Not found!");
+                        MessageOutput.println("Hoymiles: Inverter Not found!");
                     }
                 }
 
             } else {
-                Hoymiles.getMessageOutput()->println("Frame kaputt"); // ;-)
+                MessageOutput.printlnDebug("Frame kaputt"); // ;-)
             }
 
             // Remove paket from buffer even it was corrupted
@@ -194,9 +195,9 @@ void HoymilesRadio_CMT::setPALevel(const int8_t paLevel)
     }
 
     if (_radio->setPALevel(paLevel)) {
-        Hoymiles.getMessageOutput()->printf("CMT TX power set to %" PRId8 " dBm\r\n", paLevel);
+        MessageOutput.printf("CMT TX power set to %" PRId8 " dBm\r\n", paLevel);
     } else {
-        Hoymiles.getMessageOutput()->printf("CMT TX power %" PRId8 " dBm is not defined! (min: -10 dBm, max: 20 dBm)\r\n", paLevel);
+        MessageOutput.printf("CMT TX power %" PRId8 " dBm is not defined! (min: -10 dBm, max: 20 dBm)\r\n", paLevel);
     }
 }
 
@@ -274,12 +275,12 @@ void HoymilesRadio_CMT::sendEsbPacket(CommandAbstract& cmd)
         cmtSwitchDtuFreq(getInvBootFrequency());
     }
 
-    Hoymiles.getMessageOutput()->printf("TX %s %.2f MHz --> ",
+    MessageOutput.printfDebug("TX %s %.2f MHz --> ",
         cmd.getCommandName().c_str(), getFrequencyFromChannel(_radio->getChannel()) / 1000000.0);
-    cmd.dumpDataPayload(Hoymiles.getMessageOutput());
+    cmd.dumpDataPayload(&MessageOutput);
 
     if (!_radio->write(cmd.getDataPayload(), cmd.getDataSize())) {
-        Hoymiles.getMessageOutput()->println("TX SPI Timeout");
+        MessageOutput.printlnDebug("TX SPI Timeout");
     }
     cmtSwitchDtuFreq(_inverterTargetFrequency);
     _radio->startListening();

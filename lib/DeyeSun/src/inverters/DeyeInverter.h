@@ -38,7 +38,7 @@ struct WriteRegisterMapping{
 
 class DeyeInverter : public BaseNetworkInverter<DefaultStatisticsParser,DeyeDevInfo,DeyeAlarmLog,PowerCommandParser> {
 public:
-    explicit DeyeInverter(uint64_t serial,Print & print);
+    explicit DeyeInverter(uint64_t serial);
     virtual ~DeyeInverter() = default;
 
     uint64_t serial() const override;
@@ -127,9 +127,6 @@ private:
 
     bool _waitLongAfterTimeout;
 
-    Print & _messageOutput;
-    bool _logDebug;
-
     bool _startCommand;
     virtual const std::vector<RegisterMapping> & getRegisteresToRead() = 0;
     int _errorCounter;
@@ -148,9 +145,4 @@ private:
     static String modbusCRC16FromASCII(const String &input);
 
     void appendFragment(uint8_t offset, uint8_t *payload, uint8_t len);
-
-    void println(const char * message,bool debug = false);
-    void println(const StringSumHelper & helper,bool debug = false){ println(helper.c_str(),debug);}
-    void print(const char * message,bool debug = false);
-    void print(const StringSumHelper & helper,bool debug = false){ print(helper.c_str(),debug);}
 };

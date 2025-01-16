@@ -3,7 +3,7 @@
  * Copyright (C) 2022-2024 Thomas Basler and others
  */
 #include "MqttHandleInverter.h"
-#include "MessageOutput.h"
+#include <MessageOutput.h>
 #include "MqttSettings.h"
 #include "InverterHandler.h"
 #include <ctime>
