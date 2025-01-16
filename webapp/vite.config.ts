@@ -15,7 +15,7 @@ try {
     // eslint-disable-next-line
     proxy_target = require('./vite.user.ts').proxy_target;
 } catch {
-    proxy_target = '192.168.66.228';
+    proxy_target = 'opendtu';
 }
 
 // https://vitejs.dev/config/
@@ -57,7 +57,7 @@ export default defineConfig({
     },
   },
   esbuild: {
-    drop: ['debugger'],
+    drop: ['console', 'debugger'],
   },
   server: {
     proxy: {
