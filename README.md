@@ -66,7 +66,6 @@ Support for 6T invertes not done yet
 
 #### Not working
 
-- Showing Logs
 - Logs show hardware inverter errors
 
 ### Rest push service
