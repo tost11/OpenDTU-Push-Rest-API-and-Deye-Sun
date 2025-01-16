@@ -277,7 +277,7 @@ void HoymilesRadio_CMT::sendEsbPacket(CommandAbstract& cmd)
 
     MessageOutput.printfDebug("TX %s %.2f MHz --> ",
         cmd.getCommandName().c_str(), getFrequencyFromChannel(_radio->getChannel()) / 1000000.0);
-    cmd.dumpDataPayload(&MessageOutput);
+    cmd.dumpDataPayload();
 
     if (!_radio->write(cmd.getDataPayload(), cmd.getDataSize())) {
         MessageOutput.printlnDebug("TX SPI Timeout");

@@ -62,7 +62,7 @@ void HoymilesRadio::handleReceivedPackage()
             CommandAbstract* cmd = _commandQueue.front().get();
             uint8_t verifyResult = inv->verifyAllFragments(*cmd);
             if (verifyResult == FRAGMENT_ALL_MISSING_RESEND) {
-                MessageOutput.println("Hoymiles: Nothing received, resend whole request");
+                MessageOutput.printlnDebug("Hoymiles: Nothing received, resend whole request");
                 sendLastPacketAgain();
 
             } else if (verifyResult == FRAGMENT_ALL_MISSING_TIMEOUT) {

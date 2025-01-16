@@ -67,7 +67,7 @@ void HoymilesClass::loop()
             }
 
             if (iv->getEnablePolling() || iv->getEnableCommands()) {
-                MessageOutput.printf("Hoymiles Fetch inverter: %s\n",iv->serialString());
+                MessageOutput.printf("Hoymiles Fetch inverter: %s\n",iv->serialString().c_str());
                 //MessageOutput.println(iv->serial(), HEX);
 
                 if (!iv->isReachable()) {

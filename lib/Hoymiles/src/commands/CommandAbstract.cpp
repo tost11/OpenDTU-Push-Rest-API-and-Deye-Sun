@@ -30,6 +30,7 @@ Source Address: 80 12 23 04
 #include "crc.h"
 #include <string.h>
 #include "../inverters/InverterAbstract.h"
+#include <MessageOutput.h>
 
 CommandAbstract::CommandAbstract(InverterAbstract* inv, const uint64_t router_address)
 {
@@ -50,13 +51,13 @@ const uint8_t* CommandAbstract::getDataPayload()
     return _payload;
 }
 
-void CommandAbstract::dumpDataPayload(Print* stream)
+void CommandAbstract::dumpDataPayload()
 {
     const uint8_t* payload = getDataPayload();
     for (uint8_t i = 0; i < getDataSize(); i++) {
-        stream->printf("%02X ", payload[i]);
+        MessageOutput.printfDebug("%02X ", payload[i]);
     }
-    stream->println("");
+    MessageOutput.printlnDebug("");
 }
 
 uint8_t CommandAbstract::getDataSize() const

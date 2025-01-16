@@ -186,7 +186,7 @@ void HoymilesRadio_NRF::sendEsbPacket(CommandAbstract& cmd)
 
     MessageOutput.printfDebug("TX %s Channel: %" PRId8 " --> ",
         cmd.getCommandName().c_str(), _radio->getChannel());
-    cmd.dumpDataPayload(&MessageOutput);
+    cmd.dumpDataPayload();
     _radio->write(cmd.getDataPayload(), cmd.getDataSize());
 
     _radio->setRetries(0, 0);
