@@ -16,4 +16,7 @@ private:
 
     Task _wsCleanupTask;
     void wsCleanupTaskCb();
+
+    void onDebugGet(AsyncWebServerRequest* request);
+    void onDebugSet(AsyncWebServerRequest* request);
 };

@@ -49,7 +49,7 @@ void setup()
     while (!Serial)
         yield();
 #endif
-    MessageOutput.logDebug = false;
+    //MessageOutput.logDebug = false;
     MessageOutput.init(scheduler);
     MessageOutput.println();
     MessageOutput.println("Starting OpenDTU");
