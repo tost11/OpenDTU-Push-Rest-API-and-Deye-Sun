@@ -6,6 +6,7 @@
 #include "InverterHandler.h"
 #include "Configuration.h"
 #include <iterator>
+#include <MessageOutput.h>
 
 ServoHandleClass::ServoHandleClass():
 _loopTask(TASK_IMMEDIATE, TASK_FOREVER, std::bind(&ServoHandleClass::loop, this)){
@@ -43,9 +44,8 @@ void ServoHandleClass::startSelfTest(){
 }
 
 int ServoHandleClass::handleSelfTest(){
-    Serial.printf("Handle self test\n");
+    MessageOutput.printfDebug("Handle self test\n");
     if(_selfTestTimer.occured()){
-        Serial.printf("Test occured\n");
         _selfTestTimer.reset();
         if(Configuration.get().Servo.RangeMin > Configuration.get().Servo.RangeMax){
             _selfTestStep--;
@@ -100,18 +100,18 @@ int ServoHandleClass::calculatePosition(){
     }
 
     if(inv == nullptr){
-        Serial.printf("Inverter not found by Serial or first one\n");
+        MessageOutput.printfDebug("Inverter not found by Serial or first one\n");
         return setTo;
     }
 
     if(!inv->isReachable()){
-        Serial.printf("Servo -> Inverter not reachabled\n");
+        MessageOutput.printfDebug("Servo -> Inverter not reachabled\n");
         return setTo;
     }
 
     if(_lastUpdate == inv->getStatistics()->getLastUpdate()){
         return _lastPosition;
-        Serial.printf("Servo -> No update\n");
+        MessageOutput.printfDebug("Servo -> No update\n");
     }
     _lastUpdate = inv->getStatistics()->getLastUpdate();
 
@@ -119,14 +119,14 @@ int ServoHandleClass::calculatePosition(){
     if(Configuration.get().Servo.InputIndex == 0){
         auto c = inv->getStatistics()->getChannelsByType(ChannelType_t::TYPE_AC);
         if(c.empty()){
-            Serial.printf("Servo -> AC Output not found\n");
+            MessageOutput.printfDebug("Servo -> AC Output not found\n");
             return setTo;
         }
         value = inv->getStatistics()->getChannelFieldValue(ChannelType_t::TYPE_AC,*c.begin(), FLD_PAC);
     }else{
         auto c = inv->getStatistics()->getChannelsByType(ChannelType_t::TYPE_DC);
         if(c.size() < Configuration.get().Servo.InputIndex){
-            Serial.printf("Servo -> DC Input not found\n");
+            MessageOutput.printfDebug("Servo -> DC Input not found\n");
             return setTo;
         }
         auto it = c.begin();
@@ -148,7 +148,7 @@ int ServoHandleClass::calculatePosition(){
         setTo = std::max(setTo,(int)Configuration.get().Servo.RangeMax);
     }
 
-    Serial.printf("Watt is: %f so set to %d\n",value,setTo);
+    MessageOutput.printfDebug("Watt is: %f so set to %d\n",value,setTo);
     return setTo;
 }
 
@@ -158,7 +158,7 @@ void ServoHandleClass::loop(){
 
     if(_lastPosition != calculatedPosition){
         _lastPosition = calculatedPosition;
-        Serial.printf("Set servo to %d\n",_lastPosition);
+        MessageOutput.printf("Set servo to %d\n",_lastPosition);
         ledcWrite(_ledChannel, _lastPosition);
     }
 }
