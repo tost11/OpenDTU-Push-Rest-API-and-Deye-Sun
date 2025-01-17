@@ -2,9 +2,9 @@
 #pragma once
 
 #include <ESPAsyncWebServer.h>
-#include <Hoymiles.h>
 #include <TaskSchedulerDeclarations.h>
 #include <map>
+#include <inverter/BaseInverter.h>
 
 class WebApiPrometheusClass {
 public:

@@ -67,7 +67,7 @@ void TostHandleClass::loop()
         for (uint8_t i = 0; i < InverterHandler.getNumInverters(); i++) {
 
             auto inv = InverterHandler.getInverterByPos(i);
-            if (inv->DevInfo()->getLastUpdate() <= 0) {
+            if (inv->getDevInfo()->getLastUpdate() <= 0) {
                 continue;
             }
 
@@ -85,7 +85,7 @@ void TostHandleClass::loop()
     for (uint8_t i = 0; i < InverterHandler.getNumInverters(); i++) {
 
         auto inv = InverterHandler.getInverterByPos(i);
-        if (inv->DevInfo()->getLastUpdate() <= 0) {
+        if (inv->getDevInfo()->getLastUpdate() <= 0) {
             continue;
         }
 
@@ -96,7 +96,7 @@ void TostHandleClass::loop()
             cachedLastUpdate = it->second;
         }
 
-        uint32_t lastUpdate = inv->Statistics()->getLastUpdate();
+        uint32_t lastUpdate = inv->getStatistics()->getLastUpdate();
 
         if(lastUpdate <= 0 || lastUpdate == cachedLastUpdate){
             continue;
@@ -147,8 +147,8 @@ void TostHandleClass::loop()
         bool isData = false;
 
         // Loop all channels
-        for (auto& channelType : inv->Statistics()->getChannelTypes()) {
-            for (auto& c : inv->Statistics()->getChannelsByType(channelType)) {
+        for (auto& channelType : inv->getStatistics()->getChannelTypes()) {
+            for (auto& c : inv->getStatistics()->getChannelsByType(channelType)) {
 
                 //MessageOutput.printf("Next Channel: %d\n\r",channelType);
 
@@ -156,24 +156,24 @@ void TostHandleClass::loop()
                     isData = true;
                     JsonDocument output;
                     output["id"] = outputCount++;
-                    output["voltage"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_UAC);
-                    output["ampere"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_IAC);
-                    output["watt"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_PAC);
-                    output["frequency"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_F);
-                    output["totalKWH"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_YT);
+                    output["voltage"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_UAC);
+                    output["ampere"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_IAC);
+                    output["watt"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_PAC);
+                    output["frequency"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_F);
+                    output["totalKWH"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_YT);
                     outputs.add(output);
                 }else if(channelType == 1){
                     isData = true;
                     JsonDocument input;
                     input["id"] = inputCount++;
-                    input["voltage"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_UDC);
-                    input["ampere"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_IDC);
-                    input["watt"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_PDC);
-                    input["totalKWH"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_YT);
+                    input["voltage"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_UDC);
+                    input["ampere"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_IDC);
+                    input["watt"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_PDC);
+                    input["totalKWH"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_YT);
                     inputs.add(input);
                 }else if(channelType == 2){
                     isData = true;
-                    device["temperature"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_T);
+                    device["temperature"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_T);
                 }
 
                 /*for (uint8_t f = 0; f < sizeof(_publishFields) / sizeof(FieldId_t); f++) {

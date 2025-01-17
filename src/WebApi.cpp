@@ -4,7 +4,7 @@
  */
 #include "WebApi.h"
 #include "Configuration.h"
-#include "MessageOutput.h"
+#include <MessageOutput.h>
 #include "defaults.h"
 #include <AsyncJson.h>
 
@@ -18,7 +18,9 @@ void WebApiClass::init(Scheduler& scheduler)
     _webApiConfig.init(_server, scheduler);
     _webApiDevice.init(_server, scheduler);
     _webApiDevInfo.init(_server, scheduler);
+    #ifdef HOYMILES
     _webApiDtu.init(_server, scheduler);
+    #endif
     _webApiEventlog.init(_server, scheduler);
     _webApiFirmware.init(_server, scheduler);
     _webApiGridprofile.init(_server, scheduler);

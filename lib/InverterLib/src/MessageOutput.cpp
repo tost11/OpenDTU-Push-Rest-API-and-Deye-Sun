@@ -11,6 +11,7 @@ MessageOutputClass MessageOutput;
 MessageOutputClass::MessageOutputClass()
     : _loopTask(TASK_IMMEDIATE, TASK_FOREVER, std::bind(&MessageOutputClass::loop, this))
 {
+    logDebug = false;
 }
 
 void MessageOutputClass::init(Scheduler& scheduler)
@@ -62,5 +63,26 @@ void MessageOutputClass::loop()
             _buff_pos = 0;
         }
         _forceSend = false;
+    }
+}
+
+void MessageOutputClass::printlnDebug(const StringSumHelper & helper){
+    if(logDebug){
+        println(helper.c_str());
+    }
+}
+
+void MessageOutputClass::printDebug(const StringSumHelper & helper){
+    if(logDebug){
+        print(helper.c_str());
+    }
+}
+
+void MessageOutputClass::printfDebug(const char * format, ...){
+    if(logDebug){
+        va_list argptr;
+        va_start(argptr, format);
+        printf(format, argptr);
+        va_end(argptr);
     }
 }

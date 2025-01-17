@@ -17,6 +17,11 @@ public:
     size_t write(const uint8_t* buffer, size_t size) override;
     void register_ws_output(AsyncWebSocket* output);
 
+    bool logDebug;
+
+    void printlnDebug(const StringSumHelper & helper);
+    void printDebug(const StringSumHelper & helper);
+    void printfDebug(const char * format, ...);
 private:
     void loop();
 

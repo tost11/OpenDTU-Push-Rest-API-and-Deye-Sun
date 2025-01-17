@@ -46,7 +46,6 @@
 #define DTU_TXRX_STATE_WAIT_RESTARTDEVICE 5
 #define DTU_TXRX_STATE_ERROR 99
 
-
 struct ConnectionControl
 {
   boolean dtuConnectionOnline = true;          // true if connection is online as valued a summary
@@ -58,6 +57,7 @@ struct ConnectionControl
   uint8_t dtuConnectRetriesShort = 0;
   uint8_t dtuConnectRetriesLong = 0;
   unsigned long pauseStartTime = 0;
+  uint64_t dtuSerial = 0;
 };
 
 typedef void (*DataRetrievalCallback)(const char* data, size_t dataSize, void* userContext);
@@ -86,8 +86,11 @@ public:
     bool isConnected();
 
     std::unique_ptr<InverterData> newDataAvailable();
+
+    bool isSerialValid(const uint64_t serial);
 private:
 
+    uint64_t initSerial;
     ConnectionControl dtuConnection;
     InverterData inverterData;
     std::mutex inverterDataMutex;

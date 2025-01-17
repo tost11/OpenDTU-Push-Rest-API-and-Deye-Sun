@@ -8,7 +8,7 @@ static const byteAssign_t byteAssignment[] = {
     { TYPE_DC, CH0, FLD_UDC, UNIT_V, 2, 2, 10, false,true, 1 },
     { TYPE_DC, CH0, FLD_IDC, UNIT_A, 4, 2, 100, false,true,2 },
     { TYPE_DC, CH0, FLD_PDC, UNIT_W, 8, 2, 10, false,true, 1 },
-    { TYPE_DC, CH0, FLD_YT, UNIT_KWH, 12, 4, 1000, false, 3 },
+    { TYPE_DC, CH0, FLD_YT, UNIT_KWH, 12, 4, 1000, false,true, 3 },
     { TYPE_DC, CH0, FLD_YD, UNIT_WH, 20, 2, 1, false,true, 0 },
     { TYPE_DC, CH0, FLD_IRR, UNIT_PCT, CALC_CH_IRR, CH0, CMD_CALC, false,true, 3 },
 
@@ -54,7 +54,7 @@ static const byteAssign_t byteAssignment[] = {
     { TYPE_AC, CH0, FLD_UAC_12, UNIT_V, 74, 2, 10, false,true, 1 },
     { TYPE_AC, CH0, FLD_UAC_23, UNIT_V, 76, 2, 10, false,true, 1 },
     { TYPE_AC, CH0, FLD_UAC_31, UNIT_V, 78, 2, 10, false,true, 1 },
-    { TYPE_AC, CH0, FLD_F, UNIT_HZ, 80, 2, 100, false, true,2 },
+    { TYPE_AC, CH0, FLD_F, UNIT_HZ, 80, 2, 100, false,true,2 },
     { TYPE_AC, CH0, FLD_PAC, UNIT_W, 82, 2, 10, false,true, 1 },
     { TYPE_AC, CH0, FLD_Q, UNIT_VAR, 84, 2, 10, true,true, 1 },
     { TYPE_AC, CH0, FLD_IAC, UNIT_A, CALC_TOTAL_IAC, 0, CMD_CALC, false,true, 2 },

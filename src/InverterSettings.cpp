@@ -4,21 +4,37 @@
  */
 #include "InverterSettings.h"
 #include "Configuration.h"
-#include "MessageOutput.h"
+#include <MessageOutput.h>
 #include "PinMapping.h"
 #include "SunPosition.h"
-#include <Hoymiles.h>
 #include <SpiManager.h>
-#include "DeyeSun.h"
 #include <InverterHandler.h>
+
+#ifdef HOYMILES
+#include <Hoymiles.h>
+#endif
+
+#ifdef DEYE_SUN
+#include "DeyeSun.h"
+#endif
+
+#ifdef HOYMILES_W
 #include <HoymilesW.h>
+#endif
 
 InverterSettingsClass InverterSettings;
 
 InverterSettingsClass::InverterSettingsClass()
     : _settingsTask(INVERTER_UPDATE_SETTINGS_INTERVAL, TASK_FOREVER, std::bind(&InverterSettingsClass::settingsLoop, this))
+    #ifdef HOYMILES
     , _hoyTask(TASK_IMMEDIATE, TASK_FOREVER, std::bind(&InverterSettingsClass::hoyLoop, this))
+    #endif
+    #ifdef DEYE_SUN
+    , _deyeTask(TASK_IMMEDIATE, TASK_FOREVER, std::bind(&InverterSettingsClass::deyeLoop, this))
+    #endif
+    #ifdef HOYMILES_W
     , _hoyWTask(TASK_IMMEDIATE, TASK_FOREVER, std::bind(&InverterSettingsClass::hoyWLoop, this))
+    #endif
 {
 }
 
@@ -27,8 +43,8 @@ void InverterSettingsClass::init(Scheduler& scheduler)
     const CONFIG_T& config = Configuration.get();
     const PinMapping_t& pin = PinMapping.get();
 
+    #ifdef DEYE_SUN
     MessageOutput.print("Initialize Deye interface... ");
-    DeyeSun.setMessageOutput(&MessageOutput);
     DeyeSun.init();
 
     MessageOutput.println("  Setting Deye poll interval... ");
@@ -51,7 +67,7 @@ void InverterSettingsClass::init(Scheduler& scheduler)
                 inv->setZeroValuesIfUnreachable(config.Inverter[i].ZeroRuntimeDataIfUnrechable);
                 inv->setZeroYieldDayOnMidnight(config.Inverter[i].ZeroYieldDayOnMidnight);
                 for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
-                    inv->Statistics()->setStringMaxPower(c, config.Inverter[i].channel[c].MaxChannelPower);
+                    inv->getStatistics()->setStringMaxPower(c, config.Inverter[i].channel[c].MaxChannelPower);
                 }
             }
             MessageOutput.println(" done");
@@ -59,11 +75,12 @@ void InverterSettingsClass::init(Scheduler& scheduler)
     }
     
     MessageOutput.println("done");
+    #endif
 
+    #ifdef HOYMILES
     // Initialize inverter communication
     MessageOutput.print("Initialize Hoymiles interface... ");
 
-    Hoymiles.setMessageOutput(&MessageOutput);
     Hoymiles.init();
 
     if (PinMapping.isValidNrf24Config() || PinMapping.isValidCmt2300Config()) {
@@ -110,10 +127,10 @@ void InverterSettingsClass::init(Scheduler& scheduler)
                     inv->setZeroValuesIfUnreachable(config.Inverter[i].ZeroRuntimeDataIfUnrechable);
                     inv->setZeroYieldDayOnMidnight(config.Inverter[i].ZeroYieldDayOnMidnight);
                     inv->setClearEventlogOnMidnight(config.Inverter[i].ClearEventlogOnMidnight);
-                    inv->Statistics()->setYieldDayCorrection(config.Inverter[i].YieldDayCorrection);
+                    inv->getStatistics()->setYieldDayCorrection(config.Inverter[i].YieldDayCorrection);
                     for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
-                        inv->Statistics()->setStringMaxPower(c, config.Inverter[i].channel[c].MaxChannelPower);
-                        inv->Statistics()->setChannelFieldOffset(TYPE_DC, static_cast<ChannelNum_t>(c), FLD_YT, config.Inverter[i].channel[c].YieldTotalOffset);
+                        inv->getStatistics()->setStringMaxPower(c, config.Inverter[i].channel[c].MaxChannelPower);
+                        inv->getStatistics()->setChannelFieldOffset(TYPE_DC, static_cast<ChannelNum_t>(c), FLD_YT, config.Inverter[i].channel[c].YieldTotalOffset);
                     }
                 }
                 MessageOutput.println(" done");
@@ -123,12 +140,13 @@ void InverterSettingsClass::init(Scheduler& scheduler)
     } else {
         MessageOutput.println("Invalid pin config");
     }
+    #endif
 
+    #ifdef HOYMILES_W
     MessageOutput.print("Initialize HoymilesW interface... ");
     //HoymilesW.setMessageOutput(&MessageOutput);
     HoymilesW.init();
-
-    MessageOutput.println("  Setting Deye poll interval... ");
+    MessageOutput.println("  Setting HoymilesW poll interval... ");
     HoymilesW.setPollInterval(config.Dtu.PollInterval);
 
     for (uint8_t i = 0; i < INV_MAX_COUNT; i++) {
@@ -148,25 +166,29 @@ void InverterSettingsClass::init(Scheduler& scheduler)
                 inv->setZeroValuesIfUnreachable(config.Inverter[i].ZeroRuntimeDataIfUnrechable);
                 inv->setZeroYieldDayOnMidnight(config.Inverter[i].ZeroYieldDayOnMidnight);
                 for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
-                    inv->Statistics()->setStringMaxPower(c, config.Inverter[i].channel[c].MaxChannelPower);
+                    inv->getStatistics()->setStringMaxPower(c, config.Inverter[i].channel[c].MaxChannelPower);
                 }
             }
             MessageOutput.println(" done");
         }
     }
-
     MessageOutput.println("done");
+    #endif
 
+    #ifdef HOYMILES
     scheduler.addTask(_hoyTask);
     _hoyTask.enable();
+    #endif
 
+    #ifdef DEYE_SUN
     scheduler.addTask(_deyeTask);
-    _deyeTask.setCallback(std::bind(&InverterSettingsClass::deyeLoop, this));
-    _deyeTask.setIterations(TASK_FOREVER);
     _deyeTask.enable();
+    #endif
 
+    #ifdef HOYMILES_W
     scheduler.addTask(_hoyWTask);
     _hoyWTask.enable();
+    #endif
 
     scheduler.addTask(_settingsTask);
     _settingsTask.enable();
@@ -196,18 +218,23 @@ void InverterSettingsClass::settingsLoop()
     }
 }
 
+#ifdef HOYMILES
 void InverterSettingsClass::hoyLoop()
 {
     Hoymiles.loop();
 }
+#endif
 
-
+#ifdef DEYE_SUN
 void InverterSettingsClass::deyeLoop()
 {
     DeyeSun.loop();
 }
+#endif
 
+#ifdef HOYMILES_W
 void InverterSettingsClass::hoyWLoop()
 {
     HoymilesW.loop();
 }
+#endif

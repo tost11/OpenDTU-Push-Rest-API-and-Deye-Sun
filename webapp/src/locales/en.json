@@ -66,9 +66,9 @@
         "4007": "Inverter changed!",
         "4008": "Inverter deleted!",
         "4009": "Inverter order saved!",
-        "4010": "Unknown inverter Type!",
-        "4011": "Hostname must between 1 and {max} characters long!",
-        "4012": "Port must be bettween {min} and {max}!",
+        "4011": "Unknown inverter Type!",
+        "4012": "Hostname must between 1 and {max} characters long!",
+        "4013": "Port must be bettween {min} and {max}!",
         "5001": "@:apiresponse.2001",
         "5002": "Limit must between 1 and {max}!",
         "5003": "Invalid type specified!",
@@ -292,6 +292,9 @@
         "Quality": "Quality",
         "Rssi": "RSSI"
     },
+    "wifistationDevices": {
+        "wifistationDevices": "WLAN-conncted devices (Access Point)"
+    },
     "wifiapinfo": {
         "WifiApInfo": "WiFi Information (Access Point)",
         "Status": "@:wifistationinfo.Status",
@@ -383,7 +386,8 @@
         "VirtualDebugConsole": "Virtual Debug Console",
         "EnableAutoScroll": "Enable Auto Scroll",
         "ClearConsole": "Clear Console",
-        "CopyToClipboard": "Copy to clipboard"
+        "CopyToClipboard": "Copy to clipboard",
+        "DebugLogging": "Enable Debug Logging"
     },
     "inverterchannelinfo": {
         "String": "String {num}",

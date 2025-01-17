@@ -1,11 +1,10 @@
 #pragma once
 
-#include "BaseDevInfo.h"
+#include <parser/BaseDevInfo.h>
 
 #define DEV_INFO_SIZE_HOYMILES_W 20
 
 class HoymilesWDevInfo: public BaseDevInfo {
-
 public:
 
     void clearBuffer();
@@ -40,6 +39,7 @@ public:
 
     void setHardwareVersion(const String & version);
     void setHardwareModel(const String & model);
+    void setMaxPower(const uint16_t maxPower);
 private:
     uint8_t _payloadDevInfo[DEV_INFO_SIZE_HOYMILES_W] = {};
     uint8_t _devInfoLength = 0;
@@ -47,4 +47,5 @@ private:
     uint8_t _maxPowerDevider;
     String _hardwareVersion;
     String _hardwareModel;
+    uint16_t _maxPower;
 };

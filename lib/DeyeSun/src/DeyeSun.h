@@ -6,21 +6,17 @@
 #include "BaseInverterHandler.h"
 #include "inverters/DeyeInverter.h"
 
-class Print;
-
-class DeyeSunClass: public BaseInverterHandler<DeyeInverter,DefaultStatisticsParser,DeyeDevInfo,DeyeSystemConfigPara,DeyeAlarmLog,DeyeGridProfile,PowerCommandParser> {
+class DeyeSunClass: public BaseInverterHandler<DeyeInverter,DefaultStatisticsParser,DeyeDevInfo,DeyeAlarmLog,PowerCommandParser> {
 public:
     DeyeSunClass();
 
     void loop();
 
-    void setMessageOutput(Print* output);
-    Print* getMessageOutput();
-
     std::shared_ptr<DeyeInverter> addInverter(const char* name, uint64_t serial,const char* hostnameOrIp,uint16_t port);
     std::shared_ptr<DeyeInverter> getInverterByPos(uint8_t pos) override;
     std::shared_ptr<DeyeInverter> getInverterBySerial(uint64_t serial) override;
-    std::shared_ptr<DeyeInverter> getInverterBySerialString(const String & serialString);
+    std::shared_ptr<DeyeInverter> getInverterBySerialString(const String & serial) override;
+    
     void removeInverterBySerial(uint64_t serial) override;
     size_t getNumInverters() const override;
 
@@ -35,8 +31,6 @@ private:
 
     uint32_t _pollInterval = 0;
     uint32_t _lastPoll = 0;
-
-    Print* _messageOutput = &Serial;
 };
 
 extern DeyeSunClass DeyeSun;

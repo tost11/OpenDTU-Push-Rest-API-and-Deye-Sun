@@ -3,7 +3,6 @@
 //
 
 #include "ServoHandle.h"
-#include <BaseInverter.h>
 #include "InverterHandler.h"
 #include "Configuration.h"
 #include <iterator>
@@ -110,22 +109,22 @@ int ServoHandleClass::calculatePosition(){
         return setTo;
     }
 
-    if(_lastUpdate == inv->Statistics()->getLastUpdate()){
+    if(_lastUpdate == inv->getStatistics()->getLastUpdate()){
         return _lastPosition;
         Serial.printf("Servo -> No update\n");
     }
-    _lastUpdate = inv->Statistics()->getLastUpdate();
+    _lastUpdate = inv->getStatistics()->getLastUpdate();
 
     float value = 0;
     if(Configuration.get().Servo.InputIndex == 0){
-        auto c = inv->Statistics()->getChannelsByType(ChannelType_t::TYPE_AC);
+        auto c = inv->getStatistics()->getChannelsByType(ChannelType_t::TYPE_AC);
         if(c.empty()){
             Serial.printf("Servo -> AC Output not found\n");
             return setTo;
         }
-        value = inv->Statistics()->getChannelFieldValue(ChannelType_t::TYPE_AC,*c.begin(), FLD_PAC);
+        value = inv->getStatistics()->getChannelFieldValue(ChannelType_t::TYPE_AC,*c.begin(), FLD_PAC);
     }else{
-        auto c = inv->Statistics()->getChannelsByType(ChannelType_t::TYPE_DC);
+        auto c = inv->getStatistics()->getChannelsByType(ChannelType_t::TYPE_DC);
         if(c.size() < Configuration.get().Servo.InputIndex){
             Serial.printf("Servo -> DC Input not found\n");
             return setTo;
@@ -134,7 +133,7 @@ int ServoHandleClass::calculatePosition(){
         for(int i = 1; i < Configuration.get().Servo.InputIndex; i++){
             it++;
         }
-        value = inv->Statistics()->getChannelFieldValue(ChannelType_t::TYPE_DC,*it, FLD_PDC);
+        value = inv->getStatistics()->getChannelFieldValue(ChannelType_t::TYPE_DC,*it, FLD_PDC);
     }
 
     int dif = Configuration.get().Servo.RangeMax - Configuration.get().Servo.RangeMin;

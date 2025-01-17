@@ -19,7 +19,6 @@ _messageOutput(print)
 
     _alarmLogParser.reset(new HoymilesWAlarmLog());
     _devInfoParser.reset(new HoymilesWDevInfo());
-    _gridProfileParser.reset(new HoymilesWGridProfile());
     _powerCommandParser.reset(new PowerCommandParser());
     _statisticsParser.reset(new HoymilesWStatisticsParser());
     _systemConfigParaParser.reset(new SystemConfigParaParser());
@@ -28,7 +27,7 @@ _messageOutput(print)
 
     _dataUpdateTimer.set(20 * 1000);
     _dataUpdateTimer.zero();
-    _dataStatisticTimer.set(30 * 59 * 1000);
+    _dataStatisticTimer.set(5 * 60 * 1000);
     _dataStatisticTimer.zero();
 
     _clearBufferOnDisconnect = false;
@@ -38,7 +37,7 @@ _messageOutput(print)
 
 void HoymilesWInverter::update() {
 
-    EventLog()->checkErrorsForTimeout();
+    getEventLog()->checkErrorsForTimeout();
 
     if(_dtuInterface.isConnected()){
         if(_dataStatisticTimer.occured()){
@@ -68,9 +67,12 @@ void HoymilesWInverter::update() {
     //TODO refactor
     if(data.get() != nullptr){
         _dtuInterface.printDataAsTextToSerial();
-        swapBuffers(data.get());
+        if(_dtuInterface.isSerialValid(_serial)){
+            swapBuffers(data.get());
+        }else{
+            _alarmLogParser->addAlarm(6,60,"received inverter data not used because serials not matching (correct serial and ip?)");
+        }
     }
-
 }
 
 void HoymilesWInverter::swapBuffers(const InverterData *data) {
@@ -80,6 +82,8 @@ void HoymilesWInverter::swapBuffers(const InverterData *data) {
     _statisticsParser->setLastUpdate(millis());
     _statisticsParser->resetRxFailureCount();
     _statisticsParser->endAppendFragment();
+
+    _systemConfigParaParser->setLimitPercent(data->powerLimit);
 
     _devInfoParser->clearBuffer();
     //TODO implement
@@ -96,7 +100,7 @@ String HoymilesWInverter::typeName() const {
 }
 
 bool HoymilesWInverter::isProducing() {
-    auto stats = Statistics();
+    auto stats = getStatistics();
     float totalAc = 0;
     for (auto& c : stats->getChannelsByType(TYPE_AC)) {
         if (stats->hasChannelFieldValue(TYPE_AC, c, FLD_PAC)) {
@@ -112,20 +116,44 @@ bool HoymilesWInverter::isReachable() {
 }
 
 bool HoymilesWInverter::sendActivePowerControlRequest(float limit, PowerLimitControlType type) {
-    //TODO implement
+     uint16_t realLimit;
+    if(type == RelativPersistent){
+        realLimit = (uint16_t)(limit + 0.5);
+    }else{
+        uint16_t maxPower = _devInfoParser->getMaxPower();
+        if(maxPower == 0){
+            _alarmLogParser->addAlarm(6,10 * 60,"command not send (max Power) because no known limit for this inverter is available (serial uknown)");//alarm for 10 min
+            getSystemConfigParaParser()->setLastLimitRequestSuccess(CMD_NOK);
+            return false;
+        }
+        realLimit = (uint16_t)(limit / (float)maxPower * 100);
+    }
+    if(realLimit > 100){
+        realLimit = 100;
+    }
+    if(!_dtuInterface.isSerialValid(_serial)){
+        _alarmLogParser->addAlarm(6,10 * 60,"command not send (max Power) because serials not matching (correct serial and ip?)");//alarm for 10 min
+        return false;
+    }
+    _dtuInterface.setPowerLimit(realLimit);
     return true;
 }
 
 bool HoymilesWInverter::resendPowerControlRequest() {
-    return false;
+    return false;//TODO implement
 }
 
 bool HoymilesWInverter::sendRestartControlRequest() {
-    return false;
+    if(!_dtuInterface.isSerialValid(_serial)){
+        _alarmLogParser->addAlarm(6,10 * 60,"command not send (restart) because serials not matching (correct serial and ip?)");//alarm for 10 min
+        return false;
+    }
+    _dtuInterface.requestRestartDevice();
+    return true;
 }
 
 bool HoymilesWInverter::sendPowerControlRequest(bool turnOn) {
-    return false;
+    return false;//TODO implement
 }
 
 inverter_type HoymilesWInverter::getInverterType() const {

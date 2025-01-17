@@ -2,8 +2,10 @@
 #pragma once
 
 #include <ArduinoJson.h>
-#include <Hoymiles.h>
 #include <TaskSchedulerDeclarations.h>
+#include <parser/BaseStatistics.h>
+#include <memory>
+#include <inverter/BaseInverter.h>
 
 // mqtt discovery device classes
 enum DeviceClassType {

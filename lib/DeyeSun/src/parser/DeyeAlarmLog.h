@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include "BaseAlarmLog.h"
+#include <parser/BaseAlarmLog.h>
 
 class DeyeAlarmLog : public BaseAlarmLog {
 private:

@@ -2,7 +2,7 @@
 
 #include <list>
 #include <vector>
-#include "BaseAlarmLog.h"
+#include <parser/BaseAlarmLog.h>
 
 class HoymilesWAlarmLog : public BaseAlarmLog {
 private:

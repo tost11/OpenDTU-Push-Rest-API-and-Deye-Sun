@@ -50,14 +50,14 @@ bool PowerControlCommand::handleResponse(const fragment_t fragment[], const uint
         return false;
     }
 
-    _inv->PowerCommand()->setLastUpdateCommand(millis());
-    _inv->PowerCommand()->setLastPowerCommandSuccess(CMD_OK);
+    _inv->getPowerCommand()->setLastUpdateCommand(millis());
+    _inv->getPowerCommand()->setLastPowerCommandSuccess(CMD_OK);
     return true;
 }
 
 void PowerControlCommand::gotTimeout()
 {
-    _inv->PowerCommand()->setLastPowerCommandSuccess(CMD_NOK);
+    _inv->getPowerCommand()->setLastPowerCommandSuccess(CMD_NOK);
 }
 
 void PowerControlCommand::setPowerOn(const bool state)

@@ -7,7 +7,7 @@
 #include <ArduinoJson.h>
 #include <future>
 #include <HTTPClient.h>
-#include <BaseInverter.h>
+#include <inverter/BaseInverter.h>
 #include <queue>
 
 class TostHandleClass {

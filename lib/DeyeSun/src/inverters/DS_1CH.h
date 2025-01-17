@@ -5,7 +5,7 @@
 class DS_1CH: public DeyeInverter {
 
 public:
-    DS_1CH(uint64_t serial,const String & model,Print & print);
+    DS_1CH(uint64_t serial,const String & model);
     ~DS_1CH() = default;
 
 private:

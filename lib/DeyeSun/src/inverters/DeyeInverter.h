@@ -1,13 +1,10 @@
 #pragma once
 
 #include "types.h"
-#include "BaseInverter.h"
+#include <inverter/BaseNetworkInverter.h>
 #include "parser/DeyeDevInfo.h"
-#include "parser/DeyeSystemConfigPara.h"
 #include "parser/DeyeAlarmLog.h"
-#include "parser/DeyeGridProfile.h"
-#include <DefaultStatisticsParser.h>
-#include "parser/SystemConfigParaParser.h"
+#include <parser/DefaultStatisticsParser.h>
 #include "parser/PowerCommandParser.h"
 #include <cstdint>
 #include <list>
@@ -16,8 +13,6 @@
 #include <WiFi.h>
 #include <WiFiUdp.h>
 #include <TimeoutHelper.h>
-
-#define MAX_NAME_HOST 32
 
 struct RegisterMapping{
     String readRegister;
@@ -40,9 +35,9 @@ struct WriteRegisterMapping{
     valueToWrite(valueToWrite){}
 };
 
-class DeyeInverter : public BaseInverter<DefaultStatisticsParser,DeyeDevInfo,SystemConfigParaParser,DeyeAlarmLog,DeyeGridProfile,PowerCommandParser> {
+class DeyeInverter : public BaseNetworkInverter<DefaultStatisticsParser,DeyeDevInfo,DeyeAlarmLog,PowerCommandParser> {
 public:
-    explicit DeyeInverter(uint64_t serial,Print & print);
+    explicit DeyeInverter(uint64_t serial);
     virtual ~DeyeInverter() = default;
 
     uint64_t serial() const override;
@@ -131,9 +126,6 @@ private:
 
     bool _waitLongAfterTimeout;
 
-    Print & _messageOutput;
-    bool _logDebug;
-
     bool _startCommand;
     virtual const std::vector<RegisterMapping> & getRegisteresToRead() = 0;
     int _errorCounter = -1;
@@ -152,9 +144,4 @@ private:
     static String modbusCRC16FromASCII(const String &input);
 
     void appendFragment(uint8_t offset, uint8_t *payload, uint8_t len);
-
-    void println(const char * message,bool debug = false);
-    void println(const StringSumHelper & helper,bool debug = false){ println(helper.c_str(),debug);}
-    void print(const char * message,bool debug = false);
-    void print(const StringSumHelper & helper,bool debug = false){ print(helper.c_str(),debug);}
 };

@@ -17,11 +17,11 @@ Data structure:
 ID   Source Addr   Target Addr   Idx  ?       Limit percent   ?       ?       ?       ?       ?       CRC16   CRC8
 */
 #include "SystemConfigParaParser.h"
-#include "../Hoymiles.h"
 #include <cstring>
+#include <MessageOutput.h>
 
 SystemConfigParaParser::SystemConfigParaParser()
-    : Parser()
+: Parser()
 {
     clearBuffer();
 }
@@ -35,7 +35,8 @@ void SystemConfigParaParser::clearBuffer()
 void SystemConfigParaParser::appendFragment(const uint8_t offset, const uint8_t* payload, const uint8_t len)
 {
     if (offset + len > (SYSTEM_CONFIG_PARA_SIZE)) {
-        Hoymiles.getMessageOutput()->printf("FATAL: (%s, %d) stats packet too large for buffer\r\n", __FILE__, __LINE__);
+        //TODO fix logging
+        MessageOutput.printf("FATAL: (%s, %d) stats packet too large for buffer\r\n", __FILE__, __LINE__);
         return;
     }
     memcpy(&_payload[offset], payload, len);

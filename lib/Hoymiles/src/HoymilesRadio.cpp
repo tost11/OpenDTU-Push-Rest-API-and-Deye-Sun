@@ -5,6 +5,7 @@
 #include "HoymilesRadio.h"
 #include "Hoymiles.h"
 #include "crc.h"
+#include <MessageOutput.h>
 
 serial_u HoymilesRadio::DtuSerial() const
 {
@@ -54,18 +55,18 @@ void HoymilesRadio::sendLastPacketAgain()
 void HoymilesRadio::handleReceivedPackage()
 {
     if (_busyFlag && _rxTimeout.occured()) {
-        Hoymiles.getMessageOutput()->println("RX Period End");
+        MessageOutput.printlnDebug("RX Period End");
         std::shared_ptr<InverterAbstract> inv = Hoymiles.getInverterBySerial(_commandQueue.front().get()->getTargetAddress());
 
         if (nullptr != inv) {
             CommandAbstract* cmd = _commandQueue.front().get();
             uint8_t verifyResult = inv->verifyAllFragments(*cmd);
             if (verifyResult == FRAGMENT_ALL_MISSING_RESEND) {
-                Hoymiles.getMessageOutput()->println("Nothing received, resend whole request");
+                MessageOutput.printlnDebug("Hoymiles: Nothing received, resend whole request");
                 sendLastPacketAgain();
 
             } else if (verifyResult == FRAGMENT_ALL_MISSING_TIMEOUT) {
-                Hoymiles.getMessageOutput()->println("Nothing received, resend count exeeded");
+                MessageOutput.println("Hoymiles:  Nothing received, resend count exeeded");
                 // Statistics: Count RX Fail No Answer
                 if (inv->RadioStats.TxRequestData > 0) {
                     inv->RadioStats.RxFailNoAnswer++;
@@ -75,7 +76,7 @@ void HoymilesRadio::handleReceivedPackage()
                 _busyFlag = false;
 
             } else if (verifyResult == FRAGMENT_RETRANSMIT_TIMEOUT) {
-                Hoymiles.getMessageOutput()->println("Retransmit timeout");
+                MessageOutput.println("Hoymiles:  Retransmit timeout");
                 // Statistics: Count RX Fail Partial Answer
                 if (inv->RadioStats.TxRequestData > 0) {
                     inv->RadioStats.RxFailPartialAnswer++;
@@ -85,7 +86,7 @@ void HoymilesRadio::handleReceivedPackage()
                 _busyFlag = false;
 
             } else if (verifyResult == FRAGMENT_HANDLE_ERROR) {
-                Hoymiles.getMessageOutput()->println("Packet handling error");
+                MessageOutput.println("Hoymiles:  Packet handling error");
                 // Statistics: Count RX Fail Corrupt Data
                 if (inv->RadioStats.TxRequestData > 0) {
                     inv->RadioStats.RxFailCorruptData++;
@@ -96,8 +97,8 @@ void HoymilesRadio::handleReceivedPackage()
 
             } else if (verifyResult > 0) {
                 // Perform Retransmit
-                Hoymiles.getMessageOutput()->print("Request retransmit: ");
-                Hoymiles.getMessageOutput()->println(verifyResult);
+                MessageOutput.print("Hoymiles:  Request retransmit: ");
+                MessageOutput.println(verifyResult);
                 // Statistics: Count TX Re-Request Fragment
                 inv->RadioStats.TxReRequestFragment++;
 
@@ -105,7 +106,7 @@ void HoymilesRadio::handleReceivedPackage()
 
             } else {
                 // Successful received all packages
-                Hoymiles.getMessageOutput()->println("Success");
+                MessageOutput.println("Hoymiles:  Success");
                 // Statistics: Count RX Success
                 if (inv->RadioStats.TxRequestData > 0) {
                     inv->RadioStats.RxSuccess++;
@@ -116,7 +117,7 @@ void HoymilesRadio::handleReceivedPackage()
             }
         } else {
             // If inverter was not found, assume the command is invalid
-            Hoymiles.getMessageOutput()->println("RX: Invalid inverter found");
+            MessageOutput.println("RX: Invalid inverter found");
             // Statistics: Count RX Fail Unknown Data
             _commandQueue.pop();
             _busyFlag = false;
@@ -134,7 +135,7 @@ void HoymilesRadio::handleReceivedPackage()
 
                 sendEsbPacket(*cmd);
             } else {
-                Hoymiles.getMessageOutput()->println("TX: Invalid inverter found");
+                MessageOutput.println("TX: Invalid inverter found");
                 _commandQueue.pop();
             }
         }
@@ -144,10 +145,10 @@ void HoymilesRadio::handleReceivedPackage()
 void HoymilesRadio::dumpBuf(const uint8_t buf[], const uint8_t len, const bool appendNewline)
 {
     for (uint8_t i = 0; i < len; i++) {
-        Hoymiles.getMessageOutput()->printf("%02X ", buf[i]);
+        MessageOutput.printfDebug("%02X ", buf[i]);
     }
     if (appendNewline) {
-        Hoymiles.getMessageOutput()->println("");
+        MessageOutput.printlnDebug("");
     }
 }
 

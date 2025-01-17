@@ -1,6 +1,6 @@
 #pragma once
 
-#include "BaseDevInfo.h"
+#include <parser/BaseDevInfo.h>
 
 #define DEV_INFO_SIZE_DEYE 20
 

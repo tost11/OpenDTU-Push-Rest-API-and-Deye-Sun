@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 #include "Parser.h"
-#include "BaseAlarmLog.h"
+#include <parser/BaseAlarmLog.h>
 #include <array>
 #include <cstdint>
 

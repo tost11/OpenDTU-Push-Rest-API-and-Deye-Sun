@@ -3,35 +3,36 @@
 #include <cstdint>
 #include <WString.h>
 #include <memory>
-#include "BaseStatistics.h"
-#include "StatisticsParser.h"
-#include "BaseDevInfo.h"
-#include "BaseSystemConfigPara.h"
+#include "../parser/BaseStatistics.h"
+#include "../parser/StatisticsParser.h"
+#include "../parser/BaseDevInfo.h"
+#include "../parser/SystemConfigParaParser.h"
 #include "defines.h"
-#include "BaseAlarmLog.h"
-#include "BaseGridProfile.h"
-#include "BasePowerCommand.h"
+#include "../parser/BaseAlarmLog.h"
+#include "../parser/GridProfileParser.h"
+#include "../parser/BasePowerCommand.h"
 
 #define MAX_NAME_LENGTH 32
 
-template<class StatT,class DevT,class SysT,class AlarmT,class GridT,class PowerT,
+template<class StatT,class DevT,class AlarmT,class PowerT,
         typename = std::enable_if<std::is_base_of<BaseStatistics,StatT>::value>,
-        typename = std::enable_if<std::is_base_of<BaseDevInfo,DevT>::value>,
-        typename = std::enable_if<std::is_base_of<BaseSystemConfigPara,SysT>::value>,
+        typename = std::enable_if<std::is_base_of<BaseDevInfo,DevT>::value>,      
         typename = std::enable_if<std::is_base_of<BaseAlarmLog,AlarmT>::value>,
-        typename = std::enable_if<std::is_base_of<BaseGridProfile,GridT>::value>,
         typename = std::enable_if<std::is_base_of<BasePowerCommand,PowerT>::value>>
 class BaseInverter {
 public:
-    BaseInverter() = default;
+    BaseInverter(){
+        _gridProfileParser = std::make_unique<GridProfileParser>();
+        _systemConfigParaParser = std::make_unique<SystemConfigParaParser>();
+    }
     ~BaseInverter() = default;
 
-    AlarmT* EventLog(){return _alarmLogParser.get();}
-    DevT* DevInfo(){return _devInfoParser.get();}
-    GridT* GridProfile(){return _gridProfileParser.get();}
-    PowerT* PowerCommand(){return _powerCommandParser.get();}
-    StatT* Statistics(){return _statisticsParser.get();}
-    SysT* SystemConfigPara(){return _systemConfigParaParser.get();}
+    AlarmT* getEventLog(){return _alarmLogParser.get();}
+    DevT* getDevInfo(){return _devInfoParser.get();}
+    GridProfileParser* getGridProfileParser(){return _gridProfileParser.get();}
+    PowerT* getPowerCommand(){return _powerCommandParser.get();}
+    StatT* getStatistics(){return _statisticsParser.get();}
+    SystemConfigParaParser* getSystemConfigParaParser(){return _systemConfigParaParser.get();}
 
     virtual uint64_t serial() const = 0;
     virtual String typeName() const = 0;
@@ -61,8 +62,8 @@ protected:
 
     std::unique_ptr<StatT> _statisticsParser;
     std::unique_ptr<DevT> _devInfoParser;
-    std::unique_ptr<SysT> _systemConfigParaParser;
-    std::unique_ptr<GridT> _gridProfileParser;
+    std::unique_ptr<SystemConfigParaParser> _systemConfigParaParser;
+    std::unique_ptr<GridProfileParser> _gridProfileParser;
     std::unique_ptr<AlarmT> _alarmLogParser;
     std::unique_ptr<PowerT> _powerCommandParser;
 
@@ -138,7 +139,6 @@ public:
         return _enableCommands;
     }
 
-
     void setClearEventlogOnMidnight(const bool enabled)
     {
         _clearEventlogOnMidnight = enabled;
@@ -153,14 +153,14 @@ public:
     {
         // Have to reset the offets first, otherwise it will
         // Substract the offset from zero which leads to a high value
-        Statistics()->resetYieldDayCorrection();
+        getStatistics()->resetYieldDayCorrection();
         if (getZeroYieldDayOnMidnight()) {
-            Statistics()->zeroDailyData();
+            getStatistics()->zeroDailyData();
         }
         if (getClearEventlogOnMidnight()) {
-            EventLog()->clearBuffer();
+            getEventLog()->clearBuffer();
         }
     }
 };
 
-using BaseInverterClass = BaseInverter<BaseStatistics,BaseDevInfo,BaseSystemConfigPara,BaseAlarmLog,BaseGridProfile,BasePowerCommand>;
+using BaseInverterClass = BaseInverter<BaseStatistics,BaseDevInfo,BaseAlarmLog,BasePowerCommand>;

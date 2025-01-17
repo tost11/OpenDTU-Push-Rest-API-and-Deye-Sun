@@ -7,6 +7,7 @@
 #include "commands/RequestFrameCommand.h"
 #include <Every.h>
 #include <FunctionalInterrupt.h>
+#include <MessageOutput.h>
 
 void HoymilesRadio_NRF::init(SPIClass* initialisedSpiBus, const uint8_t pinCE, const uint8_t pinIRQ)
 {
@@ -24,10 +25,10 @@ void HoymilesRadio_NRF::init(SPIClass* initialisedSpiBus, const uint8_t pinCE, c
     _radio->setRetries(0, 0);
     _radio->maskIRQ(true, true, false); // enable only receiving interrupts
     if (!_radio->isChipConnected()) {
-        Hoymiles.getMessageOutput()->println("NRF: Connection error!!");
+        MessageOutput.println("NRF: Connection error!!");
         return;
     }
-    Hoymiles.getMessageOutput()->println("NRF: Connection successful");
+    MessageOutput.println("NRF: Connection successful");
 
     attachInterrupt(digitalPinToInterrupt(pinIRQ), std::bind(&HoymilesRadio_NRF::handleIntr, this), FALLING);
 
@@ -48,7 +49,7 @@ void HoymilesRadio_NRF::loop()
     }
 
     if (_packetReceived) {
-        Hoymiles.getMessageOutput()->println("Interrupt received");
+        MessageOutput.printlnDebug("Hoymiles NRF: Interrupt received");
         while (_radio->available()) {
             if (!(_rxBuffer.size() > FRAGMENT_BUFFER_SIZE)) {
                 fragment_t f;
@@ -61,7 +62,7 @@ void HoymilesRadio_NRF::loop()
                 _radio->read(f.fragment, f.len);
                 _rxBuffer.push(f);
             } else {
-                Hoymiles.getMessageOutput()->println("NRF: Buffer full");
+                MessageOutput.printlnDebug("Hoymiles NRF: Buffer full");
                 _radio->flush_rx();
             }
         }
@@ -76,17 +77,17 @@ void HoymilesRadio_NRF::loop()
 
                 if (nullptr != inv) {
                     // Save packet in inverter rx buffer
-                    Hoymiles.getMessageOutput()->printf("RX Channel: %" PRId8 " --> ", f.channel);
+                    MessageOutput.printfDebug("RX Channel: %" PRId8 " --> ", f.channel);
                     dumpBuf(f.fragment, f.len, false);
-                    Hoymiles.getMessageOutput()->printf("| %" PRId8 " dBm\r\n", f.rssi);
+                    MessageOutput.printfDebug("| %" PRId8 " dBm\r\n", f.rssi);
 
                     inv->addRxFragment(f.fragment, f.len, f.rssi);
                 } else {
-                    Hoymiles.getMessageOutput()->println("Inverter Not found!");
+                    MessageOutput.println("Hoymiles: Inverter Not found!");
                 }
 
             } else {
-                Hoymiles.getMessageOutput()->println("Frame kaputt");
+                MessageOutput.printlnDebug("Frame kaputt");
             }
 
             // Remove paket from buffer even it was corrupted
@@ -183,9 +184,9 @@ void HoymilesRadio_NRF::sendEsbPacket(CommandAbstract& cmd)
     openWritingPipe(s);
     _radio->setRetries(3, 15);
 
-    Hoymiles.getMessageOutput()->printf("TX %s Channel: %" PRId8 " --> ",
+    MessageOutput.printfDebug("TX %s Channel: %" PRId8 " --> ",
         cmd.getCommandName().c_str(), _radio->getChannel());
-    cmd.dumpDataPayload(Hoymiles.getMessageOutput());
+    cmd.dumpDataPayload();
     _radio->write(cmd.getDataPayload(), cmd.getDataSize());
 
     _radio->setRetries(0, 0);

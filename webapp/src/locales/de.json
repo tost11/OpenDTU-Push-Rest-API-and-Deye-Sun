@@ -64,6 +64,9 @@
         "4007": "Wechselrichter geändert!",
         "4008": "Wechselrichter gelöscht!",
         "4009": "Wechselrichter Reihenfolge gespeichert!",
+        "4011": "Unbekannter Inverter Typ!",
+        "4012": "Der Hostname muss zwischen 1 und {max} Zeichen lang sein!",
+        "4013": "Der Port muss zwischen {min} und {max} liegen!",
         "5001": "@:apiresponse.2001",
         "5002": "Das Limit muss zwischen 1 und {max} sein!",
         "5003": "Ungültiger Typ angegeben!",
@@ -287,6 +290,9 @@
         "Quality": "Qualität",
         "Rssi": "RSSI"
     },
+    "wifistationDevices": {
+        "wifistationDevices": "WLAN-Verbundene Gerät (Access Point)"
+    },
     "wifiapinfo": {
         "WifiApInfo": "WLAN-Informationen (Access Point)",
         "Status": "@:wifistationinfo.Status",
@@ -378,7 +384,8 @@
         "VirtualDebugConsole": "Virtuelle Debug-Konsole",
         "EnableAutoScroll": "Automatisches Scrollen aktivieren",
         "ClearConsole": "Konsole leeren",
-        "CopyToClipboard": "In die Zwischenablage kopieren"
+        "CopyToClipboard": "In die Zwischenablage kopieren",
+        "DebugLogging": "Enable Debug Logging"
     },
     "inverterchannelinfo": {
         "String": "String {num}",

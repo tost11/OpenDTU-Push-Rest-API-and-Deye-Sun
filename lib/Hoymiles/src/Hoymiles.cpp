@@ -16,6 +16,7 @@
 #include "inverters/HM_2CH.h"
 #include "inverters/HM_4CH.h"
 #include <Arduino.h>
+#include <MessageOutput.h>
 
 HoymilesClass Hoymiles;
 
@@ -62,12 +63,12 @@ void HoymilesClass::loop()
         if (iv != nullptr && iv->getRadio()->isInitialized() && iv->getRadio()->isQueueEmpty()) {
 
             if (iv->getZeroValuesIfUnreachable() && !iv->isReachable()) {
-                iv->Statistics()->zeroRuntimeData();
+                iv->getStatistics()->zeroRuntimeData();
             }
 
             if (iv->getEnablePolling() || iv->getEnableCommands()) {
-                _messageOutput->print("Fetch inverter: ");
-                _messageOutput->println(iv->serial(), HEX);
+                MessageOutput.printf("Hoymiles Fetch inverter: %s\n",iv->serialString().c_str());
+                //MessageOutput.println(iv->serial(), HEX);
 
                 if (!iv->isReachable()) {
                     iv->sendChangeChannelRequest();
@@ -76,48 +77,48 @@ void HoymilesClass::loop()
                 iv->sendStatsRequest();
 
                 // Fetch event log
-                const bool force = iv->EventLog()->getLastAlarmRequestSuccess() == CMD_NOK;
+                const bool force = iv->getEventLog()->getLastAlarmRequestSuccess() == CMD_NOK;
                 iv->sendAlarmLogRequest(force);
 
                 // Fetch limit
-                if (((millis() - iv->SystemConfigPara()->getLastUpdateRequest() > HOY_SYSTEM_CONFIG_PARA_POLL_INTERVAL)
-                        && (millis() - iv->SystemConfigPara()->getLastUpdateCommand() > HOY_SYSTEM_CONFIG_PARA_POLL_MIN_DURATION))) {
-                    _messageOutput->println("Request SystemConfigPara");
+                if (((millis() - iv->getSystemConfigParaParser()->getLastUpdateRequest() > HOY_SYSTEM_CONFIG_PARA_POLL_INTERVAL)
+                        && (millis() - iv->getSystemConfigParaParser()->getLastUpdateCommand() > HOY_SYSTEM_CONFIG_PARA_POLL_MIN_DURATION))) {
+                    MessageOutput.println("Hoymiles Request SystemConfigPara");
                     iv->sendSystemConfigParaRequest();
                 }
 
                 // Set limit if required
-                if (iv->SystemConfigPara()->getLastLimitCommandSuccess() == CMD_NOK) {
-                    _messageOutput->println("Resend ActivePowerControl");
+                if (iv->getSystemConfigParaParser()->getLastLimitCommandSuccess() == CMD_NOK) {
+                    MessageOutput.println("Hoymiles Resend ActivePowerControl");
                     iv->resendActivePowerControlRequest();
                 }
 
                 // Set power status if required
-                if (iv->PowerCommand()->getLastPowerCommandSuccess() == CMD_NOK) {
-                    _messageOutput->println("Resend PowerCommand");
+                if (iv->getPowerCommand()->getLastPowerCommandSuccess() == CMD_NOK) {
+                    MessageOutput.println("Hoymiles Resend PowerCommand");
                     iv->resendPowerControlRequest();
                 }
 
                 // Fetch dev info (but first fetch stats)
-                if (iv->Statistics()->getLastUpdate() > 0) {
-                    const bool invalidDevInfo = !iv->DevInfo()->containsValidData()
-                        && iv->DevInfo()->getLastUpdateAll() > 0
-                        && iv->DevInfo()->getLastUpdateSimple() > 0;
+                if (iv->getStatistics()->getLastUpdate() > 0) {
+                    const bool invalidDevInfo = !iv->getDevInfo()->containsValidData()
+                        && iv->getDevInfo()->getLastUpdateAll() > 0
+                        && iv->getDevInfo()->getLastUpdateSimple() > 0;
 
                     if (invalidDevInfo) {
-                        _messageOutput->println("DevInfo: No Valid Data");
+                        MessageOutput.println("Hoymiles getDevInfo: No Valid Data");
                     }
 
-                    if ((iv->DevInfo()->getLastUpdateAll() == 0)
-                        || (iv->DevInfo()->getLastUpdateSimple() == 0)
+                    if ((iv->getDevInfo()->getLastUpdateAll() == 0)
+                        || (iv->getDevInfo()->getLastUpdateSimple() == 0)
                         || invalidDevInfo) {
-                        _messageOutput->println("Request device info");
+                        MessageOutput.println("Hoymiles Request device info");
                         iv->sendDevInfoRequest();
                     }
                 }
 
                 // Fetch grid profile
-                if (iv->Statistics()->getLastUpdate() > 0 && (iv->GridProfile()->getLastUpdate() == 0 || !iv->GridProfile()->containsValidData())) {
+                if (iv->getStatistics()->getLastUpdate() > 0 && (iv->getGridProfileParser()->getLastUpdate() == 0 || !iv->getGridProfileParser()->containsValidData())) {
                     iv->sendGridOnProFileParaRequest();
                 }
 
@@ -192,10 +193,11 @@ std::shared_ptr<InverterAbstract> HoymilesClass::getInverterBySerial(const uint6
     return nullptr;
 }
 
-std::shared_ptr<InverterAbstract> HoymilesClass::getInverterBySerialString(const String & serialString)
+
+std::shared_ptr<InverterAbstract> HoymilesClass::getInverterBySerialString(const String & serial)
 {
     for (uint8_t i = 0; i < _inverters.size(); i++) {
-        if (_inverters[i]->serialString() == serialString) {
+        if (_inverters[i]->serialString() == serial) {
             return _inverters[i];
         }
     }
@@ -252,14 +254,4 @@ HoymilesRadio_CMT* HoymilesClass::getRadioCmt()
 bool HoymilesClass::isAllRadioIdle() const
 {
     return _radioNrf.get()->isIdle() && _radioCmt.get()->isIdle();
-}
-
-void HoymilesClass::setMessageOutput(Print* output)
-{
-    _messageOutput = output;
-}
-
-Print* HoymilesClass::getMessageOutput()
-{
-    return _messageOutput;
 }

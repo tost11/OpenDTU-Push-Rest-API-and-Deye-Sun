@@ -9,10 +9,21 @@
 #include "WebApi_errors.h"
 #include "defaults.h"
 #include "helper.h"
-#include "DeyeSun.h"
-#include "HoymilesW.h"
 #include <AsyncJson.h>
 #include <InverterHandler.h>
+
+#ifdef HOYMILES
+#include <Hoymiles.h>
+#include <inverters/InverterAbstract.h>
+#endif
+
+#ifdef DEYE_SUN
+#include <DeyeSun.h>
+#endif
+
+#ifdef HOYMILES_W
+#include <HoymilesW.h>
+#endif
 
 void WebApiInverterClass::init(AsyncWebServer& server, Scheduler& scheduler)
 {
@@ -71,7 +82,7 @@ void WebApiInverterClass::onInverterList(AsyncWebServerRequest* request)
                 max_channels = INV_MAX_CHAN_COUNT;
             } else {
                 obj["type"] = inv->typeName();
-                max_channels = inv->Statistics()->getChannelsByType(TYPE_DC).size();
+                max_channels = inv->getStatistics()->getChannelsByType(TYPE_DC).size();
             }
 
             JsonArray channel = obj["channel"].to<JsonArray>();
@@ -83,6 +94,18 @@ void WebApiInverterClass::onInverterList(AsyncWebServerRequest* request)
             }
         }
     }
+
+    JsonArray manufacturer = root["manufacturers"].to<JsonArray>();
+
+    #ifdef HOYMILES
+    manufacturer.add(from_inverter_type(inverter_type::Inverter_Hoymiles));
+    #endif
+    #ifdef DEYE_SUN
+    manufacturer.add(from_inverter_type(inverter_type::Inverter_DeyeSun));
+    #endif
+    #ifdef HOYMILES_W
+    manufacturer.add(from_inverter_type(inverter_type::Inverter_HoymilesW));
+    #endif
 
     WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
 }
@@ -203,17 +226,25 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
     }
 
     std::shared_ptr<BaseInverterClass> inv = nullptr;
+    #ifdef HOYMILES
     if (root["manufacturer"].as<String>() == from_inverter_type(inverter_type::Inverter_Hoymiles) ) {
         inv = std::reinterpret_pointer_cast<BaseInverterClass>(Hoymiles.addInverter(inverter->Name, inverter->Serial));
-    }else if(root["manufacturer"].as<String>() == from_inverter_type(inverter_type::Inverter_DeyeSun)){
+    }
+    #endif
+    #ifdef DEYE_SUN
+    if(root["manufacturer"].as<String>() == from_inverter_type(inverter_type::Inverter_DeyeSun)){
         inv = std::reinterpret_pointer_cast<BaseInverterClass>(DeyeSun.addInverter(inverter->Name, inverter->Serial,inverter->HostnameOrIp,inverter->Port));
-    }else if(root["manufacturer"].as<String>() == from_inverter_type(inverter_type::Inverter_HoymilesW)){
+    }
+    #endif
+    #ifdef HOYMILES_W
+    if(root["manufacturer"].as<String>() == from_inverter_type(inverter_type::Inverter_HoymilesW)){
         inv = std::reinterpret_pointer_cast<BaseInverterClass>(HoymilesW.addInverter(inverter->Name, inverter->Serial,inverter->HostnameOrIp,inverter->Port));
     }
+    #endif
 
     if (inv != nullptr) {
         for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
-            inv->Statistics()->setStringMaxPower(c, inverter->channel[c].MaxChannelPower);
+            inv->getStatistics()->setStringMaxPower(c, inverter->channel[c].MaxChannelPower);
         }
     }
 
@@ -359,35 +390,56 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
 
     if (inv != nullptr && new_serial != old_serial) {
         // Valid inverter exists but serial changed --> remove it and insert new one
+        #ifdef HOYMILES
         InverterHandler.removeInverterBySerial(old_serial,inverter.Type);
         if(inverter.Type == inverter_type::Inverter_Hoymiles){
             inv = std::reinterpret_pointer_cast<BaseInverterClass>(Hoymiles.addInverter(inverter.Name, inverter.Serial));
-        }else if(inverter.Type == inverter_type::Inverter_DeyeSun){
+        }
+        #endif
+        #ifdef DEYE_SUN
+        if(inverter.Type == inverter_type::Inverter_DeyeSun){
             inv = std::reinterpret_pointer_cast<BaseInverterClass>(DeyeSun.addInverter(inverter.Name, inverter.Serial,inverter.HostnameOrIp,inverter.Port));
-        }else if(inverter.Type == inverter_type::Inverter_HoymilesW){
+        }
+        #endif
+        #ifdef HOYMILES_W
+        if(inverter.Type == inverter_type::Inverter_HoymilesW){
             inv = std::reinterpret_pointer_cast<BaseInverterClass>(HoymilesW.addInverter(inverter.Name, inverter.Serial,inverter.HostnameOrIp,inverter.Port));
         }
+        #endif
     } else if (inv != nullptr && new_serial == old_serial) {
         // Valid inverter exists and serial stays the same --> update name
         inv->setName(inverter.Name);
+        #ifdef DEYE_SUN
         if(root["manufacturer"].as<String>() == "DeyeSun"){
             auto deye_inv = reinterpret_cast<DeyeInverter*>(inv.get());
             deye_inv->setHostnameOrIp(inverter.HostnameOrIp);
             deye_inv->setPort(inverter.Port);
-        }else if(root["manufacturer"].as<String>() == "HoymilesW"){
+        }
+        #endif
+        #ifdef HOYMILES_W
+        if(root["manufacturer"].as<String>() == "HoymilesW"){
             auto hoy_inv = reinterpret_cast<HoymilesWInverter*>(inv.get());
             hoy_inv->setHostnameOrIp(inverter.HostnameOrIp);
             hoy_inv->setPort(inverter.Port);
         }
+        #endif
     } else if (inv == nullptr) {
         // Valid inverter did not exist --> try to create one
+        #ifdef HOYMILES
         if (inverter.Type == inverter_type::Inverter_Hoymiles) {
             inv = std::reinterpret_pointer_cast<BaseInverterClass>(Hoymiles.addInverter(inverter.Name, inverter.Serial));
-        }else if(inverter.Type == inverter_type::Inverter_DeyeSun){
+        }
+        #endif
+        #ifdef DEYE_SUN
+        if(inverter.Type == inverter_type::Inverter_DeyeSun){
             inv = std::reinterpret_pointer_cast<BaseInverterClass>(DeyeSun.addInverter(inverter.Name, inverter.Serial,inverter.HostnameOrIp,inverter.Port));
-        }else if(inverter.Type == inverter_type::Inverter_HoymilesW){
+        }
+        #endif
+        #ifdef HOYMILES_W
+        if(inverter.Type == inverter_type::Inverter_HoymilesW){
             inv = std::reinterpret_pointer_cast<BaseInverterClass>(HoymilesW.addInverter(inverter.Name, inverter.Serial,inverter.HostnameOrIp,inverter.Port));
         }
+        #endif
     }
 
     if (inv != nullptr) {
@@ -398,11 +450,11 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
         inv->setZeroYieldDayOnMidnight(inverter.ZeroYieldDayOnMidnight);
         inv->setClearEventlogOnMidnight(inverter.ClearEventlogOnMidnight);
         if(inv->getInverterType() == inverter_type::Inverter_Hoymiles) {
-            static_cast<StatisticsParser *>(inv->Statistics())->setYieldDayCorrection(inverter.YieldDayCorrection);
+            static_cast<StatisticsParser *>(inv->getStatistics())->setYieldDayCorrection(inverter.YieldDayCorrection);
         }
         for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
-            inv->Statistics()->setStringMaxPower(c, inverter.channel[c].MaxChannelPower);
-            inv->Statistics()->setChannelFieldOffset(TYPE_DC, static_cast<ChannelNum_t>(c), FLD_YT, inverter.channel[c].YieldTotalOffset);
+            inv->getStatistics()->setStringMaxPower(c, inverter.channel[c].MaxChannelPower);
+            inv->getStatistics()->setChannelFieldOffset(TYPE_DC, static_cast<ChannelNum_t>(c), FLD_YT, inverter.channel[c].YieldTotalOffset);
         }
     }
 
@@ -499,13 +551,17 @@ void WebApiInverterClass::onInverterStatReset(AsyncWebServerRequest* request)
     AsyncJsonResponse* response = new AsyncJsonResponse();
     auto retMsg = response->getRoot();
     auto serial = WebApi.parseSerialFromRequest(request);
-    auto inv = Hoymiles.getInverterBySerial(serial);
+    auto inv = InverterHandler.getInverterBySerial(serial);
 
     if (inv != nullptr) {
-        inv->resetRadioStats();
-        retMsg["type"] = "success";
-        retMsg["message"] = "Stats resetted";
-        retMsg["code"] = WebApiError::InverterStatsResetted;
+        #ifdef HOYMILES
+        if(inv->getInverterType() == inverter_type::Inverter_Hoymiles){
+            reinterpret_cast<InverterAbstract*>(inv.get())->resetRadioStats();
+            retMsg["type"] = "success";
+            retMsg["message"] = "Stats resetted";
+            retMsg["code"] = WebApiError::InverterStatsResetted;
+        }
+        #endif
     }
 
     WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);

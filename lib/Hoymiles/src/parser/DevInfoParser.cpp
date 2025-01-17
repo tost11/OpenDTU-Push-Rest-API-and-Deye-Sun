@@ -30,6 +30,7 @@ ID   Source Addr   Target Addr   Idx  FW Version  HW Part No.   HW Version   ?  
 #include "DevInfoParser.h"
 #include "../Hoymiles.h"
 #include <cstring>
+#include <MessageOutput.h>
 
 #define ALL 0xff
 
@@ -101,7 +102,7 @@ void DevInfoParser::clearBufferAll()
 void DevInfoParser::appendFragmentAll(const uint8_t offset, const uint8_t* payload, const uint8_t len)
 {
     if (offset + len > DEV_INFO_SIZE) {
-        Hoymiles.getMessageOutput()->printf("FATAL: (%s, %d) dev info all packet too large for buffer\r\n", __FILE__, __LINE__);
+        MessageOutput.printf("FATAL: (%s, %d) dev info all packet too large for buffer\r\n", __FILE__, __LINE__);
         return;
     }
     memcpy(&_payloadDevInfoAll[offset], payload, len);
@@ -117,7 +118,7 @@ void DevInfoParser::clearBufferSimple()
 void DevInfoParser::appendFragmentSimple(const uint8_t offset, const uint8_t* payload, const uint8_t len)
 {
     if (offset + len > DEV_INFO_SIZE) {
-        Hoymiles.getMessageOutput()->printf("FATAL: (%s, %d) dev info Simple packet too large for buffer\r\n", __FILE__, __LINE__);
+        MessageOutput.printf("FATAL: (%s, %d) dev info Simple packet too large for buffer\r\n", __FILE__, __LINE__);
         return;
     }
     memcpy(&_payloadDevInfoSimple[offset], payload, len);

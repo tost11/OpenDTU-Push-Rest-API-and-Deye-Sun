@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
-#include "Parser.h"
-#include "BaseSystemConfigPara.h"
+#include "../Parser.h"
+#include "../Updater.h"
 
 #define SYSTEM_CONFIG_PARA_SIZE 16
 
-class SystemConfigParaParser : public Parser,public BaseSystemConfigPara {
+class SystemConfigParaParser : public Parser, public Updater {
 public:
     SystemConfigParaParser();
     void clearBuffer();
     void appendFragment(const uint8_t offset, const uint8_t* payload, const uint8_t len);
 
-    float getLimitPercent() const override;
+    float getLimitPercent() const;
     void setLimitPercent(const float value);
 
     void setLastLimitCommandSuccess(const LastCommandSuccess status);
-    LastCommandSuccess getLastLimitCommandSuccess() const override;
+    LastCommandSuccess getLastLimitCommandSuccess() const;
     uint32_t getLastUpdateCommand() const;
     void setLastUpdateCommand(const uint32_t lastUpdate);
 

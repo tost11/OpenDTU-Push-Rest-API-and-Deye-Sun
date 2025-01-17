@@ -21,7 +21,7 @@ void DeyeSunClass::loop()
             }
 
             if (inv->getZeroValuesIfUnreachable() && !inv->isReachable()) {
-                inv->Statistics()->zeroRuntimeData();
+                inv->getStatistics()->zeroRuntimeData();
             }
 
             if (inv->getEnablePolling() || inv->getEnableCommands()) {
@@ -40,9 +40,9 @@ std::shared_ptr<DeyeInverter> DeyeSunClass::addInverter(const char* name, uint64
     String type = DeyeInverter::serialToModel(serial);
 
     if(type.startsWith("SUN300G3")){
-        i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<DS_1CH>(serial,type,*_messageOutput));
+        i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<DS_1CH>(serial,type));
     }else{
-        i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<DS_2CH>(serial,type,*_messageOutput));
+        i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<DS_2CH>(serial,type));
     }
 
     if (i) {
@@ -75,6 +75,16 @@ std::shared_ptr<DeyeInverter> DeyeSunClass::getInverterBySerial(uint64_t serial)
     return nullptr;
 }
 
+std::shared_ptr<DeyeInverter> DeyeSunClass::getInverterBySerialString(const String & serial)
+{
+    for (uint8_t i = 0; i < _inverters.size(); i++) {
+        if (_inverters[i]->serialString() == serial) {
+            return _inverters[i];
+        }
+    }
+    return nullptr;
+}
+
 void DeyeSunClass::removeInverterBySerial(uint64_t serial)
 {
     for (uint8_t i = 0; i < _inverters.size(); i++) {
@@ -84,16 +94,6 @@ void DeyeSunClass::removeInverterBySerial(uint64_t serial)
             return;
         }
     }
-}
-
-std::shared_ptr<DeyeInverter> DeyeSunClass::getInverterBySerialString(const String & serialString)
-{
-    for (uint8_t i = 0; i < _inverters.size(); i++) {
-        if (_inverters[i]->serialString() == serialString) {
-            return _inverters[i];
-        }
-    }
-    return nullptr;
 }
 
 size_t DeyeSunClass::getNumInverters() const
@@ -108,15 +108,6 @@ bool DeyeSunClass::isAllRadioIdle() const
     return true;
 }
 
-void DeyeSunClass::setMessageOutput(Print* output)
-{
-    _messageOutput = output;
-}
-
-Print* DeyeSunClass::getMessageOutput()
-{
-    return _messageOutput;
-}
 
 void DeyeSunClass::init() {
 

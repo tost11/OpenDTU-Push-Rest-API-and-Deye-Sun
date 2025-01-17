@@ -24,7 +24,7 @@ void HoymilesWClass::loop()
 
 
             if (inv->getZeroValuesIfUnreachable() && !inv->isReachable()) {
-                inv->Statistics()->zeroRuntimeData();
+                inv->getStatistics()->zeroRuntimeData();
             }
 
             if (inv->getEnablePolling() || inv->getEnableCommands()) {
@@ -49,7 +49,7 @@ std::shared_ptr<HoymilesWInverter> HoymilesWClass::addInverter(const char* name,
         i = std::make_shared<HMS_W_4T>(serial,*_messageOutput);
     }else{
         i = std::make_shared<HMS_W_4T>(serial,*_messageOutput);
-        i->DevInfo()->setHardwareModel("Unknown");
+        i->getDevInfo()->setHardwareModel("Unknown");
     }
 
     if (i) {
@@ -83,6 +83,16 @@ std::shared_ptr<HoymilesWInverter> HoymilesWClass::getInverterBySerial(uint64_t 
     return nullptr;
 }
 
+std::shared_ptr<HoymilesWInverter> HoymilesWClass::getInverterBySerialString(const String & serial)
+{
+    for (uint8_t i = 0; i < _inverters.size(); i++) {
+        if (_inverters[i]->serialString() == serial) {
+            return _inverters[i];
+        }
+    }
+    return nullptr;
+}
+
 void HoymilesWClass::removeInverterBySerial(uint64_t serial)
 {
     for (uint8_t i = 0; i < _inverters.size(); i++) {
@@ -97,16 +107,6 @@ void HoymilesWClass::removeInverterBySerial(uint64_t serial)
 size_t HoymilesWClass::getNumInverters() const
 {
     return _inverters.size();
-}
-
-std::shared_ptr<HoymilesWInverter> HoymilesWClass::getInverterBySerialString(const String & serialString)
-{
-    for (uint8_t i = 0; i < _inverters.size(); i++) {
-        if (_inverters[i]->serialString() == serialString) {
-            return _inverters[i];
-        }
-    }
-    return nullptr;
 }
 
 bool HoymilesWClass::isAllRadioIdle() const

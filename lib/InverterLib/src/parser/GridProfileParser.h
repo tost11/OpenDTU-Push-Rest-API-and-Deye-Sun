@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
-#include "Parser.h"
+#include "../Parser.h"
+#include "../Updater.h"
 #include <list>
-#include "BaseGridProfile.h"
 
 #define GRID_PROFILE_SIZE 141
 #define PROFILE_TYPE_COUNT 10
@@ -31,7 +31,7 @@ struct GridProfileSection_t {
     std::list<GridProfileItem_t> items;
 };
 
-class GridProfileParser : public Parser,public BaseGridProfile {
+class GridProfileParser : public Parser, public Updater {
 public:
     GridProfileParser();
     void clearBuffer();
@@ -40,7 +40,7 @@ public:
     String getProfileName() const;
     String getProfileVersion() const;
 
-    std::vector<uint8_t> getRawData() const override;
+    std::vector<uint8_t> getRawData() const;
 
     std::list<GridProfileSection_t> getProfile() const;
 

@@ -1,15 +1,13 @@
 #pragma once
 
 #include <memory>
-#include "BaseInverter.h"
+#include "inverter/BaseInverter.h"
 #include "InverterUtils.h"
 
-template<class InverterType,class StatT,class DevT,class SysT,class AlarmT,class GridT,
+template<class InverterType,class StatT,class DevT,class AlarmT,
         typename = std::enable_if<std::is_base_of<BaseStatistics,StatT>::value>,
         typename = std::enable_if<std::is_base_of<BaseDevInfo,DevT>::value>,
-        typename = std::enable_if<std::is_base_of<BaseSystemConfigPara,SysT>::value>,
         typename = std::enable_if<std::is_base_of<BaseAlarmLog,AlarmT>::value>,
-        typename = std::enable_if<std::is_base_of<BaseGridProfile,GridT>::value>,
         typename = std::enable_if<std::is_base_of<BasePowerCommand,InverterType>::value>>
 class BaseInverterHandler {
 public:
@@ -19,6 +17,7 @@ public:
 
     virtual std::shared_ptr<InverterType> getInverterByPos(uint8_t pos) = 0;
     virtual std::shared_ptr<InverterType> getInverterBySerial(uint64_t serial) = 0;
+    virtual std::shared_ptr<InverterType> getInverterBySerialString(const String & serial) = 0;
 
     virtual void removeInverterBySerial(uint64_t serial) = 0;
 
@@ -51,4 +50,4 @@ protected:
 public:
 };
 
-using BaseInverterHandlerClass = BaseInverterHandler<BaseInverterClass ,BaseStatistics,BaseDevInfo,BaseSystemConfigPara,BaseAlarmLog,BaseGridProfile,BasePowerCommand>;
+using BaseInverterHandlerClass = BaseInverterHandler<BaseInverterClass ,BaseStatistics,BaseDevInfo,BaseAlarmLog,BasePowerCommand>;
