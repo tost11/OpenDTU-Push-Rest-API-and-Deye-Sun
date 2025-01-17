@@ -429,8 +429,10 @@ float DTUInterface::calcValue(int32_t value, int32_t divider)
 
 String getTimeStringByTimestamp(unsigned long timestamp)
 {
-    //TODO real parsing
-    return "" + timestamp;
+    char s[20];
+    memset(s,'\0',20);
+    snprintf(s, 20, "%llu", timestamp);
+    return String(s);
 }
 
 void DTUInterface::initializeCRC()
