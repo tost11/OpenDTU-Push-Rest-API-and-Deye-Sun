@@ -3,13 +3,9 @@
 #include "DeyeUtils.h"
 
 #include <Dns.h>
-#include <cstring>
-#include <sstream>
 #include <ios>
-#include <iomanip>
 #include <WiFi.h>
 #include <WiFiUdp.h>
-
 #include <MessageOutput.h>
 
 unsigned DeyeInverter::hex_char_to_int( char c ) {
@@ -27,10 +23,6 @@ unsigned DeyeInverter::hex_char_to_int( char c ) {
         assert( 0 );
     }
     return result;
-}
-
-String DeyeInverter::int_to_string_hex(uint8_t num) {
-    return String(num, HEX);
 }
 
 unsigned short DeyeInverter::modbusCRC16FromHex(const String & message)
@@ -70,12 +62,9 @@ String DeyeInverter::modbusCRC16FromASCII(const String & input) {
     }
 
     unsigned short res = modbusCRC16FromHex(hexString);
+    String stringRes = DeyeUtils::lengthToHexString(res,4);
 
-    std::stringstream stream;
-    stream << std::setw(4) << std::setfill('0')  <<std::hex << static_cast<uint16_t >(res);
-    std::string result( stream.str() );
-
-    return String()+result[2]+result[3]+result[0]+result[1];
+    return String()+stringRes[2]+stringRes[3]+stringRes[0]+stringRes[1];
 }
 
 
@@ -162,7 +151,7 @@ void DeyeInverter::update() {
                 _powerTargetStatus = nullptr;
             } else if (_limitToSet != nullptr) {
                 MessageOutput.printlnDebug("Start writing register limit");
-                _currentWritCommand = std::make_unique<WriteRegisterMapping>("0028", 1, lengthToHexString(*_limitToSet));
+                _currentWritCommand = std::make_unique<WriteRegisterMapping>("0028", 1, DeyeUtils::lengthToHexString(*_limitToSet,4));
                 _limitToSet = nullptr;
             }
         }
@@ -404,9 +393,7 @@ int DeyeInverter::handleRegisterRead(size_t length) {
                 value = -1000;
             }
 
-            std::stringstream stream;
-            stream << std::setfill ('0') << std::setw(sizeof(int16_t)*2)<< std::hex << value;
-            hexString = stream.str().c_str();
+            hexString = DeyeUtils::lengthToHexString(value,4);
 
             finalResult = "";
 
@@ -444,7 +431,7 @@ void DeyeInverter::sendCurrentRegisterRead() {
     String data = "0103";
     data += current.readRegister;
 
-    data += lengthToString(current.length);
+    data += DeyeUtils::lengthToString(current.length,4);
 
     String checksum = modbusCRC16FromASCII(data);
 
@@ -461,7 +448,7 @@ void DeyeInverter::sendCurrentRegisterWrite() {
     String data = "0110";
     data += _currentWritCommand->writeRegister;
     data += "0001";
-    data += lengthToString(_currentWritCommand->length * 2,2);
+    data += DeyeUtils::lengthToString(_currentWritCommand->length * 2,2);
     data += _currentWritCommand->valueToWrite;
 
     String checksum = modbusCRC16FromASCII(data);
@@ -710,18 +697,6 @@ void DeyeInverter::handleWrite() {
             endSocket();
         }
     }
-}
-
-String DeyeInverter::lengthToString(uint8_t length,int fill) {
-    std::stringstream ss;
-    ss << std::setw(fill) << std::setfill('0') << (int)length;
-    return ss.str().c_str();
-}
-
-String DeyeInverter::lengthToHexString(uint8_t length,int fill) {
-    std::stringstream ss;
-    ss << std::setw(fill) << std::setfill('0') << int_to_string_hex(length).c_str();
-    return ss.str().c_str();
 }
 
 void DeyeInverter::setEnableCommands(const bool enabled) {

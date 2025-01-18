@@ -238,7 +238,7 @@ void DTUInterface::dtuConnectionObserver()
     }
     else if (millis() - lastOnlineOfflineChange > 90000 && currentOnlineOfflineState == false)
     {
-        MessageOutput.print(F("DTUinterface:\t setOverallOnlineOfflineState - timeout - reset online offline state"));
+        MessageOutput.println(F("DTUinterface:\t setOverallOnlineOfflineState - timeout - reset online offline state"));
         MessageOutput.printlnDebug(" - difference: " + String((millis() - lastOnlineOfflineChange)/1000,3) + " ms - current conn state: " + String(dtuConnection.dtuConnectState));
         dtuConnection.dtuConnectionOnline = false;
     }

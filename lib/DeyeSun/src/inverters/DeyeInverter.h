@@ -71,9 +71,7 @@ private:
     bool parseInitInformation(size_t length);
     int handleRegisterRead(size_t length);
     int handleRegisterWrite(size_t length);
-
-    static String lengthToString(uint8_t length,int fill = 4);
-    String lengthToHexString(uint8_t length,int fill = 4);
+    
     String filterReceivedResponse(size_t length);
 
     bool resolveHostname();
@@ -137,7 +135,6 @@ private:
     uint8_t _payloadStatisticBuffer[STATISTIC_PACKET_SIZE] = {};
 
     static unsigned int hex_char_to_int(char c);
-    String int_to_string_hex(uint8_t num);
 
     static unsigned short modbusCRC16FromHex(const String &message);
 
