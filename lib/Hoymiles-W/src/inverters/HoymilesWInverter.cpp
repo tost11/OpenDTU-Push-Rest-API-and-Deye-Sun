@@ -2,7 +2,6 @@
 #include "Dns.h"
 
 #include <cstring>
-#include <sstream>
 #include <ios>
 #include <iomanip>
 
