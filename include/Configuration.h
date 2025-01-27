@@ -3,6 +3,8 @@
 
 #include "PinMapping.h"
 #include <cstdint>
+#include <WString.h>
+#include "defines.h"
 
 #define CONFIG_FILENAME "/config.json"
 #define CONFIG_VERSION 0x00011c00 // 0.1.28 // make sure to clean all after change
@@ -26,6 +28,7 @@
 #define INV_MAX_NAME_STRLEN 31
 #define INV_MAX_COUNT 10
 #define INV_MAX_CHAN_COUNT 6
+#define INV_MAX_HOSTNAME_STRLEN 31
 
 #define CHAN_MAX_NAME_STRLEN 31
 
@@ -38,8 +41,11 @@ struct CHANNEL_CONFIG_T {
 };
 
 struct INVERTER_CONFIG_T {
+    inverter_type Type;
     uint64_t Serial;
     char Name[INV_MAX_NAME_STRLEN + 1];
+    char HostnameOrIp[INV_MAX_HOSTNAME_STRLEN + 1];
+    uint16_t Port;
     uint8_t Order;
     bool Poll_Enable;
     bool Poll_Enable_Night;

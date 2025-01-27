@@ -5,7 +5,7 @@
 #include "WebApi_eventlog.h"
 #include "WebApi.h"
 #include <AsyncJson.h>
-#include <Hoymiles.h>
+#include <InverterHandler.h>
 
 void WebApiEventlogClass::init(AsyncWebServer& server, Scheduler& scheduler)
 {
@@ -36,10 +36,26 @@ void WebApiEventlogClass::onEventlogStatus(AsyncWebServerRequest* request)
         }
     }
 
-    auto inv = Hoymiles.getInverterBySerial(serial);
+    if(!request->hasParam("manufacturer")){
+        response->setCode(400);
+        response->setLength();
+        request->send(response);
+        return;
+    }
+
+    auto type = to_inverter_type(request->getParam("manufacturer")->value());
+
+    if(type == inverter_type::Inverter_count){
+        response->setCode(400);
+        response->setLength();
+        request->send(response);
+        return;
+    }
+
+    auto inv = InverterHandler.getInverterBySerial(serial,type);
 
     if (inv != nullptr) {
-        uint8_t logEntryCount = inv->EventLog()->getEntryCount();
+        uint8_t logEntryCount = inv->getEventLog()->getEntryCount();
 
         root["count"] = logEntryCount;
         JsonArray eventsArray = root["events"].to<JsonArray>();
@@ -48,7 +64,7 @@ void WebApiEventlogClass::onEventlogStatus(AsyncWebServerRequest* request)
             JsonObject eventsObject = eventsArray.add<JsonObject>();
 
             AlarmLogEntry_t entry;
-            inv->EventLog()->getLogEntry(logEntry, entry, locale);
+            inv->getEventLog()->getLogEntry(logEntry, entry, locale);
 
             eventsObject["message_id"] = entry.MessageId;
             eventsObject["message"] = entry.Message;

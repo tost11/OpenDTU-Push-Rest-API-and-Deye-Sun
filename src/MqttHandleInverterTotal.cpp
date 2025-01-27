@@ -6,7 +6,7 @@
 #include "Configuration.h"
 #include "Datastore.h"
 #include "MqttSettings.h"
-#include <Hoymiles.h>
+#include <InverterHandler.h>
 
 MqttHandleInverterTotalClass MqttHandleInverterTotal;
 
@@ -27,7 +27,7 @@ void MqttHandleInverterTotalClass::loop()
     // Update interval from config
     _loopTask.setInterval(Configuration.get().Mqtt.PublishInterval * TASK_SECOND);
 
-    if (!MqttSettings.getConnected() || !Hoymiles.isAllRadioIdle()) {
+    if (!MqttSettings.getConnected() || !InverterHandler.isAllRadioIdle()) {
         _loopTask.forceNextIteration();
         return;
     }

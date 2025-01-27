@@ -9,10 +9,14 @@
 #include "WebApi.h"
 #include "__compiled_constants.h"
 #include <AsyncJson.h>
+#include <InverterHandler.h>
 #include <CpuTemperature.h>
-#include <Hoymiles.h>
 #include <LittleFS.h>
 #include <ResetReason.h>
+
+#ifdef HOYMILES
+#include <Hoymiles.h>
+#endif
 
 void WebApiSysstatusClass::init(AsyncWebServer& server, Scheduler& scheduler)
 {
@@ -83,12 +87,15 @@ void WebApiSysstatusClass::onSystemStatus(AsyncWebServerRequest* request)
 
     root["uptime"] = esp_timer_get_time() / 1000000;
 
+
+    #ifdef HOYMILES
     root["nrf_configured"] = PinMapping.isValidNrf24Config();
     root["nrf_connected"] = Hoymiles.getRadioNrf()->isConnected();
     root["nrf_pvariant"] = Hoymiles.getRadioNrf()->isPVariant();
 
     root["cmt_configured"] = PinMapping.isValidCmt2300Config();
     root["cmt_connected"] = Hoymiles.getRadioCmt()->isConnected();
+    #endif
 
     WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
 }

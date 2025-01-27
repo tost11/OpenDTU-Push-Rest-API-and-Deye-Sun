@@ -2,25 +2,25 @@
 #pragma once
 
 #include "Configuration.h"
-#include <Hoymiles.h>
 #include <TaskSchedulerDeclarations.h>
 #include <espMqttClient.h>
 #include <frozen/map.h>
 #include <frozen/string.h>
+#include <inverter/BaseInverter.h>
 
 class MqttHandleInverterClass {
 public:
     MqttHandleInverterClass();
     void init(Scheduler& scheduler);
 
-    static String getTopic(std::shared_ptr<InverterAbstract> inv, const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId);
+    static String getTopic(std::shared_ptr<BaseInverterClass> inv, const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId);
 
     void subscribeTopics();
     void unsubscribeTopics();
 
 private:
     void loop();
-    void publishField(std::shared_ptr<InverterAbstract> inv, const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId);
+    void publishField(std::shared_ptr<BaseInverterClass> inv, const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId);
 
     Task _loopTask;
 

@@ -97,7 +97,7 @@
                                         :disabled="!isLogged"
                                         type="button"
                                         class="btn btn-sm btn-danger"
-                                        @click="onShowLimitSettings(inverter.serial)"
+                                        @click="onShowLimitSettings(inverter.serial,inverter.manufacturer)"
                                         v-tooltip
                                         :title="$t('home.ShowSetInverterLimit')"
                                     >
@@ -110,7 +110,7 @@
                                         :disabled="!isLogged"
                                         type="button"
                                         class="btn btn-sm btn-danger"
-                                        @click="onShowPowerSettings(inverter.serial)"
+                                        @click="onShowPowerSettings(inverter.serial,inverter.manufacturer)"
                                         v-tooltip
                                         :title="$t('home.TurnOnOff')"
                                     >
@@ -122,7 +122,7 @@
                                     <button
                                         type="button"
                                         class="btn btn-sm btn-info"
-                                        @click="onShowDevInfo(inverter.serial)"
+                                        @click="onShowDevInfo(inverter.serial,inverter.manufacturer)"
                                         v-tooltip
                                         :title="$t('home.ShowInverterInfo')"
                                     >
@@ -134,7 +134,7 @@
                                     <button
                                         type="button"
                                         class="btn btn-sm btn-info"
-                                        @click="onShowGridProfile(inverter.serial)"
+                                        @click="onShowGridProfile(inverter.serial,inverter.manufacturer)"
                                         v-tooltip
                                         :title="$t('home.ShowGridProfile')"
                                     >
@@ -147,7 +147,7 @@
                                         v-if="inverter.events >= 0"
                                         type="button"
                                         class="btn btn-sm btn-secondary position-relative"
-                                        @click="onShowEventlog(inverter.serial)"
+                                        @click="onShowEventlog(inverter.serial,inverter.manufacturer)"
                                         v-tooltip
                                         :title="$t('home.ShowEventlog')"
                                     >
@@ -211,7 +211,7 @@
                                 </div>
                             </BootstrapAlert>
 
-                            <div class="accordion mt-5" id="accordionExample">
+                            <div v-if="inverter.radio_stats" class="accordion mt-5" id="accordionExample">
                                 <div class="accordion-item">
                                     <h2 class="accordion-header">
                                         <button
@@ -442,7 +442,7 @@
                 {{ $t('home.SetPersistent') }}
             </button>
 
-            <button type="button" class="btn btn-danger" @click="onSetLimitSettings(false)">
+            <button v-if="targetLimitList.manufacturer!='DeyeSun' && targetLimitList.manufacturer!='HoymilesW'" type="button" class="btn btn-danger" @click="onSetLimitSettings(false)">
                 {{ $t('home.SetNonPersistent') }}
             </button>
         </template>
@@ -584,6 +584,7 @@ export default defineComponent({
 
             powerSettingView: {} as bootstrap.Modal,
             powerSettingSerial: '',
+            powerManufacturer: '',
             powerSettingLoading: true,
             alertMessagePower: '',
             alertTypePower: 'info',
@@ -754,9 +755,9 @@ export default defineComponent({
             }
             this.isFirstFetchAfterConnect = true;
         },
-        onShowEventlog(serial: string) {
+        onShowEventlog(serial: string,manufacturer: string) {
             this.eventLogLoading = true;
-            fetch('/api/eventlog/status?inv=' + serial + '&locale=' + this.$i18n.locale, {
+            fetch('/api/eventlog/status?inv=' + serial + '&locale=' + this.$i18n.locale + '&manufacturer=' + manufacturer, {
                 headers: authHeader(),
             })
                 .then((response) => handleResponse(response, this.$emitter, this.$router))
@@ -767,21 +768,22 @@ export default defineComponent({
 
             this.eventLogView.show();
         },
-        onShowDevInfo(serial: string) {
+        onShowDevInfo(serial: string,manufacturer: string) {
             this.devInfoLoading = true;
-            fetch('/api/devinfo/status?inv=' + serial, { headers: authHeader() })
+            fetch('/api/devinfo/status?inv=' + serial + '&manufacturer=' + manufacturer, { headers: authHeader() })
                 .then((response) => handleResponse(response, this.$emitter, this.$router))
                 .then((data) => {
                     this.devInfoList = data;
                     this.devInfoList.serial = serial;
+                    this.devInfoList.manufacturer = manufacturer;
                     this.devInfoLoading = false;
                 });
 
             this.devInfoView.show();
         },
-        onShowGridProfile(serial: string) {
+        onShowGridProfile(serial: string,manufacturer: string) {
             this.gridProfileLoading = true;
-            fetch('/api/gridprofile/status?inv=' + serial, { headers: authHeader() })
+            fetch('/api/gridprofile/status?inv=' + serial + '&manufacturer=' + manufacturer, { headers: authHeader() })
                 .then((response) => handleResponse(response, this.$emitter, this.$router))
                 .then((data) => {
                     this.gridProfileList = data;
@@ -796,12 +798,13 @@ export default defineComponent({
 
             this.gridProfileView.show();
         },
-        onShowLimitSettings(serial: string) {
+        onShowLimitSettings(serial: string,manufacturer: string) {
             this.showAlertLimit = false;
             this.targetLimitList.serial = '';
             this.targetLimitList.limit_value = 0;
             this.targetLimitType = 1;
             this.targetLimitTypeText = this.$t('home.Relative');
+            this.targetLimitList.manufacturer = manufacturer;
 
             this.limitSettingLoading = true;
             fetch('/api/limit/status', { headers: authHeader() })
@@ -858,7 +861,7 @@ export default defineComponent({
             this.targetLimitType = type;
         },
 
-        onShowPowerSettings(serial: string) {
+        onShowPowerSettings(serial: string,manufacturer: string) {
             this.showAlertPower = false;
             this.powerSettingSerial = '';
             this.powerSettingLoading = true;
@@ -869,6 +872,7 @@ export default defineComponent({
                     this.powerSettingSerial = serial;
                     this.powerSettingLoading = false;
                 });
+            this.powerManufacturer = manufacturer;
             this.powerSettingView.show();
         },
 
@@ -877,11 +881,13 @@ export default defineComponent({
             if (restart) {
                 data = {
                     serial: this.powerSettingSerial,
+                    manufacturer: this.powerManufacturer,
                     restart: true,
                 };
             } else {
                 data = {
                     serial: this.powerSettingSerial,
+                    manufacturer: this.powerManufacturer,
                     power: turnOn,
                 };
             }

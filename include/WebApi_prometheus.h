@@ -2,9 +2,9 @@
 #pragma once
 
 #include <ESPAsyncWebServer.h>
-#include <Hoymiles.h>
 #include <TaskSchedulerDeclarations.h>
 #include <map>
+#include <inverter/BaseInverter.h>
 
 class WebApiPrometheusClass {
 public:
@@ -13,9 +13,9 @@ public:
 private:
     void onPrometheusMetricsGet(AsyncWebServerRequest* request);
 
-    void addField(AsyncResponseStream* stream, const String& serial, const uint8_t idx, std::shared_ptr<InverterAbstract> inv, const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId, const char* metricName, const char* channelName = nullptr);
+    void addField(AsyncResponseStream* stream, const String& serial, const uint8_t idx, std::shared_ptr<BaseInverterClass> inv, const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId, const char* metricName, const char* channelName = nullptr);
 
-    void addPanelInfo(AsyncResponseStream* stream, const String& serial, const uint8_t idx, std::shared_ptr<InverterAbstract> inv, const ChannelType_t type, const ChannelNum_t channel);
+    void addPanelInfo(AsyncResponseStream* stream, const String& serial, const uint8_t idx, std::shared_ptr<BaseInverterClass> inv, const ChannelType_t type, const ChannelNum_t channel);
 
     enum MetricType_t {
         NONE = 0,

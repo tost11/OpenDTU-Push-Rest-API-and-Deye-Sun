@@ -8,7 +8,10 @@ export interface Inverter {
     id: string;
     serial: string;
     name: string;
+    hostname_or_ip: string;
+    port: number;
     type: string;
+    manufacturer: string;
     order: number;
     poll_enable: boolean;
     poll_enable_night: boolean;

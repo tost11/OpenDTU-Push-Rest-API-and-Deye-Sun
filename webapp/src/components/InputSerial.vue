@@ -18,10 +18,11 @@ export default defineComponent({
         id: String,
         inputClass: String,
         required: Boolean,
+        type: String
     },
     data() {
         return {
-            inputSerial: '',
+            inputSerial: this.modelValue,
             formatHint: '',
             formatShow: 'info',
         };
@@ -40,9 +41,12 @@ export default defineComponent({
     },
     watch: {
         modelValue: function (val) {
-            this.inputSerial = val;
+          this.inputSerial = val
         },
-        inputSerial: function (val) {
+        inputSerial: {
+          immediate: true,
+          handler(val){
+
             const serial = val.toString().toUpperCase(); // Convert to lowercase for case-insensitivity
 
             if (serial == '') {
@@ -53,38 +57,58 @@ export default defineComponent({
 
             this.formatShow = 'info';
 
-            // Contains only numbers
-            if (/^1{1}[\dA-F]{11}$/.test(serial)) {
-                this.model = serial;
+            if(this.type === 'Hoymiles') {
+              // Contains only numbers
+              if (/^1{1}[\dA-F]{11}$/.test(serial)) {
                 this.formatHint = this.$t('inputserial.format_hoymiles');
-            }
+              }
 
-            // Contains numbers and hex characters but at least one number
-            else if (/^(?=.*\d)[\dA-F]{12}$/.test(serial)) {
-                this.model = serial;
+              // Contains numbers and hex characters but at least one number
+              else if (/^(?=.*\d)[\dA-F]{12}$/.test(serial)) {
                 this.formatHint = this.$t('inputserial.format_converted');
-            }
+              }
 
-            // Has format: xxxxxxxxx-xxx
-            else if (/^((A01)|(A11)|(A21))[\dA-HJ-NR-YP]{6}-[\dA-HJ-NP-Z]{3}$/.test(serial)) {
+              // Has format: xxxxxxxxx-xxx
+              else if (/^((A01)|(A11)|(A21))[\dA-HJ-NR-YP]{6}-[\dA-HJ-NP-Z]{3}$/.test(serial)) {
                 if (this.checkHerfChecksum(serial)) {
-                    this.model = this.convertHerfToHoy(serial);
-                    this.$nextTick(() => {
-                        this.formatHint = this.$t('inputserial.format_herf_valid', {
-                            serial: this.model,
-                        });
+                  this.model = this.convertHerfToHoy(serial);
+                  this.$nextTick(() => {
+                    this.formatHint = this.$t('inputserial.format_herf_valid', {
+                      serial: this.model,
                     });
+                  });
                 } else {
-                    this.formatHint = this.$t('inputserial.format_herf_invalid');
-                    this.formatShow = 'danger';
+                  this.formatHint = this.$t('inputserial.format_herf_invalid');
+                  this.formatShow = 'danger';
                 }
 
                 // Any other format
-            } else {
+              } else {
                 this.formatHint = this.$t('inputserial.format_unknown');
                 this.formatShow = 'danger';
+              }
+            }else if(this.type === 'DeyeSun'){
+              //TODO find out Deye Sun serial validation
+              // Contains only numbers
+              if (/^[0-9]{10}$/.test(serial)) {
+                this.formatHint = this.$t('inputserial.format_deye');
+              }else {
+                this.formatHint = this.$t('inputserial.format_unknown');
+                this.formatShow = 'danger';
+              }
+            }else if(this.type === 'HoymilesW'){
+              //TODO understand serialnumber check from above hoymiles and add new numbers
+              // Contains only numbers
+              if (/^1412[0-9]{8}$/.test(serial)) {
+                this.formatHint = this.$t('inputserial.format_hoymiles_w');
+              }else {
+                this.formatHint = this.$t('inputserial.format_unknown');
+                this.formatShow = 'danger';
+              }
             }
-        },
+            this.model = serial;
+        }
+      }
     },
     methods: {
         checkHerfChecksum(sn: string) {

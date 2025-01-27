@@ -262,6 +262,9 @@
         "Quality": "Qualité",
         "Rssi": "RSSI"
     },
+    "wifistationDevices": {
+        "wifistationDevices": "WLAN-conncted devices (Access Point)"
+    },
     "wifiapinfo": {
         "WifiApInfo": "Informations sur le WiFi (Point d'accès)",
         "Status": "@:wifistationinfo.Status",
@@ -334,7 +337,8 @@
         "VirtualDebugConsole": "Console de débogage",
         "EnableAutoScroll": "Activer le défilement automatique",
         "ClearConsole": "Vider la console",
-        "CopyToClipboard": "Copier dans le presse-papiers"
+        "CopyToClipboard": "Copier dans le presse-papiers",
+        "DebugLogging": "Enable Debug Logging"
     },
     "inverterchannelinfo": {
         "String": "Ligne {num}",
@@ -642,6 +646,8 @@
     },
     "inputserial": {
         "format_hoymiles": "Hoymiles serial number format",
+        "format_deye": "Deye Sun serial number format",
+        "format_hoymiles_w": "Hoymiles w-series serial number format",
         "format_converted": "Already converted serial number",
         "format_herf_valid": "E-Star HERF format (will be saved converted): {serial}",
         "format_herf_invalid": "E-Star HERF format: Invalid checksum",

@@ -27,7 +27,23 @@ void TimeoutHelper::reset()
     startMillis = millis();
 }
 
+void TimeoutHelper::zero()
+{
+    startMillis = 0;
+}
+
 bool TimeoutHelper::occured() const
 {
+    if(startMillis == 0){
+        return true;
+    }
     return millis() > (startMillis + timeout);
+}
+
+uint32_t TimeoutHelper::currentMillis() const {
+    return startMillis;
+}
+
+uint32_t TimeoutHelper::dist() const {
+    return millis() - startMillis;
 }

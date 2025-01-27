@@ -20,4 +20,10 @@ export interface NetworkStatus {
     // InterfaceApInfo
     ap_ip: string;
     ap_mac: string;
+    ap_station_devices: AP_Device[];
+}
+
+export interface AP_Device{
+    ip: string;
+    mac: string;
 }

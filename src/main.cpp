@@ -7,7 +7,7 @@
 #include "Display_Graphic.h"
 #include "InverterSettings.h"
 #include "Led_Single.h"
-#include "MessageOutput.h"
+#include <MessageOutput.h>
 #include "MqttHandleDtu.h"
 #include "MqttHandleHass.h"
 #include "MqttHandleInverter.h"
@@ -30,6 +30,7 @@
 
 #include <driver/uart.h>
 
+
 void setup()
 {
     // Move all dynamic allocations >512byte to psram (if available)
@@ -48,6 +49,7 @@ void setup()
     while (!Serial)
         yield();
 #endif
+    //MessageOutput.logDebug = false;
     MessageOutput.init(scheduler);
     MessageOutput.println();
     MessageOutput.println("Starting OpenDTU");

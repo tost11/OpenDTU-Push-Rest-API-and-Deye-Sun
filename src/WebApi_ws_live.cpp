@@ -4,11 +4,16 @@
  */
 #include "WebApi_ws_live.h"
 #include "Datastore.h"
-#include "MessageOutput.h"
+#include <MessageOutput.h>
 #include "Utils.h"
 #include "WebApi.h"
 #include "defaults.h"
+#include "InverterHandler.h"
 #include <AsyncJson.h>
+
+#ifdef HOYMILES
+#include <Hoymiles.h>
+#endif
 
 WebApiWsLiveClass::WebApiWsLiveClass()
     : _ws("/livedata")
@@ -70,14 +75,17 @@ void WebApiWsLiveClass::sendDataTaskCb()
         return;
     }
 
+    uint32_t maxTimeStamp = 0;
     // Loop all inverters
-    for (uint8_t i = 0; i < Hoymiles.getNumInverters(); i++) {
-        auto inv = Hoymiles.getInverterByPos(i);
+    for (uint8_t i = 0; i < InverterHandler.getNumInverters(); i++) {
+        auto inv = InverterHandler.getInverterByPos(i);
+        maxTimeStamp = std::max<uint32_t>(maxTimeStamp, inv->getStatistics()->getLastUpdate());
+
         if (inv == nullptr) {
             continue;
         }
 
-        const uint32_t lastUpdateInternal = inv->Statistics()->getLastUpdateFromInternal();
+        const uint32_t lastUpdateInternal = inv->getStatistics()->getLastUpdateFromInternal();
         if (!((lastUpdateInternal > 0 && lastUpdateInternal > _lastPublishStats[i]) || (millis() - _lastPublishStats[i] > (10 * 1000)))) {
             continue;
         }
@@ -123,11 +131,13 @@ void WebApiWsLiveClass::generateCommonJsonResponse(JsonVariant& root)
     JsonObject hintObj = root["hints"].to<JsonObject>();
     struct tm timeinfo;
     hintObj["time_sync"] = !getLocalTime(&timeinfo, 5);
+    #ifdef HOYMILES
     hintObj["radio_problem"] = (Hoymiles.getRadioNrf()->isInitialized() && (!Hoymiles.getRadioNrf()->isConnected() || !Hoymiles.getRadioNrf()->isPVariant())) || (Hoymiles.getRadioCmt()->isInitialized() && (!Hoymiles.getRadioCmt()->isConnected()));
+    #endif
     hintObj["default_password"] = strcmp(Configuration.get().Security.Password, ACCESS_POINT_PASSWORD) == 0;
 }
 
-void WebApiWsLiveClass::generateInverterCommonJsonResponse(JsonObject& root, std::shared_ptr<InverterAbstract> inv)
+void WebApiWsLiveClass::generateInverterCommonJsonResponse(JsonObject& root, std::shared_ptr<BaseInverterClass> inv)
 {
     const INVERTER_CONFIG_T* inv_cfg = Configuration.getInverterConfig(inv->serial());
     if (inv_cfg == nullptr) {
@@ -137,26 +147,32 @@ void WebApiWsLiveClass::generateInverterCommonJsonResponse(JsonObject& root, std
     root["serial"] = inv->serialString();
     root["name"] = inv->name();
     root["order"] = inv_cfg->Order;
-    root["data_age"] = (millis() - inv->Statistics()->getLastUpdate()) / 1000;
+    root["data_age"] = (millis() - inv->getStatistics()->getLastUpdate()) / 1000;
     root["poll_enabled"] = inv->getEnablePolling();
     root["reachable"] = inv->isReachable();
     root["producing"] = inv->isProducing();
-    root["limit_relative"] = inv->SystemConfigPara()->getLimitPercent();
-    if (inv->DevInfo()->getMaxPower() > 0) {
-        root["limit_absolute"] = inv->SystemConfigPara()->getLimitPercent() * inv->DevInfo()->getMaxPower() / 100.0;
+    root["manufacturer"] = from_inverter_type(inv->getInverterType());
+    root["limit_relative"] = inv->getSystemConfigParaParser()->getLimitPercent();
+    if (inv->getDevInfo()->getMaxPower() > 0) {
+        root["limit_absolute"] = inv->getSystemConfigParaParser()->getLimitPercent() * inv->getDevInfo()->getMaxPower() / 100.0;
     } else {
         root["limit_absolute"] = -1;
     }
-    root["radio_stats"]["tx_request"] = inv->RadioStats.TxRequestData;
-    root["radio_stats"]["tx_re_request"] = inv->RadioStats.TxReRequestFragment;
-    root["radio_stats"]["rx_success"] = inv->RadioStats.RxSuccess;
-    root["radio_stats"]["rx_fail_nothing"] = inv->RadioStats.RxFailNoAnswer;
-    root["radio_stats"]["rx_fail_partial"] = inv->RadioStats.RxFailPartialAnswer;
-    root["radio_stats"]["rx_fail_corrupt"] = inv->RadioStats.RxFailCorruptData;
-    root["radio_stats"]["rssi"] = inv->getLastRssi();
+    #ifdef HOYMILES
+    if(inv->getInverterType() == inverter_type::Inverter_Hoymiles) {
+        auto hoy = reinterpret_cast<InverterAbstract *>(inv.get());
+        root["radio_stats"]["tx_request"] = hoy->RadioStats.TxRequestData;
+        root["radio_stats"]["tx_re_request"] = hoy->RadioStats.TxReRequestFragment;
+        root["radio_stats"]["rx_success"] = hoy->RadioStats.RxSuccess;
+        root["radio_stats"]["rx_fail_nothing"] = hoy->RadioStats.RxFailNoAnswer;
+        root["radio_stats"]["rx_fail_partial"] = hoy->RadioStats.RxFailPartialAnswer;
+        root["radio_stats"]["rx_fail_corrupt"] = hoy->RadioStats.RxFailCorruptData;
+        root["radio_stats"]["rssi"] = hoy->getLastRssi();
+    }
+    #endif
 }
 
-void WebApiWsLiveClass::generateInverterChannelJsonResponse(JsonObject& root, std::shared_ptr<InverterAbstract> inv)
+void WebApiWsLiveClass::generateInverterChannelJsonResponse(JsonObject& root, std::shared_ptr<BaseInverterClass> inv)
 {
     const INVERTER_CONFIG_T* inv_cfg = Configuration.getInverterConfig(inv->serial());
     if (inv_cfg == nullptr) {
@@ -164,9 +180,9 @@ void WebApiWsLiveClass::generateInverterChannelJsonResponse(JsonObject& root, st
     }
 
     // Loop all channels
-    for (auto& t : inv->Statistics()->getChannelTypes()) {
-        auto chanTypeObj = root[inv->Statistics()->getChannelTypeName(t)].to<JsonObject>();
-        for (auto& c : inv->Statistics()->getChannelsByType(t)) {
+    for (auto& t : inv->getStatistics()->getChannelTypes()) {
+        auto chanTypeObj = root[inv->getStatistics()->getChannelTypeName(t)].to<JsonObject>();
+        for (auto& c : inv->getStatistics()->getChannelsByType(t)) {
             if (t == TYPE_DC) {
                 chanTypeObj[String(static_cast<uint8_t>(c))]["name"]["u"] = inv_cfg->channel[c].Name;
             }
@@ -187,34 +203,34 @@ void WebApiWsLiveClass::generateInverterChannelJsonResponse(JsonObject& root, st
             addField(chanTypeObj, inv, t, c, FLD_PF);
             addField(chanTypeObj, inv, t, c, FLD_Q);
             addField(chanTypeObj, inv, t, c, FLD_EFF);
-            if (t == TYPE_DC && inv->Statistics()->getStringMaxPower(c) > 0) {
+            if (t == TYPE_DC && inv->getStatistics()->getStringMaxPower(c) > 0) {
                 addField(chanTypeObj, inv, t, c, FLD_IRR);
-                chanTypeObj[String(c)][inv->Statistics()->getChannelFieldName(t, c, FLD_IRR)]["max"] = inv->Statistics()->getStringMaxPower(c);
+                chanTypeObj[String(c)][inv->getStatistics()->getChannelFieldName(t, c, FLD_IRR)]["max"] = inv->getStatistics()->getStringMaxPower(c);
             }
         }
     }
 
-    if (inv->Statistics()->hasChannelFieldValue(TYPE_INV, CH0, FLD_EVT_LOG)) {
-        root["events"] = inv->EventLog()->getEntryCount();
+    if (inv->getStatistics()->hasChannelFieldValue(TYPE_INV, CH0, FLD_EVT_LOG)) {
+        root["events"] = inv->getEventLog()->getEntryCount();
     } else {
         root["events"] = -1;
     }
 }
 
-void WebApiWsLiveClass::addField(JsonObject& root, std::shared_ptr<InverterAbstract> inv, const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId, String topic)
+void WebApiWsLiveClass::addField(JsonObject& root, std::shared_ptr<BaseInverterClass> inv, const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId, String topic)
 {
-    if (inv->Statistics()->hasChannelFieldValue(type, channel, fieldId)) {
+    if (inv->getStatistics()->hasChannelFieldValue(type, channel, fieldId)) {
         String chanName;
         if (topic == "") {
-            chanName = inv->Statistics()->getChannelFieldName(type, channel, fieldId);
+            chanName = inv->getStatistics()->getChannelFieldName(type, channel, fieldId);
         } else {
             chanName = topic;
         }
         String chanNum;
         chanNum = channel;
-        root[chanNum][chanName]["v"] = inv->Statistics()->getChannelFieldValue(type, channel, fieldId);
-        root[chanNum][chanName]["u"] = inv->Statistics()->getChannelFieldUnit(type, channel, fieldId);
-        root[chanNum][chanName]["d"] = inv->Statistics()->getChannelFieldDigits(type, channel, fieldId);
+        root[chanNum][chanName]["v"] = inv->getStatistics()->getChannelFieldValue(type, channel, fieldId);
+        root[chanNum][chanName]["u"] = inv->getStatistics()->getChannelFieldUnit(type, channel, fieldId);
+        root[chanNum][chanName]["d"] = inv->getStatistics()->getChannelFieldDigits(type, channel, fieldId);
     }
 }
 
@@ -246,9 +262,10 @@ void WebApiWsLiveClass::onLivedataStatus(AsyncWebServerRequest* request)
         auto& root = response->getRoot();
         auto invArray = root["inverters"].to<JsonArray>();
         auto serial = WebApi.parseSerialFromRequest(request);
+        auto type = root["manufacturer"].as<String>();
 
         if (serial > 0) {
-            auto inv = Hoymiles.getInverterBySerial(serial);
+            auto inv = InverterHandler.getInverterBySerial(serial, to_inverter_type(type));
             if (inv != nullptr) {
                 JsonObject invObject = invArray.add<JsonObject>();
                 generateInverterCommonJsonResponse(invObject, inv);
@@ -256,8 +273,8 @@ void WebApiWsLiveClass::onLivedataStatus(AsyncWebServerRequest* request)
             }
         } else {
             // Loop all inverters
-            for (uint8_t i = 0; i < Hoymiles.getNumInverters(); i++) {
-                auto inv = Hoymiles.getInverterByPos(i);
+            for (uint8_t i = 0; i < InverterHandler.getNumInverters(); i++) {
+                auto inv = InverterHandler.getInverterByPos(i);
                 if (inv == nullptr) {
                     continue;
                 }

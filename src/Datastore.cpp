@@ -4,7 +4,9 @@
  */
 #include "Datastore.h"
 #include "Configuration.h"
-#include <Hoymiles.h>
+#include <InverterHandler.h>
+
+using namespace std;
 
 DatastoreClass Datastore;
 
@@ -21,7 +23,7 @@ void DatastoreClass::init(Scheduler& scheduler)
 
 void DatastoreClass::loop()
 {
-    if (!Hoymiles.isAllRadioIdle()) {
+    if (!InverterHandler.isAllRadioIdle()) {
         _loopTask.forceNextIteration();
         return;
     }
@@ -50,8 +52,8 @@ void DatastoreClass::loop()
     _isAllEnabledProducing = true;
     _isAllEnabledReachable = true;
 
-    for (uint8_t i = 0; i < Hoymiles.getNumInverters(); i++) {
-        auto inv = Hoymiles.getInverterByPos(i);
+    for (uint8_t i = 0; i < InverterHandler.getNumInverters(); i++) {
+        auto inv = InverterHandler.getInverterByPos(i);
         if (inv == nullptr) {
             continue;
         }
@@ -81,31 +83,31 @@ void DatastoreClass::loop()
             }
         }
 
-        for (auto& c : inv->Statistics()->getChannelsByType(TYPE_INV)) {
+        for (auto& c : inv->getStatistics()->getChannelsByType(TYPE_INV)) {
             if (cfg->Poll_Enable) {
-                _totalAcYieldTotalEnabled += inv->Statistics()->getChannelFieldValue(TYPE_INV, c, FLD_YT);
-                _totalAcYieldDayEnabled += inv->Statistics()->getChannelFieldValue(TYPE_INV, c, FLD_YD);
+                _totalAcYieldTotalEnabled += inv->getStatistics()->getChannelFieldValue(TYPE_INV, c, FLD_YT);
+                _totalAcYieldDayEnabled += inv->getStatistics()->getChannelFieldValue(TYPE_INV, c, FLD_YD);
 
-                _totalAcYieldTotalDigits = max<unsigned int>(_totalAcYieldTotalDigits, inv->Statistics()->getChannelFieldDigits(TYPE_INV, c, FLD_YT));
-                _totalAcYieldDayDigits = max<unsigned int>(_totalAcYieldDayDigits, inv->Statistics()->getChannelFieldDigits(TYPE_INV, c, FLD_YD));
+                _totalAcYieldTotalDigits = max<unsigned int>(_totalAcYieldTotalDigits, inv->getStatistics()->getChannelFieldDigits(TYPE_INV, c, FLD_YT));
+                _totalAcYieldDayDigits = max<unsigned int>(_totalAcYieldDayDigits, inv->getStatistics()->getChannelFieldDigits(TYPE_INV, c, FLD_YD));
             }
         }
 
-        for (auto& c : inv->Statistics()->getChannelsByType(TYPE_AC)) {
+        for (auto& c : inv->getStatistics()->getChannelsByType(TYPE_AC)) {
             if (inv->getEnablePolling()) {
-                _totalAcPowerEnabled += inv->Statistics()->getChannelFieldValue(TYPE_AC, c, FLD_PAC);
-                _totalAcPowerDigits = max<unsigned int>(_totalAcPowerDigits, inv->Statistics()->getChannelFieldDigits(TYPE_AC, c, FLD_PAC));
+                _totalAcPowerEnabled += inv->getStatistics()->getChannelFieldValue(TYPE_AC, c, FLD_PAC);
+                _totalAcPowerDigits = max<unsigned int>(_totalAcPowerDigits, inv->getStatistics()->getChannelFieldDigits(TYPE_AC, c, FLD_PAC));
             }
         }
 
-        for (auto& c : inv->Statistics()->getChannelsByType(TYPE_DC)) {
+        for (auto& c : inv->getStatistics()->getChannelsByType(TYPE_DC)) {
             if (inv->getEnablePolling()) {
-                _totalDcPowerEnabled += inv->Statistics()->getChannelFieldValue(TYPE_DC, c, FLD_PDC);
-                _totalDcPowerDigits = max<unsigned int>(_totalDcPowerDigits, inv->Statistics()->getChannelFieldDigits(TYPE_DC, c, FLD_PDC));
+                _totalDcPowerEnabled += inv->getStatistics()->getChannelFieldValue(TYPE_DC, c, FLD_PDC);
+                _totalDcPowerDigits = max<unsigned int>(_totalDcPowerDigits, inv->getStatistics()->getChannelFieldDigits(TYPE_DC, c, FLD_PDC));
 
-                if (inv->Statistics()->getStringMaxPower(c) > 0) {
-                    _totalDcPowerIrradiation += inv->Statistics()->getChannelFieldValue(TYPE_DC, c, FLD_PDC);
-                    _totalDcIrradiationInstalled += inv->Statistics()->getStringMaxPower(c);
+                if (inv->getStatistics()->getStringMaxPower(c) > 0) {
+                    _totalDcPowerIrradiation += inv->getStatistics()->getChannelFieldValue(TYPE_DC, c, FLD_PDC);
+                    _totalDcIrradiationInstalled += inv->getStatistics()->getStringMaxPower(c);
                 }
             }
         }
