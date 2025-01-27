@@ -9,7 +9,8 @@
 #include "WebApi_errors.h"
 #include "helper.h"
 #include <AsyncJson.h>
-#include <esp_wifi.h>
+#include <InverterUtils.h>
+
 
 void WebApiNetworkClass::init(AsyncWebServer& server, Scheduler& scheduler)
 {
@@ -49,43 +50,14 @@ void WebApiNetworkClass::onNetworkStatus(AsyncWebServerRequest* request)
 
     auto ips = root["ap_station_devices"].to<JsonArray>();
 
-    if(WiFi.softAPgetStationNum() > 0){
-        //collectmore wifi info
-        wifi_sta_list_t wifi_sta_list;
-        tcpip_adapter_sta_list_t adapter_sta_list;
+    auto apMacsAndIps = InverterUtils::getConnectedClients();
 
-        memset(&wifi_sta_list, 0, sizeof(wifi_sta_list));
-        memset(&adapter_sta_list, 0, sizeof(adapter_sta_list));
+    for(auto & it : *apMacsAndIps){
 
-        esp_wifi_ap_get_sta_list(&wifi_sta_list);
-        tcpip_adapter_get_sta_list(&wifi_sta_list, &adapter_sta_list);
+        auto obj = ips.add<JsonObject>();
 
-        char ipBuff[16];
-        char macBuff[18];
-
-        for (int i = 0; i < adapter_sta_list.num; i++) {
-
-            memset(ipBuff,0,16);
-            memset(macBuff,0,18);
-            macBuff[17] = '\0';
-
-            const tcpip_adapter_sta_info_t station = adapter_sta_list.sta[i];
-
-            auto obj = ips.add<JsonObject>();
-
-            for(int i = 0; i< 6; i++){
-                sprintf(macBuff+i*3,"%02X", station.mac[i]);
-                if(i<5){
-                    sprintf(macBuff+2+i*3,":");
-                }
-            }
-
-            memset(ipBuff,0,16);
-            esp_ip4addr_ntoa(&(station.ip),ipBuff,16);
-
-            obj["ip"] = std::string(ipBuff);
-            obj["mac"] = std::string(macBuff);
-        }
+        obj["ip"] = String(it.second.c_str());
+        obj["mac"] = String(it.first.c_str());
     }
 
     WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);

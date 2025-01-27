@@ -105,11 +105,6 @@ void DeyeInverter::update() {
 
     getEventLog()->checkErrorsForTimeout();
 
-    if (!WiFi.isConnected()) {
-        _socket = nullptr;
-        return;
-    }
-
     if (_ipAdress == nullptr) {
         if (_timerResolveHostname.occured()) {
             if(resolveHostname()){
@@ -473,8 +468,15 @@ void DeyeInverter::swapBuffers(bool fullData) {
 }
 
 bool DeyeInverter::resolveHostname() {
+
+    if(_IpOrHostnameIsMac){
+        checkForMacResolution();
+    }
+
     DNSClient dns;
     IPAddress remote_addr;
+
+    const char * ipToFind = (_resolvedIpByMacAdress == nullptr) ? _resolvedIpByMacAdress->c_str() : _hostnameOrIp;
 
     MessageOutput.printlnDebug(String("Try to resolve hostname: ") + _hostnameOrIp);
 

@@ -48,7 +48,7 @@ std::shared_ptr<DeyeInverter> DeyeSunClass::addInverter(const char* name, uint64
     if (i) {
         i->setName(name);
         i->setPort(port);
-        i->setHostnameOrIp(hostnameOrIp);
+        i->setHostnameOrIpOrMac(hostnameOrIp);
         _inverters.push_back(std::move(i));
         return _inverters.back();
     }

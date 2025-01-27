@@ -55,7 +55,7 @@ std::shared_ptr<HoymilesWInverter> HoymilesWClass::addInverter(const char* name,
     if (i) {
         i->setName(name);
         i->setPort(port);
-        i->setHostnameOrIp(hostnameOrIp);
+        i->setHostnameOrIpOrMac(hostnameOrIp);
         i->startConnection();
         _inverters.push_back(std::move(i));
         return _inverters.back();

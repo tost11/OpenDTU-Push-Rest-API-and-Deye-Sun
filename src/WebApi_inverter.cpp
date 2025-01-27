@@ -412,14 +412,14 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
         #ifdef DEYE_SUN
         if(root["manufacturer"].as<String>() == "DeyeSun"){
             auto deye_inv = reinterpret_cast<DeyeInverter*>(inv.get());
-            deye_inv->setHostnameOrIp(inverter.HostnameOrIp);
+            deye_inv->setHostnameOrIpOrMac(inverter.HostnameOrIp);
             deye_inv->setPort(inverter.Port);
         }
         #endif
         #ifdef HOYMILES_W
         if(root["manufacturer"].as<String>() == "HoymilesW"){
             auto hoy_inv = reinterpret_cast<HoymilesWInverter*>(inv.get());
-            hoy_inv->setHostnameOrIp(inverter.HostnameOrIp);
+            hoy_inv->setHostnameOrIpOrMac(inverter.HostnameOrIp);
             hoy_inv->setPort(inverter.Port);
         }
         #endif

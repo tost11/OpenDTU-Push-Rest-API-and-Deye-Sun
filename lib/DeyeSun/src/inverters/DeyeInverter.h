@@ -57,7 +57,6 @@ public:
 
     bool sendPowerControlRequest(bool turnOn) override;
 
-    void setHostnameOrIp(const char * hostOrIp);
     void setPort(uint16_t port);
 
     void update();
@@ -67,7 +66,8 @@ public:
     static String serialToModel(uint64_t serial);
 
     void setEnableCommands(const bool enabled) override;
-
+protected:
+    void setHostnameOrIp(const char * hostOrIp);
 private:
     bool parseInitInformation(size_t length);
     int handleRegisterRead(size_t length);
