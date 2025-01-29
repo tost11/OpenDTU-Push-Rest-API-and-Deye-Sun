@@ -36,6 +36,14 @@ _messageOutput(print)
 
 void HoymilesWInverter::update() {
 
+    if(_IpOrHostnameIsMac){
+        checkForMacResolution();
+    }
+
+    if(_resolvedIpByMacAdress != nullptr && *_resolvedIpByMacAdress != std::string(_dtuInterface.getServer().c_str())){
+        _dtuInterface.setServerAndPort(String(_resolvedIpByMacAdress->c_str()),_port);
+    }
+
     getEventLog()->checkErrorsForTimeout();
 
     if(_dtuInterface.isConnected()){
@@ -163,14 +171,10 @@ void HoymilesWInverter::setEnableCommands(const bool enabled) {
     BaseInverter::setEnableCommands(enabled);
 }
 
-void HoymilesWInverter::setHostnameOrIp(const char * hostOrIp){
-    _dtuInterface.setServer(hostOrIp);
-}
-
-void HoymilesWInverter::setPort(uint16_t port){
-    _dtuInterface.setPort(port);
+void HoymilesWInverter::hostOrPortUpdated(){
+    _dtuInterface.setServerAndPort(_oringalIpOrHostname.c_str(),_port);
 }
 
 void HoymilesWInverter::startConnection(){
-        _dtuInterface.setup();
+    _dtuInterface.setup();
 }

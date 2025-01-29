@@ -108,11 +108,6 @@ void DeyeInverter::update() {
 
     getEventLog()->checkErrorsForTimeout();
 
-    if (!WiFi.isConnected()) {
-        _socket = nullptr;
-        return;
-    }
-
     if (_ipAdress == nullptr) {
         if (_timerResolveHostname.occured()) {
             if(resolveHostname()){
@@ -232,20 +227,6 @@ bool DeyeInverter::sendPowerControlRequest(bool turnOn) {
     _powerTargetStatus = std::make_unique<bool>(turnOn);
     _powerCommandParser->setLastPowerCommandSuccess(CMD_PENDING);
     return true;
-}
-
-void DeyeInverter::setHostnameOrIp(const char *hostOrIp) {
-
-    uint8_t len = strlen(hostOrIp);
-    if (len + 1 > MAX_NAME_HOST) {
-        len = MAX_NAME_HOST - 1;
-    }
-    strncpy(_hostnameOrIp, hostOrIp, len);
-    _hostnameOrIp[len] = '\0';
-}
-
-void DeyeInverter::setPort(uint16_t port) {
-    _port = port;
 }
 
 bool DeyeInverter::parseInitInformation(size_t length) {
@@ -476,19 +457,26 @@ void DeyeInverter::swapBuffers(bool fullData) {
 }
 
 bool DeyeInverter::resolveHostname() {
+
+    if(_IpOrHostnameIsMac){
+        checkForMacResolution();
+    }
+
     DNSClient dns;
     IPAddress remote_addr;
 
-    MessageOutput.printlnDebug(String("Try to resolve hostname: ") + _hostnameOrIp);
+    const char * ipToFind = (_resolvedIpByMacAdress != nullptr) ? _resolvedIpByMacAdress->c_str() : _oringalIpOrHostname.c_str();
+
+    MessageOutput.printlnDebug(String("Try to resolve hostname: ") + ipToFind);
 
     dns.begin(WiFi.dnsIP());
-    auto ret = dns.getHostByName(_hostnameOrIp, remote_addr);
+    auto ret = dns.getHostByName(ipToFind, remote_addr);
     if (ret == 1) {
         MessageOutput.printlnDebug("Resolved Ip is: " + remote_addr.toString());
         _ipAdress = std::make_unique<IPAddress>(remote_addr);
         return true;
     }
-    MessageOutput.printf("Could not resolve hostname: %s\n", _hostnameOrIp);
+    MessageOutput.printf("Could not resolve hostname: %s\n", ipToFind);
     return false;
 }
 

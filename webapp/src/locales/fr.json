@@ -540,7 +540,13 @@
         "DeleteMsg": "Êtes-vous sûr de vouloir supprimer l'onduleur \"{name}\" avec le numéro de série \"{serial}\" ?",
         "Delete": "Supprimer",
         "YieldDayCorrection": "Yield Day Correction",
-        "YieldDayCorrectionHint": "Sum up daily yield even if the inverter is restarted. Value will be reset at midnight"
+        "YieldDayCorrectionHint": "Sum up daily yield even if the inverter is restarted. Value will be reset at midnight",
+        "Manufacturer": "Manufacturer",
+        "InverterHostnameOrIp": "Hostname, Ip or Mac",
+        "InverterHostnameOrIpHint": "Hostname of device in newtork,ip-adress, or mac-adress in ap-network",
+        "InverterPort": "Port",
+        "InverterPortHint": "Udp communication port of the device, default: 48899",
+        "ManufacturerSelect": "Select manufacturer of inverter to add"
     },
     "configadmin": {
         "ConfigManagement": "Gestion de la configuration",
