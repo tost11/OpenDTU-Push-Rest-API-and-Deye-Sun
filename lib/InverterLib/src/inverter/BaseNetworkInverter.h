@@ -50,30 +50,41 @@ public:
     virtual void setHostnameOrIpOrMac(const char * ip){
         _oringalIpOrHostname = String(ip);
         checkIfIpOrHostnameIsMac();
-        setHostnameOrIp(ip);
+        hostOrPortUpdated();
     }
 
-    virtual void setPort(uint16_t port) = 0;
-protected:
-    virtual void setHostnameOrIp(const char * hostOrIp) = 0;
+    void setPort(uint16_t port){
+        _port = port;
+        hostOrPortUpdated();
+    }
 
-    std::unique_ptr<std::string> _resolvedIpByMacAdress;
+    void setHostnameOrIpOrMacAndPort(const char * ip,uint16_t port){
+        _oringalIpOrHostname = String(ip);
+        checkIfIpOrHostnameIsMac();
+        _port = port;
+        hostOrPortUpdated();
+    }
+protected:
+    virtual void hostOrPortUpdated(){};
+
     bool _IpOrHostnameIsMac;
+    std::unique_ptr<std::string> _resolvedIpByMacAdress;
     String _oringalIpOrHostname;
+    uint16_t _port;
 
     bool checkForMacResolution(){
         if(_IpOrHostnameIsMac){
             if(_macToIpResolverTimer.occured()){
-                MessageOutput.printfDebug("Try to resolve Mac to ip: %s\n",_oringalIpOrHostname.c_str());
+                MessageOutput.printfDebug("Try to resolve Mac: %s to ip\n",_oringalIpOrHostname.c_str());
                 auto apMacsAndIps = InverterUtils::getConnectedClients();
                 auto ip = String(_oringalIpOrHostname.c_str());
                 ip.toUpperCase();
                 auto found = apMacsAndIps->find(std::string(ip.c_str()));
                 if(found != apMacsAndIps->end()){
-                    if(!(found->second == "0.0.0.0" || found->second == "" || found->second == *_resolvedIpByMacAdress)){
+                    if(found->second != "0.0.0.0" && found->second != "" && (_resolvedIpByMacAdress == nullptr || found->second == *_resolvedIpByMacAdress)){
                         _resolvedIpByMacAdress = std::make_unique<std::string>(found->second);
                         _macToIpResolverTimer.set(TIMER_SUCCES_MAC_IP_RESOLUTION);
-                        MessageOutput.printf("Resolved Map to ip: %s\n",_resolvedIpByMacAdress->c_str());
+                        MessageOutput.printf("Resolved Mac to ip: %s\n",_resolvedIpByMacAdress->c_str());
                         return true;
                     }
                 }

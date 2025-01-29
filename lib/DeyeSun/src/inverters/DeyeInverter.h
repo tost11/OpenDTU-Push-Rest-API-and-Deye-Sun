@@ -57,8 +57,6 @@ public:
 
     bool sendPowerControlRequest(bool turnOn) override;
 
-    void setPort(uint16_t port);
-
     void update();
 
     inverter_type getInverterType() const override;
@@ -66,8 +64,6 @@ public:
     static String serialToModel(uint64_t serial);
 
     void setEnableCommands(const bool enabled) override;
-protected:
-    void setHostnameOrIp(const char * hostOrIp);
 private:
     bool parseInitInformation(size_t length);
     int handleRegisterRead(size_t length);
@@ -130,8 +126,6 @@ private:
     int _errorCounter;
 
     uint64_t _serial;
-    char _hostnameOrIp[MAX_NAME_HOST] = "";
-    uint16_t _port = 0;
 
     uint8_t _payloadStatisticBuffer[STATISTIC_PACKET_SIZE] = {};
 

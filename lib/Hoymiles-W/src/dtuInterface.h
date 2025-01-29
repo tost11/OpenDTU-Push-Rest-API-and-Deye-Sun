@@ -68,9 +68,11 @@ public:
     ~DTUInterface();
    
     void setup();
-    void setServer(const char* server);
+    void setServer(const String & server);
     void setPort(uint16_t serverPort);
-   
+    void setServerAndPort(const String & server,uint16_t port);
+    const String & getServer();
+
     void connect();
     void disconnect(uint8_t tgtState);
     void flushConnection();    
@@ -135,7 +137,7 @@ private:
     boolean writeCommandRestartDevice();
     boolean readRespCommandRestartDevice(pb_istream_t istream);
     
-    const char* serverIP;
+    String serverIP;
     uint16_t serverPort;
     AsyncClient* client;
 

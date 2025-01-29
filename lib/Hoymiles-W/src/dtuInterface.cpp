@@ -43,7 +43,7 @@ void DTUInterface::connect()
     if (client && !client->connected())
     {
         MessageOutput.println("DTUinterface:\t client not connected with DTU! try to connect (server: " + String(serverIP) + " - port: " + String(serverPort) + ") ...");
-        if (client->connect(serverIP, serverPort))
+        if (client->connect(serverIP.c_str(), serverPort))
         {
             // Serial.println(F("DTUinterface:\t connection attempt successfully started..."));
         }
@@ -106,16 +106,26 @@ bool DTUInterface::requestStatisticUpdate()
 }
 
 
-void DTUInterface::setServer(const char *server)
+void DTUInterface::setServer(const String &server)
 {
     serverIP = server;
     disconnect(DTU_STATE_OFFLINE);
+}
+
+const String & DTUInterface::getServer(){
+    return serverIP;
 }
 
 
 void DTUInterface::setPort(uint16_t port)
 {
     serverPort = port;
+    disconnect(DTU_STATE_OFFLINE);
+}
+
+void DTUInterface::setServerAndPort(const String & server,uint16_t port){
+    serverPort = port;
+    serverIP = server;
     disconnect(DTU_STATE_OFFLINE);
 }
 

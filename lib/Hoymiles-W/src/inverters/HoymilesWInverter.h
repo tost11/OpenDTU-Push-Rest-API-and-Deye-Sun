@@ -43,13 +43,11 @@ public:
 
     void setEnableCommands(const bool enabled) override;
 
-    void setPort(uint16_t port);
-
     void startConnection();
 
     void swapBuffers(const InverterData *data);
 protected:
-    void setHostnameOrIp(const char * hostOrIp);
+    virtual void hostOrPortUpdated() override;
 private:
     Print & _messageOutput;
     uint64_t _serial;

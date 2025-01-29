@@ -563,8 +563,8 @@
         "YieldDayCorrection": "Tagesertragskorrektur",
         "YieldDayCorrectionHint": "Summiert den Tagesertrag, auch wenn der Wechselrichter neu gestartet wird. Der Wert wird um Mitternacht zurückgesetzt",
         "Manufacturer": "Hersteller",
-        "InverterHostnameOrIp": "Hostname oder Ip",
-        "InverterHostnameOrIpHint": "Ip Adresse oder Name des Gerätes im Netzwerk",
+        "InverterHostnameOrIp": "Hostname, Ip or Mac",
+        "InverterHostnameOrIpHint": "Hostname des Gerätes im Netzwerk, Ip-Adresse, oder Mac-Adresse im eigenen Ap-Netzwerk",
         "InverterPort": "Port",
         "InverterPortHint": "Kommunikations Port des Gerätes, standart: 48899(Deye Sun), Hoymiles(10081)",
         "ManufacturerSelect": "Wähle Hersteller des Gerätes zum hinzufügen"
