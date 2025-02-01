@@ -441,7 +441,7 @@ String getTimeStringByTimestamp(unsigned long timestamp)
 {
     char s[20];
     memset(s,'\0',20);
-    snprintf(s, 20, "%llu", timestamp);
+    snprintf(s, 20, "%lu", timestamp);
     return String(s);
 }
 
