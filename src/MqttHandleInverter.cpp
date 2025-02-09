@@ -96,9 +96,10 @@ void MqttHandleInverterClass::loop()
         } else {
             MqttSettings.publish(subtopic + "/status/last_update", String(0));
         }
-
+        
+        //TODO find better way for deye chek
         const uint32_t lastUpdateInternal = inv->getStatistics()->getLastUpdateFromInternal();
-        if (inv->getStatistics()->getLastUpdate() > 0 && (lastUpdateInternal != _lastPublishStats[i])) {
+        if (inv->getStatistics()->getLastUpdate() > 0 && ((inv->getInverterType() == Inverter_DeyeSun && inv->isReachable()) || lastUpdateInternal != _lastPublishStats[i])) {
             _lastPublishStats[i] = lastUpdateInternal;
 
             // Loop all channels
@@ -270,6 +271,7 @@ void MqttHandleInverterClass::subscribeTopics()
     };
 
     for (auto const& s : _subscriptions) {
+    
         subscribe(s.first.data(), s.second);
     }
 }

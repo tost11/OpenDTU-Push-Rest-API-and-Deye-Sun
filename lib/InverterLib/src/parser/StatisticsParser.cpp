@@ -419,7 +419,7 @@ static float calcTotalEffiency(StatisticsParser* iv, uint8_t arg0)
     }
 
     if (dcPower > 0) {
-        return acPower / dcPower * 100.0f;
+        return dcPower / acPower * 100.0f;
     }
     return 0.0;
 }
