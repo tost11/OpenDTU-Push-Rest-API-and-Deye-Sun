@@ -92,6 +92,8 @@ public:
     bool isSerialValid(const uint64_t serial);
 private:
 
+    bool _restarConnection;
+
     uint64_t initSerial;
     ConnectionControl dtuConnection;
     InverterData inverterData;

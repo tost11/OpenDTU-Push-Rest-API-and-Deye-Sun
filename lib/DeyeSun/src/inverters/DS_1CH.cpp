@@ -50,7 +50,8 @@ static const byteAssign_t byteAssignment[] = {
         //{ TYPE_AC, CH0, FLD_YT, UNIT_KWH, CALC_YT_CH0, 0, CMD_CALC, false, 3 },
         { TYPE_INV, CH0, FLD_YT, UNIT_KWH, 38, 4, 10, false,true, 0 },
         { TYPE_INV, CH0, FLD_PDC, UNIT_W, CALC_TOTAL_PDC, 0, CMD_CALC, false,true, 1 },
-        { TYPE_INV, CH0, FLD_EFF, UNIT_PCT, CALC_TOTAL_EFF, 0, CMD_CALC, false,true, 3 }
+        //dosnt make sense because red ac value highter then dc value
+        //{ TYPE_INV, CH0, FLD_EFF, UNIT_PCT, CALC_TOTAL_EFF, 0, CMD_CALC, false,true, 3 }
 };
 
 DS_1CH::DS_1CH(uint64_t serial,const String & modelType):
