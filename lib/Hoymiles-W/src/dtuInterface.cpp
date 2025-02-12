@@ -3,7 +3,7 @@
 #include <functional>
 #include <MessageOutput.h>
 
-DTUInterface::DTUInterface(const char *server, uint16_t port) : serverIP(server), serverPort(port), client(nullptr) {}
+DTUInterface::DTUInterface(const char *server, uint16_t port) : serverIP(server), serverPort(port), client(nullptr), _restarConnection(false) {}
 
 DTUInterface::~DTUInterface()
 {
@@ -50,6 +50,7 @@ void DTUInterface::connect()
         else
         {
             MessageOutput.println(F("DTUinterface:\t connection attempt failed..."));
+            dtuConnection.dtuConnectState = DTU_STATE_OFFLINE;
         }
     }
 }
@@ -109,7 +110,7 @@ bool DTUInterface::requestStatisticUpdate()
 void DTUInterface::setServer(const String &server)
 {
     serverIP = server;
-    disconnect(DTU_STATE_OFFLINE);
+    _restarConnection = true;
 }
 
 const String & DTUInterface::getServer(){
@@ -120,13 +121,13 @@ const String & DTUInterface::getServer(){
 void DTUInterface::setPort(uint16_t port)
 {
     serverPort = port;
-    disconnect(DTU_STATE_OFFLINE);
+    _restarConnection = true;
 }
 
 void DTUInterface::setServerAndPort(const String & server,uint16_t port){
     serverPort = port;
     serverIP = server;
-    disconnect(DTU_STATE_OFFLINE);
+    _restarConnection = true;
 }
 
 void DTUInterface::setPowerLimit(int limit)
@@ -166,6 +167,13 @@ void DTUInterface::dtuLoop()
     // check for last data received
     checkingForLastDataReceived();
 
+    if(_restarConnection){
+        disconnect(DTU_STATE_OFFLINE);
+        _restarConnection = false;
+        dtuConnection.dtuConnectRetriesShort = 0;
+        dtuConnection.dtuConnectRetriesLong = 0;
+    }
+
     // check if we are in a cloud pause period
     if (dtuConnection.dtuConnectState != DTU_STATE_STOPPED)
     {
@@ -194,7 +202,7 @@ void DTUInterface::dtuLoop()
                 }
                 else
                 {
-                    MessageOutput.printlnDebug("DTUinterface:\t dtuLoop - PAUSE ... short: " + String(dtuConnection.dtuConnectRetriesShort) + " - long: " + String(dtuConnection.dtuConnectRetriesLong));
+                    MessageOutput.println("DTUinterface:\t dtuLoop - PAUSE ... short: " + String(dtuConnection.dtuConnectRetriesShort) + " - long: " + String(dtuConnection.dtuConnectRetriesLong));
                     dtuConnection.dtuConnectState = DTU_STATE_OFFLINE;
                     // Exceeded 5 attempts, initiate pause period
                     dtuConnection.dtuConnectRetriesShort = 0; // Reset short retry counter
@@ -504,6 +512,12 @@ void DTUInterface::checkingDataUpdate()
         // Serial.println("DTUinterface:\t --> " + String(i) + " compare : " + String(gridVoltHist[i]) + " V - with: " + String(gridVoltHist[0]) + " V");
         if (gridVoltHist[i] != gridVoltHist[0])
         {
+            gridVoltValueHanging = false;
+            break;
+        }
+        //MessageOutput.printf("check grid voltag %f <<-------------------------- \n",gridVoltHist[i]);
+        //TODO find better way to do this
+        if(gridVoltHist[i] < 10){//when grid voltage below zero inverter not conneced to grid so no restart needed
             gridVoltValueHanging = false;
             break;
         }

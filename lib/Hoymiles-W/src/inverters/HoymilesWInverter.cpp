@@ -41,6 +41,7 @@ void HoymilesWInverter::update() {
     }
 
     if(_resolvedIpByMacAdress != nullptr && *_resolvedIpByMacAdress != std::string(_dtuInterface.getServer().c_str())){
+        MessageOutput.println("Set new ip by mac to DTU interface");
         _dtuInterface.setServerAndPort(String(_resolvedIpByMacAdress->c_str()),_port);
     }
 
