@@ -31,7 +31,7 @@ static const byteAssign_t byteAssignment[] = {
         { TYPE_DC, CH0, FLD_IDC, UNIT_A, 4, 2, 10, false,true, 2 },
         //{ TYPE_DC, CH0, FLD_PDC, UNIT_W, 6, 2, 10, false, 1 },
         { TYPE_DC, CH0, FLD_PDC, UNIT_W, CALC_PDC, CH0, CMD_CALC, false,true, 2 },
-        { TYPE_DC, CH0, FLD_YD, UNIT_KWH, 14, 2, 100, false, true,1 },
+        { TYPE_DC, CH0, FLD_YD, UNIT_KWH, 14, 2, 10, false, true,1 },
         { TYPE_DC, CH0, FLD_YT, UNIT_KWH, 10, 2, 10, false,true, 0 },
         { TYPE_DC, CH0, FLD_IRR, UNIT_PCT, CALC_CH_IRR, CH0, CMD_CALC, false,true, 3 },
 
@@ -46,7 +46,7 @@ static const byteAssign_t byteAssignment[] = {
         { TYPE_INV, CH0, FLD_EVT_LOG, UNIT_NONE, 34, 2, 1, false,true, 0 },//current status
 
         //{ TYPE_AC, CH0, FLD_YD, UNIT_WH, CALC_YD_CH0, 0, CMD_CALC, false, 0 },
-        { TYPE_INV, CH0, FLD_YD, UNIT_KWH, 36, 2, 100, false,true, 1 },
+        { TYPE_INV, CH0, FLD_YD, UNIT_KWH, 36, 2, 10, false,true, 1 },
         //{ TYPE_AC, CH0, FLD_YT, UNIT_KWH, CALC_YT_CH0, 0, CMD_CALC, false, 3 },
         { TYPE_INV, CH0, FLD_YT, UNIT_KWH, 38, 4, 10, false,true, 0 },
         { TYPE_INV, CH0, FLD_PDC, UNIT_W, CALC_TOTAL_PDC, 0, CMD_CALC, false,true, 1 },
