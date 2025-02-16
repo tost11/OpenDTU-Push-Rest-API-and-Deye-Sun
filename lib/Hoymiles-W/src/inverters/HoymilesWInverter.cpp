@@ -24,7 +24,7 @@ _messageOutput(print)
 
     _devInfoParser->setMaxPowerDevider(10);
 
-    _dataUpdateTimer.set(30 * 1000);
+    _dataUpdateTimer.set(31 * 1000);
     _dataUpdateTimer.zero();
     _dataStatisticTimer.set(5 * 60 * 1000);
     _dataStatisticTimer.zero();
