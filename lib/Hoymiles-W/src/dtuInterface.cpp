@@ -2,8 +2,17 @@
 #include <Arduino.h>
 #include <functional>
 #include <MessageOutput.h>
+#include <memory>
 
-DTUInterface::DTUInterface(const char *server, uint16_t port) : serverIP(server), serverPort(port), client(nullptr), _restarConnection(false) {}
+DTUInterface::DTUInterface(const char *server, uint16_t port) : serverIP(server), serverPort(port), client(nullptr), _restartConnection(false){
+    //default data count (cann be changed)
+    unsigned int size = 10;
+    dataHist.reserve(size);
+    for(unsigned int i=0;i<size;i++){
+        dataHist.push_back(std::unique_ptr<char[]>(new char[sizeof(BaseData)*5 + sizeof(uint16_t) + sizeof(int16_t)]));
+        memset(dataHist[i].get(),0,sizeof(BaseData)*5 + sizeof(uint16_t) + sizeof(int16_t));
+    }
+}
 
 DTUInterface::~DTUInterface()
 {
@@ -110,24 +119,29 @@ bool DTUInterface::requestStatisticUpdate()
 void DTUInterface::setServer(const String &server)
 {
     serverIP = server;
-    _restarConnection = true;
+    _restartConnection = true;
 }
 
-const String & DTUInterface::getServer(){
+const String & DTUInterface::getServer()const{
     return serverIP;
+}
+
+
+uint16_t DTUInterface::getPort()const{
+    return serverPort;
 }
 
 
 void DTUInterface::setPort(uint16_t port)
 {
     serverPort = port;
-    _restarConnection = true;
+    _restartConnection = true;
 }
 
 void DTUInterface::setServerAndPort(const String & server,uint16_t port){
     serverPort = port;
     serverIP = server;
-    _restarConnection = true;
+    _restartConnection = true;
 }
 
 void DTUInterface::setPowerLimit(int limit)
@@ -167,9 +181,9 @@ void DTUInterface::dtuLoop()
     // check for last data received
     checkingForLastDataReceived();
 
-    if(_restarConnection){
+    if(_restartConnection){
         disconnect(DTU_STATE_OFFLINE);
-        _restarConnection = false;
+        _restartConnection = false;
         dtuConnection.dtuConnectRetriesShort = 0;
         dtuConnection.dtuConnectRetriesLong = 0;
     }
@@ -500,26 +514,31 @@ void DTUInterface::checkingDataUpdate()
 {
     // checking for hanging values on DTU side
     // fill grid voltage history
-    gridVoltHist[gridVoltCnt++] = inverterData.grid.voltage;
-    if (gridVoltCnt > 9)
-        gridVoltCnt = 0;
+
+    MessageOutput.printfDebug("Current dataHitId %d of %d\n",dataHitsCount,dataHist.size());
+    memcpy(dataHist[dataHitsCount].get(),&inverterData,sizeof(BaseData)*5 + sizeof(uint16_t) + sizeof(int16_t));
+    dataHitsCount++;
+    if(dataHitsCount >= dataHist.size()){
+        dataHitsCount = 0;
+    }
 
     bool gridVoltValueHanging = true;
     // Serial.println(F("DTUinterface:\t GridV check"));
     // compare all values in history with the first value - if all are equal, then the value is hanging
-    for (uint8_t i = 1; i < 10; i++)
-    {
-        // Serial.println("DTUinterface:\t --> " + String(i) + " compare : " + String(gridVoltHist[i]) + " V - with: " + String(gridVoltHist[0]) + " V");
-        if (gridVoltHist[i] != gridVoltHist[0])
+    if(inverterData.grid.voltage < 10 || dataHist.size() <= 1){//when grid voltage below zero inverter not conneced to grid so no restart needed
+        gridVoltValueHanging = false;
+        MessageOutput.printlnDebug("Data hang check not possible");
+    }else{
+        for (unsigned int i = 1; i < dataHist.size(); i++)
         {
-            gridVoltValueHanging = false;
-            break;
-        }
-        //MessageOutput.printf("check grid voltag %f <<-------------------------- \n",gridVoltHist[i]);
-        //TODO find better way to do this
-        if(gridVoltHist[i] < 10){//when grid voltage below zero inverter not conneced to grid so no restart needed
-            gridVoltValueHanging = false;
-            break;
+            // Serial.println("DTUinterface:\t --> " + String(i) + " compare : " + String(gridVoltHist[i]) + " V - with: " + String(gridVoltHist[0]) + " V");
+            int ret = memcmp(dataHist[i].get(),dataHist[0].get(),sizeof(BaseData)*5 + sizeof(uint16_t) + sizeof(int16_t));
+            MessageOutput.printfDebug("Dif on memcompare is: %d\n",ret);
+            if (ret != 0)
+            {
+                gridVoltValueHanging = false;
+                break;
+            }
         }
     }
     // Serial.println("DTUinterface:\t GridV check result: " + String(gridVoltValueHanging));
