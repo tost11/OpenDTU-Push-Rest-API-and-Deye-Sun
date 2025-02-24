@@ -108,7 +108,6 @@ size_t HoymilesWClass::getNumInverters() const
     return _inverters.size();
 }
 
-
 bool HoymilesWClass::isAllRadioIdle() const
 {
     //TODO

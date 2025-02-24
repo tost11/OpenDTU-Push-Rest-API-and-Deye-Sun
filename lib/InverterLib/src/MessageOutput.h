@@ -21,7 +21,7 @@ public:
 
     void printlnDebug(const StringSumHelper & helper);
     void printDebug(const StringSumHelper & helper);
-    void printfDebug(const char * format, ...);
+    size_t printfDebug(const char * format, ...);
 private:
     void loop();
 
