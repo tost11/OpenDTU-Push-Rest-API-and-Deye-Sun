@@ -50,6 +50,8 @@ public:
     virtual void setHostnameOrIpOrMac(const char * ip){
         _oringalIpOrHostname = String(ip);
         checkIfIpOrHostnameIsMac();
+        _resolvedIpByMacAdress = nullptr;
+        checkForMacResolution(true);
         hostOrPortUpdated();
     }
 
@@ -61,6 +63,8 @@ public:
     void setHostnameOrIpOrMacAndPort(const char * ip,uint16_t port){
         _oringalIpOrHostname = String(ip);
         checkIfIpOrHostnameIsMac();
+        _resolvedIpByMacAdress = nullptr;
+        checkForMacResolution(true);
         _port = port;
         hostOrPortUpdated();
     }
@@ -72,9 +76,9 @@ protected:
     String _oringalIpOrHostname;
     uint16_t _port;
 
-    bool checkForMacResolution(){
+    bool checkForMacResolution(bool force){
         if(_IpOrHostnameIsMac){
-            if(_macToIpResolverTimer.occured()){
+            if(force || _macToIpResolverTimer.occured()){
                 MessageOutput.printfDebug("Try to resolve Mac: %s to ip\n",_oringalIpOrHostname.c_str());
                 auto apMacsAndIps = InverterUtils::getConnectedClients();
                 auto ip = String(_oringalIpOrHostname.c_str());
@@ -96,5 +100,8 @@ protected:
         return false;
     }
 
+    bool checkForMacResolution(){
+        return checkForMacResolution(false);
+    }
 
 };

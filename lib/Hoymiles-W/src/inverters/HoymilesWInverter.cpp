@@ -173,7 +173,14 @@ void HoymilesWInverter::setEnableCommands(const bool enabled) {
 }
 
 void HoymilesWInverter::hostOrPortUpdated(){
-    _dtuInterface.setServerAndPort(_oringalIpOrHostname.c_str(),_port);
+    String ip = _oringalIpOrHostname;
+    if(_resolvedIpByMacAdress != nullptr){
+        ip = _resolvedIpByMacAdress.get()->c_str();
+    }
+    if(ip != _dtuInterface.getServer() || _port != _dtuInterface.getPort()){
+        MessageOutput.println("Set new ip to DTU interface");
+        _dtuInterface.setServerAndPort(ip,_port);
+    }
 }
 
 void HoymilesWInverter::startConnection(){

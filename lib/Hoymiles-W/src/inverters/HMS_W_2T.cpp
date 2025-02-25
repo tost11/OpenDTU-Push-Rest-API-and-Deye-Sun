@@ -23,7 +23,7 @@ static const byteAssign_t byteAssignment[] = {
         { TYPE_AC, CH0, FLD_F, UNIT_HZ, 70, 2, 100, false,false, 2 },
         { TYPE_AC, CH0, FLD_PF, UNIT_NONE, 74, 2, 1, true,false, 3 },
 
-        { TYPE_INV, CH0, FLD_T, UNIT_C, 72, 4, 10, true,false, 1 },
+        { TYPE_INV, CH0, FLD_T, UNIT_C, 72, 2, 10, true,false, 1 },
         //{ TYPE_INV, CH0, FLD_EVT_LOG, UNIT_NONE, 34, 4, 1, true, 0 },//current status
 
         { TYPE_INV, CH0, FLD_YD, UNIT_WH, 6, 2, 1, false,false, 0 },
@@ -36,30 +36,15 @@ HMS_W_2T::HMS_W_2T(uint64_t serial,Print & print) :
 HoymilesWInverter(serial,print) {
     _devInfoParser->setHardwareModel(typeName());
     _statisticsParser->setByteAssignment(byteAssignment,sizeof(byteAssignment) / sizeof(byteAssignment[0]));
-    if(_serialString.startsWith("1412")){
+    if(isValidSerial(serial)){
         _devInfoParser->setMaxPower(800);//TODO find other serials
     }
 }
 
 bool HMS_W_2T::isValidSerial(const uint64_t serial)
 {
-    // serial >= 0x141200000000 && serial <= 0x1412ffffffff
-    
-    //TODO check if this here is correct
-    uint8_t preId[2];
-    preId[0] = (uint8_t)(serial >> 40);
-    preId[1] = (uint8_t)(serial >> 32);
-
-    if ((uint8_t)(((((uint16_t)preId[0] << 8) | preId[1]) >> 4) & 0xff) == 0x41) {
-        return true;
-    }
-
-    if ((((preId[1] & 0xf0) == 0x00) || ((preId[1] & 0xf0) == 0x10))
-        && (((preId[0] == 0x20) && (preId[1] == 0x13)) || ((preId[0] == 0x21) && (preId[1] == 0x12)))) {
-        return true;
-    }
-
-    return false;
+    uint16_t preSerial = (serial >> 32) & 0xffff;
+    return preSerial == 0x4143 || preSerial == 0x1412;
 }
 
 String HMS_W_2T::typeName() const
