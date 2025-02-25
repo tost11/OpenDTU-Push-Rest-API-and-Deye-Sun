@@ -71,7 +71,8 @@ public:
     void setServer(const String & server);
     void setPort(uint16_t serverPort);
     void setServerAndPort(const String & server,uint16_t port);
-    const String & getServer();
+    const String & getServer()const;
+    uint16_t getPort()const;
 
     void connect();
     void disconnect(uint8_t tgtState);
@@ -91,8 +92,6 @@ public:
 
     bool isSerialValid(const uint64_t serial);
 private:
-
-    bool _restarConnection;
 
     uint64_t initSerial;
     ConnectionControl dtuConnection;
@@ -143,10 +142,12 @@ private:
     uint16_t serverPort;
     AsyncClient* client;
 
+    bool _restartConnection;
+
     CRC16 crc;
     
-    float gridVoltHist[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    uint8_t gridVoltCnt = 0;
+    std::vector<std::unique_ptr<char[]>> dataHist;
+    unsigned int dataHitsCount = 0;
     unsigned long lastSwOff = 0;
 
     static float calcValue(int32_t value, int32_t divider = 10);
