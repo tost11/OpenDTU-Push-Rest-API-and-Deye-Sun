@@ -36,7 +36,7 @@ HMS_W_2T::HMS_W_2T(uint64_t serial,Print & print) :
 HoymilesWInverter(serial,print) {
     _devInfoParser->setHardwareModel(typeName());
     _statisticsParser->setByteAssignment(byteAssignment,sizeof(byteAssignment) / sizeof(byteAssignment[0]));
-    if(_serialString.startsWith("1412")){
+    if(isValidSerial(serial)){
         _devInfoParser->setMaxPower(800);//TODO find other serials
     }
 }
@@ -44,7 +44,7 @@ HoymilesWInverter(serial,print) {
 bool HMS_W_2T::isValidSerial(const uint64_t serial)
 {
     uint16_t preSerial = (serial >> 32) & 0xffff;
-    return preSerial == 0x4143;
+    return preSerial == 0x4143 || preSerial == 0x1412;
 }
 
 String HMS_W_2T::typeName() const
