@@ -475,7 +475,10 @@
         "CurrentOpenDtuTime": "Current OpenDTU Time:",
         "CurrentLocalTime": "Current Local Time:",
         "SynchronizeTime": "Synchronize Time",
-        "SynchronizeTimeHint": "<b>Hint:</b> You can use the manual time synchronization to set the current time of OpenDTU if no NTP server is available. But be aware, that in case of power cycle the time gets lost. Also note that time accuracy will be skewed badly, as it can not be resynchronised regularly and the ESP32 microcontroller does not have a real time clock."
+        "SynchronizeTimeHint": "<b>Hint:</b> You can use the manual time synchronization to set the current time of OpenDTU if no NTP server is available. But be aware, that in case of power cycle the time gets lost. Also note that time accuracy will be skewed badly, as it can not be resynchronised regularly and the ESP32 microcontroller does not have a real time clock.",
+        "StartupTime": "Manual Startup Date Configuration",
+        "StartupDate": "Startup Date",
+        "StartupDateEnabled": "Manuel Date on Startup enabled"
     },
     "networkadmin": {
         "NetworkSettings": "Network Settings",
