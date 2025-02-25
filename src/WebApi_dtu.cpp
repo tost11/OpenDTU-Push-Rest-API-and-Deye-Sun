@@ -1,3 +1,5 @@
+#ifdef HOYMILES
+
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
  * Copyright (C) 2022-2024 Thomas Basler and others
@@ -8,6 +10,7 @@
 #include "WebApi_errors.h"
 #include <AsyncJson.h>
 #include <InverterHandler.h>
+#include <Hoymiles.h>
 
 WebApiDtuClass::WebApiDtuClass()
     : _applyDataTask(TASK_IMMEDIATE, TASK_ONCE, std::bind(&WebApiDtuClass::applyDataTaskCb, this))
@@ -169,3 +172,5 @@ void WebApiDtuClass::onDtuAdminPost(AsyncWebServerRequest* request)
     _applyDataTask.enable();
     _applyDataTask.restart();
 }
+
+#endif

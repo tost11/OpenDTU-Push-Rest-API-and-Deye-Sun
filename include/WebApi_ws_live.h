@@ -4,8 +4,8 @@
 #include "Configuration.h"
 #include <ArduinoJson.h>
 #include <ESPAsyncWebServer.h>
-#include <Hoymiles.h>
 #include <TaskSchedulerDeclarations.h>
+#include <inverter/BaseInverter.h>
 
 class WebApiWsLiveClass {
 public:

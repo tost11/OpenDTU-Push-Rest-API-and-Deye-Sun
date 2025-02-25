@@ -102,8 +102,8 @@ void MqttHandleHassClass::publishConfig()
         publishInverterSensor(inv, "RSSI", "radio/rssi", "dBm", "", DEVICE_CLS_SIGNAL_STRENGTH, STATE_CLS_NONE, CATEGORY_DIAGNOSTIC);
 
         // Loop all channels
-        for (auto& t : inv->Statistics()->getChannelTypes()) {
-            for (auto& c : inv->Statistics()->getChannelsByType(t)) {
+        for (auto& t : inv->getStatistics()->getChannelTypes()) {
+            for (auto& c : inv->getStatistics()->getChannelsByType(t)) {
                 for (uint8_t f = 0; f < DEVICE_CLS_ASSIGN_LIST_LEN; f++) {
                     bool clear = false;
                     if (t == TYPE_DC && !config.Mqtt.Hass.IndividualPanels) {
@@ -118,7 +118,7 @@ void MqttHandleHassClass::publishConfig()
 
 void MqttHandleHassClass::publishInverterField(std::shared_ptr<BaseInverterClass> inv, const ChannelType_t type, const ChannelNum_t channel, const byteAssign_fieldDeviceClass_t fieldType, const bool clear)
 {
-    if (!inv->Statistics()->hasChannelFieldValue(type, channel, fieldType.fieldId)) {
+    if (!inv->getStatistics()->hasChannelFieldValue(type, channel, fieldType.fieldId)) {
         return;
     }
 
@@ -128,7 +128,7 @@ void MqttHandleHassClass::publishInverterField(std::shared_ptr<BaseInverterClass
     if (type == TYPE_INV && fieldType.fieldId == FLD_PDC) {
         fieldName = "PowerDC";
     } else {
-        fieldName = inv->Statistics()->getChannelFieldName(type, channel, fieldType.fieldId);
+        fieldName = inv->getStatistics()->getChannelFieldName(type, channel, fieldType.fieldId);
     }
 
     String chanNum;
@@ -153,7 +153,7 @@ void MqttHandleHassClass::publishInverterField(std::shared_ptr<BaseInverterClass
             name = "CH" + chanNum + " " + fieldName;
         }
 
-        String unit_of_measure = inv->Statistics()->getChannelFieldUnit(type, channel, fieldType.fieldId);
+        String unit_of_measure = inv->getStatistics()->getChannelFieldUnit(type, channel, fieldType.fieldId);
 
         JsonDocument root;
         createInverterInfo(root, inv);

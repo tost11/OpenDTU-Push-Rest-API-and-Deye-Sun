@@ -63,6 +63,9 @@
         "4007": "Wechselrichter geändert!",
         "4008": "Wechselrichter gelöscht!",
         "4009": "Wechselrichter Reihenfolge gespeichert!",
+        "4011": "Unbekannter Inverter Typ!",
+        "4012": "Der Hostname muss zwischen 1 und {max} Zeichen lang sein!",
+        "4013": "Der Port muss zwischen {min} und {max} liegen!",
         "5001": "@:apiresponse.2001",
         "5002": "Das Limit muss zwischen 1 und {max} sein!",
         "5003": "Ungültiger Typ angegeben!",
@@ -285,6 +288,9 @@
         "Quality": "Qualität",
         "Rssi": "RSSI"
     },
+    "wifistationDevices": {
+        "wifistationDevices": "WLAN-Verbundene Gerät (Access Point)"
+    },
     "wifiapinfo": {
         "WifiApInfo": "WLAN-Informationen (Access Point)",
         "Status": "@:wifistationinfo.Status",
@@ -376,7 +382,8 @@
         "VirtualDebugConsole": "Virtuelle Debug-Konsole",
         "EnableAutoScroll": "Automatisches Scrollen aktivieren",
         "ClearConsole": "Konsole leeren",
-        "CopyToClipboard": "In die Zwischenablage kopieren"
+        "CopyToClipboard": "In die Zwischenablage kopieren",
+        "DebugLogging": "Enable Debug Logging"
     },
     "inverterchannelinfo": {
         "String": "String {num}",
@@ -596,10 +603,10 @@
         "YieldDayCorrection": "Tagesertragskorrektur",
         "YieldDayCorrectionHint": "Summiert den Tagesertrag, auch wenn der Wechselrichter neu gestartet wird. Der Wert wird um Mitternacht zurückgesetzt",
         "Manufacturer": "Hersteller",
-        "InverterHostnameOrIp": "Hostname oder Ip",
-        "InverterHostnameOrIpHint": "Ip Adresse oder Name des Gerätes im Netzwerk",
+        "InverterHostnameOrIp": "Hostname, Ip or Mac",
+        "InverterHostnameOrIpHint": "Hostname des Gerätes im Netzwerk, Ip-Adresse, oder Mac-Adresse im eigenen Ap-Netzwerk",
         "InverterPort": "Port",
-        "InverterPortHint": "Udp kommunikations Port des Gerätes, standart: 48899",
+        "InverterPortHint": "Kommunikations Port des Gerätes, standart: 48899(Deye Sun), Hoymiles(10081)",
         "ManufacturerSelect": "Wähle Hersteller des Gerätes zum hinzufügen"
     },
     "configadmin": {
@@ -707,6 +714,7 @@
     "inputserial": {
         "format_hoymiles": "Hoymiles Seriennummerformat",
         "format_deye": "Deye Sun Seriennummerformat",
+        "format_hoymiles_w": "Hoymiles W-Series Seriennummerformat",
         "format_converted": "Bereits konvertierte Seriennummer",
         "format_herf_valid": "E-Star HERF Format (wird konvertiert gespeichert): {serial}",
         "format_herf_invalid": "E-Star HERF Format: Ungültige Prüfsumme",

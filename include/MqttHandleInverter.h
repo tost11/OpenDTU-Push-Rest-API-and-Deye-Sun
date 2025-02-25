@@ -2,11 +2,11 @@
 #pragma once
 
 #include "Configuration.h"
-#include <Hoymiles.h>
 #include <TaskSchedulerDeclarations.h>
 #include <espMqttClient.h>
 #include <frozen/map.h>
 #include <frozen/string.h>
+#include <inverter/BaseInverter.h>
 
 class MqttHandleInverterClass {
 public:

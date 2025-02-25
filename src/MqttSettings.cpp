@@ -4,7 +4,7 @@
  */
 #include "MqttSettings.h"
 #include "Configuration.h"
-#include "MessageOutput.h"
+#include <MessageOutput.h>
 
 MqttSettingsClass::MqttSettingsClass()
 {

@@ -4,7 +4,7 @@
  */
 #include "NetworkSettings.h"
 #include "Configuration.h"
-#include "MessageOutput.h"
+#include <MessageOutput.h>
 #include "PinMapping.h"
 #include "Utils.h"
 #include "__compiled_constants.h"

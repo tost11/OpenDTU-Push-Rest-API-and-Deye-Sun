@@ -13,12 +13,23 @@ public:
 
 private:
     void settingsLoop();
-    void hoyLoop();
-    void deyeLoop();
 
     Task _settingsTask;
+
+    #ifdef HOYMILES
     Task _hoyTask;
+    void hoyLoop();
+    #endif
+
+    #ifdef DEYE_SUN
     Task _deyeTask;
+    void deyeLoop();
+    #endif
+
+    #ifdef HOYMILES_W
+    Task _hoyWTask;
+    void hoyWLoop();
+    #endif
 };
 
 extern InverterSettingsClass InverterSettings;

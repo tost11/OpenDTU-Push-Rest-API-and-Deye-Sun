@@ -3,7 +3,7 @@
  * Copyright (C) 2022 - 2023 Thomas Basler and others
  */
 #include "StatisticsParser.h"
-#include "../Hoymiles.h"
+#include <MessageOutput.h>
 
 static float calcTotalYieldTotal(StatisticsParser* iv, uint8_t arg0);
 static float calcTotalYieldDay(StatisticsParser* iv, uint8_t arg0);
@@ -61,7 +61,6 @@ const FieldId_t dailyProductionFields[] = {
 StatisticsParser::StatisticsParser()
     : Parser()
 {
-    clearBuffer();
 }
 
 void StatisticsParser::setByteAssignment(const byteAssign_t* byteAssignment, const uint8_t size)
@@ -84,14 +83,16 @@ uint8_t StatisticsParser::getExpectedByteCount()
 
 void StatisticsParser::clearBuffer()
 {
-    memset(_payloadStatistic, 0, STATISTIC_PACKET_SIZE);
+    memset(_payloadStatistic, 0, getStaticPayloadSize());
     _statisticLength = 0;
 }
 
 void StatisticsParser::appendFragment(const uint8_t offset, const uint8_t* payload, const uint8_t len)
 {
-    if (offset + len > STATISTIC_PACKET_SIZE) {
-        Hoymiles.getMessageOutput()->printf("FATAL: (%s, %d) stats packet too large for buffer\r\n", __FILE__, __LINE__);
+    if (offset + len > getStaticPayloadSize()) {
+        MessageOutput.printf("FATAL: (%s, %d) stats packet too large for buffer\r\n", __FILE__, __LINE__);
+        //TODO log this again out
+        //Hoymiles.getMessageOutput()->printf("FATAL: (%s, %d) stats packet too large for buffer\r\n", __FILE__, __LINE__);
         return;
     }
     memcpy(&_payloadStatistic[offset], payload, len);
@@ -111,7 +112,9 @@ void StatisticsParser::endAppendFragment()
         // check if current yield day is smaller then last cached yield day
         if (getChannelFieldValue(TYPE_DC, c, FLD_YD) < _lastYieldDay[static_cast<uint8_t>(c)]) {
             // currently all values are zero --> Add last known values to offset
-            Hoymiles.getMessageOutput()->printf("Yield Day reset detected!\r\n");
+            //TODO log this out again
+            //Hoymiles.getMessageOutput()->printf("Yield Day reset detected!\r\n");
+            MessageOutput.printf("Yield Day reset detected!\r\n");
 
             setChannelFieldOffset(TYPE_DC, c, FLD_YD, _lastYieldDay[static_cast<uint8_t>(c)]);
 
@@ -149,18 +152,25 @@ float StatisticsParser::getChannelFieldValue(const ChannelType_t type, const Cha
         return 0;
     }
 
-    uint8_t ptr = pos->start;
-    const uint8_t end = ptr + pos->num;
-    const uint16_t div = pos->div;
-
-    if (CMD_CALC != div) {
+    if (CMD_CALC != pos->div) {
         // Value is a static value
         uint32_t val = 0;
         HOY_SEMAPHORE_TAKE();
-        do {
-            val <<= 8;
-            val |= _payloadStatistic[ptr];
-        } while (++ptr != end);
+        if(pos->littleEndian){
+            uint8_t ptr = pos->start;
+            const uint8_t end = ptr + pos->num;
+            do {
+                val <<= 8;
+                val |= _payloadStatistic[ptr];
+            } while (++ptr != end);
+        }else{
+            uint8_t ptr = pos->start + pos->num;
+            const uint8_t end = pos->start;
+            do {
+                val <<= 8;
+                val |= _payloadStatistic[ptr-1];
+            } while (--ptr != end);
+        }
         HOY_SEMAPHORE_GIVE();
 
         float result;
@@ -172,7 +182,7 @@ float StatisticsParser::getChannelFieldValue(const ChannelType_t type, const Cha
             result = static_cast<float>(val);
         }
 
-        result /= static_cast<float>(div);
+        result /= static_cast<float>(pos->div);
 
         const fieldSettings_t* setting = getSettingByChannelField(type, channel, fieldId);
         if (setting != nullptr && _statisticLength > 0) {
@@ -221,6 +231,9 @@ bool StatisticsParser::setChannelFieldValue(const ChannelType_t type, const Chan
     do {
         _payloadStatistic[ptr] = val;
         val >>= 8;
+        if(ptr == 0){
+            break;
+        }
     } while (--ptr >= end);
     HOY_SEMAPHORE_GIVE();
 

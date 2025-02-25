@@ -3,7 +3,7 @@
  * Copyright (C) 2022-2024 Thomas Basler and others
  */
 #include "Configuration.h"
-#include "MessageOutput.h"
+#include <MessageOutput.h>
 #include "NetworkSettings.h"
 #include "Utils.h"
 #include "defaults.h"

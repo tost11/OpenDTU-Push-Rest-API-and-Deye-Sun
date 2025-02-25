@@ -7,7 +7,7 @@
 #include "Display_Graphic.h"
 #include "InverterSettings.h"
 #include "Led_Single.h"
-#include "MessageOutput.h"
+#include <MessageOutput.h>
 #include "MqttHandleDtu.h"
 #include "MqttHandleHass.h"
 #include "MqttHandleInverter.h"
@@ -50,6 +50,7 @@ void setup()
     while (!Serial)
         yield();
 #endif
+    //MessageOutput.logDebug = false;
     MessageOutput.init(scheduler);
     MessageOutput.println();
     MessageOutput.println("Starting OpenDTU");

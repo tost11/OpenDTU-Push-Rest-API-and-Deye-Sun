@@ -20,10 +20,10 @@ ID   Source Addr   Target Addr   Idx  Profile ID   Profile Version   Section ID 
 The number of values depends on the respective section and its version. After the last value of a section follows the next section id.
 */
 #include "GridProfileParser.h"
-#include "../Hoymiles.h"
 #include <cstring>
 #include <frozen/map.h>
 #include <frozen/string.h>
+#include <MessageOutput.h>
 
 const std::array<const ProfileType_t, PROFILE_TYPE_COUNT> GridProfileParser::_profileTypes = { {
     { 0x02, 0x00, "US - NA_IEEE1547_240V" },
@@ -377,7 +377,7 @@ void GridProfileParser::clearBuffer()
 void GridProfileParser::appendFragment(const uint8_t offset, const uint8_t* payload, const uint8_t len)
 {
     if (offset + len > GRID_PROFILE_SIZE) {
-        Hoymiles.getMessageOutput()->printf("FATAL: (%s, %d) grid profile packet too large for buffer\r\n", __FILE__, __LINE__);
+        MessageOutput.printf("FATAL: (%s, %d) grid profile packet too large for buffer\r\n", __FILE__, __LINE__);
         return;
     }
     memcpy(&_payloadGridProfile[offset], payload, len);

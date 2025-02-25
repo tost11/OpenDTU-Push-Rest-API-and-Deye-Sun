@@ -55,7 +55,7 @@ void WebApiEventlogClass::onEventlogStatus(AsyncWebServerRequest* request)
     auto inv = InverterHandler.getInverterBySerial(serial,type);
 
     if (inv != nullptr) {
-        uint8_t logEntryCount = inv->EventLog()->getEntryCount();
+        uint8_t logEntryCount = inv->getEventLog()->getEntryCount();
 
         root["count"] = logEntryCount;
         JsonArray eventsArray = root["events"].to<JsonArray>();
@@ -64,7 +64,7 @@ void WebApiEventlogClass::onEventlogStatus(AsyncWebServerRequest* request)
             JsonObject eventsObject = eventsArray.add<JsonObject>();
 
             AlarmLogEntry_t entry;
-            inv->EventLog()->getLogEntry(logEntry, entry, locale);
+            inv->getEventLog()->getLogEntry(logEntry, entry, locale);
 
             eventsObject["message_id"] = entry.MessageId;
             eventsObject["message"] = entry.Message;

@@ -16,6 +16,22 @@
                         </label>
                     </div>
                 </div>
+                <div class="col">
+                    <div class="form-check form-switch">
+                        <input
+                            class="form-check-input"
+                            type="checkbox"
+                            role="switch"
+                            id="debugLogging"
+                            v-model="debugLogging"
+                            onclick="return false"
+                            v-on:click="setDebugLogging()"
+                        />
+                        <label class="form-check-label" for="debugLogging">
+                            {{ $t('console.DebugLogging') }}
+                        </label>
+                    </div>
+                </div>
                 <div class="col text-end">
                     <div class="btn-group" role="group">
                         <button type="button" class="btn btn-primary" :onClick="clearConsole">
@@ -35,8 +51,8 @@
 <script lang="ts">
 import BasePage from '@/components/BasePage.vue';
 import CardElement from '@/components/CardElement.vue';
-import { authUrl } from '@/utils/authentication';
 import { defineComponent } from 'vue';
+import { authUrl,authHeader, handleResponse } from '@/utils/authentication';
 
 export default defineComponent({
     components: {
@@ -51,11 +67,12 @@ export default defineComponent({
             consoleBuffer: '',
             isAutoScroll: true,
             endWithNewline: false,
+            debugLogging: true 
         };
     },
     created() {
         this.initSocket();
-        this.dataLoading = false;
+        this.getDebugLogging();
     },
     unmounted() {
         this.closeSocket();
@@ -71,6 +88,28 @@ export default defineComponent({
         },
     },
     methods: {
+        getDebugLogging() {
+            fetch('/api/console/debug', { headers: authHeader() })
+                .then((response) => handleResponse(response, this.$emitter, this.$router))
+                .then((data) => {
+                    this.debugLogging = data.debugLogging;
+                    this.dataLoading = false;
+                });
+        },
+        setDebugLogging() {
+            const formData = new FormData();
+            formData.append('data', JSON.stringify({debugLogging: !this.debugLogging}));
+
+            fetch('/api/console/debug', {
+                    headers: authHeader(),
+                    method: 'POST',
+                    body: formData
+                })
+                .then((response) => handleResponse(response, this.$emitter, this.$router))
+                .then((data) => {
+                    this.debugLogging = data.debugLogging;
+                });
+        },
         initSocket() {
             console.log('Starting connection to WebSocket Server');
 

@@ -41,9 +41,11 @@ export default defineComponent({
     },
     watch: {
         modelValue: function (val) {
-            this.inputSerial = val;
+          this.inputSerial = val
         },
-        inputSerial: function (val) {
+        inputSerial: {
+          immediate: true,
+          handler(val){
 
             const serial = val.toString().toUpperCase(); // Convert to lowercase for case-insensitivity
 
@@ -58,13 +60,11 @@ export default defineComponent({
             if(this.type === 'Hoymiles') {
               // Contains only numbers
               if (/^1{1}[\dA-F]{11}$/.test(serial)) {
-                this.model = serial;
                 this.formatHint = this.$t('inputserial.format_hoymiles');
               }
 
               // Contains numbers and hex characters but at least one number
               else if (/^(?=.*\d)[\dA-F]{12}$/.test(serial)) {
-                this.model = serial;
                 this.formatHint = this.$t('inputserial.format_converted');
               }
 
@@ -88,16 +88,27 @@ export default defineComponent({
                 this.formatShow = 'danger';
               }
             }else if(this.type === 'DeyeSun'){
+              //TODO find out Deye Sun serial validation
               // Contains only numbers
               if (/^[0-9]{10}$/.test(serial)) {
-                this.model = serial;
                 this.formatHint = this.$t('inputserial.format_deye');
               }else {
                 this.formatHint = this.$t('inputserial.format_unknown');
                 this.formatShow = 'danger';
               }
+            }else if(this.type === 'HoymilesW'){
+              //TODO understand serialnumber check from above hoymiles and add new numbers
+              // Contains only numbers
+              if (/^1412[0-9]{8}$/.test(serial)) {
+                this.formatHint = this.$t('inputserial.format_hoymiles_w');
+              }else {
+                this.formatHint = this.$t('inputserial.format_unknown');
+                this.formatShow = 'danger';
+              }
             }
-        },
+            this.model = serial;
+        }
+      }
     },
     methods: {
         checkHerfChecksum(sn: string) {

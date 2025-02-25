@@ -4,13 +4,11 @@
 #include "../commands/ActivePowerControlCommand.h"
 #include "../parser/AlarmLogParser.h"
 #include "../parser/DevInfoParser.h"
-#include "../parser/GridProfileParser.h"
 #include "../parser/PowerCommandParser.h"
-#include "../parser/StatisticsParser.h"
-#include "../parser/SystemConfigParaParser.h"
+#include <parser/DefaultStatisticsParser.h>
 #include "HoymilesRadio.h"
 #include "types.h"
-#include "BaseInverter.h"
+#include <inverter/BaseInverter.h>
 #include <Arduino.h>
 #include <cstdint>
 #include <list>
@@ -27,7 +25,7 @@ enum {
 
 class CommandAbstract;
 
-class InverterAbstract : public BaseInverter<StatisticsParser,DevInfoParser,SystemConfigParaParser,AlarmLogParser,GridProfileParser,PowerCommandParser> {
+class InverterAbstract : public BaseInverter<DefaultStatisticsParser,DevInfoParser,AlarmLogParser,PowerCommandParser> {
 public:
     explicit InverterAbstract(HoymilesRadio* radio, const uint64_t serial);
     void init();

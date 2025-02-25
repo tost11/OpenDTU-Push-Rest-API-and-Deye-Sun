@@ -11,6 +11,7 @@ MessageOutputClass MessageOutput;
 MessageOutputClass::MessageOutputClass()
     : _loopTask(TASK_IMMEDIATE, TASK_FOREVER, std::bind(&MessageOutputClass::loop, this))
 {
+    logDebug = false;
 }
 
 void MessageOutputClass::init(Scheduler& scheduler)
@@ -63,4 +64,51 @@ void MessageOutputClass::loop()
         }
         _forceSend = false;
     }
+}
+
+void MessageOutputClass::printlnDebug(const StringSumHelper & helper){
+    if(logDebug){
+        println(helper.c_str());
+    }
+}
+
+void MessageOutputClass::printDebug(const StringSumHelper & helper){
+    if(logDebug){
+        print(helper.c_str());
+    }
+}
+
+size_t MessageOutputClass::printfDebug(const char *format, ...)
+{
+    if(!logDebug){
+        return 0;
+    }
+
+    //just coppied from prinf function (call of original function not working for some reaseon (sometimes arguments wrong))
+    char loc_buf[64];
+    char * temp = loc_buf;
+    va_list arg;
+    va_list copy;
+    va_start(arg, format);
+    va_copy(copy, arg);
+    int len = vsnprintf(temp, sizeof(loc_buf), format, copy);
+    va_end(copy);
+    if(len < 0) {
+        va_end(arg);
+        return 0;
+    }
+    if(len >= (int)sizeof(loc_buf)){  // comparation of same sign type for the compiler
+        temp = (char*) malloc(len+1);
+        if(temp == NULL) {
+            va_end(arg);
+            return 0;
+        }
+        len = vsnprintf(temp, len+1, format, arg);
+    }
+    va_end(arg);
+    len = write((uint8_t*)temp, len);
+    if(temp != loc_buf){
+        free(temp);
+    }
+    return len;
 }

@@ -9,6 +9,8 @@
 #include "WebApi_errors.h"
 #include "helper.h"
 #include <AsyncJson.h>
+#include <InverterUtils.h>
+
 
 void WebApiNetworkClass::init(AsyncWebServer& server, Scheduler& scheduler)
 {
@@ -45,6 +47,18 @@ void WebApiNetworkClass::onNetworkStatus(AsyncWebServerRequest* request)
     root["ap_ip"] = WiFi.softAPIP().toString();
     root["ap_mac"] = WiFi.softAPmacAddress();
     root["ap_stationnum"] = WiFi.softAPgetStationNum();
+
+    auto ips = root["ap_station_devices"].to<JsonArray>();
+
+    auto apMacsAndIps = InverterUtils::getConnectedClients();
+
+    for(auto & it : *apMacsAndIps){
+
+        auto obj = ips.add<JsonObject>();
+
+        obj["ip"] = String(it.second.c_str());
+        obj["mac"] = String(it.first.c_str());
+    }
 
     WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
 }

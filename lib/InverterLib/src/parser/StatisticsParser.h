@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
+
 #include "Parser.h"
 #include "BaseStatistics.h"
 #include <cstdint>
 #include <list>
-
-#define STATISTIC_PACKET_SIZE (7 * 16)
 
 // units
 enum UnitId_t {
@@ -48,6 +47,7 @@ typedef struct {
     uint8_t num; // number of bytes in buffer
     uint16_t div; // divisor / calc command
     bool isSigned; // allow negative numbers
+    bool littleEndian; // allow little Endian numbers
     uint8_t digits; // number of valid digits after the decimal point
 } byteAssign_t;
 
@@ -58,7 +58,7 @@ typedef struct {
     float offset; // offset (positive/negative) to be applied on the fetched value
 } fieldSettings_t;
 
-class StatisticsParser : public Parser, public BaseStatistics {
+class StatisticsParser : public BaseStatistics, public Parser {
 public:
     StatisticsParser();
     void clearBuffer();
@@ -98,13 +98,15 @@ public:
     // Update time when new data from the inverter is received
     void setLastUpdate(const uint32_t lastUpdate);
 
-
     bool getYieldDayCorrection() const;
     void setYieldDayCorrection(const bool enabled);
+
+protected:
+    virtual uint16_t getStaticPayloadSize() = 0;
+    uint8_t * _payloadStatistic = nullptr;
 private:
     void zeroFields(const FieldId_t* fields);
 
-    uint8_t _payloadStatistic[STATISTIC_PACKET_SIZE] = {};
     uint8_t _statisticLength = 0;
 
     const byteAssign_t* _byteAssignment;
