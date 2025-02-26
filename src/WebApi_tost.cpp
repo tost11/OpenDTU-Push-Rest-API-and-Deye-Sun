@@ -150,14 +150,17 @@ void WebApiTostClass::onTostAdminPost(AsyncWebServerRequest* request)
         }
     }
 
-    CONFIG_T& config = Configuration.get();
-    config.Tost.Enabled = root["tost_enabled"].as<bool>();
-    config.Tost.Duration = root["tost_duration"].as<uint>();
-    strlcpy(config.Tost.Url, root["tost_url"].as<String>().c_str(), sizeof(config.Tost.Url));
-    strlcpy(config.Tost.SecondUrl, root["tost_second_url"].as<String>().c_str(), sizeof(config.Tost.SecondUrl));
-    strlcpy(config.Tost.SystemId, root["tost_system_id"].as<String>().c_str(), sizeof(config.Tost.SystemId));
-    strlcpy(config.Tost.Token, root["tost_token"].as<String>().c_str(), sizeof(config.Tost.Token));
-    Configuration.write();
+    {
+        auto guard = Configuration.getWriteGuard();
+        auto& config = guard.getConfig();
+        config.Tost.Enabled = root["tost_enabled"].as<bool>();
+        config.Tost.Duration = root["tost_duration"].as<uint>();
+        strlcpy(config.Tost.Url, root["tost_url"].as<String>().c_str(), sizeof(config.Tost.Url));
+        strlcpy(config.Tost.SecondUrl, root["tost_second_url"].as<String>().c_str(), sizeof(config.Tost.SecondUrl));
+        strlcpy(config.Tost.SystemId, root["tost_system_id"].as<String>().c_str(), sizeof(config.Tost.SystemId));
+        strlcpy(config.Tost.Token, root["tost_token"].as<String>().c_str(), sizeof(config.Tost.Token));
+        Configuration.write();
+    }
 
     retMsg["type"] = "success";
     retMsg["message"] = "Settings saved!";
