@@ -693,3 +693,8 @@ void DeyeInverter::setEnableCommands(const bool enabled) {
     _limitToSet = nullptr;
     _powerTargetStatus = nullptr;
 }
+
+bool DeyeInverter::supportsPowerDistributionLogic()
+{
+    return false;
+}

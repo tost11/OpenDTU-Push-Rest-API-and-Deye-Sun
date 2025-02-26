@@ -7,6 +7,7 @@
 #include "Datastore.h"
 #include "MessageOutput.h"
 #include "InverterHandler.h"
+#include "NtpSettings.h"
 #include <HTTPClient.h>
 #include <ctime>
 #include <ArduinoJson.h>
@@ -130,7 +131,11 @@ void TostHandleClass::loop()
             time_t now;
             time(&now);
             data["timeUnit"] = "SECONDS";
-            data["timestamp"] = time(&now);
+            if(NtpSettings.isTimeInSync()){
+                data["timestamp"] = time(&now);
+            }else{
+                data["timestamp"] = 0;
+            }
             MessageOutput.printf("Time set on new inverter info manually %lu\n\r", time(&now));
         }
 

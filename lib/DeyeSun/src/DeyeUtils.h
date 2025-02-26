@@ -17,7 +17,7 @@ public:
 
         auto formater = String("%0") + String(fill).c_str() + "u";
         snprintf(res,fill+1,formater.c_str(),length);
-        
+
         return String(res);
     }
 
@@ -28,7 +28,7 @@ public:
 
         auto formater = String("%0") + String(fill).c_str() + "x";
         snprintf(res,fill+1,formater.c_str(),length);
-        
+
         return String(res);
     }
 };

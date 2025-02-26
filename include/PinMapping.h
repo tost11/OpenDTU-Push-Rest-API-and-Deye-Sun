@@ -61,6 +61,8 @@ public:
     bool init(const String& deviceMapping);
     PinMapping_t& get();
 
+    bool isMappingSelected() const { return _mappingSelected; }
+
     bool isValidNrf24Config() const;
     bool isValidCmt2300Config() const;
     bool isValidW5500Config() const;
@@ -70,6 +72,8 @@ public:
 
 private:
     PinMapping_t _pinMapping;
+
+    bool _mappingSelected = false;
 };
 
 extern PinMappingClass PinMapping;

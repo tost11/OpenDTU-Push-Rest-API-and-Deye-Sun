@@ -3,6 +3,7 @@
  * Copyright (C) 2022 - 2023 Thomas Basler and others
  */
 #include "PinMapping.h"
+#include "Utils.h"
 #include <MessageOutput.h>
 #include <ArduinoJson.h>
 #include <LittleFS.h>
@@ -205,6 +206,8 @@ bool PinMappingClass::init(const String& deviceMapping)
         return false;
     }
 
+    Utils::skipBom(f);
+
     JsonDocument doc;
     // Deserialize the JSON document
     DeserializationError error = deserializeJson(doc, f);
@@ -215,6 +218,8 @@ bool PinMappingClass::init(const String& deviceMapping)
     for (uint8_t i = 0; i < doc.size(); i++) {
         String devName = doc[i]["name"] | "";
         if (devName == deviceMapping) {
+            _mappingSelected = true;
+
             strlcpy(_pinMapping.name, devName.c_str(), sizeof(_pinMapping.name));
             _pinMapping.nrf24_clk = doc[i]["nrf24"]["clk"] | HOYMILES_PIN_SCLK;
             _pinMapping.nrf24_cs = doc[i]["nrf24"]["cs"] | HOYMILES_PIN_CS;

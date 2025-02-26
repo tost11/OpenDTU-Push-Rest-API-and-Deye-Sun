@@ -63,11 +63,13 @@ public:
     static String serialToModel(uint64_t serial);
 
     void setEnableCommands(const bool enabled) override;
+
+    bool supportsPowerDistributionLogic() override;
 private:
     bool parseInitInformation(size_t length);
     int handleRegisterRead(size_t length);
     int handleRegisterWrite(size_t length);
-    
+
     String filterReceivedResponse(size_t length);
 
     bool resolveHostname();
