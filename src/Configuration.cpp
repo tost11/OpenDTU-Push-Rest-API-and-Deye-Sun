@@ -63,6 +63,7 @@ bool ConfigurationClass::write()
     ntp["latitude"] = config.Ntp.Latitude;
     ntp["longitude"] = config.Ntp.Longitude;
     ntp["sunsettype"] = config.Ntp.SunsetType;
+    ntp["startup_date"] = config.Ntp.StartupDate;
 
     JsonObject mqtt = doc["mqtt"].to<JsonObject>();
     mqtt["enabled"] = config.Mqtt.Enabled;
@@ -242,6 +243,7 @@ bool ConfigurationClass::read()
     config.Ntp.Latitude = ntp["latitude"] | NTP_LATITUDE;
     config.Ntp.Longitude = ntp["longitude"] | NTP_LONGITUDE;
     config.Ntp.SunsetType = ntp["sunsettype"] | NTP_SUNSETTYPE;
+    config.Ntp.StartupDate = ntp["startup_date"] | 0;
 
     JsonObject mqtt = doc["mqtt"];
     config.Mqtt.Enabled = mqtt["enabled"] | MQTT_ENABLED;
