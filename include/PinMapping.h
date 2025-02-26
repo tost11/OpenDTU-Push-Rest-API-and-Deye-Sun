@@ -50,6 +50,8 @@ struct PinMapping_t {
     uint8_t display_cs;
     uint8_t display_reset;
 
+    uint8_t servo_pwm;
+
     int8_t led[PINMAPPING_LED_COUNT];
 };
 

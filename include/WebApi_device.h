@@ -11,4 +11,6 @@ public:
 private:
     void onDeviceAdminGet(AsyncWebServerRequest* request);
     void onDeviceAdminPost(AsyncWebServerRequest* request);
+
+    void onServoTest(AsyncWebServerRequest* request);
 };
