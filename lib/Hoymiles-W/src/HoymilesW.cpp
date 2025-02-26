@@ -40,15 +40,15 @@ std::shared_ptr<HoymilesWInverter> HoymilesWClass::addInverter(const char* name,
 {
     std::shared_ptr<HoymilesWInverter> i = nullptr;
     if (HMS_W_1T::isValidSerial(serial)) {
-        i = std::make_shared<HMS_W_1T>(serial,*_messageOutput);
+        i = std::make_shared<HMS_W_1T>(serial);
     }else if (HMS_W_2T::isValidSerial(serial)) {
-        i = std::make_shared<HMS_W_2T>(serial,*_messageOutput);
+        i = std::make_shared<HMS_W_2T>(serial);
     }else if (HMS_W_3T::isValidSerial(serial)) {
-        i = std::make_shared<HMS_W_3T>(serial,*_messageOutput);
+        i = std::make_shared<HMS_W_3T>(serial);
     }else if (HMS_W_4T::isValidSerial(serial)) {
-        i = std::make_shared<HMS_W_4T>(serial,*_messageOutput);
+        i = std::make_shared<HMS_W_4T>(serial);
     }else{
-        i = std::make_shared<HMS_W_4T>(serial,*_messageOutput);
+        i = std::make_shared<HMS_W_4T>(serial);
         i->getDevInfo()->setHardwareModel("Unknown");
     }
 
@@ -112,16 +112,6 @@ bool HoymilesWClass::isAllRadioIdle() const
 {
     //TODO
     return true;
-}
-
-void HoymilesWClass::setMessageOutput(Print* output)
-{
-    _messageOutput = output;
-}
-
-Print* HoymilesWClass::getMessageOutput()
-{
-    return _messageOutput;
 }
 
 void HoymilesWClass::init() {

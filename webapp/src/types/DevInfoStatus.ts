@@ -8,5 +8,6 @@ export interface DevInfoStatus {
     hw_version: number;
     hw_model_name: string;
     max_power: number;
+    pdl_supported: boolean;
     manufacturer: string;
 }

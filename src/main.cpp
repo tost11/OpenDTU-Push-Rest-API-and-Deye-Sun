@@ -5,6 +5,7 @@
 #include "Configuration.h"
 #include "Datastore.h"
 #include "Display_Graphic.h"
+#include "I18n.h"
 #include "InverterSettings.h"
 #include "Led_Single.h"
 #include <MessageOutput.h>
@@ -25,11 +26,9 @@
 #include "defaults.h"
 #include <Arduino.h>
 #include <LittleFS.h>
+#include <SpiManager.h>
 #include <TaskScheduler.h>
 #include <esp_heap_caps.h>
-#include <SpiManager.h>
-
-#include <driver/uart.h>
 
 
 void setup()
@@ -69,10 +68,9 @@ void setup()
     }
 
     // Read configuration values
+    Configuration.init(scheduler);
     MessageOutput.print("Reading configuration... ");
     if (!Configuration.read()) {
-        MessageOutput.print("initializing... ");
-        Configuration.init();
         if (Configuration.write()) {
             MessageOutput.print("written... ");
         } else {
@@ -84,6 +82,11 @@ void setup()
         Configuration.migrate();
     }
     auto& config = Configuration.get();
+    MessageOutput.println("done");
+
+    // Read languate pack
+    MessageOutput.print("Reading language pack... ");
+    I18n.init(scheduler);
     MessageOutput.println("done");
 
     //setting up init time
@@ -100,7 +103,7 @@ void setup()
     }
     // Load PinMapping
     MessageOutput.print("Reading PinMapping... ");
-    if (PinMapping.init(String(Configuration.get().Dev_PinMapping))) {
+    if (PinMapping.init(Configuration.get().Dev_PinMapping)) {
         MessageOutput.print("found valid mapping ");
     } else {
         MessageOutput.print("using default config ");
@@ -108,7 +111,7 @@ void setup()
     const auto& pin = PinMapping.get();
     MessageOutput.println("done");
 
-    // Initialize WiFi
+    // Initialize Network
     MessageOutput.print("Initialize Network... ");
     NetworkSettings.init(scheduler);
     MessageOutput.println("done");
@@ -157,26 +160,13 @@ void setup()
     Display.enablePowerSafe = config.Display.PowerSafe;
     Display.enableScreensaver = config.Display.ScreenSaver;
     Display.setContrast(config.Display.Contrast);
-    Display.setLanguage(config.Display.Language);
+    Display.setLocale(config.Display.Locale);
     Display.setStartupDisplay();
     MessageOutput.println("done");
 
     // Initialize Single LEDs
     MessageOutput.print("Initialize LEDs... ");
     LedSingle.init(scheduler);
-    MessageOutput.println("done");
-
-    // Check for default DTU serial
-    MessageOutput.print("Check for default DTU serial... ");
-    if (config.Dtu.Serial == DTU_SERIAL) {
-        MessageOutput.print("generate serial based on ESP chip id: ");
-        const uint64_t dtuId = Utils::generateDtuSerial();
-        MessageOutput.printf("%0" PRIx32 "%08" PRIx32 "... ",
-            ((uint32_t)((dtuId >> 32) & 0xFFFFFFFF)),
-            ((uint32_t)(dtuId & 0xFFFFFFFF)));
-        config.Dtu.Serial = dtuId;
-        Configuration.write();
-    }
     MessageOutput.println("done");
 
     InverterSettings.init(scheduler);
