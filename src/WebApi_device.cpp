@@ -235,6 +235,14 @@ void WebApiDeviceClass::onDeviceAdminPost(AsyncWebServerRequest* request)
             config.Led_Single[i].Brightness = root["led"][i]["brightness"].as<uint8_t>();
             config.Led_Single[i].Brightness = min<uint8_t>(100, config.Led_Single[i].Brightness);
         }
+
+        config.Servo.Frequency = root["servo"][F("frequency")].as<uint8_t>();
+        config.Servo.Resolution = root["servo"][F("resolution")].as<uint8_t>();
+        config.Servo.RangeMin = root["servo"][F("range_min")].as<uint8_t>();
+        config.Servo.RangeMax = root["servo"][F("range_max")].as<uint8_t>();
+        config.Servo.Serial = root["servo"][F("serial")].as<uint64_t>();
+        config.Servo.InputIndex = root["servo"][F("input_index")].as<uint8_t>();
+        config.Servo.Power = root["servo"][F("power")].as<uint16_t>();
     }
 
     auto const& config = Configuration.get();
@@ -246,14 +254,6 @@ void WebApiDeviceClass::onDeviceAdminPost(AsyncWebServerRequest* request)
     Display.setContrast(config.Display.Contrast);
     Display.setLocale(config.Display.Locale);
     Display.Diagram().updatePeriod();
-
-    config.Servo.Frequency = root["servo"][F("frequency")].as<uint8_t>();
-    config.Servo.Resolution = root["servo"][F("resolution")].as<uint8_t>();
-    config.Servo.RangeMin = root["servo"][F("range_min")].as<uint8_t>();
-    config.Servo.RangeMax = root["servo"][F("range_max")].as<uint8_t>();
-    config.Servo.Serial = root["servo"][F("serial")].as<uint64_t>();
-    config.Servo.InputIndex = root["servo"][F("input_index")].as<uint8_t>();
-    config.Servo.Power = root["servo"][F("power")].as<uint16_t>();
 
     WebApi.writeConfig(retMsg);
 
