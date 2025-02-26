@@ -5,8 +5,7 @@
 #include <ios>
 #include <iomanip>
 
-HoymilesWInverter::HoymilesWInverter(uint64_t serial,Print & print):
-_messageOutput(print)
+HoymilesWInverter::HoymilesWInverter(uint64_t serial)
 {
     _serial = serial;
 
@@ -185,4 +184,9 @@ void HoymilesWInverter::hostOrPortUpdated(){
 
 void HoymilesWInverter::startConnection(){
     _dtuInterface.setup();
+}
+
+bool HoymilesWInverter::supportsPowerDistributionLogic()
+{
+    return false;
 }

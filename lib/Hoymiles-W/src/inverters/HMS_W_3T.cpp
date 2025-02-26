@@ -39,8 +39,8 @@ static const byteAssign_t byteAssignment[] = {
         { TYPE_INV, CH0, FLD_EFF, UNIT_PCT, CALC_TOTAL_EFF, 0, CMD_CALC, false,false, 3 }
 };
 
-HMS_W_3T::HMS_W_3T(uint64_t serial,Print & print):
-HoymilesWInverter(serial,print){
+HMS_W_3T::HMS_W_3T(uint64_t serial):
+HoymilesWInverter(serial){
     _devInfoParser->setHardwareModel(typeName());
     _statisticsParser->setByteAssignment(byteAssignment,sizeof(byteAssignment) / sizeof(byteAssignment[0]));
 }
