@@ -60,8 +60,8 @@ void WebApiInverterClass::onInverterList(AsyncWebServerRequest* request)
             // Inverter Serial is read as HEX
             char buffer[sizeof(uint64_t) * 8 + 1];
             snprintf(buffer, sizeof(buffer), "%0" PRIx32 "%08" PRIx32,
-                ((uint32_t)((config.Inverter[i].Serial >> 32) & 0xFFFFFFFF)),
-                ((uint32_t)(config.Inverter[i].Serial & 0xFFFFFFFF)));
+                static_cast<uint32_t>((config.Inverter[i].Serial >> 32) & 0xFFFFFFFF),
+                static_cast<uint32_t>(config.Inverter[i].Serial & 0xFFFFFFFF));
             obj["serial"] = buffer;
             obj["poll_enable"] = config.Inverter[i].Poll_Enable;
             obj["poll_enable_night"] = config.Inverter[i].Poll_Enable_Night;
@@ -284,9 +284,9 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
     }
 
     // Interpret the string as a hex value and convert it to uint64_t
-    const uint64_t serial = strtoll(root["serial"].as<String>().c_str(), NULL, 16);
+    const uint64_t new_serial = strtoll(root["serial"].as<String>().c_str(), NULL, 16);
 
-    if (serial == 0) {
+    if (new_serial == 0) {
         retMsg["message"] = "Serial must be a number > 0!";
         retMsg["code"] = WebApiError::InverterSerialZero;
         WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
@@ -301,7 +301,7 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
         return;
     }
 
-    if (root["manufacturer"].as<String>() != "Hoymiles" 
+    if (root["manufacturer"].as<String>() != "Hoymiles"
         && root["manufacturer"].as<String>() != "DeyeSun"
         && root["manufacturer"].as<String>() != "HoymilesW" ) {
         retMsg["message"] = "Unknown Inverter Type: " + root["manufacturer"].as<String>();
@@ -343,49 +343,54 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
         return;
     }
 
-    //TODO refactor using of id not save when multiple users are editing list on same time
-    INVERTER_CONFIG_T& inverter = Configuration.get().Inverter[root["id"].as<uint8_t>()];
+    uint64_t old_serial = 0;
 
-    if(root["manufacturer"].as<String>() == "Hoymiles" && inverter.Type != inverter_type::Inverter_Hoymiles){
-        retMsg["message"] = "Invalid Inverter Type: " + root["manufacturer"].as<String>();
-        retMsg["code"] = WebApiError::InverterType;
-        WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
-        return;
-    }
+    {
+        auto guard = Configuration.getWriteGuard();
+        auto& config = guard.getConfig();
 
-    uint64_t new_serial = serial;
-    uint64_t old_serial = inverter.Serial;
+        INVERTER_CONFIG_T& inverter = config.Inverter[root["id"].as<uint8_t>()];
 
-    // Interpret the string as a hex value and convert it to uint64_t
-    inverter.Serial = new_serial;
-    strncpy(inverter.Name, root["name"].as<String>().c_str(), INV_MAX_NAME_STRLEN);
-    if(inverter.Type == inverter_type::Inverter_DeyeSun || inverter.Type == inverter_type::Inverter_HoymilesW){
-        strncpy(inverter.HostnameOrIp, root["hostname_or_ip"].as<String>().c_str(), INV_MAX_HOSTNAME_STRLEN);
-        inverter.Port = root["port"].as<uint16_t>();
-    }
+        if(root["manufacturer"].as<String>() == "Hoymiles" && inverter.Type != inverter_type::Inverter_Hoymiles){
+            retMsg["message"] = "Invalid Inverter Type: " + root["manufacturer"].as<String>();
+            retMsg["code"] = WebApiError::InverterType;
+            WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
+            return;
+        }
 
-    inverter.Poll_Enable = root["poll_enable"] | true;
-    inverter.Poll_Enable_Night = root["poll_enable_night"] | true;
-    inverter.Command_Enable = root["command_enable"] | true;
-    inverter.Command_Enable_Night = root["command_enable_night"] | true;
-    inverter.ReachableThreshold = root["reachable_threshold"] | REACHABLE_THRESHOLD;
-    inverter.ZeroRuntimeDataIfUnrechable = root["zero_runtime"] | false;
-    inverter.ZeroYieldDayOnMidnight = root["zero_day"] | false;
-    inverter.ClearEventlogOnMidnight = root["clear_eventlog"] | false;
-    inverter.YieldDayCorrection = root["yieldday_correction"] | false;
+        old_serial = inverter.Serial;
+        inverter.Serial = new_serial;
+        strncpy(inverter.Name, root["name"].as<String>().c_str(), INV_MAX_NAME_STRLEN);
 
-    uint8_t arrayCount = 0;
-    for (JsonVariant channel : channelArray) {
-        inverter.channel[arrayCount].MaxChannelPower = channel["max_power"].as<uint16_t>();
-        inverter.channel[arrayCount].YieldTotalOffset = channel["yield_total_offset"].as<float>();
-        strncpy(inverter.channel[arrayCount].Name, channel["name"] | "", sizeof(inverter.channel[arrayCount].Name));
-        arrayCount++;
+        if(inverter.Type == inverter_type::Inverter_DeyeSun || inverter.Type == inverter_type::Inverter_HoymilesW){
+            strncpy(inverter.HostnameOrIp, root["hostname_or_ip"].as<String>().c_str(), INV_MAX_HOSTNAME_STRLEN);
+            inverter.Port = root["port"].as<uint16_t>();
+        }
+
+        inverter.Poll_Enable = root["poll_enable"] | true;
+        inverter.Poll_Enable_Night = root["poll_enable_night"] | true;
+        inverter.Command_Enable = root["command_enable"] | true;
+        inverter.Command_Enable_Night = root["command_enable_night"] | true;
+        inverter.ReachableThreshold = root["reachable_threshold"] | REACHABLE_THRESHOLD;
+        inverter.ZeroRuntimeDataIfUnrechable = root["zero_runtime"] | false;
+        inverter.ZeroYieldDayOnMidnight = root["zero_day"] | false;
+        inverter.ClearEventlogOnMidnight = root["clear_eventlog"] | false;
+        inverter.YieldDayCorrection = root["yieldday_correction"] | false;
+
+        uint8_t arrayCount = 0;
+        for (JsonVariant channel : channelArray) {
+            inverter.channel[arrayCount].MaxChannelPower = channel["max_power"].as<uint16_t>();
+            inverter.channel[arrayCount].YieldTotalOffset = channel["yield_total_offset"].as<float>();
+            strncpy(inverter.channel[arrayCount].Name, channel["name"] | "", sizeof(inverter.channel[arrayCount].Name));
+            arrayCount++;
+        }
     }
 
     WebApi.writeConfig(retMsg, WebApiError::InverterChanged, "Inverter changed!");
 
     WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
 
+    INVERTER_CONFIG_T const& inverter = Configuration.get().Inverter[root["id"].as<uint8_t>()];
     std::shared_ptr<BaseInverterClass> inv = InverterHandler.getInverterBySerial(old_serial,inverter.Type);
 
     if (inv != nullptr && new_serial != old_serial) {
@@ -489,7 +494,7 @@ void WebApiInverterClass::onInverterDelete(AsyncWebServerRequest* request)
 
     //TODO refactor using of id not save when multiple users are editing list on same time
     uint8_t inverter_id = root["id"].as<uint8_t>();
-    INVERTER_CONFIG_T& inverter = Configuration.get().Inverter[inverter_id];
+    INVERTER_CONFIG_T const& inverter = Configuration.get().Inverter[inverter_id];
 
     InverterHandler.removeInverterBySerial(inverter.Serial,inverter.Type);
 
@@ -526,13 +531,18 @@ void WebApiInverterClass::onInverterOrder(AsyncWebServerRequest* request)
     // The order array contains list or id in the right order
     JsonArray orderArray = root["order"].as<JsonArray>();
     uint8_t order = 0;
-    for (JsonVariant id : orderArray) {
-        uint8_t inverter_id = id.as<uint8_t>();
-        if (inverter_id < INV_MAX_COUNT) {
-            INVERTER_CONFIG_T& inverter = Configuration.get().Inverter[inverter_id];
-            inverter.Order = order;
+    {
+        auto guard = Configuration.getWriteGuard();
+        auto& config = guard.getConfig();
+
+        for (JsonVariant id : orderArray) {
+            uint8_t inverter_id = id.as<uint8_t>();
+            if (inverter_id < INV_MAX_COUNT) {
+                INVERTER_CONFIG_T& inverter = config.Inverter[inverter_id];
+                inverter.Order = order;
+            }
+            order++;
         }
-        order++;
     }
 
     WebApi.writeConfig(retMsg, WebApiError::InverterOrdered, "Inverter order saved!");

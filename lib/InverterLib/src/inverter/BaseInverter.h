@@ -68,6 +68,10 @@ protected:
     std::unique_ptr<PowerT> _powerCommandParser;
 
 public:
+
+    // This feature will limit the AC output instead of limiting the DC inputs.
+    virtual bool supportsPowerDistributionLogic() = 0;
+
     void setReachableThreshold(const uint8_t threshold)
     {
         _reachableThreshold = threshold;

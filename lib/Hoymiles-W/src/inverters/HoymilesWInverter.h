@@ -18,7 +18,7 @@
 
 class HoymilesWInverter : public BaseNetworkInverter<HoymilesWStatisticsParser,HoymilesWDevInfo,HoymilesWAlarmLog,PowerCommandParser> {
 public:
-    explicit HoymilesWInverter(uint64_t serial,Print & print);
+    explicit HoymilesWInverter(uint64_t serial);
     virtual ~HoymilesWInverter() = default;
 
     uint64_t serial() const override;
@@ -46,10 +46,11 @@ public:
     void startConnection();
 
     void swapBuffers(const InverterData *data);
+
+    bool supportsPowerDistributionLogic() override;
 protected:
     virtual void hostOrPortUpdated() override;
 private:
-    Print & _messageOutput;
     uint64_t _serial;
 
     DTUInterface _dtuInterface;
