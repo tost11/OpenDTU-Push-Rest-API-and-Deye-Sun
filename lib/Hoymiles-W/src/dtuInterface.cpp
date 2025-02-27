@@ -31,6 +31,7 @@ void DTUInterface::setup()
         inverterData.currentTimestamp = 0;
         // Serial.println(F("DTUinterface:\t no client - setup new client"));
         client = new AsyncClient();
+        //client->setRxTimeout(15);
         if (client)
         {
             //std::function<void(void*, AsyncClient*)> f = std::bind(&dtuInterface,client);
@@ -39,6 +40,17 @@ void DTUInterface::setup()
             client->onDisconnect([&](void * arg, AsyncClient * client){this->onDisconnect();});
             client->onError([&](void * arg, AsyncClient * client,int8_t error){this->onError(error);});
             client->onData([&](void * arg, AsyncClient * client,void *data, size_t len){this->onDataReceived(data,len);});
+            client->onTimeout([&](void * arg, AsyncClient * client,uint32_t time){
+                if(_restartConnection || dtuConnection.dtuConnectState != DTU_STATE_CONNECTED){
+                    return;
+                }
+                MessageOutput.printfDebug("DTUInterfac: Ack timeout is: %d\n",time);
+                if(time > 25 * 1000){
+                    //if not ack after 25 sec its possible a disconnect (try reconnect);
+                    MessageOutput.printf("DTUInterfac: Ack timeout 25sec: %d -> Disconnect\n",time);
+                    _restartConnection = true;
+                }
+            });
 
             initializeCRC();
         }
