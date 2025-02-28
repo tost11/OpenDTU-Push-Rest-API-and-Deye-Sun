@@ -1,6 +1,5 @@
 #include "dtuInterface.h"
 #include <Arduino.h>
-#include <functional>
 #include <MessageOutput.h>
 #include <memory>
 
@@ -198,6 +197,7 @@ void DTUInterface::dtuLoop()
         _restartConnection = false;
         dtuConnection.dtuConnectRetriesShort = 0;
         dtuConnection.dtuConnectRetriesLong = 0;
+        dtuConnection.dtuSerial = 0;//reset red serial
     }
 
     // check if we are in a cloud pause period
@@ -366,6 +366,7 @@ void DTUInterface::onDisconnect()
     // Connection lost
     MessageOutput.println(F("DTUinterface:\t disconnected from DTU"));
     dtuConnection.dtuConnectState = DTU_STATE_OFFLINE;
+    dtuConnection.dtuSerial = 0;//reset red serial
     // inverterData.dtuRssi = 0;
     // Serial.println(F("DTUinterface:\t stopping keep-alive timer..."));
     keepAliveTimer.detach();
@@ -682,7 +683,7 @@ void DTUInterface::readRespRealDataNew(pb_istream_t istream)
 
         SGSMO gridData = SGSMO_init_zero;
         gridData = realdatanewreqdto.sgs_data[0];
-        dtuConnection.dtuSerial = gridData.serial_number;
+        dtuConnection.dtuSerial = static_cast<uint64_t>(gridData.serial_number);
 
         inverterData.grid.current = static_cast<uint16_t>(gridData.current);
         inverterData.grid.voltage = static_cast<uint16_t>(gridData.voltage);
@@ -1103,6 +1104,10 @@ boolean DTUInterface::readRespCommandRestartDevice(pb_istream_t istream)
     return true;
 }
 
-bool DTUInterface::isSerialValid(const uint64_t serial){
+bool DTUInterface::isSerialValid(const uint64_t serial) const{
     return dtuConnection.dtuSerial == serial;
+}
+
+uint64_t DTUInterface::getRedSerial() const {
+    return dtuConnection.dtuSerial;
 }
