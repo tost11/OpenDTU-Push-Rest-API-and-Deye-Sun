@@ -85,7 +85,8 @@ protected:
                 ip.toUpperCase();
                 auto found = apMacsAndIps->find(std::string(ip.c_str()));
                 if(found != apMacsAndIps->end()){
-                    if(found->second != "0.0.0.0" && found->second != "" && (_resolvedIpByMacAdress == nullptr || found->second == *_resolvedIpByMacAdress)){
+                    MessageOutput.printfDebug("Found ip for mac is: %s\n",found->second.c_str());
+                    if(found->second != "0.0.0.0" && found->second != "" && (_resolvedIpByMacAdress == nullptr || found->second != *_resolvedIpByMacAdress)){
                         _resolvedIpByMacAdress = std::make_unique<std::string>(found->second);
                         _macToIpResolverTimer.set(TIMER_SUCCES_MAC_IP_RESOLUTION);
                         MessageOutput.printf("Resolved Mac to ip: %s\n",_resolvedIpByMacAdress->c_str());
@@ -93,7 +94,7 @@ protected:
                     }
                 }
                 _macToIpResolverTimer.set(TIMER_FAILED_MAC_IP_RESOLUTION);
-                MessageOutput.printfDebug("Failed on reloving Mac to Ip");
+                MessageOutput.printfDebug("Failed on resolving Mac to Ip\n");
                 return false;
             }
         }

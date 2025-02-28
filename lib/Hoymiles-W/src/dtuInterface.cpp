@@ -1,6 +1,5 @@
 #include "dtuInterface.h"
 #include <Arduino.h>
-#include <functional>
 #include <MessageOutput.h>
 #include <memory>
 
@@ -31,6 +30,7 @@ void DTUInterface::setup()
         inverterData.currentTimestamp = 0;
         // Serial.println(F("DTUinterface:\t no client - setup new client"));
         client = new AsyncClient();
+        //client->setRxTimeout(15);
         if (client)
         {
             //std::function<void(void*, AsyncClient*)> f = std::bind(&dtuInterface,client);
@@ -39,6 +39,17 @@ void DTUInterface::setup()
             client->onDisconnect([&](void * arg, AsyncClient * client){this->onDisconnect();});
             client->onError([&](void * arg, AsyncClient * client,int8_t error){this->onError(error);});
             client->onData([&](void * arg, AsyncClient * client,void *data, size_t len){this->onDataReceived(data,len);});
+            client->onTimeout([&](void * arg, AsyncClient * client,uint32_t time){
+                if(_restartConnection || dtuConnection.dtuConnectState != DTU_STATE_CONNECTED){
+                    return;
+                }
+                MessageOutput.printfDebug("DTUInterfac: Ack timeout is: %d\n",time);
+                if(time > 25 * 1000){
+                    //if not ack after 25 sec its possible a disconnect (try reconnect);
+                    MessageOutput.printf("DTUInterfac: Ack timeout 25sec: %d -> Disconnect\n",time);
+                    _restartConnection = true;
+                }
+            });
 
             initializeCRC();
         }
@@ -186,6 +197,7 @@ void DTUInterface::dtuLoop()
         _restartConnection = false;
         dtuConnection.dtuConnectRetriesShort = 0;
         dtuConnection.dtuConnectRetriesLong = 0;
+        dtuConnection.dtuSerial = 0;//reset red serial
     }
 
     // check if we are in a cloud pause period
@@ -354,6 +366,7 @@ void DTUInterface::onDisconnect()
     // Connection lost
     MessageOutput.println(F("DTUinterface:\t disconnected from DTU"));
     dtuConnection.dtuConnectState = DTU_STATE_OFFLINE;
+    dtuConnection.dtuSerial = 0;//reset red serial
     // inverterData.dtuRssi = 0;
     // Serial.println(F("DTUinterface:\t stopping keep-alive timer..."));
     keepAliveTimer.detach();
@@ -670,7 +683,7 @@ void DTUInterface::readRespRealDataNew(pb_istream_t istream)
 
         SGSMO gridData = SGSMO_init_zero;
         gridData = realdatanewreqdto.sgs_data[0];
-        dtuConnection.dtuSerial = gridData.serial_number;
+        dtuConnection.dtuSerial = static_cast<uint64_t>(gridData.serial_number);
 
         inverterData.grid.current = static_cast<uint16_t>(gridData.current);
         inverterData.grid.voltage = static_cast<uint16_t>(gridData.voltage);
@@ -1091,6 +1104,10 @@ boolean DTUInterface::readRespCommandRestartDevice(pb_istream_t istream)
     return true;
 }
 
-bool DTUInterface::isSerialValid(const uint64_t serial){
+bool DTUInterface::isSerialValid(const uint64_t serial) const{
     return dtuConnection.dtuSerial == serial;
+}
+
+uint64_t DTUInterface::getRedSerial() const {
+    return dtuConnection.dtuSerial;
 }
