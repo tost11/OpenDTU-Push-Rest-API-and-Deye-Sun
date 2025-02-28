@@ -90,10 +90,9 @@ public:
 
     std::unique_ptr<InverterData> newDataAvailable();
 
-    bool isSerialValid(const uint64_t serial);
+    bool isSerialValid(const uint64_t serial) const;
+    uint64_t getRedSerial() const;
 private:
-
-    uint64_t initSerial;
     ConnectionControl dtuConnection;
     InverterData inverterData;
     std::mutex inverterDataMutex;
