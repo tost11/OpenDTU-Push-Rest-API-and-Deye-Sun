@@ -41,7 +41,6 @@ InverterSettingsClass::InverterSettingsClass()
 void InverterSettingsClass::init(Scheduler& scheduler)
 {
     const CONFIG_T& config = Configuration.get();
-    const PinMapping_t& pin = PinMapping.get();
 
     #ifdef DEYE_SUN
     MessageOutput.print("Initialize Deye interface... ");
@@ -79,6 +78,8 @@ void InverterSettingsClass::init(Scheduler& scheduler)
 
     #ifdef HOYMILES
     // Initialize inverter communication
+    const PinMapping_t& pin = PinMapping.get();
+
     MessageOutput.print("Initialize Hoymiles interface... ");
 
     Hoymiles.init();
