@@ -72,12 +72,16 @@ void HoymilesWInverter::update() {
     
     auto data = _dtuInterface.newDataAvailable();
     //TODO refactor
-    if(data.get() != nullptr){
+    if(data != nullptr){
         _dtuInterface.printDataAsTextToSerial();
         if(_dtuInterface.isSerialValid(_serial)){
             swapBuffers(data.get());
         }else{
+            MessageOutput.printf("Skipped setting red inverter data because serial isn valid! (dtu red %llu to configured: %llu)\n",_dtuInterface.getRedSerial(),_serial);
             _alarmLogParser->addAlarm(6,60,"received inverter data not used because serials not matching (correct serial and ip?)");
+
+            //anyway set timer so its shown as online but not production (helps for debugging error)
+            _devInfoParser->setLastUpdate(millis());
         }
     }
 }
@@ -119,7 +123,7 @@ bool HoymilesWInverter::isProducing() {
 }
 
 bool HoymilesWInverter::isReachable() {
-    return _dtuInterface.isConnected() && (millis() - _devInfoParser->getLastUpdate()) < 120000;//TOTO find better way to check timout
+    return _dtuInterface.isConnected();
 }
 
 bool HoymilesWInverter::sendActivePowerControlRequest(float limit, PowerLimitControlType type) {
@@ -174,7 +178,7 @@ void HoymilesWInverter::setEnableCommands(const bool enabled) {
 void HoymilesWInverter::hostOrPortUpdated(){
     String ip = _oringalIpOrHostname;
     if(_resolvedIpByMacAdress != nullptr){
-        ip = _resolvedIpByMacAdress.get()->c_str();
+        ip = _resolvedIpByMacAdress->c_str();
     }
     if(ip != _dtuInterface.getServer() || _port != _dtuInterface.getPort()){
         MessageOutput.println("Set new ip to DTU interface");

@@ -44,7 +44,7 @@ HoymilesWInverter(serial) {
 bool HMS_W_2T::isValidSerial(const uint64_t serial)
 {
     uint16_t preSerial = (serial >> 32) & 0xffff;
-    return preSerial == 0x4143 || preSerial == 0x1412;
+    return preSerial == 0x1412;
 }
 
 String HMS_W_2T::typeName() const
