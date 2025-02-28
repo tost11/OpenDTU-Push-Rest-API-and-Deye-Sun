@@ -38,7 +38,7 @@ void HoymilesWClass::loop()
 
 std::shared_ptr<HoymilesWInverter> HoymilesWClass::addInverter(const char* name, uint64_t serial,const char* hostnameOrIp,uint16_t port)
 {
-    std::shared_ptr<HoymilesWInverter> i = nullptr;
+    std::shared_ptr<HoymilesWInverter> i;
     if (HMS_W_1T::isValidSerial(serial)) {
         i = std::make_shared<HMS_W_1T>(serial);
     }else if (HMS_W_2T::isValidSerial(serial)) {
