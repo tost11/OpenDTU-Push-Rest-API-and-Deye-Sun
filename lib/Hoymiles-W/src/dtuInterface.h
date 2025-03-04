@@ -48,16 +48,20 @@
 
 struct ConnectionControl
 {
-  boolean dtuConnectionOnline = true;          // true if connection is online as valued a summary
-  uint8_t dtuConnectState = DTU_STATE_OFFLINE;
-  uint8_t dtuErrorState = DTU_ERROR_NO_ERROR;
-  uint8_t dtuTxRxState = DTU_TXRX_STATE_IDLE;
-  uint8_t dtuTxRxStateLast = DTU_TXRX_STATE_IDLE;
-  unsigned long dtuTxRxStateLastChange = 0;
-  uint8_t dtuConnectRetriesShort = 0;
-  uint8_t dtuConnectRetriesLong = 0;
-  unsigned long pauseStartTime = 0;
-  uint64_t dtuSerial = 0;
+    boolean dtuConnectionOnline = true;          // true if connection is online as valued a summary
+    uint8_t dtuConnectState = DTU_STATE_OFFLINE;
+    uint8_t dtuErrorState = DTU_ERROR_NO_ERROR;
+    uint8_t dtuTxRxState = DTU_TXRX_STATE_IDLE;
+    uint8_t dtuTxRxStateLast = DTU_TXRX_STATE_IDLE;
+    unsigned long dtuTxRxStateLastChange = 0;
+    uint8_t dtuConnectRetriesShort = 0;
+    uint8_t dtuConnectRetriesLong = 0;
+    unsigned long pauseStartTime = 0;
+    uint64_t dtuSerial = 0;
+    boolean uptodate = false;
+    boolean updateReceived = false;
+    boolean statisticsInitialized = false;
+    int dtuResetRequested = 0;
 };
 
 typedef void (*DataRetrievalCallback)(const char* data, size_t dataSize, void* userContext);
@@ -76,7 +80,8 @@ public:
 
     void connect();
     void disconnect(uint8_t tgtState);
-    void flushConnection();    
+    void flushConnection();
+    void resetConnectionInfo();
 
     bool requestDataUpdate();
     bool requestStatisticUpdate();
@@ -92,6 +97,7 @@ public:
 
     bool isSerialValid(const uint64_t serial) const;
     uint64_t getRedSerial() const;
+    bool statisticsReceived();
 private:
     ConnectionControl dtuConnection;
     InverterData inverterData;
@@ -147,7 +153,6 @@ private:
     
     std::vector<std::unique_ptr<char[]>> dataHist;
     unsigned int dataHitsCount = 0;
-    unsigned long lastSwOff = 0;
 
     static float calcValue(int32_t value, int32_t divider = 10);
 };

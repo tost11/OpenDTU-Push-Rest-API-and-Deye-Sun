@@ -47,12 +47,13 @@ void HoymilesWInverter::update() {
     getEventLog()->checkErrorsForTimeout();
 
     if(_dtuInterface.isConnected()){
-        if(_dataStatisticTimer.occured()){
+        //ony allow normal data fetching if inverter statistics are received
+        if(!_dtuInterface.statisticsReceived() || _dataStatisticTimer.occured()){
             if(_dtuInterface.requestStatisticUpdate()){
                 _dataStatisticTimer.reset();
             }
         }
-        if(_dataUpdateTimer.occured()){
+        if(_dtuInterface.statisticsReceived() && _dataUpdateTimer.occured()){
             if(_dtuInterface.requestDataUpdate()){
                 _dataUpdateTimer.reset();
             }
