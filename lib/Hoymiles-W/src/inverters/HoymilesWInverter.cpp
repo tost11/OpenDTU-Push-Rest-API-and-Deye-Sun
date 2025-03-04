@@ -25,7 +25,7 @@ HoymilesWInverter::HoymilesWInverter(uint64_t serial)
 
     _dataUpdateTimer.set(31 * 1000);
     _dataUpdateTimer.zero();
-    _dataStatisticTimer.set(5 * 60 * 1000);
+    _dataStatisticTimer.set(10 * 60 * 1000);
     _dataStatisticTimer.zero();
 
     _clearBufferOnDisconnect = false;
@@ -47,18 +47,22 @@ void HoymilesWInverter::update() {
     getEventLog()->checkErrorsForTimeout();
 
     if(_dtuInterface.isConnected()){
-        //ony allow normal data fetching if inverter statistics are received
         if(!_dtuInterface.statisticsReceived() || _dataStatisticTimer.occured()){
-            if(_dtuInterface.requestStatisticUpdate()){
-                _dataStatisticTimer.reset();
+            if(_dataUpdateTimer.occured()){
+                if(_dtuInterface.requestStatisticUpdate()){
+                    _dataStatisticTimer.reset();
+                    //also reset data timer so 31 sec pass untill next request
+                    _dataUpdateTimer.reset();
+                }
             }
-        }
-        if(_dtuInterface.statisticsReceived() && _dataUpdateTimer.occured()){
-            if(_dtuInterface.requestDataUpdate()){
-                _dataUpdateTimer.reset();
+        }else{
+            if(_dataUpdateTimer.occured()){
+                if(_dtuInterface.requestDataUpdate()){
+                    _dataUpdateTimer.reset();
+                }
             }
+            _clearBufferOnDisconnect = false;
         }
-        _clearBufferOnDisconnect = false;
     }else{
         if(!_clearBufferOnDisconnect){//TODO make better
             _clearBufferOnDisconnect = true;
