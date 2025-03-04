@@ -30,11 +30,8 @@ struct InverterData
   uint32_t respTimestamp = 1704063600;     // init with start time stamp > 0
   uint32_t lastRespTimestamp = 1704063600; // init with start time stamp > 0
   uint32_t currentTimestamp = 1704063600; // init with start time stamp > 0
-  boolean uptodate = false;
-  boolean updateReceived = false;
-  int dtuResetRequested = 0;
 };
-#pragma pack(pop) //back to whatever the previous packing mode was 
+#pragma pack(pop) //back to whatever the previous packing mode was
 
 class HoymilesWStatisticsParser : public StatisticsParser {
     public:
