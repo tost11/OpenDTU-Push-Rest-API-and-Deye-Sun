@@ -31,7 +31,7 @@ static const byteAssign_t byteAssignment[] = {
         //{ TYPE_DC, CH0, FLD_PDC, UNIT_W, 6, 2, 10, false, 1 },
         { TYPE_DC, CH0, FLD_PDC, UNIT_W, CALC_PDC, CH0, CMD_CALC, false,true, 2 },
         { TYPE_DC, CH0, FLD_YD, UNIT_KWH, 14, 2, 10, false,true, 1 },
-        { TYPE_DC, CH0, FLD_YT, UNIT_KWH, 10, 2, 10, false,true, 0 },
+        { TYPE_DC, CH0, FLD_YT, UNIT_KWH, 10, 2, 10, false,true, 1 },
         { TYPE_DC, CH0, FLD_IRR, UNIT_PCT, CALC_CH_IRR, CH0, CMD_CALC, false,true, 3 },
 
         { TYPE_DC, CH1, FLD_UDC, UNIT_V, 6, 2, 10, false,true, 1 },
@@ -39,7 +39,7 @@ static const byteAssign_t byteAssignment[] = {
         //{ TYPE_DC, CH1, FLD_PDC, UNIT_W, 12, 2, 10, false, 1 },
         { TYPE_DC, CH1, FLD_PDC, UNIT_W, CALC_PDC, CH1, CMD_CALC, false,true, 2 },
         { TYPE_DC, CH1, FLD_YD, UNIT_KWH, 16, 2, 10, false,true, 1 },
-        { TYPE_DC, CH1, FLD_YT, UNIT_KWH, 12, 2, 10, false,true, 0 },
+        { TYPE_DC, CH1, FLD_YT, UNIT_KWH, 12, 2, 10, false,true, 1 },
         { TYPE_DC, CH1, FLD_IRR, UNIT_PCT, CALC_CH_IRR, CH1, CMD_CALC, false,true, 3 },
 
         { TYPE_AC, CH0, FLD_UAC, UNIT_V, 18, 2, 10, false,true, 1 },
@@ -55,7 +55,7 @@ static const byteAssign_t byteAssignment[] = {
         //{ TYPE_AC, CH0, FLD_YD, UNIT_WH, CALC_YD_CH0, 0, CMD_CALC, false, 0 },
         { TYPE_INV, CH0, FLD_YD, UNIT_KWH, 36, 2, 10, false,true, 1 },
         //{ TYPE_AC, CH0, FLD_YT, UNIT_KWH, CALC_YT_CH0, 0, CMD_CALC, false, 3 },
-        { TYPE_INV, CH0, FLD_YT, UNIT_KWH, 38, 4, 10, false,true, 0 },
+        { TYPE_INV, CH0, FLD_YT, UNIT_KWH, 38, 4, 10, false,true, 1 },
         { TYPE_INV, CH0, FLD_PDC, UNIT_W, CALC_TOTAL_PDC, 0, CMD_CALC, false,true, 1 },
         //dosnt make sense because red ac value highter then dc value
         //{ TYPE_INV, CH0, FLD_EFF, UNIT_PCT, CALC_TOTAL_EFF, 0, CMD_CALC, false,true, 3 }
