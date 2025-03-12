@@ -5,7 +5,7 @@
 #include "TostHandle.h"
 #include "Configuration.h"
 #include "Datastore.h"
-#include "MessageOutput.h"
+#include <MessageOutput.h>
 #include "InverterHandler.h"
 #include "NtpSettings.h"
 #include <HTTPClient.h>
@@ -104,9 +104,9 @@ void TostHandleClass::loop()
         }
 
         uint32_t diff = lastUpdate - cachedLastUpdate;
-        MessageOutput.printf("last: %d ",lastUpdate);
-        MessageOutput.printf("calc: %d ",cachedLastUpdate);
-        MessageOutput.printf("diff: %d\n",diff);
+        //MessageOutput.printf("last: %d ",lastUpdate);
+        //MessageOutput.printf("calc: %d ",cachedLastUpdate);
+        //MessageOutput.printf("diff: %d\n",diff);
         if(cachedLastUpdate != 0 && diff < Configuration.get().Tost.Duration * 1000){
             //no update needed
             continue;
@@ -165,7 +165,12 @@ void TostHandleClass::loop()
                     output["ampere"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_IAC);
                     output["watt"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_PAC);
                     output["frequency"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_F);
-                    output["totalKWH"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_YT);
+                    if(inv->getStatistics()->hasChannelFieldValue(channelType, c, FLD_YT)) {
+                        output["totalKWH"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_YT);
+                    }
+                    if(inv->getStatistics()->hasChannelFieldValue(channelType, c, FLD_YD)) {
+                        output["dailyKWH"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_YD) / 1000;
+                    }
                     outputs.add(output);
                 }else if(channelType == 1){
                     isData = true;
@@ -174,11 +179,26 @@ void TostHandleClass::loop()
                     input["voltage"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_UDC);
                     input["ampere"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_IDC);
                     input["watt"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_PDC);
-                    input["totalKWH"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_YT);
+                    if(inv->getStatistics()->hasChannelFieldValue(channelType, c, FLD_YT)) {
+                        input["totalKWH"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_YT);
+                    }
+                    if(inv->getStatistics()->hasChannelFieldValue(channelType, c, FLD_YD)) {
+                        input["dailyKWH"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_YD) / 1000;
+                    }
                     inputs.add(input);
                 }else if(channelType == 2){
-                    isData = true;
-                    device["temperature"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_T);
+                    if(inv->getStatistics()->hasChannelFieldValue(channelType, c, FLD_T)) {
+                        isData = true;
+                        device["temperature"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_T);
+                    }
+                    if(inv->getStatistics()->hasChannelFieldValue(channelType, c, FLD_YT)) {
+                        isData = true;
+                        device["totalKWH"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_YT);
+                    }
+                    if(inv->getStatistics()->hasChannelFieldValue(channelType, c, FLD_YD)) {
+                        isData = true;
+                        device["dailyKWH"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_YD) / 1000;
+                    }
                 }
 
                 /*for (uint8_t f = 0; f < sizeof(_publishFields) / sizeof(FieldId_t); f++) {
@@ -252,7 +272,7 @@ int TostHandleClass::doRequest(String url,uint16_t timeout){
 void TostHandleClass::runNextHttpRequest() {
 
     MessageOutput.println("start reqeust thread");
-    //MessageOutput.println(_currentlySendingData->c_str());
+    MessageOutput.printlnDebug(_currentlySendingData->c_str());
 
     int statusCode = doRequest(Configuration.get().Tost.Url,15 * 1000);//15 sec
 
