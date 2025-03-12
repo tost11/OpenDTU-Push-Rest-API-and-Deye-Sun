@@ -160,7 +160,12 @@ void TostHandleClass::loop()
                     output["ampere"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_IAC);
                     output["watt"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_PAC);
                     output["frequency"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_F);
-                    output["totalKWH"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_YT);
+                    if(inv->Statistics()->hasChannelFieldValue(channelType, c, FLD_YT)) {
+                        output["totalKWH"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_YT);
+                    }
+                    if(inv->Statistics()->hasChannelFieldValue(channelType, c, FLD_YD)) {
+                        output["dailyKWH"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_YD) / 1000;
+                    }
                     outputs.add(output);
                 }else if(channelType == 1){
                     isData = true;
@@ -169,11 +174,22 @@ void TostHandleClass::loop()
                     input["voltage"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_UDC);
                     input["ampere"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_IDC);
                     input["watt"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_PDC);
-                    input["totalKWH"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_YT);
+                    if(inv->Statistics()->hasChannelFieldValue(channelType, c, FLD_YT)) {
+                        input["totalKWH"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_YT);
+                    }
+                    if(inv->Statistics()->hasChannelFieldValue(channelType, c, FLD_YD)) {
+                        input["dailyKWH"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_YD) / 1000;
+                    }
                     inputs.add(input);
                 }else if(channelType == 2){
                     isData = true;
                     device["temperature"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_T);
+                    if(inv->Statistics()->hasChannelFieldValue(channelType, c, FLD_YT)) {
+                        device["totalKWH"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_YT);
+                    }
+                    if(inv->Statistics()->hasChannelFieldValue(channelType, c, FLD_YD)) {
+                        device["dailyKWH"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_YD) / 1000;
+                    }
                 }
 
                 /*for (uint8_t f = 0; f < sizeof(_publishFields) / sizeof(FieldId_t); f++) {
@@ -247,7 +263,7 @@ int TostHandleClass::doRequest(String url,uint16_t timeout){
 void TostHandleClass::runNextHttpRequest() {
 
     MessageOutput.println("start reqeust thread");
-    //MessageOutput.println(_currentlySendingData->c_str());
+    //MessageOutput.printlnDebug(_currentlySendingData->c_str());
 
     int statusCode = doRequest(Configuration.get().Tost.Url,15 * 1000);//15 sec
 
