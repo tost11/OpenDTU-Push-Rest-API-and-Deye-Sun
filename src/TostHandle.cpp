@@ -103,9 +103,9 @@ void TostHandleClass::loop()
         }
 
         uint32_t diff = lastUpdate - cachedLastUpdate;
-        MessageOutput.printf("last: %d ",lastUpdate);
-        MessageOutput.printf("calc: %d ",cachedLastUpdate);
-        MessageOutput.printf("diff: %d\n",diff);
+        //MessageOutput.printf("last: %d ",lastUpdate);
+        //MessageOutput.printf("calc: %d ",cachedLastUpdate);
+        //MessageOutput.printf("diff: %d\n",diff);
         if(cachedLastUpdate != 0 && diff < Configuration.get().Tost.Duration * 1000){
             //no update needed
             continue;
@@ -182,12 +182,16 @@ void TostHandleClass::loop()
                     }
                     inputs.add(input);
                 }else if(channelType == 2){
-                    isData = true;
-                    device["temperature"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_T);
+                    if(inv->Statistics()->hasChannelFieldValue(channelType, c, FLD_T)) {
+                        isData = true;
+                        device["temperature"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_T);
+                    }
                     if(inv->Statistics()->hasChannelFieldValue(channelType, c, FLD_YT)) {
+                        isData = true;
                         device["totalKWH"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_YT);
                     }
                     if(inv->Statistics()->hasChannelFieldValue(channelType, c, FLD_YD)) {
+                        isData = true;
                         device["dailyKWH"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_YD) / 1000;
                     }
                 }
