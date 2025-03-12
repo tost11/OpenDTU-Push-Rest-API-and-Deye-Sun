@@ -31,7 +31,7 @@ void TostHandleClass::init(Scheduler& scheduler)
     _loopTask.enable();
 }
 
-bool parseKWHValues(InverterAbstract * inv, JsonObject & doc, const ChannelType_t type, const ChannelNum_t channel){
+bool TostHandleClass::parseKWHValues(InverterAbstract * inv, JsonObject & doc, const ChannelType_t type, const ChannelNum_t channel) {
     bool changed = false;
     if(inv->Statistics()->hasChannelFieldValue(type, channel, FLD_YT)) {
         doc["totalKWH"] = inv->Statistics()->getChannelFieldValue(type, channel, FLD_YT) / (inv->Statistics()->getChannelFieldUnitId(type,channel,FLD_YT) == UNIT_WH ? 1000.f : 1.f);
