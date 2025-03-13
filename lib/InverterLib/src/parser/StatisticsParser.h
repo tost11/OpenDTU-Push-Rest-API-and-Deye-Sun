@@ -6,19 +6,6 @@
 #include <cstdint>
 #include <list>
 
-// units
-enum UnitId_t {
-    UNIT_V = 0,
-    UNIT_A,
-    UNIT_W,
-    UNIT_WH,
-    UNIT_KWH,
-    UNIT_HZ,
-    UNIT_C,
-    UNIT_PCT,
-    UNIT_VAR,
-    UNIT_NONE
-};
 const char* const units[] = { "V", "A", "W", "Wh", "kWh", "Hz", "°C", "%", "var", "" };
 
 const char* const fields[] = { "Voltage", "Current", "Power", "YieldDay", "YieldTotal",
@@ -79,6 +66,7 @@ public:
     const char* getChannelFieldUnit(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId) const override;
     const char* getChannelFieldName(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId) const override;
     uint8_t getChannelFieldDigits(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId) const override;
+    UnitId_t getChannelFieldUnitId(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId) const override;
 
     bool setChannelFieldValue(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId, float value);
 

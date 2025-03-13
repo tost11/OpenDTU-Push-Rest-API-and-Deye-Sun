@@ -523,7 +523,7 @@ bool DeyeInverter::handleRead() {
             //wait after error for try again
             return true;
         }
-        MessageOutput.printlnDebug("New connection");
+        MessageOutput.printfDebug("New connection to: %s\n",(_ipAdress != nullptr ? _ipAdress->toString().c_str():""));
         _socket = std::make_unique<WiFiUDP>();
         sendSocketMessage("WIFIKIT-214028-READ");
         _startCommand = true;

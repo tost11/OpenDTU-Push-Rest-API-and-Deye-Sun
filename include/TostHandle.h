@@ -3,6 +3,7 @@
 
 #include <TimeoutHelper.h>
 #include "Configuration.h"
+#include "inverters/InverterAbstract.h"
 #include <TaskSchedulerDeclarations.h>
 #include <ArduinoJson.h>
 #include <future>
@@ -47,12 +48,12 @@ private:
 
     std::thread _runningThread;
 
+    static bool parseKWHValues(BaseInverterClass *inv, JsonObject &doc, const ChannelType_t type, const ChannelNum_t channel) ;
 public:
     unsigned long getLastErrorTimestamp()const{return lastErrorTimestamp;}
     unsigned long getLastSuccessfullyTimestamp()const{return lastSuccessfullyTimestamp;}
     int getLastErrorStatusCode()const{return lastErrorStatusCode;}
     const String & getLastErrorMessage()const{return lastErrorMessage;}
-
 };
 
 extern TostHandleClass TostHandle;
