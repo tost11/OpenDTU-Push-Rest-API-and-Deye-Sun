@@ -58,5 +58,7 @@ private:
     TimeoutHelper _dataUpdateTimer;
     TimeoutHelper _dataStatisticTimer;
     bool _clearBufferOnDisconnect;
+
+    uint16_t getInternalPollTime();
 protected:
 };

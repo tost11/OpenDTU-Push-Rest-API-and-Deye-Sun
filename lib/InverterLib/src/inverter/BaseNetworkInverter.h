@@ -86,11 +86,16 @@ protected:
                 auto found = apMacsAndIps->find(std::string(ip.c_str()));
                 if(found != apMacsAndIps->end()){
                     MessageOutput.printfDebug("Found ip for mac is: %s\n",found->second.c_str());
-                    if(found->second != "0.0.0.0" && found->second != "" && (_resolvedIpByMacAdress == nullptr || found->second != *_resolvedIpByMacAdress)){
-                        _resolvedIpByMacAdress = std::make_unique<std::string>(found->second);
-                        _macToIpResolverTimer.set(TIMER_SUCCES_MAC_IP_RESOLUTION);
-                        MessageOutput.printf("Resolved Mac to ip: %s\n",_resolvedIpByMacAdress->c_str());
-                        return true;
+                    if(found->second != "0.0.0.0" && !found->second.empty()){
+                        MessageOutput.printf("Resolved Mac to ip: %s\n", found->second.c_str());
+                        if(_resolvedIpByMacAdress == nullptr || found->second != *_resolvedIpByMacAdress){
+                            _resolvedIpByMacAdress = std::make_unique<std::string>(found->second);
+                            _macToIpResolverTimer.set(TIMER_SUCCES_MAC_IP_RESOLUTION);
+                            return true;
+                        }
+                        _macToIpResolverTimer.set(TIMER_FAILED_MAC_IP_RESOLUTION);
+                        MessageOutput.printfDebug("Resolved Ip is same as before\n");
+                        return false;
                     }
                 }
                 _macToIpResolverTimer.set(TIMER_FAILED_MAC_IP_RESOLUTION);

@@ -62,6 +62,7 @@ void InverterSettingsClass::init(Scheduler& scheduler)
                     config.Inverter[i].Port);
 
             if (inv != nullptr) {
+                inv->setPollTime(config.Inverter[i].PollTime);
                 inv->setReachableThreshold(config.Inverter[i].ReachableThreshold);
                 inv->setZeroValuesIfUnreachable(config.Inverter[i].ZeroRuntimeDataIfUnrechable);
                 inv->setZeroYieldDayOnMidnight(config.Inverter[i].ZeroYieldDayOnMidnight);
@@ -124,6 +125,7 @@ void InverterSettingsClass::init(Scheduler& scheduler)
                     config.Inverter[i].Serial);
 
                 if (inv != nullptr) {
+                    inv->setPollTime(config.Inverter[i].PollTime);
                     inv->setReachableThreshold(config.Inverter[i].ReachableThreshold);
                     inv->setZeroValuesIfUnreachable(config.Inverter[i].ZeroRuntimeDataIfUnrechable);
                     inv->setZeroYieldDayOnMidnight(config.Inverter[i].ZeroYieldDayOnMidnight);
@@ -163,6 +165,7 @@ void InverterSettingsClass::init(Scheduler& scheduler)
                     config.Inverter[i].Port);
 
             if (inv != nullptr) {
+                inv->setPollTime(config.Inverter[i].PollTime);
                 inv->setReachableThreshold(config.Inverter[i].ReachableThreshold);
                 inv->setZeroValuesIfUnreachable(config.Inverter[i].ZeroRuntimeDataIfUnrechable);
                 inv->setZeroYieldDayOnMidnight(config.Inverter[i].ZeroYieldDayOnMidnight);
