@@ -48,3 +48,14 @@ static inline String from_inverter_type(inverter_type type){
     }
     return "";
 }
+
+static inline uint16_t getDefaultPollTimeForInverterType(inverter_type type){
+    if(type == inverter_type::Inverter_HoymilesW){
+        //on low inverter firmware version 1.*.* it seems fetching is only allowed ever 30sec if not it result in hanging values
+        return 31;
+    }
+    if(type == inverter_type::Inverter_DeyeSun){
+        return 20;
+    }
+    return 0;
+}

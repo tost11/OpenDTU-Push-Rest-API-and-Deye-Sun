@@ -68,6 +68,7 @@ void WebApiInverterClass::onInverterList(AsyncWebServerRequest* request)
             obj["command_enable"] = config.Inverter[i].Command_Enable;
             obj["command_enable_night"] = config.Inverter[i].Command_Enable_Night;
             obj["reachable_threshold"] = config.Inverter[i].ReachableThreshold;
+            obj["poll_time"] = config.Inverter[i].PollTime;
             obj["zero_runtime"] = config.Inverter[i].ZeroRuntimeDataIfUnrechable;
             obj["zero_day"] = config.Inverter[i].ZeroYieldDayOnMidnight;
             obj["clear_eventlog"] = config.Inverter[i].ClearEventlogOnMidnight;
@@ -212,6 +213,7 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
         inverter->Port = root["port"].as<uint16_t>();
         inverter->Type = inverter_type::Inverter_HoymilesW;
     }
+    inverter->PollTime = getDefaultPollTimeForInverterType(inverter->Type);
 
     WebApi.writeConfig(retMsg, WebApiError::InverterAdded, "Inverter created!");
 
@@ -358,6 +360,14 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
             return;
         }
 
+        if(inverter.Type != inverter_type::Inverter_Hoymiles && root["poll_time"].as<uint16_t>() < 5){
+            retMsg["message"] = "Poll Time below 5 sec not possible";
+            retMsg["param"]["min"] = 5;
+            retMsg["code"] = WebApiError::PollTime;
+            WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
+            return;
+        }
+
         old_serial = inverter.Serial;
         inverter.Serial = new_serial;
         strncpy(inverter.Name, root["name"].as<String>().c_str(), INV_MAX_NAME_STRLEN);
@@ -372,6 +382,7 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
         inverter.Command_Enable = root["command_enable"] | true;
         inverter.Command_Enable_Night = root["command_enable_night"] | true;
         inverter.ReachableThreshold = root["reachable_threshold"] | REACHABLE_THRESHOLD;
+        inverter.PollTime = root["poll_time"] | getDefaultPollTimeForInverterType(inverter.Type);
         inverter.ZeroRuntimeDataIfUnrechable = root["zero_runtime"] | false;
         inverter.ZeroYieldDayOnMidnight = root["zero_day"] | false;
         inverter.ClearEventlogOnMidnight = root["clear_eventlog"] | false;
@@ -449,6 +460,7 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
         inv->setEnablePolling(inverter.Poll_Enable);
         inv->setEnableCommands(inverter.Command_Enable);
         inv->setReachableThreshold(inverter.ReachableThreshold);
+        inv->setPollTime(inverter.PollTime);
         inv->setZeroValuesIfUnreachable(inverter.ZeroRuntimeDataIfUnrechable);
         inv->setZeroYieldDayOnMidnight(inverter.ZeroYieldDayOnMidnight);
         inv->setClearEventlogOnMidnight(inverter.ClearEventlogOnMidnight);
