@@ -54,6 +54,7 @@ protected:
     bool _enableCommands = true;
 
     uint8_t _reachableThreshold = 3;
+    uint16_t _pollTime = 60;//should never be used but when seen something is wrong
 
     bool _zeroValuesIfUnreachable = false;
     bool _zeroYieldDayOnMidnight = false;
@@ -80,6 +81,16 @@ public:
     uint8_t getReachableThreshold() const
     {
         return _reachableThreshold;
+    }
+
+    void setPollTime(const uint16_t pollTime)
+    {
+        _pollTime = pollTime;
+    }
+
+    uint16_t getPollTime() const
+    {
+        return _pollTime;
     }
 
     void setZeroValuesIfUnreachable(bool enabled)
