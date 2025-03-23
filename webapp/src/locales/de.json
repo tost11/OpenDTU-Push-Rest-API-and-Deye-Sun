@@ -73,6 +73,7 @@
         "4011": "Unbekannter Inverter Typ!",
         "4012": "Der Hostname muss zwischen 1 und {max} Zeichen lang sein!",
         "4013": "Der Port muss zwischen {min} und {max} liegen!",
+        "4014": "Intervall Datenabfrage muss über oder bei {min} liegen!",
         "5001": "@:apiresponse.2001",
         "5002": "Das Limit muss zwischen 1 und {max} sein!",
         "5003": "Ungültiger Typ angegeben!",
@@ -620,7 +621,12 @@
         "InverterHostnameOrIpHint": "Hostname des Gerätes im Netzwerk, Ip-Adresse, oder Mac-Adresse im eigenen Ap-Netzwerk",
         "InverterPort": "Port",
         "InverterPortHint": "Kommunikations Port des Gerätes, standart: 48899(Deye Sun), Hoymiles(10081)",
-        "ManufacturerSelect": "Wähle Hersteller des Gerätes zum hinzufügen"
+        "ManufacturerSelect": "Wähle Hersteller des Gerätes zum hinzufügen",
+        "Seconds": "Sekunden",
+        "PollTime": "Intervall Datenabfrage",
+        "PollTimeHint": "Zeitabstand im dem Live Daten des Inverters abgefragt werden",
+        "PollTimeWarningDeye": "Die 'Intervall Datenabfrage' bei den Deye Sun Invertern ändert nur das Intervall für den Erreichbarkeit-Check nicht die Datenabfrage (dies ist aufgrund der Geräte Limitierung nicht möglich).",
+        "PollTimeWarningHoymilesW": "Die 'Intervall Datenabfrage' ist bei den Hoymiles-W Invertern und der Firmware Version 1.*.* nur alle 31 Sekunden oder mehr möglich! Verringern dieses Wertes resultiert in hängenden Werten und Neustarts."
     },
     "fileadmin": {
         "ConfigManagement": "Konfigurationsverwaltung",
