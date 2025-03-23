@@ -50,6 +50,20 @@ enum FieldId_t {
     FLD_IAC_3
 };
 
+// units
+enum UnitId_t {
+    UNIT_V = 0,
+    UNIT_A,
+    UNIT_W,
+    UNIT_WH,
+    UNIT_KWH,
+    UNIT_HZ,
+    UNIT_C,
+    UNIT_PCT,
+    UNIT_VAR,
+    UNIT_NONE
+};
+
 const char* const channelsTypes[] = { "AC", "DC", "INV" };
 
 class BaseStatistics : public Updater {
@@ -66,6 +80,7 @@ public:
     virtual String getChannelFieldValueString(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) = 0;
     virtual const char* getChannelFieldUnit(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) const = 0;
     virtual void setChannelFieldOffset(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId, float offset) = 0;
+    virtual UnitId_t getChannelFieldUnitId(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) const = 0;
     virtual void zeroDailyData() = 0;
     virtual void resetYieldDayCorrection() = 0;
 

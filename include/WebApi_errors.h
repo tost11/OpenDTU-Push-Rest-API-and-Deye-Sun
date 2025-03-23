@@ -37,6 +37,7 @@ enum WebApiError {
     InverterType,
     InverterHostnameLength,
     InverterInvalidPortNumber,
+    PollTime,
 
     LimitBase = 5000,
     LimitSerialZero,

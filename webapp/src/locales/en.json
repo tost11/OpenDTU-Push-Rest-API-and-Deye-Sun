@@ -74,7 +74,8 @@
         "4009": "Inverter order saved!",
         "4011": "Unknown inverter Type!",
         "4012": "Hostname must between 1 and {max} characters long!",
-        "4013": "Port must be bettween {min} and {max}!",
+        "4013": "Port must be between {min} and {max}!",
+        "4014": "Data fetch interval must be above or equal {min}!",
         "5001": "@:apiresponse.2001",
         "5002": "Limit must between 1 and {max}!",
         "5003": "Invalid type specified!",
@@ -622,7 +623,12 @@
         "InverterHostnameOrIpHint": "Hostname of device in newtork,ip-adress, or mac-adress in ap-network",
         "InverterPort": "Port",
         "InverterPortHint": "Udp communication port of the device, default: 48899",
-        "ManufacturerSelect": "Select manufacturer of inverter to add"
+        "ManufacturerSelect": "Select manufacturer of inverter to add",
+        "Seconds": "Seconds",
+        "PollTime": "Data fetch interval",
+        "PollTimeHint": "Time interval of fetching current inverter values",
+        "PollTimeWarningDeye": "'Data fetch interval' for Deye Sun inverters only means health check, not fetching data (this is only possible every 5 minutes due to device limitations).",
+        "PollTimeWarningHoymilesW": "'Data fetch interval' for Hoymiles W-Series inverters with firmware 1.*.* is 31 Seconds or above! lowering this value will result in hanging values and disconnects."
     },
     "fileadmin": {
         "ConfigManagement": "Config Management",
