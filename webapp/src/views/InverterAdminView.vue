@@ -351,6 +351,30 @@
                     :tooltip="$t('inverteradmin.YieldDayCorrectionHint')"
                     wide
                 />
+
+                <InputElement
+                    v-if="(selectedInverterData.manufacturer != 'Hoymiles')"
+                    :label="$t('inverteradmin.PollTime')"
+                    v-model="selectedInverterData.poll_time"
+                    type="number"
+                    min="5"
+                    :tooltip="$t('inverteradmin.PollTimeHint')"
+                    :postfix="$t('inverteradmin.Seconds')"
+                    wide
+                />
+
+              <div v-if="(selectedInverterData.manufacturer == 'HoymilesW')" class="row mb-3">
+                <label :class="['col-sm-12','warning-color']">
+                  {{ $t('inverteradmin.PollTimeWarningHoymilesW') }}
+                </label>
+              </div>
+
+              <div v-if="(selectedInverterData.manufacturer == 'DeyeSun')" class="row mb-3">
+                <label :class="['col-sm-12','warning-color']">
+                  {{ $t('inverteradmin.PollTimeWarningDeye') }}
+                </label>
+              </div>
+
             </div>
         </div>
         <template #footer>

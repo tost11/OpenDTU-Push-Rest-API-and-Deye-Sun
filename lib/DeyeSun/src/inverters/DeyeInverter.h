@@ -72,6 +72,8 @@ private:
 
     String filterReceivedResponse(size_t length);
 
+    uint16_t getInternalPollTime();
+
     bool resolveHostname();
     void swapBuffers(bool fullData);
 
@@ -97,7 +99,7 @@ private:
 
     //these timers seem to work good no idea what's best and what causes what
     static const uint32_t TIMER_FULL_POLL = 5 * 60 * 1000;
-    static const uint32_t TIMER_HEALTH_CHECK = 20 * 1000;
+    //static const uint32_t TIMER_HEALTH_CHECK = 20 * 1000;
     static const uint32_t TIMER_ERROR_BACKOFF = 3 * 1000;
     static const uint32_t TIMER_BETWEEN_SENDS = 200;
     static const uint32_t TIMER_RESOLVE_HOSTNAME = 1000 * 30;

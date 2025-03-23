@@ -52,13 +52,13 @@ void HoymilesWInverter::update() {
                 if(_dtuInterface.requestStatisticUpdate()){
                     _dataStatisticTimer.reset();
                     //also reset data timer so 31 sec pass untill next request
-                    _dataUpdateTimer.reset();
+                    _dataUpdateTimer.set(getInternalPollTime());
                 }
             }
         }else{
             if(_dataUpdateTimer.occured()){
                 if(_dtuInterface.requestDataUpdate()){
-                    _dataUpdateTimer.reset();
+                    _dataUpdateTimer.set(getInternalPollTime());
                 }
             }
             _clearBufferOnDisconnect = false;
@@ -198,4 +198,13 @@ void HoymilesWInverter::startConnection(){
 bool HoymilesWInverter::supportsPowerDistributionLogic()
 {
     return false;
+}
+
+uint16_t HoymilesWInverter::getInternalPollTime() {
+    uint64_t time = _pollTime;
+    if(time < 5){//just to be sure
+        time = 5;
+    }
+    time = time * 1000;
+    return time;
 }

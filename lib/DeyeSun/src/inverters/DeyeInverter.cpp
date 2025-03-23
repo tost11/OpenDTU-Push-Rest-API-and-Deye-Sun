@@ -491,7 +491,7 @@ String DeyeInverter::serialToModel(uint64_t serial) {
              ((uint32_t)(serial & 0xFFFFFFFF)));
     String serialString = serial_buff;
 
-    if(serialString.startsWith("415")){//TODO find out more ids and check if correct
+    if(serialString.startsWith("415") || serialString.startsWith("414")){//TODO find out more ids and check if correct
         return "SUN600G3-EU-230";
     }else if(serialString.startsWith("413") || serialString.startsWith("411")){//TODO find out more ids and check if correct
         return "SUN300G3-EU-230";
@@ -551,7 +551,7 @@ bool DeyeInverter::handleRead() {
                 if(_commandPosition == LAST_HEALTHCHECK_COMMEND && !_needInitData && !_timerFullPoll.occured()){
                     endSocket();
                     _commandPosition = INIT_COMMAND_START_SKIP;
-                    _timerHealthCheck.set(TIMER_HEALTH_CHECK);
+                    _timerHealthCheck.set(getInternalPollTime());
                     swapBuffers(false);
                     _errorCounter = -1;
                     MessageOutput.println("Succesfully healtcheck");
@@ -561,7 +561,7 @@ bool DeyeInverter::handleRead() {
                     endSocket();
                     _commandPosition = INIT_COMMAND_START_SKIP;
                     swapBuffers(true);
-                    _timerHealthCheck.set(TIMER_HEALTH_CHECK);
+                    _timerHealthCheck.set(getInternalPollTime());
                     _errorCounter = -1;
                     if(_needInitData){
                         _needInitData = false;
@@ -697,4 +697,13 @@ void DeyeInverter::setEnableCommands(const bool enabled) {
 bool DeyeInverter::supportsPowerDistributionLogic()
 {
     return false;
+}
+
+uint16_t DeyeInverter::getInternalPollTime() {
+    uint64_t time = _pollTime;
+    if(time < 5){//just to be sure
+        time = 5;
+    }
+    time = time * 1000;
+    return time;
 }
