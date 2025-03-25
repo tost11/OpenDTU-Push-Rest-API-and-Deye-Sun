@@ -73,7 +73,7 @@ private:
     
     String filterReceivedResponse(size_t length);
 
-    uint16_t getInternalPollTime();
+    uint64_t getInternalPollTime();
 
     bool resolveHostname();
     void swapBuffers(bool fullData);

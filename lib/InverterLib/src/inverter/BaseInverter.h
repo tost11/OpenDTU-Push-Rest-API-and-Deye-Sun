@@ -45,7 +45,10 @@ public:
     virtual bool sendRestartControlRequest() = 0;
     virtual bool sendPowerControlRequest(const bool turnOn) = 0;
     virtual inverter_type getInverterType() const = 0;
+    virtual void resetStats() = 0;
 protected:
+
+    virtual void onPollTimeChanged(){}
 
     String _serialString;
     char _name[MAX_NAME_LENGTH] = "";
@@ -86,6 +89,7 @@ public:
     void setPollTime(const uint16_t pollTime)
     {
         _pollTime = pollTime;
+        onPollTimeChanged();
     }
 
     uint16_t getPollTime() const
@@ -175,6 +179,8 @@ public:
         if (getClearEventlogOnMidnight()) {
             getEventLog()->clearBuffer();
         }
+
+        resetStats();
     }
 };
 

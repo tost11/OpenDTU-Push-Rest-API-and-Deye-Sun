@@ -3,7 +3,12 @@
 #include <MessageOutput.h>
 #include <memory>
 
-DTUInterface::DTUInterface(const char *server, uint16_t port) : serverIP(server), serverPort(port), client(nullptr), _restartConnection(false){
+DTUInterface::DTUInterface(ConnectionStatistics & connectionStats,const char *server, uint16_t port) :
+connectionStatistics(connectionStats),
+serverIP(server),
+serverPort(port),
+client(nullptr),
+_restartConnection(false){
     //default data count (cann be changed)
     unsigned int size = 10;
     dataHist.reserve(size);
@@ -12,6 +17,7 @@ DTUInterface::DTUInterface(const char *server, uint16_t port) : serverIP(server)
         memset(dataHist[i].get(),0,sizeof(BaseData)*5 + sizeof(uint16_t) + sizeof(int16_t));
         resetConnectionInfo();
     }
+
 }
 
 DTUInterface::~DTUInterface()
@@ -31,24 +37,17 @@ void DTUInterface::setup()
         inverterData.currentTimestamp = 0;
         // Serial.println(F("DTUinterface:\t no client - setup new client"));
         client = new AsyncClient();
-        //client->setRxTimeout(15);
+        //This is not working because keep alive is not fine for rxTimeout
+        //client->setRxTimeout(60);//sets timeout to 60 seconds (if no ack or data received in this time connection is handled as closed (timout))
         //std::function<void(void*, AsyncClient*)> f = std::bind(&dtuInterface,client);
         MessageOutput.println("DTUinterface:\t setup for DTU '"+String(serverIP)+":"+String(serverPort)+"'");
         client->onConnect([&](void * arg, AsyncClient * client){this->onConnect();});
         client->onDisconnect([&](void * arg, AsyncClient * client){this->onDisconnect();});
         client->onError([&](void * arg, AsyncClient * client,int8_t error){this->onError(error);});
         client->onData([&](void * arg, AsyncClient * client,void *data, size_t len){this->onDataReceived(data,len);});
-        client->onTimeout([&](void * arg, AsyncClient * client,uint32_t time){
-            if(_restartConnection || dtuConnection.dtuConnectState != DTU_STATE_CONNECTED){
-                return;
-            }
-            MessageOutput.printfDebug("DTUInterfac: Ack timeout is: %d\n",time);
-            if(time > 25 * 1000){
-                //if not ack after 25 sec its possible a disconnect (try reconnect);
-                MessageOutput.printf("DTUInterfac: Ack timeout 25sec: %d -> Disconnect\n",time);
-                _restartConnection = true;
-            }
-        });
+        /*client->onTimeout([&](void * arg, AsyncClient * client,uint32_t time){
+            MessageOutput.printf("Ack timeout: %d\n",time);
+        });*/
 
         initializeCRC();
         loopTimer.attach(5, DTUInterface::dtuLoopStatic, this);
@@ -184,18 +183,18 @@ void DTUInterface::requestRestartDevice()
 
 void DTUInterface::dtuLoop()
 {
-    txrxStateObserver();
-    dtuConnectionObserver();
-
-    // check for last data received
-    checkingForLastDataReceived();
-
     if(_restartConnection){
         _restartConnection = false;
         dtuConnection.dtuConnectRetriesShort = 0;
         dtuConnection.dtuConnectRetriesLong = 0;
         resetConnectionInfo();
     }
+
+    txrxStateObserver();
+    dtuConnectionObserver();
+
+    // check for last data received
+    checkingForLastDataReceived();
 
     // check if we are in a cloud pause period
     if (dtuConnection.dtuConnectState != DTU_STATE_STOPPED)
@@ -248,6 +247,7 @@ void DTUInterface::txrxStateObserver()
     }
     else if (millis() - dtuConnection.dtuTxRxStateLastChange > 15000 && dtuConnection.dtuTxRxState != DTU_TXRX_STATE_IDLE)
     {
+        dtuConnection.updateFailed = true;
         MessageOutput.printlnDebug("DTUinterface:\t stateObserver - timeout - reset txrx state to DTU_TXRX_STATE_IDLE");
         dtuConnection.dtuTxRxState = DTU_TXRX_STATE_IDLE;
     }
@@ -277,7 +277,7 @@ void DTUInterface::dtuConnectionObserver()
     {
         dtuConnection.dtuConnectionOnline = true;
     }
-    else if (millis() - lastOnlineOfflineChange > 90000 && currentOnlineOfflineState == false)
+    else if (millis() - lastOnlineOfflineChange > 60000 && currentOnlineOfflineState == false)
     {
         MessageOutput.println(F("DTUinterface:\t setOverallOnlineOfflineState - timeout - reset online offline state"));
         MessageOutput.printlnDebug(" - difference: " + String((millis() - lastOnlineOfflineChange)/1000,3) + " ms - current conn state: " + String(dtuConnection.dtuConnectState));
@@ -299,7 +299,7 @@ void DTUInterface::keepAlive()
     {
         const char *keepAliveMsg = "\0"; // minimal message
         client->write(keepAliveMsg, strlen(keepAliveMsg));
-        MessageOutput.printfDebug("DTUinterface:\t keepAlive message sent.");
+        MessageOutput.printfDebug("DTUinterface:\t keepAlive message sent.\n");
     }
     else
     {
@@ -346,12 +346,13 @@ void DTUInterface::flushConnection()
 // event driven methods
 void DTUInterface::onConnect()
 {
+    client->setKeepAlive(10 * 1000, 5);
     // Connection established
     dtuConnection.dtuConnectState = DTU_STATE_CONNECTED;
     // DTUInterface *conn = static_cast<DTUInterface *>(arg);
     MessageOutput.println(F("DTUinterface:\t connected to DTU"));
-    MessageOutput.println(F("DTUinterface:\t starting keep-alive timer..."));
-    keepAliveTimer.attach(10, DTUInterface::keepAliveStatic, this);
+    //MessageOutput.println(F("DTUinterface:\t starting keep-alive timer..."));
+    //keepAliveTimer.attach(10, DTUInterface::keepAliveStatic, this);
     // initiate next data update immediately (at startup or re-connect)
 
     //TODO check what this here is fore
@@ -363,12 +364,18 @@ void DTUInterface::onDisconnect()
     // Connection lost
     MessageOutput.println(F("DTUinterface:\t disconnected from DTU"));
     resetConnectionInfo();
-    // Serial.println(F("DTUinterface:\t stopping keep-alive timer..."));
-    keepAliveTimer.detach();
 }
 
 void DTUInterface::onError(int8_t error)
 {
+    if(dtuConnection.dtuConnectState == DTU_STATE_CONNECTED){//check if not in reconcation state
+        if(error == ERR_RST){
+            connectionStatistics.Disconnects++;
+        }else if(error == ERR_ABRT){//connection lost to timeout (keep alive message) or connection failed
+            connectionStatistics.ConnectionTimeouts++;
+        }
+    }
+
     // Connection error
     String errorStr = client->errorToString(error);
     MessageOutput.println("DTUinterface:\t DTU Connection error: " + errorStr + " (" + String(error) + ")");
@@ -459,6 +466,12 @@ bool DTUInterface::isConnected()
     return client != nullptr && dtuConnection.dtuConnectState == DTU_STATE_CONNECTED;
 }
 
+//checks if connected and faitl for reconnect time (90 sec)
+bool DTUInterface::isReachable()
+{
+    return client != nullptr && dtuConnection.dtuConnectionOnline;
+}
+
 // helper methods
 
 float DTUInterface::calcValue(int32_t value, int32_t divider)
@@ -487,8 +500,9 @@ void DTUInterface::initializeCRC()
     // Serial.println(F("DTUinterface:\t CRC initialized"));
 }
 
-void DTUInterface::checkingForLastDataReceived()
+void DTUInterface::checkingForLastDataReceived()//TODO (FOR ME) understand what that here is suppose to do
 {
+    //MessageOutput.printf("cur: %d last: %d dif: %d\n",inverterData.currentTimestamp,inverterData.lastRespTimestamp,(inverterData.currentTimestamp + 5) - inverterData.lastRespTimestamp);
     // check if last data received - currentTimestamp + 5 sec (to debounce async current timestamp) - lastRespTimestamp > 3 min
     if (((inverterData.currentTimestamp + 5) - inverterData.lastRespTimestamp) > (3 * 60) && inverterData.grid.voltage > 0 && dtuConnection.dtuErrorState != DTU_ERROR_LAST_SEND) // dtuGlobalData.grid.voltage > 0 indicates dtu/ inverter was working
     {
@@ -640,6 +654,7 @@ void DTUInterface::writeReqRealDataNew()
     client->write((const char *)message, 10 + stream.bytes_written);
 
     // readRespRealDataNew(locTimeSec);
+    connectionStatistics.SendRequests++;
 }
 
 std::unique_ptr<InverterData> DTUInterface::newDataAvailable()
@@ -655,6 +670,7 @@ std::unique_ptr<InverterData> DTUInterface::newDataAvailable()
 
 void DTUInterface::readRespRealDataNew(pb_istream_t istream)
 {
+    connectionStatistics.SuccessfulRequests++;
     std::lock_guard<std::mutex>lock (inverterDataMutex);
     dtuConnection.dtuTxRxState = DTU_TXRX_STATE_IDLE;
     RealDataNewReqDTO realdatanewreqdto = RealDataNewReqDTO_init_default;
@@ -771,10 +787,12 @@ void DTUInterface::writeReqAppGetHistPower()
     dtuConnection.dtuTxRxState = DTU_TXRX_STATE_WAIT_APPGETHISTPOWER;
     client->write((const char *)message, 10 + stream.bytes_written);
     //     readRespAppGetHistPower();
+    connectionStatistics.SendRequests++;
 }
 
 void DTUInterface::readRespAppGetHistPower(pb_istream_t istream)
 {
+    connectionStatistics.SuccessfulRequests++;
     dtuConnection.dtuTxRxState = DTU_TXRX_STATE_IDLE;
     AppGetHistPowerReqDTO appgethistpowerreqdto = AppGetHistPowerReqDTO_init_default;
 
@@ -872,10 +890,13 @@ void DTUInterface::writeReqGetConfig()
     dtuConnection.dtuTxRxState = DTU_TXRX_STATE_WAIT_GETCONFIG;
     client->write((const char *)message, 10 + stream.bytes_written);
     //     readRespGetConfig();
+    connectionStatistics.SendRequests++;
 }
 
 void DTUInterface::readRespGetConfig(pb_istream_t istream)
 {
+    connectionStatistics.SuccessfulRequests++;
+
     dtuConnection.dtuTxRxState = DTU_TXRX_STATE_IDLE;
     GetConfigReqDTO getconfigreqdto = GetConfigReqDTO_init_default;
 
@@ -891,6 +912,7 @@ void DTUInterface::readRespGetConfig(pb_istream_t istream)
 
     if (getconfigreqdto.request_time != 0 && dtuConnection.dtuErrorState == DTU_ERROR_NO_TIME)
     {
+        dtuConnection.updateFailed = true;
         inverterData.respTimestamp = uint32_t(getconfigreqdto.request_time);
         MessageOutput.printlnDebug(" --> redundant remote time takeover to local");
     }
@@ -1080,11 +1102,16 @@ boolean DTUInterface::writeCommandRestartDevice()
     MessageOutput.printlnDebug("DTUinterface:\t writeCommandRestartDevice --- send request to DTU ...");
     dtuConnection.dtuTxRxState = DTU_TXRX_STATE_WAIT_RESTARTDEVICE;
     client->write((const char *)message, 10 + stream.bytes_written);
+
+    connectionStatistics.SendRequests++;
+
     return true;
 }
 
 boolean DTUInterface::readRespCommandRestartDevice(pb_istream_t istream)
 {
+    connectionStatistics.SuccessfulRequests++;
+
     dtuConnection.dtuTxRxState = DTU_TXRX_STATE_IDLE;
     CommandReqDTO commandreqdto = CommandReqDTO_init_default;
 
@@ -1114,8 +1141,16 @@ void DTUInterface::resetConnectionInfo() {
     dtuConnection.statisticsInitialized = false;
     dtuConnection.uptodate = false;
     dtuConnection.statisticsInitialized = false;
+    dtuConnection.updateReceived = false;
+    dtuConnection.updateFailed = false;
 }
 
 bool DTUInterface::statisticsReceived() {
     return dtuConnection.statisticsInitialized;
+}
+
+bool DTUInterface::lastRequestFailed() {
+    bool failed = dtuConnection.updateFailed;
+    dtuConnection.updateFailed = false;
+    return failed;
 }
