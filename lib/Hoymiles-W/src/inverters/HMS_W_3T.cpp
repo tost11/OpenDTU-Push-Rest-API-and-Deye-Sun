@@ -34,7 +34,7 @@ static const byteAssign_t byteAssignment[] = {
         //{ TYPE_INV, CH0, FLD_EVT_LOG, UNIT_NONE, 34, 4, 1, true, 0 },//current status
 
         { TYPE_INV, CH0, FLD_YD, UNIT_WH, 6, 2, 1, false,false, 0 },
-        { TYPE_INV, CH0, FLD_YT, UNIT_KWH, 10, 2, 1000, false,false, 3 },
+        { TYPE_INV, CH0, FLD_YT, UNIT_KWH, 10, 4, 1000, false,false, 3 },
         { TYPE_INV, CH0, FLD_PDC, UNIT_W, CALC_TOTAL_PDC, 0, CMD_CALC, false,false, 1 },
         { TYPE_INV, CH0, FLD_EFF, UNIT_PCT, CALC_TOTAL_EFF, 0, CMD_CALC, false,false, 3 }
 };
