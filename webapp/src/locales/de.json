@@ -169,7 +169,12 @@
         "StatsResetting": "Zurücksetzen...",
         "Rssi": "RSSI des zuletzt empfangenen Paketes",
         "RssiHint": "HM-Wechselrichter unterstützen nur RSSI-Werte  < -64 dBm und > -64 dBm. In diesem Fall wird -80 dBm und -30 dBm angezeigt.",
-        "dBm": "{dbm} dBm"
+        "dBm": "{dbm} dBm",
+        "ConnectionStats": "Verbindungsstatistik",
+        "SendRequests": "Gesendete Anfragen",
+        "ResponsesReceived": "Empfangene Antworten",
+        "Disconnects": "Verbindungsabbruch ausgehen vom Gerät",
+        "Timeouts": "Verbindungsabbruch wegen Zeitüberschreitung"
     },
     "eventlog": {
         "Start": "Beginn",

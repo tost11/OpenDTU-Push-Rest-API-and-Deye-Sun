@@ -573,15 +573,11 @@ void WebApiInverterClass::onInverterStatReset(AsyncWebServerRequest* request)
     auto inv = InverterHandler.getInverterBySerial(serial);
 
     if (inv != nullptr) {
-        #ifdef HOYMILES
         auto retMsg = response->getRoot();
-        if(inv->getInverterType() == inverter_type::Inverter_Hoymiles){
-            reinterpret_cast<InverterAbstract*>(inv.get())->resetRadioStats();
-            retMsg["type"] = "success";
-            retMsg["message"] = "Stats resetted";
-            retMsg["code"] = WebApiError::InverterStatsResetted;
-        }
-        #endif
+        inv->resetStats();
+        retMsg["type"] = "success";
+        retMsg["message"] = "Stats resetted";
+        retMsg["code"] = WebApiError::InverterStatsResetted;
     }
 
     WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);

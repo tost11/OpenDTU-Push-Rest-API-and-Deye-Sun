@@ -696,7 +696,7 @@ bool DeyeInverter::supportsPowerDistributionLogic()
     return false;
 }
 
-uint16_t DeyeInverter::getInternalPollTime() {
+uint64_t DeyeInverter::getInternalPollTime() {
     uint64_t time = _pollTime;
     if(time < 5){//just to be sure
         time = 5;

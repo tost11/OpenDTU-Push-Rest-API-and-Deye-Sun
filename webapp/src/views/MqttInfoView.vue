@@ -160,7 +160,7 @@
                 <table class="table table-hover table-condensed">
                     <tbody>
                         <tr>
-                            <th>{{ $t('mqttinfo.ConnectionStatus') }}</th>
+                            <th>{{ $t('mqttinfo.ConnectionStatistics') }}</th>
                             <td>
                                 <StatusBadge
                                     :status="mqttDataList.mqtt_connected"
