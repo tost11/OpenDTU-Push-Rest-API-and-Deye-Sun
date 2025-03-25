@@ -42,9 +42,9 @@ public:
     void addRxFragment(const uint8_t fragment[], const uint8_t len, const int8_t rssi);
     uint8_t verifyAllFragments(CommandAbstract& cmd);
 
-    void performDailyTask() override;
-
     void resetRadioStats();
+
+    void resetStats() override;
 
     struct {
         // TX Request Data

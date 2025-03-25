@@ -5,7 +5,8 @@
 #include <ios>
 #include <iomanip>
 
-HoymilesWInverter::HoymilesWInverter(uint64_t serial)
+HoymilesWInverter::HoymilesWInverter(uint64_t serial):
+_dtuInterface(connectionStatistics)
 {
     _serial = serial;
 
@@ -28,7 +29,7 @@ HoymilesWInverter::HoymilesWInverter(uint64_t serial)
     _dataStatisticTimer.set(10 * 60 * 1000);
     _dataStatisticTimer.zero();
 
-    _clearBufferOnDisconnect = false;
+    _changeCheckedClearOnDisconnect = false;
 
     _enablePolling = true;//TODO make better
 }
@@ -52,32 +53,38 @@ void HoymilesWInverter::update() {
                 if(_dtuInterface.requestStatisticUpdate()){
                     _dataStatisticTimer.reset();
                     //also reset data timer so 31 sec pass untill next request
-                    _dataUpdateTimer.set(getInternalPollTime());
+                    _dataUpdateTimer.reset();
                 }
             }
         }else{
             if(_dataUpdateTimer.occured()){
                 if(_dtuInterface.requestDataUpdate()){
-                    _dataUpdateTimer.set(getInternalPollTime());
+                    _dataUpdateTimer.reset();
                 }
             }
-            _clearBufferOnDisconnect = false;
+            _changeCheckedClearOnDisconnect = false;
         }
     }else{
-        if(!_clearBufferOnDisconnect){//TODO make better
-            _clearBufferOnDisconnect = true;
-            _statisticsParser->beginAppendFragment();
-            _statisticsParser->clearBuffer();
-            _statisticsParser->incrementRxFailureCount();
-            _statisticsParser->endAppendFragment();
+        if(!_changeCheckedClearOnDisconnect){//TODO make better
+            _changeCheckedClearOnDisconnect = true;
+            if(_zeroValuesIfUnreachable) {
+                _statisticsParser->beginAppendFragment();
+                _statisticsParser->clearBuffer();
+                _statisticsParser->endAppendFragment();
+            }
         }
         _dataUpdateTimer.zero();
         _dataStatisticTimer.zero();
     }
-    
+
+    if(_dtuInterface.lastRequestFailed()){
+        _statisticsParser->incrementRxFailureCount();
+    }
+
     auto data = _dtuInterface.newDataAvailable();
     //TODO refactor
     if(data != nullptr){
+        _statisticsParser->resetRxFailureCount();
         _dtuInterface.printDataAsTextToSerial();
         if(_dtuInterface.isSerialValid(_serial)){
             swapBuffers(data.get());
@@ -128,7 +135,7 @@ bool HoymilesWInverter::isProducing() {
 }
 
 bool HoymilesWInverter::isReachable() {
-    return _dtuInterface.isConnected();
+    return _dtuInterface.isReachable();
 }
 
 bool HoymilesWInverter::sendActivePowerControlRequest(float limit, PowerLimitControlType type) {
@@ -200,11 +207,15 @@ bool HoymilesWInverter::supportsPowerDistributionLogic()
     return false;
 }
 
-uint16_t HoymilesWInverter::getInternalPollTime() {
+uint64_t HoymilesWInverter::getInternalPollTime() {
     uint64_t time = _pollTime;
     if(time < 5){//just to be sure
         time = 5;
     }
     time = time * 1000;
     return time;
+}
+
+void HoymilesWInverter::onPollTimeChanged() {
+    _dataUpdateTimer.setTimeout(getInternalPollTime());
 }

@@ -11,10 +11,20 @@ TimeoutHelper::TimeoutHelper()
     startMillis = 0;
 }
 
+TimeoutHelper::TimeoutHelper(const uint32_t ms){
+    timeout=ms;
+    startMillis = millis();
+}
+
 void TimeoutHelper::set(const uint32_t ms)
 {
     timeout = ms;
     startMillis = millis();
+}
+
+void TimeoutHelper::setTimeout(const uint32_t ms)
+{
+    timeout = ms;
 }
 
 void TimeoutHelper::extend(const uint32_t ms)

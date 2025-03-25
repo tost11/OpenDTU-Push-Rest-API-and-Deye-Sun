@@ -9,6 +9,7 @@
 #include "WebApi.h"
 #include "defaults.h"
 #include "InverterHandler.h"
+#include "inverter/BaseNetworkInverter.h"
 #include <AsyncJson.h>
 
 #ifdef HOYMILES
@@ -175,6 +176,15 @@ void WebApiWsLiveClass::generateInverterCommonJsonResponse(JsonObject& root, std
         root["radio_stats"]["rx_fail_corrupt"] = hoy->RadioStats.RxFailCorruptData;
         root["radio_stats"]["rssi"] = hoy->getLastRssi();
     }
+    #endif
+    #if DEYE_SUN || defined HOYMILES_W
+        if(inv->getInverterType() == inverter_type::Inverter_DeyeSun || inv->getInverterType() == inverter_type::Inverter_HoymilesW) {
+            auto nv = reinterpret_cast<BaseNetworkInverterClass *>(inv.get());
+            root["connection_stats"]["send_requests"] = nv->connectionStatistics.SendRequests;
+            root["connection_stats"]["received_responses"] = nv->connectionStatistics.SuccessfulRequests;
+            root["connection_stats"]["disconnects"] = nv->connectionStatistics.Disconnects;
+            root["connection_stats"]["timeouts"] = nv->connectionStatistics.ConnectionTimeouts;
+        }
     #endif
 }
 
