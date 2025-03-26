@@ -179,8 +179,6 @@ void InverterAbstract::resetRadioStats()
     RadioStats = {};
 }
 
-void InverterAbstract::performDailyTask()
-{
-    BaseInverter::performDailyTask();
+void InverterAbstract::resetStats() {
     resetRadioStats();
 }

@@ -21,6 +21,9 @@
 #include "dtuConst.h"
 #include "parser/HoymilesWStatisticsParser.h"
 
+#include <ConnectonStatistics.h>
+#include <TimeoutHelper.h>
+
 #include <Config.h>
 
 #define DTU_TIME_OFFSET 28800
@@ -46,6 +49,8 @@
 #define DTU_TXRX_STATE_WAIT_RESTARTDEVICE 5
 #define DTU_TXRX_STATE_ERROR 99
 
+#define DTU_DEFAULT_TIMEOUT 60 * 1000
+
 struct ConnectionControl
 {
     boolean dtuConnectionOnline = true;          // true if connection is online as valued a summary
@@ -60,6 +65,7 @@ struct ConnectionControl
     uint64_t dtuSerial = 0;
     boolean uptodate = false;
     boolean updateReceived = false;
+    boolean updateFailed = false;
     boolean statisticsInitialized = false;
     int dtuResetRequested = 0;
 };
@@ -68,7 +74,7 @@ typedef void (*DataRetrievalCallback)(const char* data, size_t dataSize, void* u
 
 class DTUInterface {
 public:
-    DTUInterface(const char* server="127.0.0.1", uint16_t port=10081);//TODO find better way to do this
+    DTUInterface(ConnectionStatistics & connectionStats, const char* server="127.0.0.1", uint16_t port=10081);//TODO find better way to do this
     ~DTUInterface();
    
     void setup();
@@ -92,13 +98,17 @@ public:
     void printDataAsTextToSerial();
 
     bool isConnected();
+    bool isReachable();
 
     std::unique_ptr<InverterData> newDataAvailable();
+
+    bool lastRequestFailed();
 
     bool isSerialValid(const uint64_t serial) const;
     uint64_t getRedSerial() const;
     bool statisticsReceived();
 private:
+    ConnectionStatistics & connectionStatistics;
     ConnectionControl dtuConnection;
     InverterData inverterData;
     std::mutex inverterDataMutex;

@@ -6,7 +6,9 @@
 class TimeoutHelper {
 public:
     TimeoutHelper();
+    TimeoutHelper(const uint32_t ms);
     void set(const uint32_t ms);
+    void setTimeout(const uint32_t ms);
     void extend(const uint32_t ms);
     void reset();
     bool occured() const;

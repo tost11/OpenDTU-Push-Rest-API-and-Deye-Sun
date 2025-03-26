@@ -341,7 +341,82 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+
+                            <div v-if="inverter.connection_stats" class="accordion mt-5" id="accordionRadioStats">
+                              <div class="accordion-item accordion-table">
+                                <h2 class="accordion-header">
+                                  <button
+                                      class="accordion-button collapsed"
+                                      type="button"
+                                      data-bs-toggle="collapse"
+                                      data-bs-target="#collapseStats"
+                                      aria-expanded="true"
+                                      aria-controls="collapseStats"
+                                  >
+                                    <BIconBroadcast />&nbsp;{{ $t('home.ConnectionStats') }}
+                                  </button>
+                                </h2>
+                                <div
+                                    id="collapseStats"
+                                    class="accordion-collapse collapse"
+                                    data-bs-parent="#accordionRadioStats"
+                                >
+                                  <div class="accordion-body">
+                                    <table class="table table-striped table-hover">
+                                      <tbody>
+                                      <tr>
+                                        <td>{{ $t('home.SendRequests') }}</td>
+                                        <td>{{ $n(inverter.connection_stats.send_requests) }}</td>
+                                        <td></td>
+                                      </tr>
+                                      <tr>
+                                        <td>{{ $t('home.ResponsesReceived') }}</td>
+                                        <td>{{ $n(inverter.connection_stats.received_responses) }}</td>
+                                        <td>
+                                          {{
+                                            ratio(
+                                                inverter.connection_stats.received_responses,
+                                                inverter.connection_stats.send_requests
+                                            )
+                                          }}
+                                        </td>
+                                      </tr>
+                                      <tr>
+                                        <td>{{ $t('home.Disconnects') }}</td>
+                                        <td>{{ $n(inverter.connection_stats.disconnects) }}</td>
+                                        <td></td>
+                                      </tr>
+                                      <tr>
+                                        <td>{{ $t('home.Timeouts') }}</td>
+                                        <td>{{ $n(inverter.connection_stats.timeouts) }}</td>
+                                        <td></td>
+                                      </tr>
+                                      </tbody>
+                                    </table>
+                                    <div class="d-flex">
+                                      <button
+                                          :disabled="!isLogged || performRadioStatsReset"
+                                          type="button"
+                                          class="btn btn-danger ms-auto me-3 mt-3"
+                                          @click="onResetRadioStats(inverter.serial)"
+                                      >
+                                        <template v-if="!performRadioStatsReset">
+                                          <BIconArrowCounterclockwise />&nbsp;{{ $t('home.StatsReset') }}
+                                        </template>
+                                        <template v-else>
+                                                          <span
+                                                              class="spinner-border spinner-border-sm"
+                                                              aria-hidden="true"
+                                                          ></span>
+                                          <span role="status">&nbsp;{{ $t('home.StatsResetting') }}</span>
+                                        </template>
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                     </div>
                 </div>
             </div>
