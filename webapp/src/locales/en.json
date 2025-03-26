@@ -627,6 +627,7 @@
         "AboutOpendtu": "About OpenDTU",
         "Documentation": "Documentation",
         "DocumentationBody": "The firmware and hardware documentation can be found here: <a href=\"https://www.opendtu.solar\" target=\"_blank\">https://www.opendtu.solar</a>",
+        "DocumentationBodyFork": "The firmware and hardware documentation for this fork can be found here: <a href=\"https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun\" target=\"_blank\">https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun</a></br>Some more detailed tutorials can be found here: <a href=\"https://itgrufti.de/solar\" target=\"_blank\">https://itgrufti.de/solar</a>",
         "ProjectOrigin": "Project Origin",
         "ProjectOriginBody1": "This project was started from <a href=\"https://www.mikrocontroller.net/topic/525778\" target=\"_blank\">this discussion. (Mikrocontroller.net)</a>",
         "ProjectOriginBody2": "The Hoymiles protocol was decrypted through the voluntary efforts of many participants. OpenDTU, among others, was developed based on this work. The project is licensed under an Open Source License (<a href=\"https://www.gnu.de/documents/gpl-2.0.de.html\" target=\"_blank\">GNU General Public License version 2</a>).",
@@ -634,8 +635,10 @@
         "ProjectOriginBody4": "OpenDTU is freely available. If you paid money for the software, you probably got ripped off.",
         "NewsUpdates": "News & Updates",
         "NewsUpdatesBody": "New updates can be found on Github: <a href=\"https://github.com/tbnobody/OpenDTU\" target=\"_blank\">https://github.com/tbnobody/OpenDTU</a>",
+        "NewsUpdatesBodyFork": "New updates for this fork can be found on Github <a href=\"https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/tree/master/builds\" target=\"_blank\">https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/tree/master/builds</a>",
         "ErrorReporting": "Error Reporting",
         "ErrorReportingBody": "Please report issues using the feature provided by <a href=\"https://github.com/tbnobody/OpenDTU/issues\" target=\"_blank\">Github</a>",
+        "ErrorReportingBodyFork": "Please report issues regarding this fork using the feature provided by <a href=\"https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/issues\" target=\"_blank\">Github</a>.",
         "Discussion": "Discussion",
         "DiscussionBody": "Discuss with us on <a href=\"https://discord.gg/46hWaXsn\" target=\"_blank\">Discord</a> or <a href=\"https://github.com/tbnobody/OpenDTU/discussions\" target=\"_blank\">Github</a>"
     },
