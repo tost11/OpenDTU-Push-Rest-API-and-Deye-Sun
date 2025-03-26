@@ -25,6 +25,9 @@
                     <div class="accordion-body">
                         <p class="fw-normal" v-html="$t('about.DocumentationBody')"></p>
                     </div>
+                    <div class="accordion-body">
+                      <p class="fw-normal" v-html="$t('about.DocumentationBodyFork')"></p>
+                    </div>
                 </div>
             </div>
             <div class="accordion-item">
@@ -79,6 +82,14 @@
                 >
                     <div class="accordion-body" v-html="$t('about.NewsUpdatesBody')"></div>
                 </div>
+                <div
+                    id="collapseTwo"
+                    class="accordion-collapse collapse"
+                    aria-labelledby="headingTwo"
+                    data-bs-parent="#accordionExample"
+                >
+                    <div class="accordion-body" v-html="$t('about.NewsUpdatesBodyFork')"></div>
+                </div>
             </div>
             <div class="accordion-item">
                 <h2 class="accordion-header" id="headingThree">
@@ -102,6 +113,14 @@
                     data-bs-parent="#accordionExample"
                 >
                     <div class="accordion-body" v-html="$t('about.ErrorReportingBody')"></div>
+                </div>
+                <div
+                    id="collapseThree"
+                    class="accordion-collapse collapse"
+                    aria-labelledby="headingThree"
+                    data-bs-parent="#accordionExample"
+                >
+                    <div class="accordion-body" v-html="$t('about.ErrorReportingBodyFork')"></div>
                 </div>
             </div>
             <div class="accordion-item">

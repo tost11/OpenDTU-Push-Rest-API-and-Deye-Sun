@@ -50,6 +50,10 @@ public:
     bool supportsPowerDistributionLogic() override;
 protected:
     virtual void hostOrPortUpdated() override;
+
+public:
+    void onPollTimeChanged() override;
+
 private:
     uint64_t _serial;
 
@@ -57,8 +61,8 @@ private:
 
     TimeoutHelper _dataUpdateTimer;
     TimeoutHelper _dataStatisticTimer;
-    bool _clearBufferOnDisconnect;
+    bool _changeCheckedClearOnDisconnect;
 
-    uint16_t getInternalPollTime();
+    uint64_t getInternalPollTime();
 protected:
 };

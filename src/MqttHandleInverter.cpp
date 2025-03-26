@@ -246,11 +246,7 @@ void MqttHandleInverterClass::onMqttMessage(Topic t, const espMqttClientTypes::M
         // Reset RF Stats
         MessageOutput.printf("Reset RF stats\r\n");
         if (!properties.retain && payload_val == 1) {
-            #ifdef HOYMILES
-            if(inv->getInverterType() == inverter_type::Inverter_Hoymiles){
-                reinterpret_cast<InverterAbstract*>(inv.get())->resetRadioStats();
-            }
-            #endif
+            inv.get()->resetStats();
         } else {
             MessageOutput.println("Ignored because retained or numeric value not '1'");
         }

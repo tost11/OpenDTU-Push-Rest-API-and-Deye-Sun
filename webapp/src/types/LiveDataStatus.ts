@@ -31,6 +31,13 @@ export interface RadioStatistics {
     rssi: number;
 }
 
+export interface ConnectionStatistics {
+    send_requests: number;
+    received_responses: number;
+    disconnects: number;
+    timeouts: number;
+}
+
 export interface Inverter {
     serial: string;
     name: string;
@@ -47,6 +54,7 @@ export interface Inverter {
     DC: InverterStatistics[];
     INV: InverterStatistics[];
     radio_stats: RadioStatistics;
+    connection_stats: ConnectionStatistics;
 }
 
 export interface Total {
