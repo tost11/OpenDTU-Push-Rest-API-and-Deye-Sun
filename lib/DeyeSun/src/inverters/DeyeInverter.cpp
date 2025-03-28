@@ -180,10 +180,10 @@ bool DeyeInverter::isReachable() {
 
 bool DeyeInverter::sendActivePowerControlRequest(float limit, PowerLimitControlType type) {
     //TODO do better
-    if(typeName().startsWith("Unknown")){
+    /*if(typeName().startsWith("Unknown")){
         _alarmLogParser->addAlarm(6,10 * 60,"command not send because Deye Sun device unknown (checked by Serial number)");//alarm for 10 min
         return false;
-    }
+    }*/
     if(!(type == AbsolutPersistent || type == RelativPersistent)){
         return false;
     }
