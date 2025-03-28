@@ -164,7 +164,12 @@
         "StatsResetting": "Zurücksetzen...",
         "Rssi": "RSSI des zuletzt empfangenen Paketes",
         "RssiHint": "HM-Wechselrichter unterstützen nur RSSI-Werte  < -64 dBm und > -64 dBm. In diesem Fall wird -80 dBm und -30 dBm angezeigt.",
-        "dBm": "{dbm} dBm"
+        "dBm": "{dbm} dBm",
+        "ConnectionStats": "Verbindungsstatistik",
+        "SendRequests": "Gesendete Anfragen",
+        "ResponsesReceived": "Empfangene Antworten",
+        "Disconnects": "Verbindungsabbruch ausgehen vom Gerät",
+        "Timeouts": "Verbindungsabbruch wegen Zeitüberschreitung"
     },
     "eventlog": {
         "Start": "Beginn",
@@ -633,7 +638,8 @@
     "about": {
         "AboutOpendtu": "Über OpenDTU",
         "Documentation": "Dokumentation",
-        "DocumentationBody": "Die Firmware- und Hardware-Dokumentation ist hier zu finden: <a href=\"https://www.opendtu.solar\" target=\"_blank\">https://www.opendtu.solar</a>",
+        "DocumentationBody": "Die Original Firmware- und Hardware-Dokumentation ist hier zu finden: <a href=\"https://www.opendtu.solar\" target=\"_blank\">https://www.opendtu.solar</a>",
+        "DocumentationBodyFork": "Die Firmware- und Hardware-Dokumentation für diesen Fork ist hier zu finden: <a href=\"https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun\" target=\"_blank\">https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun</a></br>Einiege detailierteren Anleitungen gibt es hier: <a href=\"https://itgrufti.de/solar\" target=\"_blank\">https://itgrufti.de/solar</a>",
         "ProjectOrigin": "Projekt Ursprung",
         "ProjectOriginBody1": "Das Projekt wurde aus <a href=\"https://www.mikrocontroller.net/topic/525778\" target=\"_blank\">dieser Diskussion (mikrocontroller.net)</a> heraus gestartet.",
         "ProjectOriginBody2": "Das Hoymiles-Protokoll wurde durch die freiwilligen Bemühungen vieler Teilnehmer entschlüsselt. OpenDTU wurde unter anderem auf der Grundlage dieser Arbeit entwickelt. Das Projekt ist unter einer Open-Source-Lizenz lizenziert (<a href=\"https://www.gnu.de/documents/gpl-2.0.de.html\" target=\"_blank\">GNU General Public License version 2</a>).",
@@ -641,8 +647,10 @@
         "ProjectOriginBody4": "OpenDTU ist frei verfügbar. Wenn Sie Geld für die Software bezahlt haben, wurden Sie wahrscheinlich abgezockt.",
         "NewsUpdates": "Neuigkeiten und Updates",
         "NewsUpdatesBody": "Neue Updates sind auf Github zu finden: <a href=\"https://github.com/tbnobody/OpenDTU\" target=\"_blank\">https://github.com/tbnobody/OpenDTU</a>",
+        "NewsUpdatesBodyFork": "Neue Updates diesen Fork betreffend sind auf Github zu finden: <a href=\"https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/tree/master/builds\" target=\"_blank\">https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/tree/master/builds</a>",
         "ErrorReporting": "Fehlerberichte",
         "ErrorReportingBody": "Bitte melden Sie Probleme über die Ticketverwaltung von <a href=\"https://github.com/tbnobody/OpenDTU/issues\" target=\"_blank\">Github</a>.",
+        "ErrorReportingBodyFork": "Bitte melden Sie Probleme diesen Fork betreffend über die Ticketverwaltung von <a href=\"https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/issues\" target=\"_blank\">Github</a>.",
         "Discussion": "Diskussion",
         "DiscussionBody": "Diskutieren Sie mit uns auf <a href=\"https://discord.gg/WzhxEY62mB\" target=\"_blank\">Discord</a> oder <a href=\"https://github.com/tbnobody/OpenDTU/discussions\" target=\"_blank\">Github</a>"
     },

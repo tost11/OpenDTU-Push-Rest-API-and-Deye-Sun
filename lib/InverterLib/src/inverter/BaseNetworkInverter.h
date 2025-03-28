@@ -4,8 +4,7 @@
 #include <InverterUtils.h>
 #include <TimeoutHelper.h>
 #include <MessageOutput.h>
-
-#define MAX_NAME_HOST 32
+#include "../ConnectonStatistics.h"
 
 template<class StatT,class DevT,class AlarmT,class PowerT>
 class BaseNetworkInverter :public BaseInverter<StatT,DevT,AlarmT,PowerT> {
@@ -39,9 +38,14 @@ private:
     }
 
 public:
+
+    struct ConnectionStatistics connectionStatistics;
+
     BaseNetworkInverter():
     _IpOrHostnameIsMac(false),
+    _port(0),
     _resolvedIpByMacAdress(nullptr){
+        connectionStatistics = {};
         _macToIpResolverTimer.set(TIMER_FAILED_MAC_IP_RESOLUTION);
         _macToIpResolverTimer.zero();
     }
@@ -110,4 +114,13 @@ protected:
         return checkForMacResolution(false);
     }
 
+    void resetConnectionStats(){
+        connectionStatistics =  {};
+    }
+
+    void resetStats(){
+        resetConnectionStats();
+    };
 };
+
+using BaseNetworkInverterClass = BaseNetworkInverter<BaseStatistics,BaseDevInfo,BaseAlarmLog,BasePowerCommand>;
