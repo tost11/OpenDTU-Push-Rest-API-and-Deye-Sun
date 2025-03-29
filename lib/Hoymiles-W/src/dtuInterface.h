@@ -21,7 +21,7 @@
 #include "dtuConst.h"
 #include "parser/HoymilesWStatisticsParser.h"
 
-#include <ConnectonStatistics.h>
+#include "HoymilesWConnectionStatistics.h"
 #include <TimeoutHelper.h>
 
 #include <Config.h>
@@ -74,7 +74,7 @@ typedef void (*DataRetrievalCallback)(const char* data, size_t dataSize, void* u
 
 class DTUInterface {
 public:
-    DTUInterface(ConnectionStatistics & connectionStats, const char* server="127.0.0.1", uint16_t port=10081);//TODO find better way to do this
+    DTUInterface(HoymilesWConnectionStatistics & connectionStats, const char* server="127.0.0.1", uint16_t port=10081);//TODO find better way to do this
     ~DTUInterface();
    
     void setup();
@@ -108,7 +108,7 @@ public:
     uint64_t getRedSerial() const;
     bool statisticsReceived();
 private:
-    ConnectionStatistics & connectionStatistics;
+    HoymilesWConnectionStatistics & connectionStatistics;
     ConnectionControl dtuConnection;
     InverterData inverterData;
     std::mutex inverterDataMutex;

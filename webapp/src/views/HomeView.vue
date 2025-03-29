@@ -342,7 +342,7 @@
                                 </div>
                             </div>
 
-                            <div v-if="inverter.connection_stats" class="accordion mt-5" id="accordionRadioStats">
+                            <div v-if="inverter.connection_stats_hoymiles" class="accordion mt-5" id="accordionRadioStats">
                               <div class="accordion-item accordion-table">
                                 <h2 class="accordion-header">
                                   <button
@@ -366,29 +366,29 @@
                                       <tbody>
                                       <tr>
                                         <td>{{ $t('home.SendRequests') }}</td>
-                                        <td>{{ $n(inverter.connection_stats.send_requests) }}</td>
+                                        <td>{{ $n(inverter.connection_stats_hoymiles.send_requests) }}</td>
                                         <td></td>
                                       </tr>
                                       <tr>
                                         <td>{{ $t('home.ResponsesReceived') }}</td>
-                                        <td>{{ $n(inverter.connection_stats.received_responses) }}</td>
+                                        <td>{{ $n(inverter.connection_stats_hoymiles.received_responses) }}</td>
                                         <td>
                                           {{
                                             ratio(
-                                                inverter.connection_stats.received_responses,
-                                                inverter.connection_stats.send_requests
+                                                inverter.connection_stats_hoymiles.received_responses,
+                                                inverter.connection_stats_hoymiles.send_requests
                                             )
                                           }}
                                         </td>
                                       </tr>
                                       <tr>
                                         <td>{{ $t('home.Disconnects') }}</td>
-                                        <td>{{ $n(inverter.connection_stats.disconnects) }}</td>
+                                        <td>{{ $n(inverter.connection_stats_hoymiles.disconnects) }}</td>
                                         <td></td>
                                       </tr>
                                       <tr>
                                         <td>{{ $t('home.Timeouts') }}</td>
-                                        <td>{{ $n(inverter.connection_stats.timeouts) }}</td>
+                                        <td>{{ $n(inverter.connection_stats_hoymiles.timeouts) }}</td>
                                         <td></td>
                                       </tr>
                                       </tbody>
@@ -416,6 +416,156 @@
                                 </div>
                               </div>
                             </div>
+
+                            <div v-if="inverter.connection_stats_deye" class="accordion mt-5" id="accordionRadioStats">
+                              <div class="accordion-item accordion-table">
+                                <h2 class="accordion-header">
+                                  <button
+                                      class="accordion-button collapsed"
+                                      type="button"
+                                      data-bs-toggle="collapse"
+                                      data-bs-target="#collapseStats"
+                                      aria-expanded="true"
+                                      aria-controls="collapseStats"
+                                  >
+                                    <BIconBroadcast />&nbsp;{{ $t('home.ConnectionStats') }}
+                                  </button>
+                                </h2>
+                                <div
+                                    id="collapseStats"
+                                    class="accordion-collapse collapse"
+                                    data-bs-parent="#accordionRadioStats"
+                                >
+                                  <div class="accordion-body">
+                                    <table class="table table-striped table-hover">
+                                      <tbody>
+                                      <tr>
+                                        <td>{{ $t('home.Connects') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye.connects) }}</td>
+                                        <td></td>
+                                      </tr>
+                                      <tr>
+                                        <td>{{ $t('home.ConnectsFailed') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye.connects - inverter.connection_stats_deye.connects_successful) }}</td>
+                                        <td>
+                                          {{
+                                            ratio(
+                                                inverter.connection_stats_deye.connects - inverter.connection_stats_deye.connects_successful,
+                                                inverter.connection_stats_deye.connects
+                                            )
+                                          }}
+                                        </td>
+                                      </tr>
+
+                                      <tr>
+                                        <td>{{ $t('home.SendCommands') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye.send_commands) }}</td>
+                                        <td></td>
+                                      </tr>
+                                      <tr>
+                                        <td>{{ $t('home.ErrorCommands') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye.error_commands) }}</td>
+                                        <td>
+                                          {{
+                                            ratio(
+                                                inverter.connection_stats_deye.error_commands,
+                                                inverter.connection_stats_deye.send_commands
+                                            )
+                                          }}
+                                        </td>
+                                      </tr>
+                                      <tr>
+                                        <td>{{ $t('home.TimeoutCommands') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye.timout_commands) }}</td>
+                                        <td>
+                                          {{
+                                            ratio(
+                                                inverter.connection_stats_deye.timout_commands,
+                                                inverter.connection_stats_deye.send_commands
+                                            )
+                                          }}
+                                        </td>
+                                      </tr>
+
+                                      <tr>
+                                        <td>{{ $t('home.Heathchecks') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye.heath_checks) }}</td>
+                                        <td></td>
+                                      </tr>
+                                      <tr>
+                                        <td>{{ $t('home.HeathchecksFailed') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye.heath_checks-inverter.connection_stats_deye.heath_checks_successfully) }}</td>
+                                        <td>
+                                          {{
+                                            ratio(
+                                                inverter.connection_stats_deye.heath_checks-inverter.connection_stats_deye.heath_checks_successfully,
+                                                inverter.connection_stats_deye.heath_checks
+                                            )
+                                          }}
+                                        </td>
+                                      </tr>
+
+                                      <tr>
+                                        <td>{{ $t('home.ReadRequests') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye.read_requests) }}</td>
+                                        <td></td>
+                                      </tr>
+                                      <tr>
+                                        <td>{{ $t('home.ReadRequestsFailed') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye.read_requests-inverter.connection_stats_deye.read_requests_successfully) }}</td>
+                                        <td>
+                                          {{
+                                            ratio(
+                                                inverter.connection_stats_deye.read_requests-inverter.connection_stats_deye.read_requests_successfully,
+                                                inverter.connection_stats_deye.read_requests
+                                            )
+                                          }}
+                                        </td>
+                                      </tr>
+
+                                      <tr>
+                                        <td>{{ $t('home.WriteRequests') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye.write_requests) }}</td>
+                                        <td></td>
+                                      </tr>
+                                      <tr>
+                                        <td>{{ $t('home.WriteRequestsFailed') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye.write_requests-inverter.connection_stats_deye.write_requests_successfully) }}</td>
+                                        <td>
+                                          {{
+                                            ratio(
+                                                inverter.connection_stats_deye.write_requests-inverter.connection_stats_deye.write_requests_successfully,
+                                                inverter.connection_stats_deye.write_requests
+                                            )
+                                          }}
+                                        </td>
+                                      </tr>
+                                      </tbody>
+                                    </table>
+                                    <div class="d-flex">
+                                      <button
+                                          :disabled="!isLogged || performRadioStatsReset"
+                                          type="button"
+                                          class="btn btn-danger ms-auto me-3 mt-3"
+                                          @click="onResetRadioStats(inverter.serial)"
+                                      >
+                                        <template v-if="!performRadioStatsReset">
+                                          <BIconArrowCounterclockwise />&nbsp;{{ $t('home.StatsReset') }}
+                                        </template>
+                                        <template v-else>
+                                                          <span
+                                                              class="spinner-border spinner-border-sm"
+                                                              aria-hidden="true"
+                                                          ></span>
+                                          <span role="status">&nbsp;{{ $t('home.StatsResetting') }}</span>
+                                        </template>
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
                           </div>
                     </div>
                 </div>

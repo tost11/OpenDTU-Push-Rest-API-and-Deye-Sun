@@ -65,6 +65,30 @@ public:
     void setEnableCommands(const bool enabled) override;
 
     bool supportsPowerDistributionLogic() override;
+
+    struct{
+        // TX Request Data
+        uint32_t SendCommands;
+        uint32_t TimeoutCommands;
+        uint32_t ErrorCommands;
+
+        uint32_t Connects;
+        uint32_t ConnectsSuccessful;
+
+        uint32_t HealthChecks;
+        uint32_t HealthChecksSuccessful;
+
+        uint32_t WriteRequests;
+        uint32_t WriteRequestsSuccessful;
+
+        uint32_t ReadRequests;
+        uint32_t ReadRequestsSuccessful;
+    } ConnectionStatistics = {};
+
+    void resetStats() override;
+protected:
+    void onPollTimeChanged() override;
+
 private:
     bool parseInitInformation(size_t length);
     int handleRegisterRead(size_t length);
@@ -121,8 +145,6 @@ private:
     TimeoutHelper _timerResolveHostname;
     TimeoutHelper _timerAfterCounterTimout;
     uint32_t _commandPosition;
-
-    bool _waitLongAfterTimeout;
 
     bool _startCommand;
     virtual const std::vector<RegisterMapping> & getRegisteresToRead() = 0;

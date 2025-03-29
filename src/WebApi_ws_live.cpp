@@ -9,11 +9,18 @@
 #include "WebApi.h"
 #include "defaults.h"
 #include "InverterHandler.h"
-#include "inverter/BaseNetworkInverter.h"
 #include <AsyncJson.h>
 
 #ifdef HOYMILES
 #include <Hoymiles.h>
+#endif
+
+#ifdef HOYMILES_W
+#include "inverters/HoymilesWInverter.h"
+#endif
+
+#ifdef DEYE_SUN
+#include "inverters/DeyeInverter.h"
 #endif
 
 #ifndef PIN_MAPPING_REQUIRED
@@ -177,13 +184,36 @@ void WebApiWsLiveClass::generateInverterCommonJsonResponse(JsonObject& root, std
         root["radio_stats"]["rssi"] = hoy->getLastRssi();
     }
     #endif
-    #if DEYE_SUN || defined HOYMILES_W
-        if(inv->getInverterType() == inverter_type::Inverter_DeyeSun || inv->getInverterType() == inverter_type::Inverter_HoymilesW) {
-            auto nv = reinterpret_cast<BaseNetworkInverterClass *>(inv.get());
-            root["connection_stats"]["send_requests"] = nv->connectionStatistics.SendRequests;
-            root["connection_stats"]["received_responses"] = nv->connectionStatistics.SuccessfulRequests;
-            root["connection_stats"]["disconnects"] = nv->connectionStatistics.Disconnects;
-            root["connection_stats"]["timeouts"] = nv->connectionStatistics.ConnectionTimeouts;
+
+    #ifdef HOYMILES_W
+        if(inv->getInverterType() == inverter_type::Inverter_HoymilesW) {
+            auto nv = reinterpret_cast<HoymilesWInverter *>(inv.get());
+            root["connection_stats_hoymiles"]["send_requests"] = nv->ConnectionStatistics.SendRequests;
+            root["connection_stats_hoymiles"]["received_responses"] = nv->ConnectionStatistics.SuccessfulRequests;
+            root["connection_stats_hoymiles"]["disconnects"] = nv->ConnectionStatistics.Disconnects;
+            root["connection_stats_hoymiles"]["timeouts"] = nv->ConnectionStatistics.ConnectionTimeouts;
+        }
+    #endif
+
+    #ifdef DEYE_SUN
+        if(inv->getInverterType() == inverter_type::Inverter_DeyeSun) {
+            auto nv = reinterpret_cast<DeyeInverter *>(inv.get());
+
+            root["connection_stats_deye"]["connects"] = nv->ConnectionStatistics.Connects;
+            root["connection_stats_deye"]["connects_successful"] = nv->ConnectionStatistics.ConnectsSuccessful;
+
+            root["connection_stats_deye"]["send_commands"] = nv->ConnectionStatistics.SendCommands;
+            root["connection_stats_deye"]["timout_commands"] = nv->ConnectionStatistics.TimeoutCommands;
+            root["connection_stats_deye"]["error_commands"] = nv->ConnectionStatistics.ErrorCommands;
+
+            root["connection_stats_deye"]["heath_checks"] = nv->ConnectionStatistics.HealthChecks;
+            root["connection_stats_deye"]["heath_checks_successfully"] = nv->ConnectionStatistics.HealthChecksSuccessful;
+
+            root["connection_stats_deye"]["write_requests"] = nv->ConnectionStatistics.WriteRequests;
+            root["connection_stats_deye"]["write_requests_successfully"] = nv->ConnectionStatistics.WriteRequestsSuccessful;
+
+            root["connection_stats_deye"]["read_requests"] = nv->ConnectionStatistics.ReadRequests;
+            root["connection_stats_deye"]["read_requests_successfully"] = nv->ConnectionStatistics.ReadRequestsSuccessful;
         }
     #endif
 }

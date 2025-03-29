@@ -176,7 +176,18 @@
         "SendRequests": "Gesendete Anfragen",
         "ResponsesReceived": "Empfangene Antworten",
         "Disconnects": "Verbindungsabbruch ausgehen vom Gerät",
-        "Timeouts": "Verbindungsabbruch wegen Zeitüberschreitung"
+        "Timeouts": "Verbindungsabbruch wegen Zeitüberschreitung",
+        "Connects": "Versuchte Verbindungsaufbauten",
+        "ConnectsFailed": "Gescheiterte Verbindungsaufbauten",
+        "SendCommands": "Gesendete Befehle",
+        "ErrorCommands": "Fehlgeschlagene Befehle (verarbeitung Inverter)",
+        "TimeoutCommands": "Fehlgeschlagene Befehle (Zeitüberschreitung)",
+        "Heathchecks": "Verfügbarkeitsprüfungen",
+        "HeathchecksFailed": "Fehlgeschlagene Verfügbarkeitsprüfungen",
+        "ReadRequests": "Gesendete Schreibkommandos (Limit, An/Aus)",
+        "ReadRequestsFailed": "Fehlgeschlagene gesendete Schreibkommandos",
+        "WriteRequests": "Gesendete Lesekommandos (aktuelle Daten)",
+        "WriteRequestsFailed": "Fehlgeschlagene gesendete Lesekommandos"
     },
     "eventlog": {
         "Start": "Beginn",
