@@ -4,7 +4,6 @@
 #include <InverterUtils.h>
 #include <TimeoutHelper.h>
 #include <MessageOutput.h>
-#include "../ConnectonStatistics.h"
 
 template<class StatT,class DevT,class AlarmT,class PowerT>
 class BaseNetworkInverter :public BaseInverter<StatT,DevT,AlarmT,PowerT> {
@@ -39,13 +38,10 @@ private:
 
 public:
 
-    struct ConnectionStatistics connectionStatistics;
-
     BaseNetworkInverter():
     _IpOrHostnameIsMac(false),
     _port(0),
     _resolvedIpByMacAdress(nullptr){
-        connectionStatistics = {};
         _macToIpResolverTimer.set(TIMER_FAILED_MAC_IP_RESOLUTION);
         _macToIpResolverTimer.zero();
     }
@@ -76,9 +72,9 @@ protected:
     virtual void hostOrPortUpdated(){};
 
     bool _IpOrHostnameIsMac;
+    uint16_t _port;
     std::unique_ptr<std::string> _resolvedIpByMacAdress;
     String _oringalIpOrHostname;
-    uint16_t _port;
 
     bool checkForMacResolution(bool force){
         if(_IpOrHostnameIsMac){
@@ -113,14 +109,6 @@ protected:
     bool checkForMacResolution(){
         return checkForMacResolution(false);
     }
-
-    void resetConnectionStats(){
-        connectionStatistics =  {};
-    }
-
-    void resetStats(){
-        resetConnectionStats();
-    };
 };
 
 using BaseNetworkInverterClass = BaseNetworkInverter<BaseStatistics,BaseDevInfo,BaseAlarmLog,BasePowerCommand>;

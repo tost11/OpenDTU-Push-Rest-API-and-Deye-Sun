@@ -6,7 +6,7 @@
 #include <iomanip>
 
 HoymilesWInverter::HoymilesWInverter(uint64_t serial):
-_dtuInterface(connectionStatistics)
+_dtuInterface(ConnectionStatistics)
 {
     _serial = serial;
 
@@ -218,4 +218,8 @@ uint64_t HoymilesWInverter::getInternalPollTime() {
 
 void HoymilesWInverter::onPollTimeChanged() {
     _dataUpdateTimer.setTimeout(getInternalPollTime());
+}
+
+void HoymilesWInverter::resetStats() {
+    ConnectionStatistics = {};
 }
