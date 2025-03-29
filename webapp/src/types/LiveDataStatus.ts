@@ -31,11 +31,25 @@ export interface RadioStatistics {
     rssi: number;
 }
 
-export interface ConnectionStatistics {
+export interface ConnectionStatisticsHoymiles {
     send_requests: number;
     received_responses: number;
     disconnects: number;
     timeouts: number;
+}
+
+export interface ConnectionStatisticsDeye {
+    connects: number;
+    connects_successful: number;
+    send_commands: number;
+    timout_commands: number;
+    error_commands: number;
+    heath_checks: number;
+    heath_checks_successfully: number;
+    write_requests: number;
+    write_requests_successfully: number;
+    read_requests: number;
+    read_requests_successfully: number;
 }
 
 export interface Inverter {
@@ -54,7 +68,8 @@ export interface Inverter {
     DC: InverterStatistics[];
     INV: InverterStatistics[];
     radio_stats: RadioStatistics;
-    connection_stats: ConnectionStatistics;
+    connection_stats_hoymiles: ConnectionStatisticsHoymiles;
+    connection_stats_deye: ConnectionStatisticsDeye;
 }
 
 export interface Total {
