@@ -168,8 +168,18 @@
         "SendRequests": "Requests send",
         "ResponsesReceived": "Responses received",
         "Disconnects": "Disconnects forced by device",
-        "Timeouts": "Disconnects by Timeout"
-
+        "Timeouts": "Disconnects by Timeout",
+        "Connects": "Connection attempts",
+        "ConnectsFailed": "Failed connection attempts",
+        "SendCommands": "Send requests",
+        "ErrorCommands": "Send requests failed (handling by inverter)",
+        "TimeoutCommands": "Send requests failed (timout)",
+        "Heathchecks": "Heath check",
+        "HeathchecksFailed": "Heath check failed",
+        "ReadRequests": "Send write commands (limit, on/off)",
+        "ReadRequestsFailed": "Send write commands failed",
+        "WriteRequests": "Send read commands (current values)",
+        "WriteRequestsFailed": "Send read commands failed"
     },
     "eventlog": {
         "Start": "Start",
