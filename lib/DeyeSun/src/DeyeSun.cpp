@@ -112,3 +112,11 @@ void DeyeSunClass::init() {
 
 }
 
+void DeyeSunClass::setUnknownDevicesWriteEnable(bool enabled) {
+    _unknownDeviceWriteEnabled = enabled;
+}
+
+bool DeyeSunClass::getUnknownDevicesWriteEnable() const {
+    return _unknownDeviceWriteEnabled;
+}
+

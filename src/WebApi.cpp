@@ -17,9 +17,7 @@ void WebApiClass::init(Scheduler& scheduler)
 {
     _webApiDevice.init(_server, scheduler);
     _webApiDevInfo.init(_server, scheduler);
-    #ifdef HOYMILES
     _webApiDtu.init(_server, scheduler);
-    #endif
     _webApiEventlog.init(_server, scheduler);
     _webApiFile.init(_server, scheduler);
     _webApiFirmware.init(_server, scheduler);
