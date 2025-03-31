@@ -113,6 +113,9 @@ bool ConfigurationClass::write()
     dtu["cmt_frequency"] = config.Dtu.Cmt.Frequency;
     dtu["cmt_country_mode"] = config.Dtu.Cmt.CountryMode;
 
+    JsonObject deye = doc["deye"].to<JsonObject>();
+    deye["unknown_inverter_write"] = config.DeyeSettings.UnknownInverterWrite;
+
     JsonObject security = doc["security"].to<JsonObject>();
     security["password"] = config.Security.Password;
     security["allow_readonly"] = config.Security.AllowReadonly;
@@ -310,6 +313,9 @@ bool ConfigurationClass::read()
     config.Dtu.Cmt.PaLevel = dtu["cmt_pa_level"] | DTU_CMT_PA_LEVEL;
     config.Dtu.Cmt.Frequency = dtu["cmt_frequency"] | DTU_CMT_FREQUENCY;
     config.Dtu.Cmt.CountryMode = dtu["cmt_country_mode"] | DTU_CMT_COUNTRY_MODE;
+
+    JsonObject deye = doc["deye"];
+    config.DeyeSettings.UnknownInverterWrite = deye["unknown_inverter_write"] | DEYE_UNKNOWN_INVERTER_WRITE;
 
     JsonObject security = doc["security"];
     strlcpy(config.Security.Password, security["password"] | ACCESS_POINT_PASSWORD, sizeof(config.Security.Password));

@@ -160,6 +160,10 @@ struct CONFIG_T {
     } Dtu;
 
     struct {
+        bool UnknownInverterWrite;
+    } DeyeSettings;
+
+    struct {
         char Password[WIFI_MAX_PASSWORD_STRLEN + 1];
         bool AllowReadonly;
     } Security;

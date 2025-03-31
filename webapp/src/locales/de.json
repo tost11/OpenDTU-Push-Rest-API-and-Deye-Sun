@@ -7,7 +7,7 @@
         "MQTTSettings": "MQTT",
         "InverterSettings": "Wechselrichter",
         "SecuritySettings": "Sicherheit",
-        "DTUSettings": "DTU",
+        "DTUSettings": "DTU/Generelle Einstellungen",
         "DeviceManager": "Hardware",
         "ServoManager": "Servo Anzeige",
         "ConfigManagement": "Konfigurationsverwaltung",
@@ -448,7 +448,7 @@
         "RebootHint": "<b>Hinweis:</b> Ein manueller Neustart muss normalerweise nicht durchgeführt werden. OpenDTU führt jeden erforderlichen Neustart (z. B. nach einem Firmware-Update) automatisch durch. Einstellungen werden auch ohne Neustart übernommen. Wenn Sie aufgrund eines Fehlers einen Neustart durchführen müssen, denken Sie bitte daran, diesen unter <a href=\"https://github.com/tbnobody/OpenDTU/issues\" class=\"alert-link\" target=\"_blank\">https://github.com/tbnobody/OpenDTU/issues</a> zu melden."
     },
     "dtuadmin": {
-        "DtuSettings": "DTU-Einstellungen",
+        "DtuSettings": "DTU/Generelle-Einstellungen",
         "DtuConfiguration": "DTU-Konfiguration",
         "Serial": "Seriennummer",
         "SerialHint": "Sowohl der Wechselrichter als auch die DTU haben eine Seriennummer. Die DTU-Seriennummer wird beim ersten Start zufällig generiert und muss normalerweise nicht geändert werden.",
@@ -471,7 +471,11 @@
         "Min": "Minimum ({db} dBm)",
         "Low": "Niedrig ({db} dBm)",
         "High": "Hoch ({db} dBm)",
-        "Max": "Maximum ({db} dBm)"
+        "Max": "Maximum ({db} dBm)",
+        "DeyeConfiguration": "Einstellungen Deye Sun Wechselrichter",
+        "DeyeUnknownSerialWriteWarning": "Aktiviere die Schreibbefehle, nur wenn du sicher bist das die Register dieselben wie bei den bekannten Wechselrichtertypen sind! Ein- und Ausschalten Register 002B mit der Größe von 2 Bytes. Limit setzten Register 0028 mit der Größe von 2 Bytes.",
+        "DeyeUnknownSerialWrite": "Schreibbefehle bei unbekannten Wechselrichter Typen erlauben",
+        "DeyeUnknownSerialWriteHint": "Mit diesem Flag können Befehle an unbekannte Wechselrichtertypen gesendet werden. Befehle sind setzten des Limits und Ein-Ausschalten."
     },
     "securityadmin": {
         "SecuritySettings": "Sicherheitseinstellungen",

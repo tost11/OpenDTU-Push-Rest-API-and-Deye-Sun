@@ -8,7 +8,7 @@
         "TostSettings": "Tost's Solar Monitoring Settings",
         "InverterSettings": "Inverter Settings",
         "SecuritySettings": "Security Settings",
-        "DTUSettings": "DTU Settings",
+        "DTUSettings": "DTU/General Settings",
         "DeviceManager": "Device-Manager",
         "ServoManager": "Servo Display",
         "ConfigManagement": "Config Management",
@@ -173,6 +173,7 @@
         "StatsResetting": "Resetting...",
         "Rssi": "RSSI of last received packet",
         "RssiHint": "HM inverters only support RSSI values < -64 dBm and > -64 dBm. In this case, -80 dbm and -30 dbm is shown.",
+        "dBm": "{dbm} dBm",
         "ConnectionStats": "Connection Statistics",
         "SendRequests": "Requests send",
         "ResponsesReceived": "Responses received",
@@ -449,7 +450,7 @@
         "RebootHint": "<b>Note:</b> A manual reboot does not normally have to be performed. OpenDTU performs any required reboot (e.g. after a firmware update) automatically. Settings are also adopted without rebooting. If you need to reboot due to an error, please consider reporting it at <a href=\"https://github.com/tbnobody/OpenDTU/issues\" class=\"alert-link\" target=\"_blank\">https://github.com/tbnobody/OpenDTU/issues</a>."
     },
     "dtuadmin": {
-        "DtuSettings": "DTU Settings",
+        "DtuSettings": "DTU/General Settings",
         "DtuConfiguration": "DTU Configuration",
         "Serial": "Serial",
         "SerialHint": "Both the inverter and the DTU have a serial number. The DTU serial number is randomly generated at the first start and does not normally need to be changed.",
@@ -472,7 +473,11 @@
         "Min": "Minimum ({db} dBm)",
         "Low": "Low ({db} dBm)",
         "High": "High ({db} dBm)",
-        "Max": "Maximum ({db} dBm)"
+        "Max": "Maximum ({db} dBm)",
+        "DeyeConfiguration": "Deye Sun inverter settings",
+        "DeyeUnknownSerialWriteWarning": "Activate the write commands only if you are sure that the registers are the same as for the known inverter types! Switching on and off: Register 002B with the size of 2 bytes. Set limit: Register 0028 with the size of 2 bytes.",
+        "DeyeUnknownSerialWrite": "Allow write commands for unknown inverter types",
+        "DeyeUnknownSerialWriteHint": "This flag can be used to send commands to unknown inverter types. Commands include setting the limit and switching on/off."
     },
     "securityadmin": {
         "SecuritySettings": "Security Settings",

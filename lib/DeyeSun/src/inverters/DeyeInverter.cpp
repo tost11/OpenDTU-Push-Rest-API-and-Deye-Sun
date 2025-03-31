@@ -1,6 +1,7 @@
 #include "DeyeInverter.h"
 
 #include "DeyeUtils.h"
+#include "DeyeSun.h"
 
 #include <Dns.h>
 #include <ios>
@@ -183,11 +184,13 @@ bool DeyeInverter::isReachable() {
 
 bool DeyeInverter::sendActivePowerControlRequest(float limit, PowerLimitControlType type) {
     //TODO do better
-    /*if(typeName().startsWith("Unknown")){
-        _alarmLogParser->addAlarm(6,10 * 60,"command not send because Deye Sun device unknown (checked by Serial number)");//alarm for 10 min
+    if(typeName().startsWith("Unknown") && !DeyeSun.getUnknownDevicesWriteEnable()){
+        _alarmLogParser->addAlarm(6,10 * 60,"limit command not send because Deye Sun device unknown (checked by Serial number), it is possible to override this security check on DTU/Settings page");//alarm for 10 min
+        MessageOutput.println("DeyeSun: limit command not send because Deye Sun device unknown (checked by Serial number), it is possible to override this security check on DTU/Settings page");
         return false;
-    }*/
+    }
     if(!(type == AbsolutPersistent || type == RelativPersistent)){
+        MessageOutput.println("Setting of temporary limit on deye inverter not possible");
         return false;
     }
 
@@ -197,7 +200,7 @@ bool DeyeInverter::sendActivePowerControlRequest(float limit, PowerLimitControlT
     }else{
         uint16_t maxPower = _devInfoParser->getMaxPower();
         if(maxPower == 0){
-            _alarmLogParser->addAlarm(6,10 * 60,"command not send because init data of device not received yet (max Power)");//alarm for 10 min
+            _alarmLogParser->addAlarm(6,10 * 60,"limit command not send because init data of device not received yet (max Power)");//alarm for 10 min
             getSystemConfigParaParser()->setLastLimitRequestSuccess(CMD_NOK);
             return false;
         }
@@ -220,8 +223,9 @@ bool DeyeInverter::sendRestartControlRequest() {
 }
 
 bool DeyeInverter::sendPowerControlRequest(bool turnOn) {
-    //TODO do better
-    if(typeName().startsWith("Unknown")){
+    if(typeName().startsWith("Unknown") && !DeyeSun.getUnknownDevicesWriteEnable()){
+        _alarmLogParser->addAlarm(6,10 * 60,"power command not send because Deye Sun device unknown (checked by Serial number), it is possible to override this security check on DTU/Settings page");//alarm for 10 min
+        MessageOutput.println("DeyeSun:power command not send because Deye Sun device unknown (checked by Serial number), it is possible to override this security check on DTU/Settings page");
         return false;
     }
     _powerTargetStatus = std::make_unique<bool>(turnOn);

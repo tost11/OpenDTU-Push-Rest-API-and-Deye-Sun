@@ -24,6 +24,8 @@ public:
 
     void init() override;
 
+    void setUnknownDevicesWriteEnable(bool enabled);
+    bool getUnknownDevicesWriteEnable()const;
 private:
     std::vector<std::shared_ptr<DeyeInverter>> & _inverters;
 
@@ -31,6 +33,8 @@ private:
 
     uint32_t _pollInterval = 0;
     uint32_t _lastPoll = 0;
+
+    bool _unknownDeviceWriteEnabled;
 };
 
 extern DeyeSunClass DeyeSun;
