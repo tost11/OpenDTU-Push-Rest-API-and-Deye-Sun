@@ -1,5 +1,3 @@
-#ifdef HOYMILES
-
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 
@@ -18,5 +16,3 @@ private:
     Task _applyDataTask;
     void applyDataTaskCb();
 };
-
-#endif

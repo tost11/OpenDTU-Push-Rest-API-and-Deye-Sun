@@ -2,6 +2,13 @@
 
 #include <WString.h>
 
+enum CountryModeId_t {
+    MODE_EU,
+    MODE_US,
+    MODE_BR,
+    CountryModeId_Max
+};
+
 typedef enum { // ToDo: to be verified by field tests
     AbsolutNonPersistent = 0x0000, // 0
     RelativNonPersistent = 0x0001, // 1

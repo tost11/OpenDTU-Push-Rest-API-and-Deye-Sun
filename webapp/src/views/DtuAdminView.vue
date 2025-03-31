@@ -5,7 +5,7 @@
         </BootstrapAlert>
 
         <form @submit="saveDtuConfig">
-            <CardElement :text="$t('dtuadmin.DtuConfiguration')" textVariant="text-bg-primary">
+            <CardElement v-if="dtuConfigList.manufacturers.includes('Hoymiles')" :text="$t('dtuadmin.DtuConfiguration')" textVariant="text-bg-primary">
                 <InputElement
                     :label="$t('dtuadmin.Serial')"
                     v-model="dtuConfigList.serial"
@@ -108,6 +108,23 @@
                     </div>
                 </div>
             </CardElement>
+            <span v-if="dtuConfigList.manufacturers.includes('DeyeSun')">
+              <br/>
+              <CardElement :text="$t('dtuadmin.DeyeConfiguration')" textVariant="text-bg-primary">
+                <div class="row mb-3">
+                  <label :class="['col-sm-12','warning-color']">
+                    {{ $t('dtuadmin.DeyeUnknownSerialWriteWarning') }}
+                  </label>
+                </div>
+                <InputElement
+                    :label="$t('dtuadmin.DeyeUnknownSerialWrite')"
+                    :tooltip="$t('dtuadmin.DeyeUnknownSerialWriteHint')"
+                    v-model="dtuConfigList.deye_unknown_device_write"
+                    type="checkbox"
+                    wide
+                />
+              </CardElement>
+            </span>
             <FormFooter @reload="getDtuConfig" />
         </form>
     </BasePage>
@@ -146,6 +163,7 @@ export default defineComponent({
             alertMessage: '',
             alertType: 'info',
             showAlert: false,
+
         };
     },
     created() {
