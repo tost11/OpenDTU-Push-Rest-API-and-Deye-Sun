@@ -6,23 +6,35 @@
 
 ## What's this fork about ?
 
-Currently, I am working on multiple features:
+Currently, I am working on multiple features (all split up in different branches):
 
-- Push data via rest to extern Application [here](https://github.com/tost11/OpenDTU-Push-Rest-API/tree/feature/push-rest-api)
-- Implement Logic to add and Monitor Deye Sun,Bosswerk Inverters, [here](https://github.com/tost11/OpenDTU-Push-Rest-API/tree/feature/deye-sun)
-- Both combined, [here](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/tree/feature/push-rest-api)
-- manuel startupdate (So opendtu works without npt and manuel setting date after boot,date and time obviously not correct)[here](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/tree/feature/default-start-date)
+- Push data via rest to an extern application [here](https://github.com/tost11/OpenDTU-Push-Rest-API/tree/feature/push-rest-api)
+- support more inverter types (W-Series Hoymiles) and more manufacturers (Deye) [here](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/tree/feature/more-manufacturers)
+- manual start date (So opendtu works without NTP and manual setting date after boot, date and time obviously not correct) [here](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/tree/feature/default-start-date)
 - servo engine that views solar power (looks like [this](https://itgrufti.de/solar/monitoring/eine-solar-anzeige-fuer-die-kita/)) [here](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/tree/feature/servo)
 
-### Deye Sun Branch
+## Features
 
-This feature Branch is intended to read out Deye Sun Micro PV Inverters and make use of the original project UI and features
+### More manufacturers
 
-The esp will connect via Network(udp) to the configured ip/hostname and port of the Inverter.
-It will read all data every 5 minutes (more is not supported by device)
-Reachable check will be done more often.
+With help from this fork, it is possible to read data from more inverter types besides the Hoymiles NRF24 ones.
+The additional inverter types will be fetched via Network (Wi-Fi). The esp therefore has to be in the same network as the inverter.
 
-Original implementation for Hoymiles inverts will work in parallel
+All inverter types are separated implementations and can be en-disabled by setting define in [platformio.ini](platformio.ini).
+
+| Flag         | Meaning                                       |
+|--------------|-----------------------------------------------|
+| -DHOYMILES_W | support for Hoymiles W-Series inverters       |
+| -DDEYE_SUN   | support for Hoymiles Deye SUN inverters       |
+| -DHOYMILES   | support for original Hoymiles NRF24 inverters |
+
+The original implementation for Hoymiles inverts will work in parallel.
+
+### Status Deye Sun
+
+The esp will connect via Network (UDP, Modbus) to the configured IP/hostname/MAC (when connected to AP of esp) and port of the Inverter.
+It will read all data every 5 minutes. Reading data more often is not possible due to the limitations of inverters.
+Health checks will be done more often. It is configurable on advanced inverter settings.
 
 Tested with model: SUN300G3-EU-230
 
@@ -30,32 +42,28 @@ Tested with model: SUN300G3-EU-230
 
 - Reading data
 - Configuring via UI
-- Tun on and off (also "resetting" if led permanent red)
-- Setting limit
+- Tun on and off (also "resetting" if led permanent red, for unknown devices it has to be enabled on the DTU/General-Settings page).
+- Setting limit (for unknown devices, it has to be enabled on the DTU/General-Settings page)
 - Showing logs
 
 #### Not working
 
 - Logs show hardware inverter errors
 - restart inverter
+- daily production if inverter not connected to online service
+- on new Deye Firmware versions like: MW3_SSL_5408_1.0B or MW_03_16U_5408_5.0C-S the UDP port 48899 is closed, and therefore this fork isn't working on them. Further information is [here](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/issues/8).
 
-### Hoymiles W-Series Branch
+### Status Hoymiles W-Series
 
-This feature branch is intended to read out Hoymiles W-Series PV Inverters and make use of the original project UI and features.
+The esp will connect via Network (TCP, Protobuf) to the configured IP/hostname/MAC (when connected to AP of the esp) and port of the Inverter.
 
-The esp will connect via Network(tcp) to the configured ip/hostname and port of the Inverter.
-
-The DTU-Connection code is mostly based on the code of [DTU-Gateway](https://github.com/ohAnd/dtuGateway). I just mapped it to OpenDTU project. So all problems described there with setting limit also exist here.
-
-Original implementation for Hoymiles inverts will work in parallel.
+The DTU-Connection code is mostly based on the code of [DTU-Gateway](https://github.com/ohAnd/dtuGateway). I just mapped it to OpenDTU project. So all problems described there with setting limits also exist here.
 
 Tested with model: HMS-800W-2T
 
-#### Problems
-
-The only real supported inverter by Serial is currently the 'HMS-800W-2T' because i dont know the other serials-number prefix to recognize them. So every other W-Series inverter will be shown as 4-PV input inverter.
-
-Support for 6T invertes not done yet
+It is possible to configure the distance between the data fetches on advanced inverter settings. This is needed because on the first firmware
+versions of the device (like 1.\*.\*) it was only possible every 31 seconds (also mentioned on [DTU-Gateway](https://github.com/ohAnd/dtuGateway)). Therefore the
+Default value is 31 seconds. With the new firmware (2.\*.\* and above), it is possible more often. 20 seconds seem to be a good value (find out for yourself).
 
 #### Working
 
@@ -67,21 +75,47 @@ Support for 6T invertes not done yet
 #### Not working
 
 - Logs show hardware inverter errors
+- Read Firmware information of inverter
+- Support for 6T invertes not done yet.
+
+### Network setup as gateway
+
+If you like to disconnect the inverter from the internet without blocking connections on the router (so they don't do any crazy updates like seen lately).
+It is possible to set OpenDTU in continuous AP mode by setting time on the network page to zero and connecting your inverters directly to the OpenDTU AP.
+Please change the password therefor to something more complex. Then on the network settings for the inverters, the MAC address
+can be used for connection. The DTU will resolve them to the correct IP address. The connected device can be found on the network Info page of the DTU.
+
+### Start Time
+
+With this feature, it is possible to use OpenDTU in places with no active internet connection. OpenDTU will only fetch data from inverters 
+if the time is set correctly. So on a restart or power loss, it won't work until someone manually sets the time. 
+With this feature, a default time can be set on the NTP settings page on which the inverter will start. The date will obviously not be correct, 
+but at least the DTU shows some data.
 
 ### Rest push service
 
-I have implemented an application that monitors solar systems on a server
-with graphs, statistics and all the cool stuff!
+I have implemented an application that monitors solar systems on a server with graphs, statistics and all the cool stuff.
+OpenDTU is not capable due to the esp limitations.
 
-For getting data on this application this fork has a new feature
-that sends the current inverter data via rest to the application.
+For getting data on this application, this fork has a new feature that sends the current inverter data via rest to the application.
 
-If you are interested in the application or the rest definition for your own application
+If you are interested in the application or the Rest definition for your own application
 check out the [project](https://github.com/tost11/solar-monitoring).
 
-### Builds
+### Servo Engine
+
+With this feature, it is possible to add a servo engine to the esp. It can be configured by pin mapping and hardware settings.
+Using input 0 zero will result in using the full load of the invertery every other number selects the index of the inputs.
+
+## Builds
 
 Check out precompiled builds for dev32 board [here](builds)
+
+## Further docuementation
+
+Fore some more detailed Documentation in German check out this [page](https://itgrufti.de/solar/).
+
+# OpenDTU original README
 
 ## !! IMPORTANT UPGRADE NOTES !!
 
