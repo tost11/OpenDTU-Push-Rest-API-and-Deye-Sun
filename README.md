@@ -78,12 +78,17 @@ Default value is 31 seconds. With the new firmware (2.\*.\* and above), it is po
 - Read Firmware information of inverter
 - Support for 6T invertes not done yet.
 
-### Network setup as gateway
+####  Network setup as gateway
 
 If you like to disconnect the inverter from the internet without blocking connections on the router (so they don't do any crazy updates like seen lately).
 It is possible to set OpenDTU in continuous AP mode by setting time on the network page to zero and connecting your inverters directly to the OpenDTU AP.
 Please change the password therefor to something more complex. Then on the network settings for the inverters, the MAC address
 can be used for connection. The DTU will resolve them to the correct IP address. The connected device can be found on the network Info page of the DTU.
+
+#### more serial numbers
+
+To get rid of the unknown devices, recognized by the device serial prefix, it would be helpful to know more for them so they can be mapped correctly.
+For doing so, feel free to leave a comment with device type and prefix on this [issue](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/issues/6) so they can be added.
 
 ### Start Time
 
