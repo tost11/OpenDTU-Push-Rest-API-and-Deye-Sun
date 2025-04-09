@@ -2,7 +2,6 @@
 #include "inverters/HoymilesWInverter.h"
 #include "inverters/HMS_W_1T.h"
 #include "inverters/HMS_W_2T.h"
-#include "inverters/HMS_W_3T.h"
 #include "inverters/HMS_W_4T.h"
 
 HoymilesWClass HoymilesW;
@@ -43,8 +42,6 @@ std::shared_ptr<HoymilesWInverter> HoymilesWClass::addInverter(const char* name,
         i = std::make_shared<HMS_W_1T>(serial);
     }else if (HMS_W_2T::isValidSerial(serial)) {
         i = std::make_shared<HMS_W_2T>(serial);
-    }else if (HMS_W_3T::isValidSerial(serial)) {
-        i = std::make_shared<HMS_W_3T>(serial);
     }else if (HMS_W_4T::isValidSerial(serial)) {
         i = std::make_shared<HMS_W_4T>(serial);
     }else{
