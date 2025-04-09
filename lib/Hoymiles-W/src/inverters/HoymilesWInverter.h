@@ -21,6 +21,8 @@ public:
     explicit HoymilesWInverter(uint64_t serial);
     virtual ~HoymilesWInverter() = default;
 
+    struct HoymilesWConnectionStatistics ConnectionStatistics = {};
+
     uint64_t serial() const override;
 
     String typeName() const override;
@@ -48,11 +50,13 @@ public:
     void swapBuffers(const InverterData *data);
 
     bool supportsPowerDistributionLogic() override;
+
+    void onPollTimeChanged() override;
+
+    void resetStats() override;
+
 protected:
     virtual void hostOrPortUpdated() override;
-
-public:
-    void onPollTimeChanged() override;
 
 private:
     uint64_t _serial;

@@ -4,6 +4,7 @@
 #include "HoymilesRadio.h"
 #include "commands/CommandAbstract.h"
 #include "types.h"
+#include "defines.h"
 #include <Arduino.h>
 #include <cmt2300wrapper.h>
 #include <memory>
@@ -16,13 +17,6 @@
 #ifndef HOYMILES_CMT_WORK_FREQ
 #define HOYMILES_CMT_WORK_FREQ 865000000
 #endif
-
-enum CountryModeId_t {
-    MODE_EU,
-    MODE_US,
-    MODE_BR,
-    CountryModeId_Max
-};
 
 struct CountryFrequencyDefinition_t {
     FrequencyBand_t Band;

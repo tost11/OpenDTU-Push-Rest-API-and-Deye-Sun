@@ -3,7 +3,7 @@
 #include <MessageOutput.h>
 #include <memory>
 
-DTUInterface::DTUInterface(ConnectionStatistics & connectionStats,const char *server, uint16_t port) :
+DTUInterface::DTUInterface(HoymilesWConnectionStatistics & connectionStats,const char *server, uint16_t port) :
 connectionStatistics(connectionStats),
 serverIP(server),
 serverPort(port),

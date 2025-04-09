@@ -1,6 +1,7 @@
 #include "DeyeInverter.h"
 
 #include "DeyeUtils.h"
+#include "DeyeSun.h"
 
 #include <Dns.h>
 #include <MessageOutput.h>
@@ -180,11 +181,13 @@ bool DeyeInverter::isReachable() {
 
 bool DeyeInverter::sendActivePowerControlRequest(float limit, PowerLimitControlType type) {
     //TODO do better
-    if(typeName().startsWith("Unknown")){
-        _alarmLogParser->addAlarm(6,10 * 60,"command not send because Deye Sun device unknown (checked by Serial number)");//alarm for 10 min
+    if(typeName().startsWith("Unknown") && !DeyeSun.getUnknownDevicesWriteEnable()){
+        _alarmLogParser->addAlarm(6,10 * 60,"limit command not send because Deye Sun device unknown (checked by Serial number), it is possible to override this security check on DTU/Settings page");//alarm for 10 min
+        MessageOutput.println("DeyeSun: limit command not send because Deye Sun device unknown (checked by Serial number), it is possible to override this security check on DTU/Settings page");
         return false;
     }
     if(!(type == AbsolutPersistent || type == RelativPersistent)){
+        MessageOutput.println("Setting of temporary limit on deye inverter not possible");
         return false;
     }
 
@@ -194,7 +197,7 @@ bool DeyeInverter::sendActivePowerControlRequest(float limit, PowerLimitControlT
     }else{
         uint16_t maxPower = _devInfoParser->getMaxPower();
         if(maxPower == 0){
-            _alarmLogParser->addAlarm(6,10 * 60,"command not send because init data of device not received yet (max Power)");//alarm for 10 min
+            _alarmLogParser->addAlarm(6,10 * 60,"limit command not send because init data of device not received yet (max Power)");//alarm for 10 min
             getSystemConfigParaParser()->setLastLimitRequestSuccess(CMD_NOK);
             return false;
         }
@@ -217,8 +220,9 @@ bool DeyeInverter::sendRestartControlRequest() {
 }
 
 bool DeyeInverter::sendPowerControlRequest(bool turnOn) {
-    //TODO do better
-    if(typeName().startsWith("Unknown")){
+    if(typeName().startsWith("Unknown") && !DeyeSun.getUnknownDevicesWriteEnable()){
+        _alarmLogParser->addAlarm(6,10 * 60,"power command not send because Deye Sun device unknown (checked by Serial number), it is possible to override this security check on DTU/Settings page");//alarm for 10 min
+        MessageOutput.println("DeyeSun:power command not send because Deye Sun device unknown (checked by Serial number), it is possible to override this security check on DTU/Settings page");
         return false;
     }
     _powerTargetStatus = std::make_unique<bool>(turnOn);
@@ -289,7 +293,7 @@ int DeyeInverter::handleRegisterWrite(size_t length) {
 int DeyeInverter::handleRegisterRead(size_t length) {
     String ret= filterReceivedResponse(length);
 
-    MessageOutput.printlnDebug("Fileted recevied Register Read: " + ret);
+    MessageOutput.printlnDebug("Filtered received Register Read: " + ret);
 
     if(ret.startsWith("+ERR=")) {
         if (ret.startsWith("+ERR=-1")) {
@@ -305,7 +309,7 @@ int DeyeInverter::handleRegisterRead(size_t length) {
             int start = 4;
 
             if(ret.length() <= start){
-                MessageOutput.printlnDebug("Error while reading data not entoh data on: " + current.readRegister);
+                MessageOutput.printlnDebug("Error while reading data not enough data on: " + current.readRegister);
                 return -2000;
             }
 
@@ -339,7 +343,7 @@ int DeyeInverter::handleRegisterRead(size_t length) {
     int start = 4 + 6;
 
     if(ret.length() < start+(current.length*2)){
-        MessageOutput.printlnDebug("Error while reading data not entoh data on: " + current.readRegister);
+        MessageOutput.printlnDebug("Error while reading data not enough data on: " + current.readRegister);
         return -1000;
     }
 
@@ -414,6 +418,8 @@ void DeyeInverter::sendCurrentRegisterRead() {
     String checksum = modbusCRC16FromASCII(data);
 
     sendSocketMessage("AT+INVDATA=8,"+data+checksum+"\n");
+
+    ConnectionStatistics.SendCommands++;
 }
 
 void DeyeInverter::sendCurrentRegisterWrite() {
@@ -434,6 +440,8 @@ void DeyeInverter::sendCurrentRegisterWrite() {
     MessageOutput.printlnDebug("Sending socket message write: ");
     //Serial.println("AT+INVDATA=11,"+data+checksum+"\n");
     sendSocketMessage("AT+INVDATA=11,"+data+checksum+"\n");
+
+    ConnectionStatistics.SendCommands++;
 }
 
 void DeyeInverter::swapBuffers(bool fullData) {
@@ -488,11 +496,15 @@ String DeyeInverter::serialToModel(uint64_t serial) {
              ((uint32_t)(serial & 0xFFFFFFFF)));
     String serialString = serial_buff;
 
-    if(serialString.startsWith("415") || serialString.startsWith("414")){//TODO find out more ids and check if correct
+    if(serialString.startsWith("415") || serialString.startsWith("414") || serialString.startsWith("221")){//TODO find out more ids and check if correct
         return "SUN600G3-EU-230";
     }else if(serialString.startsWith("413") || serialString.startsWith("411")){//TODO find out more ids and check if correct
         return "SUN300G3-EU-230";
-    }
+    }else if(serialString.startsWith("384") || serialString.startsWith("385") || serialString.startsWith("386")){
+        return "SUN-M60/80/100G4-EU-Q0";
+    }/*else if(serialString.startsWith("41")){//TODO find out full serial
+        return "EPP-300G3-EU-230";
+    }*/
 
     return "Unknown";
 }
@@ -525,11 +537,12 @@ bool DeyeInverter::handleRead() {
         sendSocketMessage("WIFIKIT-214028-READ");
         _startCommand = true;
         _timerBetweenSends = 0;
+        ConnectionStatistics.Connects++;
     }
 
     int packetSize = _socket->parsePacket();
     while (packetSize > 0){
-        MessageOutput.printlnDebug("Recevied new package");
+        MessageOutput.printlnDebug("Received new package");
         size_t num = _socket->read(_readBuff,packetSize);
         _socket->flush();
         _timerTimeoutCheck.set(TIMER_TIMEOUT);
@@ -542,17 +555,25 @@ bool DeyeInverter::handleRead() {
             _startCommand = false;
             sendSocketMessage("+ok");
             _timerBetweenSends = millis();
+            ConnectionStatistics.ConnectsSuccessful++;
+            ConnectionStatistics.HealthChecks++;
         }else{
             int ret = handleRegisterRead(num);
             if(ret == 0){//ok
-                if(_commandPosition == LAST_HEALTHCHECK_COMMEND && !_needInitData && !_timerFullPoll.occured()){
-                    endSocket();
-                    _commandPosition = INIT_COMMAND_START_SKIP;
-                    _timerHealthCheck.set(getInternalPollTime());
-                    swapBuffers(false);
-                    _errorCounter = -1;
-                    MessageOutput.println("Succesfully healtcheck");
-                    return false;
+                if(_commandPosition == LAST_HEALTHCHECK_COMMEND){
+                    if(!_needInitData && !_timerFullPoll.occured()) {
+                        endSocket();
+                        _commandPosition = INIT_COMMAND_START_SKIP;
+                        _timerHealthCheck.set(getInternalPollTime());
+                        swapBuffers(false);
+                        _errorCounter = -1;
+                        MessageOutput.println("Successfully healthcheck");
+                        ConnectionStatistics.HealthChecksSuccessful++;
+                        return false;
+                    }else{
+                        ConnectionStatistics.ReadRequests++;
+                        ConnectionStatistics.HealthChecksSuccessful++;//not fully correct but looks good on statistics TODO fix to correct behavior
+                    }
                 }
                 if(_commandPosition + 1 >= getRegisteresToRead().size()){
                     endSocket();
@@ -569,7 +590,8 @@ bool DeyeInverter::handleRead() {
                             _timerFullPoll.extend(TIMER_FULL_POLL);
                         }
                     }
-                    MessageOutput.println("Red succesfull all values");
+                    MessageOutput.println("Red successful all values");
+                    ConnectionStatistics.ReadRequestsSuccessful++;
                     return false;
                 }
                 _timerBetweenSends = millis();
@@ -579,6 +601,7 @@ bool DeyeInverter::handleRead() {
             }else{
                 _timerErrorBackOff.set(TIMER_ERROR_BACKOFF);
                 endSocket();
+                ConnectionStatistics.ErrorCommands++;
                 return true;
             }
         }
@@ -595,6 +618,10 @@ bool DeyeInverter::handleRead() {
         if (_timerTimeoutCheck.occured()) {
             MessageOutput.printlnDebug("Max poll time overtook try again");
             endSocket();
+
+            if(!_startCommand){
+                ConnectionStatistics.TimeoutCommands++;
+            }
         }
     }
     return true;
@@ -633,11 +660,12 @@ void DeyeInverter::handleWrite() {
         sendSocketMessage("WIFIKIT-214028-READ");
         _startCommand = true;
         _timerBetweenSends = 0;
+        ConnectionStatistics.Connects++;
     }
 
     int packetSize = _socket->parsePacket();
     while (packetSize > 0){
-        MessageOutput.printlnDebug("Recevied new package for write");
+        MessageOutput.printlnDebug("Received new package for write");
         size_t num = _socket->read(_readBuff,packetSize);
         _socket->flush();
         _timerTimeoutCheck.set(TIMER_TIMEOUT);
@@ -646,6 +674,8 @@ void DeyeInverter::handleWrite() {
                 _errorCounter = 1000;
                 endSocket();
             }
+            ConnectionStatistics.ConnectsSuccessful++;
+            ConnectionStatistics.WriteRequests++;
             _startCommand = false;
             sendSocketMessage("+ok");
             //sendCurrentRegisterRead();
@@ -661,10 +691,12 @@ void DeyeInverter::handleWrite() {
                     _systemConfigParaParser->setLastLimitRequestSuccess(CMD_OK);
                 }
                 _currentWritCommand = nullptr;
+                ConnectionStatistics.WriteRequestsSuccessful++;
                 return;
             }
             _timerErrorBackOff.set(TIMER_ERROR_BACKOFF);
             endSocket();
+            ConnectionStatistics.ErrorCommands++;
             return;
         }
         packetSize = _socket->parsePacket();
@@ -680,6 +712,9 @@ void DeyeInverter::handleWrite() {
         if (_timerTimeoutCheck.occured()) {
             MessageOutput.printlnDebug("Max poll time for write overtook from write, try again");
             endSocket();
+            if(!_startCommand){
+                ConnectionStatistics.TimeoutCommands++;
+            }
         }
     }
 }
@@ -703,4 +738,12 @@ uint64_t DeyeInverter::getInternalPollTime() {
     }
     time = time * 1000;
     return time;
+}
+
+void DeyeInverter::resetStats() {
+    ConnectionStatistics = {};
+}
+
+void DeyeInverter::onPollTimeChanged() {
+    _timerHealthCheck.setTimeout(getInternalPollTime());
 }

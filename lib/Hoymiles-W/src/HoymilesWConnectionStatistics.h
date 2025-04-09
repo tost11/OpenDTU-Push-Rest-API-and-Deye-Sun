@@ -1,8 +1,12 @@
+//
+// Created by lukas on 29.03.25.
+//
+
 #pragma once
 
-#include <cstdint>
+#include <cstdio>
 
-struct ConnectionStatistics{
+struct HoymilesWConnectionStatistics{
     // TX Request Data
     uint32_t SendRequests;
     uint32_t SuccessfulRequests;
