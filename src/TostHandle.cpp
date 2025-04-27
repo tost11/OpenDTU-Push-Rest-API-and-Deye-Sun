@@ -115,10 +115,18 @@ void TostHandleClass::loop()
             continue;
         }
 
-        uint32_t diff = lastUpdate - cachedLastUpdate;
-        //MessageOutput.printf("last: %d ",lastUpdate);
-        //MessageOutput.printf("calc: %d ",cachedLastUpdate);
-        //MessageOutput.printf("diff: %d\n",diff);
+        uint32_t diff;
+        if(cachedLastUpdate > lastUpdate){
+            //overrun of millseconds timer
+            diff = lastUpdate + (std::numeric_limits<uint32_t>::max() - cachedLastUpdate);
+        }else{
+            diff = lastUpdate - cachedLastUpdate;
+        }
+
+        MessageOutput.printf("last: %d ",lastUpdate);
+        MessageOutput.printf("calc: %d ",cachedLastUpdate);
+        MessageOutput.printf("diff: %d\n",diff);
+
         if(cachedLastUpdate != 0 && diff < Configuration.get().Tost.Duration * 1000){
             //no update needed
             continue;
@@ -134,7 +142,7 @@ void TostHandleClass::loop()
         float duration = (float)diff / 1000;
 
         if(duration > Configuration.get().Tost.Duration * 1.2){
-            duration = Configuration.get().Tost.Duration * 1.2;
+            duration = Configuration.get().Tost.Duration * 1.2f;
         }
 
         data["duration"] = duration;
@@ -207,6 +215,9 @@ void TostHandleClass::loop()
 
                 MessageOutput.println("adding new request to queue");
                 requestsToSend.push(std::make_unique<String>(std::move(toSend)));
+            }else{
+                //todo remove first form list/queue and add this one
+                MessageOutput.print("New request not added to list not requtests because que is full");
             }
         }
     }
@@ -221,6 +232,7 @@ void TostHandleClass::loop()
     }
 
     if(!_lastRequestResponse.has_value() && _currentlySendingData == nullptr && requestsToSend.size() > 0 && restTimeout.occured()){
+        restTimeout.set(0);//reset if errror was before
         //send new request
         MessageOutput.printf("start new http request send queue size is: %d\r\n",requestsToSend.size());
         //runNextHttpRequest(std::move(data));
@@ -271,7 +283,7 @@ void TostHandleClass::runNextHttpRequest() {
 
         MessageOutput.println("First post url not working try second one");
 
-        statusCode = doRequest(Configuration.get().Tost.SecondUrl,10 * 1000);//10 sec
+        doRequest(Configuration.get().Tost.SecondUrl,10 * 1000);//10 sec
     }
 
     MessageOutput.println("Thread finished request");
@@ -323,6 +335,5 @@ void TostHandleClass::handleResponse()
     }else{
         MessageOutput.println("Tost's Solar Monitoring use rest send pause (1 min) because last request failed, queue is\n\r");
         restTimeout.set(60 * 1000);
-
     }
 }

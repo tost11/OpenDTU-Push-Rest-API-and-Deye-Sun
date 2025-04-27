@@ -29,5 +29,13 @@ void TimeoutHelper::reset()
 
 bool TimeoutHelper::occured() const
 {
-    return millis() > (startMillis + timeout);
+    unsigned long now = millis();
+    unsigned long diff = 0;
+    if(startMillis < now){
+        //milliseconds timer overurne
+        diff = now + (std::numeric_limits<unsigned long>::max() - startMillis);
+    }else{
+        diff = now - startMillis;
+    }
+    return diff > timeout;
 }
