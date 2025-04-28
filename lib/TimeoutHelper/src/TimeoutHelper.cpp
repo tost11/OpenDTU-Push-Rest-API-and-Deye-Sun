@@ -44,10 +44,8 @@ void TimeoutHelper::zero()
 
 bool TimeoutHelper::occured() const
 {
-    if(startMillis == 0){
-        return true;
-    }
-    return millis() > (startMillis + timeout);
+    unsigned long diff = dist();
+    return diff > timeout;
 }
 
 uint32_t TimeoutHelper::currentMillis() const {
@@ -55,5 +53,13 @@ uint32_t TimeoutHelper::currentMillis() const {
 }
 
 uint32_t TimeoutHelper::dist() const {
-    return millis() - startMillis;
+    unsigned long now = millis();
+    unsigned long diff = 0;
+    if(startMillis < now){
+        //milliseconds timer overturn
+        diff = now + (std::numeric_limits<unsigned long>::max() - startMillis);
+    }else{
+        diff = now - startMillis;
+    }
+    return diff;
 }
