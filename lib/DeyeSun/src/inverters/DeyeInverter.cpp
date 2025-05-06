@@ -193,7 +193,7 @@ bool DeyeInverter::sendActivePowerControlRequest(float limit, PowerLimitControlT
 
     uint16_t realLimit;
     if(type == RelativPersistent){
-        realLimit = (uint16_t)(limit + 0.5);
+        realLimit = (uint16_t)(limit + 0.5f);
     }else{
         uint16_t maxPower = _devInfoParser->getMaxPower();
         if(maxPower == 0){
@@ -446,6 +446,7 @@ void DeyeInverter::sendCurrentRegisterWrite() {
 
 void DeyeInverter::swapBuffers(bool fullData) {
     if(fullData) {
+
         _statisticsParser->beginAppendFragment();
         _statisticsParser->clearBuffer();
         _statisticsParser->appendFragment(0, _payloadStatisticBuffer, STATISTIC_PACKET_SIZE);
@@ -455,6 +456,26 @@ void DeyeInverter::swapBuffers(bool fullData) {
 
         _devInfoParser->clearBuffer();
         _devInfoParser->appendFragment(0,_payloadStatisticBuffer+44,2);
+
+        //check if in ap mode
+        for (auto& type : _statisticsParser->getChannelTypes()) {
+            for (auto &channel: _statisticsParser->getChannelsByType(type)) {
+                if(_statisticsParser->getDeyeSunOfflineYieldDayCorrection()) {
+                    float currentOffset = _statisticsParser->getChannelFieldOffset(type, channel, FLD_YD,1);
+                    if (!(currentOffset > 0.f || currentOffset < 0.f)) {
+                        float val = _statisticsParser->getChannelFieldValue(type, channel, FLD_YD);
+                        _statisticsParser->setChannelFieldOffset(type, channel, FLD_YD, val * -1.f,1);
+                        float checkOffset = _statisticsParser->getChannelFieldOffset(type, channel, FLD_YD,1);
+                        MessageOutput.printf("Set daily production offset for type: %d and channel: %d to:%f\n",(int)type,(int)channel,checkOffset);
+                    }
+                }else{
+                    if(_statisticsParser->getSettingByChannelField(type,channel,FLD_YD,1) != nullptr) {
+                        _statisticsParser->setChannelFieldOffset(type, channel, FLD_YD, 0, 1);
+                    }
+                }
+            }
+        }
+
         _devInfoParser->setLastUpdate(millis());
     }
 

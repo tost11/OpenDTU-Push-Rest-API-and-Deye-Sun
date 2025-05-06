@@ -132,6 +132,7 @@ void InverterSettingsClass::init(Scheduler& scheduler)
                     inv->setZeroYieldDayOnMidnight(config.Inverter[i].ZeroYieldDayOnMidnight);
                     inv->setClearEventlogOnMidnight(config.Inverter[i].ClearEventlogOnMidnight);
                     inv->getStatistics()->setYieldDayCorrection(config.Inverter[i].YieldDayCorrection);
+                    inv->getStatistics()->setDeyeSunOfflineYieldDayCorrection(config.Inverter[i].DeyeSunOfflineYieldDayCorrection);
                     for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
                         inv->getStatistics()->setStringMaxPower(c, config.Inverter[i].channel[c].MaxChannelPower);
                         inv->getStatistics()->setChannelFieldOffset(TYPE_DC, static_cast<ChannelNum_t>(c), FLD_YT, config.Inverter[i].channel[c].YieldTotalOffset);
