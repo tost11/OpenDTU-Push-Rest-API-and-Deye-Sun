@@ -67,6 +67,8 @@ void InverterSettingsClass::init(Scheduler& scheduler)
                 inv->setReachableThreshold(config.Inverter[i].ReachableThreshold);
                 inv->setZeroValuesIfUnreachable(config.Inverter[i].ZeroRuntimeDataIfUnrechable);
                 inv->setZeroYieldDayOnMidnight(config.Inverter[i].ZeroYieldDayOnMidnight);
+                inv->getStatistics()->setYieldDayCorrection(config.Inverter[i].YieldDayCorrection);
+                inv->getStatistics()->setDeyeSunOfflineYieldDayCorrection(config.Inverter[i].DeyeSunOfflineYieldDayCorrection);
                 for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
                     inv->getStatistics()->setStringMaxPower(c, config.Inverter[i].channel[c].MaxChannelPower);
                 }
@@ -171,6 +173,8 @@ void InverterSettingsClass::init(Scheduler& scheduler)
                 inv->setReachableThreshold(config.Inverter[i].ReachableThreshold);
                 inv->setZeroValuesIfUnreachable(config.Inverter[i].ZeroRuntimeDataIfUnrechable);
                 inv->setZeroYieldDayOnMidnight(config.Inverter[i].ZeroYieldDayOnMidnight);
+                inv->getStatistics()->setYieldDayCorrection(config.Inverter[i].YieldDayCorrection);
+                inv->getStatistics()->setDeyeSunOfflineYieldDayCorrection(config.Inverter[i].DeyeSunOfflineYieldDayCorrection);
                 for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
                     inv->getStatistics()->setStringMaxPower(c, config.Inverter[i].channel[c].MaxChannelPower);
                 }

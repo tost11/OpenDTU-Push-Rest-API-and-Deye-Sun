@@ -180,6 +180,8 @@ public:
             getEventLog()->clearBuffer();
         }
 
+        getStatistics()->resetDeyeSunOfflineYieldDayCorrection(getZeroYieldDayOnMidnight());
+
         resetStats();
     }
 };

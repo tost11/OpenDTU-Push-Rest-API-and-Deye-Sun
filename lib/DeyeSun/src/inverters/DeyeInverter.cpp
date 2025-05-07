@@ -460,16 +460,20 @@ void DeyeInverter::swapBuffers(bool fullData) {
         //check if in ap mode
         for (auto& type : _statisticsParser->getChannelTypes()) {
             for (auto &channel: _statisticsParser->getChannelsByType(type)) {
+                _statisticsParser->setChannelFieldOffset(type, channel, FLD_YD, 0, 2);
                 if(_statisticsParser->getDeyeSunOfflineYieldDayCorrection()) {
                     float currentOffset = _statisticsParser->getChannelFieldOffset(type, channel, FLD_YD,1);
+                    MessageOutput.printfDebug("Current Deye Offline offset: %f\n",currentOffset);
                     if (!(currentOffset > 0.f || currentOffset < 0.f)) {
+                        //MessageOutput.println("ok");
                         float val = _statisticsParser->getChannelFieldValue(type, channel, FLD_YD);
                         _statisticsParser->setChannelFieldOffset(type, channel, FLD_YD, val * -1.f,1);
                         float checkOffset = _statisticsParser->getChannelFieldOffset(type, channel, FLD_YD,1);
                         MessageOutput.printf("Set daily production offset for type: %d and channel: %d to:%f\n",(int)type,(int)channel,checkOffset);
                     }
                 }else{
-                    if(_statisticsParser->getSettingByChannelField(type,channel,FLD_YD,1) != nullptr) {
+                    //MessageOutput.println("nope");
+                    if(_statisticsParser->getSettingByChannelField(type,channel,FLD_YD,1) != nullptr){
                         _statisticsParser->setChannelFieldOffset(type, channel, FLD_YD, 0, 1);
                     }
                 }

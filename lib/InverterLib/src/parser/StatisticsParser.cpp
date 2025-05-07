@@ -74,6 +74,15 @@ void StatisticsParser::setByteAssignment(const byteAssign_t* byteAssignment, con
         }
         _expectedByteCount = max<uint8_t>(_expectedByteCount, _byteAssignment[i].start + _byteAssignment[i].num);
     }
+
+    /*
+    //some test code
+    for (auto& t : getChannelTypes()) {
+        for (auto &c: getChannelsByType(t)) {
+            setChannelFieldOffset(t,c,FLD_YD,-0.5f,1);
+        }
+    }
+    */
 }
 
 uint8_t StatisticsParser::getExpectedByteCount()
@@ -322,16 +331,6 @@ void StatisticsParser::zeroRuntimeData()
 void StatisticsParser::zeroDailyData()
 {
     zeroFields(dailyProductionFields);
-
-    //zero deye sun daily offset on Gateway (ap connection) mode
-    for (auto& t : getChannelTypes()) {
-        for (auto &c: getChannelsByType(t)) {
-            auto setting = getSettingByChannelField(t,c,FLD_YD,1);
-            if(setting != nullptr){
-                setting->offset = 0.f;
-            }
-        }
-    }
 }
 
 void StatisticsParser::setLastUpdate(const uint32_t lastUpdate)
@@ -393,6 +392,26 @@ float StatisticsParser::calculateOffsetByChannelField(const ChannelType_t type, 
 
 bool StatisticsParser::getDeyeSunOfflineYieldDayCorrection() const {
     return _enableDeyeSunOfflineYieldDayCorrection;
+}
+
+void StatisticsParser::resetDeyeSunOfflineYieldDayCorrection(bool setZero) {
+    //zero deye sun daily offset on Gateway (ap connection) mode
+    for (auto& t : getChannelTypes()) {
+        for (auto &c: getChannelsByType(t)) {
+            auto setting = getSettingByChannelField(t,c,FLD_YD,1);
+            if(setting != nullptr){
+                setting->offset = 0.f;
+                if(!setZero){
+                    setChannelFieldOffset(t,c,FLD_YD,0,2);
+                    float value = getChannelFieldValue(t,c,FLD_YD);
+                    MessageOutput.printfDebug("Daily Reset Deye Offline offset to: %f\n",value);
+                    setChannelFieldOffset(t,c,FLD_YD,value * -1,2);
+                }else{
+                    setChannelFieldOffset(t,c,FLD_YD,0,2);
+                }
+            }
+        }
+    }
 }
 
 static float calcTotalYieldTotal(StatisticsParser* iv, uint8_t arg0)

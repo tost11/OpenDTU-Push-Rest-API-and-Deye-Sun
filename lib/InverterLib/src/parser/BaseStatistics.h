@@ -69,6 +69,7 @@ public:
     virtual void setChannelFieldOffset(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId, float offset,uint8_t index = 0) = 0;
     virtual void zeroDailyData() = 0;
     virtual void resetYieldDayCorrection() = 0;
+    virtual void resetDeyeSunOfflineYieldDayCorrection(bool setZero) = 0;
     virtual void setYieldDayCorrection(const bool enabled) = 0;
     virtual void setDeyeSunOfflineYieldDayCorrection(const bool enabled) = 0;
 
