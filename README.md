@@ -53,6 +53,11 @@ Tested with model: SUN300G3-EU-230
 - daily production if inverter not connected to online service
 - on new Deye Firmware versions like: MW3_SSL_5408_1.0B or MW_03_16U_5408_5.0C-S the UDP port 48899 is closed, and therefore this fork isn't working on them. Further information is [here](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/issues/8).
 
+#### Additional Features
+When the Deye sun inverter is not having a connection to the internet (remote server), the daily KWH will not reset. For fixing that on the
+OpenDTU view, it is possible to activate the "Deye Sun offline yield day flag" on advanced inverter settings. So the daily KWH will be
+tracked and calculated by OpenDTU itself.
+
 ### Status Hoymiles W-Series
 
 The esp will connect via Network (TCP, Protobuf) to the configured IP/hostname/MAC (when connected to AP of the esp) and port of the Inverter.
