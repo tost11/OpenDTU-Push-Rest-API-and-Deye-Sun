@@ -23,5 +23,6 @@ export interface Inverter {
     zero_day: boolean;
     clear_eventlog: boolean;
     yieldday_correction: boolean;
+    deye_sun_offline_yieldday_correction: boolean;
     channel: Array<InverterChannel>;
 }

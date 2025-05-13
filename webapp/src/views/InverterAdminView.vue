@@ -353,6 +353,15 @@
                 />
 
                 <InputElement
+                    v-if="selectedInverterData.manufacturer == 'DeyeSun'"
+                    :label="$t('inverteradmin.DeyeSunOfflineYieldDayCorrection')"
+                    v-model="selectedInverterData.deye_sun_offline_yieldday_correction"
+                    type="checkbox"
+                    :tooltip="$t('inverteradmin.DeyeSunOfflineYieldDayCorrectionHint')"
+                    wide
+                />
+
+                <InputElement
                     v-if="(selectedInverterData.manufacturer != 'Hoymiles')"
                     :label="$t('inverteradmin.PollTime')"
                     v-model="selectedInverterData.poll_time"
