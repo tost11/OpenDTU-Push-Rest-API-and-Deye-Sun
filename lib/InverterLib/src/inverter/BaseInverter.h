@@ -173,6 +173,8 @@ public:
         // Have to reset the offets first, otherwise it will
         // Substract the offset from zero which leads to a high value
         getStatistics()->resetYieldDayCorrection();
+        getStatistics()->resetDeyeSunOfflineYieldDayCorrection(getZeroYieldDayOnMidnight());
+
         if (getZeroYieldDayOnMidnight()) {
             getStatistics()->zeroDailyData();
         }
@@ -180,7 +182,6 @@ public:
             getEventLog()->clearBuffer();
         }
 
-        getStatistics()->resetDeyeSunOfflineYieldDayCorrection(getZeroYieldDayOnMidnight());
 
         resetStats();
     }

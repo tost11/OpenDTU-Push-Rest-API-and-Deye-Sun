@@ -74,15 +74,6 @@ void StatisticsParser::setByteAssignment(const byteAssign_t* byteAssignment, con
         }
         _expectedByteCount = max<uint8_t>(_expectedByteCount, _byteAssignment[i].start + _byteAssignment[i].num);
     }
-
-    /*
-    //some test code
-    for (auto& t : getChannelTypes()) {
-        for (auto &c: getChannelsByType(t)) {
-            setChannelFieldOffset(t,c,FLD_YD,-0.5f,1);
-        }
-    }
-    */
 }
 
 uint8_t StatisticsParser::getExpectedByteCount()
@@ -398,17 +389,28 @@ void StatisticsParser::resetDeyeSunOfflineYieldDayCorrection(bool setZero) {
     //zero deye sun daily offset on Gateway (ap connection) mode
     for (auto& t : getChannelTypes()) {
         for (auto &c: getChannelsByType(t)) {
+            if(!hasChannelFieldValue(t,c,FLD_YD)){
+                continue;
+            }
             auto setting = getSettingByChannelField(t,c,FLD_YD,1);
             if(setting != nullptr){
-                setting->offset = 0.f;
+                //get real value without our extra offsets (first current, second if reset at night)
                 if(!setZero){
-                    setChannelFieldOffset(t,c,FLD_YD,0,2);
-                    float value = getChannelFieldValue(t,c,FLD_YD);
-                    MessageOutput.printfDebug("Daily Reset Deye Offline offset to: %f\n",value);
-                    setChannelFieldOffset(t,c,FLD_YD,value * -1,2);
+                    //if not reset data on midnight move current offset to index 2 so 1 can be recognised as not used
+                    float currentOffset = getChannelFieldOffset(t,c,FLD_YD,1);
+                    if(currentOffset != 0){
+                        //only do if present (if not persent keep last value)
+                        setChannelFieldOffset(t,c,FLD_YD,currentOffset,2);
+                        MessageOutput.printf("Daily Reset Deye Offline offset to: %f\n",currentOffset);
+                    }else{
+                        MessageOutput.printf("Daily Reset kept last offset value: %f\n",getChannelFieldOffset(t,c,FLD_YD,2));
+                    }
                 }else{
+                    //if reset data on midnight set everything to zero
                     setChannelFieldOffset(t,c,FLD_YD,0,2);
+                    MessageOutput.printf("Daily Reset Deye Offline offset to zero");
                 }
+                setting->offset = 0.f;
             }
         }
     }

@@ -457,9 +457,12 @@ void DeyeInverter::swapBuffers(bool fullData) {
         _devInfoParser->clearBuffer();
         _devInfoParser->appendFragment(0,_payloadStatisticBuffer+44,2);
 
-        //check if in ap mode
+        //set new deye offline offset if configured
         for (auto& type : _statisticsParser->getChannelTypes()) {
             for (auto &channel: _statisticsParser->getChannelsByType(type)) {
+                if(!_statisticsParser->hasChannelFieldValue(type,channel,FLD_YD)){
+                    continue;
+                }
                 _statisticsParser->setChannelFieldOffset(type, channel, FLD_YD, 0, 2);
                 if(_statisticsParser->getDeyeSunOfflineYieldDayCorrection()) {
                     float currentOffset = _statisticsParser->getChannelFieldOffset(type, channel, FLD_YD,1);
