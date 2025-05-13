@@ -73,6 +73,7 @@ void WebApiInverterClass::onInverterList(AsyncWebServerRequest* request)
             obj["zero_day"] = config.Inverter[i].ZeroYieldDayOnMidnight;
             obj["clear_eventlog"] = config.Inverter[i].ClearEventlogOnMidnight;
             obj["yieldday_correction"] = config.Inverter[i].YieldDayCorrection;
+            obj["deye_sun_offline_yieldday_correction"] = config.Inverter[i].DeyeSunOfflineYieldDayCorrection;
             obj["port"] = config.Inverter[i].Port;
             obj["hostname_or_ip"] = config.Inverter[i].HostnameOrIp;
 
@@ -387,6 +388,7 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
         inverter.ZeroYieldDayOnMidnight = root["zero_day"] | false;
         inverter.ClearEventlogOnMidnight = root["clear_eventlog"] | false;
         inverter.YieldDayCorrection = root["yieldday_correction"] | false;
+        inverter.DeyeSunOfflineYieldDayCorrection = root["deye_sun_offline_yieldday_correction"] | false;
 
         uint8_t arrayCount = 0;
         for (JsonVariant channel : channelArray) {
@@ -464,9 +466,9 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
         inv->setZeroValuesIfUnreachable(inverter.ZeroRuntimeDataIfUnrechable);
         inv->setZeroYieldDayOnMidnight(inverter.ZeroYieldDayOnMidnight);
         inv->setClearEventlogOnMidnight(inverter.ClearEventlogOnMidnight);
-        if(inv->getInverterType() == inverter_type::Inverter_Hoymiles) {
-            static_cast<StatisticsParser *>(inv->getStatistics())->setYieldDayCorrection(inverter.YieldDayCorrection);
-        }
+        inv->getStatistics()->setYieldDayCorrection(inverter.YieldDayCorrection);
+        inv->getStatistics()->setDeyeSunOfflineYieldDayCorrection(inverter.DeyeSunOfflineYieldDayCorrection);
+
         for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
             inv->getStatistics()->setStringMaxPower(c, inverter.channel[c].MaxChannelPower);
             inv->getStatistics()->setChannelFieldOffset(TYPE_DC, static_cast<ChannelNum_t>(c), FLD_YT, inverter.channel[c].YieldTotalOffset);

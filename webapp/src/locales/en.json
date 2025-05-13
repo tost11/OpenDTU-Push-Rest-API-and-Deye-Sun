@@ -184,10 +184,10 @@
         "TimeoutCommands": "Send requests failed (timout)",
         "Heathchecks": "Heath check",
         "HeathchecksFailed": "Heath check failed",
-        "ReadRequests": "Send write commands (limit, on/off)",
-        "ReadRequestsFailed": "Send write commands failed",
-        "WriteRequests": "Send read commands (current values)",
-        "WriteRequestsFailed": "Send read commands failed"
+        "WriteRequests": "Send write commands (limit, on/off)",
+        "WriteRequestsFailed": "Send write commands failed",
+        "ReadRequests": "Send read commands (current values)",
+        "ReadRequestsFailed": "Send read commands failed"
     },
     "eventlog": {
         "Start": "Start",
@@ -638,6 +638,8 @@
         "Delete": "Delete",
         "YieldDayCorrection": "Yield Day Correction",
         "YieldDayCorrectionHint": "Sum up daily yield even if the inverter is restarted. Value will be reset at midnight",
+        "DeyeSunOfflineYieldDayCorrection": "Deye Sun offline Yield Day Correction",
+        "DeyeSunOfflineYieldDayCorrectionHint": "Sum the daily yield, even if the inverter has no active Internet connection and the daily data is therefore not calculated correctly. The value is reset at midnight",
         "Manufacturer": "Manufacturer",
         "InverterHostnameOrIp": "Hostname, Ip or Mac",
         "InverterHostnameOrIpHint": "Hostname of device in newtork,ip-adress, or mac-adress in ap-network",

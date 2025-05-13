@@ -113,7 +113,6 @@ void StatisticsParser::endAppendFragment()
         if (getChannelFieldValue(TYPE_DC, c, FLD_YD) < _lastYieldDay[static_cast<uint8_t>(c)]) {
             // currently all values are zero --> Add last known values to offset
             //TODO log this out again
-            //Hoymiles.getMessageOutput()->printf("Yield Day reset detected!\r\n");
             MessageOutput.printf("Yield Day reset detected!\r\n");
 
             setChannelFieldOffset(TYPE_DC, c, FLD_YD, _lastYieldDay[static_cast<uint8_t>(c)]);
@@ -135,10 +134,10 @@ const byteAssign_t* StatisticsParser::getAssignmentByChannelField(const ChannelT
     return nullptr;
 }
 
-fieldSettings_t* StatisticsParser::getSettingByChannelField(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId)
+fieldSettings_t* StatisticsParser::getSettingByChannelField(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId, uint8_t index)
 {
     for (auto& i : _fieldSettings) {
-        if (i.type == type && i.ch == channel && i.fieldId == fieldId) {
+        if (i.type == type && i.ch == channel && i.fieldId == fieldId && i.index == index) {
             return &i;
         }
     }
@@ -184,9 +183,8 @@ float StatisticsParser::getChannelFieldValue(const ChannelType_t type, const Cha
 
         result /= static_cast<float>(pos->div);
 
-        const fieldSettings_t* setting = getSettingByChannelField(type, channel, fieldId);
-        if (setting != nullptr && _statisticLength > 0) {
-            result += setting->offset;
+        if(_statisticLength > 0){
+            result += calculateOffsetByChannelField(type, channel, fieldId);
         }
         return result;
     } else {
@@ -212,10 +210,8 @@ bool StatisticsParser::setChannelFieldValue(const ChannelType_t type, const Chan
         return false;
     }
 
-    const fieldSettings_t* setting = getSettingByChannelField(type, channel, fieldId);
-    if (setting != nullptr) {
-        value -= setting->offset;
-    }
+    value += calculateOffsetByChannelField(type, channel, fieldId);
+
     value *= static_cast<float>(div);
 
     uint32_t val = 0;
@@ -276,22 +272,22 @@ uint8_t StatisticsParser::getChannelFieldDigits(const ChannelType_t type, const 
     return pos->digits;
 }
 
-float StatisticsParser::getChannelFieldOffset(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId)
+float StatisticsParser::getChannelFieldOffset(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId, uint8_t index)
 {
-    const fieldSettings_t* setting = getSettingByChannelField(type, channel, fieldId);
+    const fieldSettings_t* setting = getSettingByChannelField(type, channel, fieldId,index);
     if (setting != nullptr) {
         return setting->offset;
     }
     return 0;
 }
 
-void StatisticsParser::setChannelFieldOffset(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId, const float offset)
+void StatisticsParser::setChannelFieldOffset(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId, const float offset,uint8_t index)
 {
-    fieldSettings_t* setting = getSettingByChannelField(type, channel, fieldId);
+    fieldSettings_t* setting = getSettingByChannelField(type, channel, fieldId,index);
     if (setting != nullptr) {
         setting->offset = offset;
     } else {
-        _fieldSettings.push_back({ type, channel, fieldId, offset });
+        _fieldSettings.push_back({ type, channel, fieldId , index, offset});
     }
 }
 
@@ -350,6 +346,11 @@ void StatisticsParser::setYieldDayCorrection(const bool enabled)
     _enableYieldDayCorrection = enabled;
 }
 
+void StatisticsParser::setDeyeSunOfflineYieldDayCorrection(const bool enabled)
+{
+    _enableDeyeSunOfflineYieldDayCorrection = enabled;
+}
+
 void StatisticsParser::zeroFields(const FieldId_t* fields)
 {
     // Loop all channels
@@ -371,6 +372,52 @@ void StatisticsParser::resetYieldDayCorrection()
     for (auto& c : getChannelsByType(TYPE_DC)) {
         setChannelFieldOffset(TYPE_DC, c, FLD_YD, 0);
         _lastYieldDay[static_cast<uint8_t>(c)] = 0;
+    }
+}
+
+float StatisticsParser::calculateOffsetByChannelField(const ChannelType_t type, const ChannelNum_t channel,
+                                                                 const FieldId_t fieldId) {
+    float ret = 0.f;
+    for (auto& i : _fieldSettings) {
+        if (i.type == type && i.ch == channel && i.fieldId == fieldId) {
+            ret += i.offset;
+        }
+    }
+    return ret;
+}
+
+bool StatisticsParser::getDeyeSunOfflineYieldDayCorrection() const {
+    return _enableDeyeSunOfflineYieldDayCorrection;
+}
+
+void StatisticsParser::resetDeyeSunOfflineYieldDayCorrection(bool setZero) {
+    //zero deye sun daily offset on Gateway (ap connection) mode
+    for (auto& t : getChannelTypes()) {
+        for (auto &c: getChannelsByType(t)) {
+            if(!hasChannelFieldValue(t,c,FLD_YD)){
+                continue;
+            }
+            auto setting = getSettingByChannelField(t,c,FLD_YD,1);
+            if(setting != nullptr){
+                //get real value without our extra offsets (first current, second if reset at night)
+                if(!setZero){
+                    //if not reset data on midnight move current offset to index 2 so 1 can be recognised as not used
+                    float currentOffset = getChannelFieldOffset(t,c,FLD_YD,1);
+                    if(currentOffset != 0){
+                        //only do if present (if not persent keep last value)
+                        setChannelFieldOffset(t,c,FLD_YD,currentOffset,2);
+                        MessageOutput.printf("Daily Reset Deye Offline offset to: %f\n",currentOffset);
+                    }else{
+                        MessageOutput.printf("Daily Reset kept last offset value: %f\n",getChannelFieldOffset(t,c,FLD_YD,2));
+                    }
+                }else{
+                    //if reset data on midnight set everything to zero
+                    setChannelFieldOffset(t,c,FLD_YD,0,2);
+                    MessageOutput.printf("Daily Reset Deye Offline offset to zero");
+                }
+                setting->offset = 0.f;
+            }
+        }
     }
 }
 
