@@ -177,10 +177,10 @@
         "TimeoutCommands": "Fehlgeschlagene Befehle (Zeitüberschreitung)",
         "Heathchecks": "Verfügbarkeitsprüfungen",
         "HeathchecksFailed": "Fehlgeschlagene Verfügbarkeitsprüfungen",
-        "ReadRequests": "Gesendete Schreibkommandos (Limit, An/Aus)",
-        "ReadRequestsFailed": "Fehlgeschlagene gesendete Schreibkommandos",
-        "WriteRequests": "Gesendete Lesekommandos (aktuelle Daten)",
-        "WriteRequestsFailed": "Fehlgeschlagene gesendete Lesekommandos"
+        "WriteRequests": "Gesendete Schreibkommandos (Limit, An/Aus)",
+        "WriteRequestsFailed": "Fehlgeschlagene gesendete Schreibkommandos",
+        "ReadRequests": "Gesendete Lesekommandos (aktuelle Daten)",
+        "ReadRequestsFailed": "Fehlgeschlagene gesendete Lesekommandos"
     },
     "eventlog": {
         "Start": "Beginn",
@@ -593,6 +593,8 @@
         "Delete": "Löschen",
         "YieldDayCorrection": "Tagesertragskorrektur",
         "YieldDayCorrectionHint": "Summiert den Tagesertrag, auch wenn der Wechselrichter neu gestartet wird. Der Wert wird um Mitternacht zurückgesetzt",
+        "DeyeSunOfflineYieldDayCorrection": "Deye Sun Offline Tagesertragskorrektur",
+        "DeyeSunOfflineYieldDayCorrectionHint": "Summiert den Tagesertrag, auch wenn der Wechselrichter keine aktive Internetverbindung hat und die Tagesdaten somit nicht richtig ermittelnt. Der Wert wird um Mitternacht zurückgesetzt",
         "Manufacturer": "Hersteller",
         "InverterHostnameOrIp": "Hostname, Ip or Mac",
         "InverterHostnameOrIpHint": "Hostname des Gerätes im Netzwerk, Ip-Adresse, oder Mac-Adresse im eigenen Ap-Netzwerk",

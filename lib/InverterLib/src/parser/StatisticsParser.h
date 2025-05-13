@@ -55,6 +55,7 @@ typedef struct {
     ChannelType_t type;
     ChannelNum_t ch; // channel 0 - 5
     FieldId_t fieldId; // field id
+    uint8_t index;
     float offset; // offset (positive/negative) to be applied on the fetched value
 } fieldSettings_t;
 
@@ -71,7 +72,8 @@ public:
     uint8_t getExpectedByteCount();
 
     const byteAssign_t* getAssignmentByChannelField(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId) const;
-    fieldSettings_t* getSettingByChannelField(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId);
+    fieldSettings_t* getSettingByChannelField(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId, uint8_t index);
+    float calculateOffsetByChannelField(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId);
 
     float getChannelFieldValue(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId) override;
     String getChannelFieldValueString(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId) override;
@@ -82,8 +84,8 @@ public:
 
     bool setChannelFieldValue(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId, float value);
 
-    float getChannelFieldOffset(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId);
-    void setChannelFieldOffset(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId, const float offset) override;
+    float getChannelFieldOffset(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId, uint8_t index = 0);
+    void setChannelFieldOffset(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId, const float offset,uint8_t index = 0) override;
 
     std::list<ChannelNum_t> getChannelsByType(const ChannelType_t type) const override;
 
@@ -94,12 +96,15 @@ public:
     void zeroRuntimeData();
     void zeroDailyData() override;
     void resetYieldDayCorrection() override;
+    void resetDeyeSunOfflineYieldDayCorrection(bool setZero) override;
 
     // Update time when new data from the inverter is received
     void setLastUpdate(const uint32_t lastUpdate);
 
     bool getYieldDayCorrection() const;
-    void setYieldDayCorrection(const bool enabled);
+    bool getDeyeSunOfflineYieldDayCorrection() const;
+    void setYieldDayCorrection(const bool enabled) override;
+    void setDeyeSunOfflineYieldDayCorrection(const bool enabled) override;
 
 protected:
     virtual uint16_t getStaticPayloadSize() = 0;
@@ -117,5 +122,6 @@ private:
     uint32_t _rxFailureCount = 0;
 
     bool _enableYieldDayCorrection = false;
+    bool _enableDeyeSunOfflineYieldDayCorrection = false;
     float _lastYieldDay[CH_CNT] = {};
 };
