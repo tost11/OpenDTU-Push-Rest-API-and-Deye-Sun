@@ -15,11 +15,11 @@ createBuild() {
   npm run build --prefix webapp
 
   eval $BUILD_COMMAND
-  echo "Build: $2_esp32dev_firmware.bin copy to: $TARGET_FOLDER"
+  echo "Build Generic: $2_esp32dev_firmware.bin copy to: $TARGET_FOLDER"
   cp -p .pio/build/generic_esp32/firmware.bin $TARGET_FOLDER/generic_esp32/$2_esp32dev_firmware.bin
 
   eval $BUILD_COMMAND_16
-  echo "Build: $2_esp32dev_firmware.bin copy to: $TARGET_FOLDER"
+  echo "Build 16MB psram: $2_esp32dev_firmware.bin copy to: $TARGET_FOLDER"
   cp -p .pio/build/generic_esp32_16mb_psram/firmware.bin $TARGET_FOLDER/generic_esp32_16mb_psram/$2_esp32dev_firmware.bin
 }
 
