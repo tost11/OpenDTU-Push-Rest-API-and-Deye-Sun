@@ -81,11 +81,11 @@ void DTUInterface::disconnect(uint8_t tgtState)
         dtuConnection.dtuConnectState = tgtState;
         // inverterData.dtuRssi = 0;
         MessageOutput.println(F("DTUinterface:\t disconnect request - DTU connection closed"));
-        if (tgtState == DTU_STATE_STOPPED)
+        /* if (tgtState == DTU_STATE_STOPPED)
         {
             delete client;
             MessageOutput.printlnDebug("DTUinterface:\t with freeing memory");
-        }
+        }*/
     }
     else if (tgtState != DTU_STATE_STOPPED)
     {
@@ -183,6 +183,19 @@ void DTUInterface::requestRestartDevice()
 
 void DTUInterface::dtuLoop()
 {
+    if(!overAllConnectionState){
+        if(dtuConnection.dtuConnectState != DTU_STATE_STOPPED){
+            disconnect(DTU_STATE_STOPPED);
+            return;
+        }
+        return;
+    }else{
+        if(dtuConnection.dtuConnectState == DTU_STATE_STOPPED){
+            connect();
+            return;
+        }
+    }
+
     if(_restartConnection){
         _restartConnection = false;
         dtuConnection.dtuConnectRetriesShort = 0;
@@ -1153,4 +1166,8 @@ bool DTUInterface::lastRequestFailed() {
     bool failed = dtuConnection.updateFailed;
     dtuConnection.updateFailed = false;
     return failed;
+}
+
+void DTUInterface::setOverallConnectionState(bool state) {
+    overAllConnectionState = state;
 }
