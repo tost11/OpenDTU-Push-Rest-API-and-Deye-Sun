@@ -42,13 +42,13 @@ static const byteAssign_t byteAssignment[] = {
         { TYPE_AC, CH0, FLD_F, UNIT_HZ, 20, 2, 100, false,true, 2 },
         { TYPE_AC, CH0, FLD_PF, UNIT_NONE, 30, 2, 1000, false,true, 3 },
         { TYPE_AC, CH0, FLD_YD, UNIT_KWH, 36, 2, 10, false,true, 1 },
-        { TYPE_AC, CH0, FLD_YT, UNIT_KWH, 38, 4, 10, false,true, 3 },
+        { TYPE_AC, CH0, FLD_YT, UNIT_KWH, 38, 4, 10, false,true, 1 },
 
         { TYPE_INV, CH0, FLD_T, UNIT_C, 32, 2, 100, true,true, 1 },
         { TYPE_INV, CH0, FLD_EVT_LOG, UNIT_NONE, 34, 2, 1, false,true, 0 },//current status
 
         { TYPE_INV, CH0, FLD_YD, UNIT_KWH, CALC_TOTAL_YD, 0, CMD_CALC, false,true, 1 },
-        { TYPE_INV, CH0, FLD_YT, UNIT_KWH, CALC_TOTAL_YT, 0, CMD_CALC, false,true, 3 },
+        { TYPE_INV, CH0, FLD_YT, UNIT_KWH, CALC_TOTAL_YT, 0, CMD_CALC, false,true, 1 },
         { TYPE_INV, CH0, FLD_PDC, UNIT_W, CALC_TOTAL_PDC, 0, CMD_CALC, false,true, 1 },
         //dosnt make sense because red ac value highter then dc value
         //{ TYPE_INV, CH0, FLD_EFF, UNIT_PCT, CALC_TOTAL_EFF, 0, CMD_CALC, false,true, 3 }
