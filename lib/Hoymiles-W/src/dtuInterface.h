@@ -84,10 +84,7 @@ public:
     const String & getServer()const;
     uint16_t getPort()const;
 
-    void connect();
-    void disconnect(uint8_t tgtState);
-    void flushConnection();
-    void resetConnectionInfo();
+    void setConnectionStatus(bool status);
 
     bool requestDataUpdate();
     bool requestStatisticUpdate();
@@ -100,6 +97,8 @@ public:
     bool isConnected();
     bool isReachable();
 
+    void setOverallConnectionState(bool state);
+
     std::unique_ptr<InverterData> newDataAvailable();
 
     bool lastRequestFailed();
@@ -108,10 +107,17 @@ public:
     uint64_t getRedSerial() const;
     bool statisticsReceived();
 private:
+    void disconnect(uint8_t tgtState);
+    void connect();
+    void flushConnection();
+    void resetConnectionInfo();
+
     HoymilesWConnectionStatistics & connectionStatistics;
     ConnectionControl dtuConnection;
     InverterData inverterData;
     std::mutex inverterDataMutex;
+
+    bool overAllConnectionState;
 
     Ticker keepAliveTimer; // Timer to send keep-alive messages
     static void keepAliveStatic(DTUInterface* dtuInterface); // Static method for timer callback
