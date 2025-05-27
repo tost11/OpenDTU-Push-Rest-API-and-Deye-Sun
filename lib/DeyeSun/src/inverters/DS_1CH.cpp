@@ -32,7 +32,7 @@ static const byteAssign_t byteAssignment[] = {
         //{ TYPE_DC, CH0, FLD_PDC, UNIT_W, 6, 2, 10, false, 1 },
         { TYPE_DC, CH0, FLD_PDC, UNIT_W, CALC_PDC, CH0, CMD_CALC, false, true, 2 },
         { TYPE_DC, CH0, FLD_YD, UNIT_KWH, 14, 2, 10, false, true, 1 },
-        { TYPE_DC, CH0, FLD_YT, UNIT_KWH, 10, 2, 10, false, true, 0 },
+        { TYPE_DC, CH0, FLD_YT, UNIT_KWH, 10, 2, 10, false, true, 1 },
         { TYPE_DC, CH0, FLD_IRR, UNIT_PCT, CALC_CH_IRR, CH0, CMD_CALC, false, true, 3 },
 
         { TYPE_AC, CH0, FLD_UAC, UNIT_V, 18, 2, 10, false,true, 1 },
