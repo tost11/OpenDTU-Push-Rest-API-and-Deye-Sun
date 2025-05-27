@@ -130,6 +130,11 @@ void DeyeInverter::update() {
         return;
     }
 
+    //polling is disabled (night whatever) wait for existing socket connection and command if null not active skip check
+    if(_socket == nullptr && !getEnablePolling()){
+        return;
+    }
+
     if(!_timerAfterCounterTimout.occured()) {
         //wait after error for try again
         return;
@@ -193,7 +198,7 @@ bool DeyeInverter::sendActivePowerControlRequest(float limit, PowerLimitControlT
 
     uint16_t realLimit;
     if(type == RelativPersistent){
-        realLimit = (uint16_t)(limit + 0.5);
+        realLimit = (uint16_t)(limit + 0.5f);
     }else{
         uint16_t maxPower = _devInfoParser->getMaxPower();
         if(maxPower == 0){
@@ -446,6 +451,7 @@ void DeyeInverter::sendCurrentRegisterWrite() {
 
 void DeyeInverter::swapBuffers(bool fullData) {
     if(fullData) {
+
         _statisticsParser->beginAppendFragment();
         _statisticsParser->clearBuffer();
         _statisticsParser->appendFragment(0, _payloadStatisticBuffer, STATISTIC_PACKET_SIZE);
@@ -455,6 +461,33 @@ void DeyeInverter::swapBuffers(bool fullData) {
 
         _devInfoParser->clearBuffer();
         _devInfoParser->appendFragment(0,_payloadStatisticBuffer+44,2);
+
+        //set new deye offline offset if configured
+        for (auto& type : _statisticsParser->getChannelTypes()) {
+            for (auto &channel: _statisticsParser->getChannelsByType(type)) {
+                if(!_statisticsParser->hasChannelFieldValue(type,channel,FLD_YD)){
+                    continue;
+                }
+                _statisticsParser->setChannelFieldOffset(type, channel, FLD_YD, 0, 2);
+                if(_statisticsParser->getDeyeSunOfflineYieldDayCorrection()) {
+                    float currentOffset = _statisticsParser->getChannelFieldOffset(type, channel, FLD_YD,1);
+                    MessageOutput.printfDebug("Current Deye Offline offset: %f\n",currentOffset);
+                    if (!(currentOffset > 0.f || currentOffset < 0.f)) {
+                        //MessageOutput.println("ok");
+                        float val = _statisticsParser->getChannelFieldValue(type, channel, FLD_YD);
+                        _statisticsParser->setChannelFieldOffset(type, channel, FLD_YD, val * -1.f,1);
+                        float checkOffset = _statisticsParser->getChannelFieldOffset(type, channel, FLD_YD,1);
+                        MessageOutput.printf("Set daily production offset for type: %d and channel: %d to:%f\n",(int)type,(int)channel,checkOffset);
+                    }
+                }else{
+                    //MessageOutput.println("nope");
+                    if(_statisticsParser->getSettingByChannelField(type,channel,FLD_YD,1) != nullptr){
+                        _statisticsParser->setChannelFieldOffset(type, channel, FLD_YD, 0, 1);
+                    }
+                }
+            }
+        }
+
         _devInfoParser->setLastUpdate(millis());
     }
 
@@ -510,10 +543,6 @@ String DeyeInverter::serialToModel(uint64_t serial) {
 }
 
 bool DeyeInverter::handleRead() {
-    if(!getEnablePolling()){
-        return false;
-    }
-
     if (!_timerHealthCheck.occured()) {
         //no fetch needed
         return false;
