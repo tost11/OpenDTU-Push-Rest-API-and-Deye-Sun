@@ -60,6 +60,9 @@ while chunks<2:
         checksum += frame_bytes[i] & 255
     frame_bytes[len(frame_bytes) - 2] = int((checksum & 255))
 
+    for i in range(0, len(frame_bytes), 1):
+        print(frame_bytes[i])
+
     # OPEN SOCKET
 
     for res in socket.getaddrinfo(inverter_ip, inverter_port, socket.AF_INET,

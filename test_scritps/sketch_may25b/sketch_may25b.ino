@@ -26,6 +26,11 @@
 
 char ssid[] = "wifi_test";     //  your network SSID (name)
 char pass[] = "87654321";  // your network password
+WiFiClient TCP_client;
+const char* TCP_SERVER_ADDR = "192.168.1.100";  // CHANGE TO TCP SERVER'S IP ADDRESS
+const int TCP_SERVER_PORT = 8899;
+char toSend[1000];
+int lenToSend = 0;
 
 std::string hex_to_bytes(const std::string_view &hex) {
     std::size_t i = 0, size = hex.size();
@@ -50,6 +55,133 @@ std::string hex_to_bytes(const std::string_view &hex) {
     return result;
 }
 
+unsigned hex_char_to_int( char c ) {
+    unsigned result = -1;
+    if( ('0' <= c) && (c <= '9') ) {
+        result = c - '0';
+    }
+    else if( ('A' <= c) && (c <= 'F') ) {
+        result = 10 + c - 'A';
+    }
+    else if( ('a' <= c) && (c <= 'f') ) {
+        result = 10 + c - 'a';
+    }
+    else {
+        assert( 0 );
+    }
+    return result;
+}
+
+unsigned short modbusCRC16FromHex(const String & message)
+{
+    const unsigned short generator = 0xA001;
+    unsigned short crc = 0xFFFF;
+    for(int i = 0; i < message.length(); ++i)
+    {
+        crc ^= (unsigned short)message[i];
+        for(int b = 0; b < 8; ++b)
+        {
+            if((crc & 1) != 0)
+            {
+                crc >>= 1;
+                crc ^= generator;
+            }
+            else
+                crc >>= 1;
+
+        }
+    }
+    return crc;
+}
+
+static String lengthToHexString(int length, int fill)
+{
+    char res[fill+1];
+
+    auto formater = String("%0") + String(fill).c_str() + "x";
+    snprintf(res,fill+1,formater.c_str(),length);
+
+    return String(res);
+}
+
+std::string modbusCRC16FromASCII(const std::string & input) {
+
+    //Serial.print("Calculating crc for: ");
+    //Serial.println(input);
+
+    String hexString;
+
+    for(int i=0;i<input.length();i=i+2){
+        unsigned number = hex_char_to_int( input[ i ] ); // most signifcnt nibble
+        unsigned lsn = hex_char_to_int( input[ i + 1 ] ); // least signt nibble
+        number = (number << 4) + lsn;
+        hexString += (char)number;
+    }
+
+    unsigned short res = modbusCRC16FromHex(hexString);
+    String stringRes = lengthToHexString(res,4);
+
+    return std::string()+stringRes[2]+stringRes[3]+stringRes[0]+stringRes[1];
+}
+
+#include <string>
+
+std::string string_to_hex(const std::string& input)
+{
+    static const char hex_digits[] = "0123456789ABCDEF";
+
+    std::string output;
+    output.reserve(input.length() * 2);
+    for (unsigned char c : input)
+    {
+        output.push_back(hex_digits[c >> 4]);
+        output.push_back(hex_digits[c & 15]);
+    }
+    return output;
+}
+
+#include <stdexcept>
+
+int hex_value(unsigned char hex_digit)
+{
+    static const signed char hex_values[256] = {
+            -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+            -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+            -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+            0,  1,  2,  3,  4,  5,  6,  7,  8,  9, -1, -1, -1, -1, -1, -1,
+            -1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+            -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+            -1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+            -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+            -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+            -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+            -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+            -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+            -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+            -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+            -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+            -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    };
+    int value = hex_values[hex_digit];
+    if (value == -1) throw std::invalid_argument("invalid hex digit");
+    return value;
+}
+
+std::string hex_to_string(const std::string& input)
+{
+    const auto len = input.length();
+    if (len & 1) throw std::invalid_argument("odd length");
+
+    std::string output;
+    output.reserve(len / 2);
+    for (auto it = input.begin(); it != input.end(); )
+    {
+        int hi = hex_value(*it++);
+        int lo = hex_value(*it++);
+        output.push_back(hi << 4 | lo);
+    }
+    return output;
+}
 
 void setup() {
 
@@ -63,7 +195,7 @@ void setup() {
 
   }
 
-  delay(3000);
+  delay(5000);
 
   Serial.println("test whatever");
 
@@ -79,7 +211,50 @@ void setup() {
   }
   Serial.println("");
 
+  std::string start = hex_to_bytes("A5");
+  std::string length = hex_to_bytes("1700");
+  std::string controlcode = hex_to_bytes("1045");
+  std::string serial = hex_to_bytes("0000");
+  std::string datafield = hex_to_bytes("020000000000000000000000000000");
+  std::string pos_ini = "003B";
+  std::string pos_fin = "0036";
+  std::string businessfield = "0103" + pos_ini + pos_fin;
+  std::string crc = hex_to_bytes(modbusCRC16FromASCII(businessfield));
+  std::string checksum = hex_to_bytes("00");
+  std::string endCode = hex_to_bytes("15");
   // check for the presence of the shield:
+  //std::string snHex = "F56E3BEA"
+  std::string snHex = "EA3B6EF5";
+  std::string inverter_sn2 = hex_to_bytes(snHex);
+
+  std::string frame = start + length  + controlcode + serial + inverter_sn2 + datafield + hex_to_bytes(businessfield) + crc + checksum + endCode;
+  //std::string frame = start + length + controlcode;
+
+  lenToSend = frame.length();
+
+  // copying the contents of the string to
+  // char array
+  memcpy(toSend, frame.c_str(),frame.size());
+  int check = 0;
+  for(int i=1;i<frame.length() - 2;i++){
+      check += toSend[i] & 255;
+  }
+    toSend[frame.length() - 2] = int((check & 255));
+
+  std::string test;
+  for(int i=0;i<frame.length();i++){
+      test += toSend[i];
+  }
+
+  for(int i=0;i<test.length();i++){
+      Serial.println((int)test[i]);
+  }
+
+    /*Serial.print("Size is: ");
+  Serial.println(hString.size());
+
+  Serial.print("Hex string is: ");
+  Serial.println(hString.c_str());*/
 
   if (WiFi.status() == WL_NO_SHIELD) {
 
@@ -90,7 +265,6 @@ void setup() {
     while (true);
 
   }
-
 
   // attempt to connect to Wifi network:
 
@@ -122,16 +296,57 @@ void setup() {
   printCurrentNet();
 
   printWifiData();
-
 }
+
+long lastChecked = 0;
+long lastSend = 0;
 
 void loop() {
 
   // check the network connection once every 10 seconds:
 
-  delay(10000);
+  delay(100);
 
-  printCurrentNet();
+  if(millis() - lastChecked > 10000){
+      printCurrentNet();
+      lastChecked = millis();
+  }
+
+  // Read data from server and print them to Serial
+  int i=0;
+  while(TCP_client.available()) {
+    if(i++ <= 0){
+      Serial.print("New Data Available: ");
+    }
+    char c = TCP_client.read();
+    Serial.print(c);
+  }
+  if(i > 0){
+    Serial.println("");
+  }
+
+  if (!TCP_client.connected()) {
+    Serial.println("Connection is disconnected");
+    TCP_client.stop();
+
+    // reconnect to TCP server
+    if (TCP_client.connect(TCP_SERVER_ADDR, TCP_SERVER_PORT)) {
+      Serial.println("Reconnected to TCP server");
+      TCP_client.write(toSend,lenToSend);  // send to TCP Server
+      TCP_client.flush();
+      lastSend = millis();
+    } else {
+      Serial.println("Failed to reconnect to TCP server");
+      delay(1000);
+    }
+  }else{
+    if(millis() - lastSend > 20000){
+      Serial.println("Send new fetch data request");
+      TCP_client.write(toSend,lenToSend);  // send to TCP Server
+      TCP_client.flush();
+      lastSend = millis();
+    }
+  }
 }
 
 void printWifiData() {
