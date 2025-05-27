@@ -255,6 +255,12 @@ const char* StatisticsParser::getChannelFieldUnit(const ChannelType_t type, cons
     return units[pos->unitId];
 }
 
+UnitId_t StatisticsParser::getChannelFieldUnitId(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId) const
+{
+    const byteAssign_t* pos = getAssignmentByChannelField(type, channel, fieldId);
+    return pos->unitId;
+}
+
 const char* StatisticsParser::getChannelFieldName(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId) const
 {
     const byteAssign_t* pos = getAssignmentByChannelField(type, channel, fieldId);
