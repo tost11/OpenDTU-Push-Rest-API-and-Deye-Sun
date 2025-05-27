@@ -30,8 +30,6 @@ _dtuInterface(ConnectionStatistics)
     _dataStatisticTimer.zero();
 
     _changeCheckedClearOnDisconnect = false;
-
-    _enablePolling = true;//TODO make better
 }
 
 void HoymilesWInverter::update() {
@@ -46,6 +44,8 @@ void HoymilesWInverter::update() {
     }
 
     getEventLog()->checkErrorsForTimeout();
+
+    _dtuInterface.setOverallConnectionState(getEnablePolling());
 
     if(_dtuInterface.isConnected()){
         if(!_dtuInterface.statisticsReceived() || _dataStatisticTimer.occured()){

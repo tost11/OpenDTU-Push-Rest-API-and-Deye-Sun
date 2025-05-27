@@ -85,8 +85,8 @@ void DatastoreClass::loop()
 
         for (auto& c : inv->getStatistics()->getChannelsByType(TYPE_INV)) {
             if (cfg->Poll_Enable) {
-                _totalAcYieldTotalEnabled += inv->getStatistics()->getChannelFieldValue(TYPE_INV, c, FLD_YT);
-                _totalAcYieldDayEnabled += inv->getStatistics()->getChannelFieldValue(TYPE_INV, c, FLD_YD);
+                _totalAcYieldTotalEnabled += inv->getStatistics()->getChannelFieldValue(TYPE_INV, c, FLD_YT) / (inv->getStatistics()->getChannelFieldUnitId(TYPE_INV, c, FLD_YT) == UNIT_WH ? 1000.f : 1.f);
+                _totalAcYieldDayEnabled += inv->getStatistics()->getChannelFieldValue(TYPE_INV, c, FLD_YD) * (inv->getStatistics()->getChannelFieldUnitId(TYPE_INV, c, FLD_YD) == UNIT_KWH ? 1000.f : 1.f);
 
                 _totalAcYieldTotalDigits = max<unsigned int>(_totalAcYieldTotalDigits, inv->getStatistics()->getChannelFieldDigits(TYPE_INV, c, FLD_YT));
                 _totalAcYieldDayDigits = max<unsigned int>(_totalAcYieldDayDigits, inv->getStatistics()->getChannelFieldDigits(TYPE_INV, c, FLD_YD));
