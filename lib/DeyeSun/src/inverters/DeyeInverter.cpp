@@ -133,6 +133,11 @@ void DeyeInverter::update() {
         return;
     }
 
+    //polling is disabled (night whatever) wait for existing socket connection and command if null not active skip check
+    if(_socket == nullptr && !getEnablePolling()){
+        return;
+    }
+
     if(!_timerAfterCounterTimout.occured()) {
         //wait after error for try again
         return;
@@ -541,10 +546,6 @@ String DeyeInverter::serialToModel(uint64_t serial) {
 }
 
 bool DeyeInverter::handleRead() {
-    if(!getEnablePolling()){
-        return false;
-    }
-
     if (!_timerHealthCheck.occured()) {
         //no fetch needed
         return false;

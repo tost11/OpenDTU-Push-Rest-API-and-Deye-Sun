@@ -4,6 +4,7 @@ set -e
 
 TARGET_FOLDER=$(realpath ~/Schreibtisch/opendtu)
 BUILD_COMMAND='~/.platformio/penv/bin/platformio run'
+BUILD_COMMAND_16='~/.platformio/penv/bin/platformio run -e generic_esp32_16mb_psram'
 
 echo "Target folder is: $TARGET_FOLDER"
 
@@ -12,9 +13,16 @@ createBuild() {
   #clear existing old build stuff (some times not clear build done)
   rm -Rf .pio/build
   npm run build --prefix webapp
+
   eval $BUILD_COMMAND
-  echo "Build: $2_esp32dev_firmware.bin copy to: $TARGET_FOLDER"
-  cp .pio/build/generic_esp32/firmware.bin $TARGET_FOLDER/$2_esp32dev_firmware.bin
+  echo "Build Generic: $2_esp32dev_firmware.bin copy to: $TARGET_FOLDER"
+  mkdir -p $TARGET_FOLDER/generic_esp32
+  cp .pio/build/generic_esp32/firmware.bin $TARGET_FOLDER/generic_esp32/$2_esp32dev_firmware.bin
+
+  eval $BUILD_COMMAND_16
+  echo "Build 16MB psram: $2_esp32dev_firmware.bin copy to: $TARGET_FOLDER"
+  mkdir -p $TARGET_FOLDER/generic_esp32_16mb_psram
+  cp .pio/build/generic_esp32_16mb_psram/firmware.bin $TARGET_FOLDER/generic_esp32_16mb_psram/$2_esp32dev_firmware.bin
 }
 
 createBuild "feature/more-manufacturers" "more_manufacturers"
