@@ -24,6 +24,8 @@
 #include <string>
 #include <stdexcept>
 
+//        SensorRegisterRange(group="micro", first_reg_address=0x3C, last_reg_address=0x74),
+
 char ssid[] = "wifi_test";     //  your network SSID (name)
 char pass[] = "87654321";  // your network password
 WiFiClient TCP_client;
@@ -67,7 +69,7 @@ unsigned hex_char_to_int( char c ) {
         result = 10 + c - 'a';
     }
     else {
-        assert( 0 );
+        return 0;
     }
     return result;
 }
@@ -94,14 +96,14 @@ unsigned short modbusCRC16FromHex(const String & message)
     return crc;
 }
 
-static String lengthToHexString(int length, int fill)
+static std::string lengthToHexString(int length, int fill)
 {
     char res[fill+1];
 
     auto formater = String("%0") + String(fill).c_str() + "x";
     snprintf(res,fill+1,formater.c_str(),length);
 
-    return String(res);
+    return std::string(res);
 }
 
 std::string modbusCRC16FromASCII(const std::string & input) {
@@ -119,7 +121,7 @@ std::string modbusCRC16FromASCII(const std::string & input) {
     }
 
     unsigned short res = modbusCRC16FromHex(hexString);
-    String stringRes = lengthToHexString(res,4);
+    std::string stringRes = lengthToHexString(res,4);
 
     return std::string()+stringRes[2]+stringRes[3]+stringRes[0]+stringRes[1];
 }
@@ -183,6 +185,9 @@ std::string hex_to_string(const std::string& input)
     return output;
 }
 
+int start_register = 60;
+int end_register = 116;
+
 void setup() {
 
   //Initialize serial and wait for port to open:
@@ -216,8 +221,9 @@ void setup() {
   std::string controlcode = hex_to_bytes("1045");
   std::string serial = hex_to_bytes("0000");
   std::string datafield = hex_to_bytes("020000000000000000000000000000");
-  std::string pos_ini = "003B";
-  std::string pos_fin = "0036";
+  //std::string pos_ini = "003B";
+  std::string pos_ini = lengthToHexString(start_register,4);
+  std::string pos_fin = lengthToHexString(end_register - start_register + 1,4);
   std::string businessfield = "0103" + pos_ini + pos_fin;
   std::string crc = hex_to_bytes(modbusCRC16FromASCII(businessfield));
   std::string checksum = hex_to_bytes("00");
@@ -298,8 +304,20 @@ void setup() {
   printWifiData();
 }
 
+void printValue(std::string name,char * arr,int pos, float multiplier){
+    int realPos = (pos - start_register + 1) * 2;
+    //Serial.printf("Starting on real possition %d\n",realPos);
+    char end[2];
+    end[0] = arr[realPos + 1];
+    end[1] = arr[realPos];
+    int16_t res;
+    memcpy(&res,end,2);
+    Serial.printf((std::string() + name.c_str()+" is: %f\n").c_str(), ((float)res)*multiplier);
+}
+
 long lastChecked = 0;
 long lastSend = 0;
+char res[1000];
 
 void loop() {
 
@@ -314,15 +332,79 @@ void loop() {
 
   // Read data from server and print them to Serial
   int i=0;
+
+  if(TCP_client.available()) {
+      delay(100);
+  }
+
   while(TCP_client.available()) {
     if(i++ <= 0){
       Serial.print("New Data Available: ");
     }
     char c = TCP_client.read();
+    if(i>=27){
+        res[i-27]=c;
+    }
     Serial.print(c);
   }
-  if(i > 0){
+  if(i >= 27){
+    i = i - 27;
     Serial.println("");
+    for(int j=0;j<i;j++) {
+        Serial.printf("read: %d bzw %d hex: %x\n",j, j/2 + start_register + 1,res[j]);
+    }
+    Serial.println("");
+    /*for(int j=0;j<i;j = j+2){
+        unsigned number = hex_char_to_int( res[j] ); // most signifcnt nibble
+        unsigned lsn = hex_char_to_int( res[j + 1] ); // least signt nibble
+        number = (number << 4) + lsn;
+
+        Serial.printf("Index: %d hex: %x int: %d uint: %u\n", j,j+59+20,number,number);
+    }*/
+
+    // start is: 59
+
+    for(int j=0;j<i;j++){
+        Serial.printf("%x",res[j]);
+    }
+    Serial.println("");
+
+    printValue("Daily Production",res,60,0.1f);
+    printValue("Total Production 1",res,63,0.1f);
+    printValue("Total Production 2",res,64,0.1f);
+    printValue("Grid Voltage",res,73,0.1f);
+    printValue("Grid Ampere",res,76,0.1f);
+    printValue("Grid Frequenz",res,79,0.01f);
+    printValue("Uptime Minutes",res,62,1.f);
+
+    printValue("PV1 Voltage",res,109,0.1f);
+    printValue("PV1 Ampere",res,110,0.1f);
+    printValue("PV1 Daily Production",res,65,0.1f);
+    printValue("PV1 Total Production 1",res,69,0.1f);
+    printValue("PV1 Total Production 2",res,70,0.1f);
+
+    printValue("PV2 Voltage",res,111,0.1f);
+    printValue("PV2 Ampere",res,112,0.1f);
+    printValue("PV2 Daily Production",res,66,0.1f);
+    printValue("PV2 Total Production 1",res,71,0.1f);
+    printValue("PV2 Total Production 2",res,72,0.1f);
+
+    printValue("PV3 Voltage",res,113,0.1f);
+    printValue("PV3 Ampere",res,114,0.1f);
+    printValue("PV3 Daily Production",res,67,0.1f);
+    printValue("PV3 Total Production 1",res,74,0.1f);
+    printValue("PV3 Total Production 2",res,75,0.1f);
+
+    printValue("PV4 Voltage",res,115,0.1f);
+    printValue("PV4 Ampere",res,116,0.1f);
+    printValue("PV4 Daily Production",res,68,0.1f);
+    printValue("PV4 Total Production 1",res,77,0.1f);
+    printValue("PV4 Total Production 2",res,78,0.1f);
+
+    printValue("Operating Power",res,80,0.1f);
+    printValue("AC Active Power 1",res,86,0.1f);
+    printValue("AC Active Power 2",res,87,0.1f);
+    printValue("Temperature",res,90,0.01f);
   }
 
   if (!TCP_client.connected()) {

@@ -33,6 +33,7 @@ installed_power=300
 output="{" # initialise json output
 pini=59
 pfin=112
+#pfin=195
 chunks=0
 while chunks<2:
     if chunks==-1: # testing initialisation
@@ -81,6 +82,7 @@ while chunks<2:
     clientSocket.sendall(frame_bytes);
 
     ok=False;
+    print("------------------ handle chunk ---------------")
     while (not ok):
         try:
             data = clientSocket.recv(1024);
@@ -112,7 +114,7 @@ while chunks<2:
                 unit=item["unit"]
                 for register in item["registers"]:
                     if register==hexpos and chunks!=-1:
-                        #print(hexpos+"-"+title+":"+str(response*ratio)+unit)
+                        print(hexpos+"-"+title+":"+str(response*ratio)+unit)
                         if title.find("Temperature")!=-1:
                             response=round(response*ratio-100,2)
                         else:
