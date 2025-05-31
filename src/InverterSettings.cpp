@@ -213,6 +213,8 @@ void InverterSettingsClass::settingsLoop()
     const CONFIG_T& config = Configuration.get();
     const bool isDayPeriod = SunPosition.isDayPeriod();
 
+    MessageOutput.printf("Is Day period: %d\n",isDayPeriod);
+
     for (uint8_t i = 0; i < INV_MAX_COUNT; i++) {
         auto const& inv_cfg = config.Inverter[i];
         if (inv_cfg.Serial == 0) {
