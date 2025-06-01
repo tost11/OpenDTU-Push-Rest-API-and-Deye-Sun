@@ -429,7 +429,7 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
         inv->setName(inverter.Name);
         #ifdef DEYE_SUN
         if(root["manufacturer"].as<String>() == "DeyeSun"){
-            auto deye_inv = reinterpret_cast<DeyeInverter*>(inv.get());
+            auto deye_inv = reinterpret_cast<AtCommandsDeyeInverter*>(inv.get());
             deye_inv->setHostnameOrIpOrMacAndPort(inverter.HostnameOrIp,inverter.Port);
         }
         #endif

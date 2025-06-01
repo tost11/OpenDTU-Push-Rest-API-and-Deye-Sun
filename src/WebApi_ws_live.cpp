@@ -20,7 +20,7 @@
 #endif
 
 #ifdef DEYE_SUN
-#include "inverters/DeyeInverter.h"
+#include "inverters/AtCommandsDeyeInverter.h"
 #endif
 
 #ifndef PIN_MAPPING_REQUIRED
@@ -197,7 +197,7 @@ void WebApiWsLiveClass::generateInverterCommonJsonResponse(JsonObject& root, std
 
     #ifdef DEYE_SUN
         if(inv->getInverterType() == inverter_type::Inverter_DeyeSun) {
-            auto nv = reinterpret_cast<DeyeInverter *>(inv.get());
+            auto nv = reinterpret_cast<AtCommandsDeyeInverter *>(inv.get());
 
             root["connection_stats_deye"]["connects"] = nv->ConnectionStatistics.Connects;
             root["connection_stats_deye"]["connects_successful"] = nv->ConnectionStatistics.ConnectsSuccessful;
