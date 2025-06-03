@@ -23,6 +23,16 @@ deye_inverter_type CustomModbusDeyeInverter::getDeyeInverterType() const {
     return Deye_Sun_Custom_Modbus;
 }
 
+void inline swapTwoBytes(char * buf,size_t pos){
+    char cache[2];
+    cache[0] = buf[pos];
+    cache[1] = buf[pos + 1];
+    buf[pos] = buf[pos + 2];
+    buf[pos + 1] = buf[pos + 3];
+    buf[pos + 2] = cache[0];
+    buf[pos + 3] = cache[1];
+}
+
 void CustomModbusDeyeInverter::update() {
 
     if(_statusPrintTimeout.occured()){
@@ -52,14 +62,12 @@ void CustomModbusDeyeInverter::update() {
                 MessageOutput.printf("Deye Custom Modbus -> skip response not enough data: %d\n",_redBytes);
                 //TODO some more error handling
             }else{
-                /*or(int i=27;i<_redBytes;i+=2){
-                    if(i + 1 < _redBytes){
-                        char cash = _readBuffer[i+1];
-                        _readBuffer[i+1] = _readBuffer[i];
-                        _readBuffer[i] = cash;
-                    }
-                }*/
-
+                //swap low and height from 4 byte numbers
+                swapTwoBytes(_readBuffer, 26 + 20);
+                swapTwoBytes(_readBuffer, 26 + 24);
+                swapTwoBytes(_readBuffer, 26 + 30);
+                swapTwoBytes(_readBuffer, 26 + 36);
+                swapTwoBytes(_readBuffer, 26 + 8);
 
                 MessageOutput.println("Deye Custom Modbus -> handled new valid data");
                 _statisticsParser->beginAppendFragment();
@@ -93,7 +101,6 @@ void CustomModbusDeyeInverter::update() {
             _client.write(_requestDataCommand,SEND_REQUEST_BUFFER_LENGTH);
         }
     }
-
 }
 
 void CustomModbusDeyeInverter::hostOrPortUpdated() {
@@ -109,25 +116,28 @@ void CustomModbusDeyeInverter::createReqeustDataCommand() {
     std::string controlcode = DeyeUtils::hex_to_bytes("1045");
     std::string serialFill = DeyeUtils::hex_to_bytes("0000");
     std::string datafield = DeyeUtils::hex_to_bytes("020000000000000000000000000000");
-    //std::string pos_ini = "003B";
     std::string pos_ini = DeyeUtils::lengthToHexString(start_register,4).c_str();
     std::string pos_fin = DeyeUtils::lengthToHexString(end_register - start_register + 1,4).c_str();
     std::string businessfield = "0103" + pos_ini + pos_fin;
     std::string crc = DeyeUtils::hex_to_bytes(DeyeUtils::modbusCRC16FromASCII(businessfield));
     std::string checksum = DeyeUtils::hex_to_bytes("00");
     std::string endCode = DeyeUtils::hex_to_bytes("15");
-    // check for the presence of the shield:
-    //std::string snHex = "F56E3BEA"
-    //std::string snHex = "EA3B6EF5";
-    //uint64_t ser = serial();
-    //std::string snHex = std::string((char*)&ser,8);
-    MessageOutput.printf("Serial is: %llu\n",serial());
-    MessageOutput.printf("Serial is: %s\n",serialString().c_str());
-    //MessageOutput.printf("Hex Serial is: %s\n",snHex.c_str());
-    std::string inverter_sn2 = DeyeUtils::hex_to_bytes("EA3B6EF5");
 
-    std::string frame = start + length  + controlcode + serialFill + inverter_sn2 + datafield + DeyeUtils::hex_to_bytes(businessfield) + crc + checksum + endCode;
-    //std::string frame = start + length + controlcode;
+    //TODO find better way to do this
+    char hexStr[9];
+    sprintf(hexStr, "%llx", std::strtoull(serialString().c_str(),0,10));
+    MessageOutput.printf("Hex value 1: %s\n",hexStr);
+    std::string inverter_sn2 = "        ";
+    inverter_sn2[0] = hexStr[6];
+    inverter_sn2[1] = hexStr[7];
+    inverter_sn2[2] = hexStr[4];
+    inverter_sn2[3] = hexStr[5];
+    inverter_sn2[4] = hexStr[2];
+    inverter_sn2[5] = hexStr[3];
+    inverter_sn2[6] = hexStr[0];
+    inverter_sn2[7] = hexStr[1];
+
+    std::string frame = start + length  + controlcode + serialFill + DeyeUtils::hex_to_bytes(inverter_sn2) + datafield + DeyeUtils::hex_to_bytes(businessfield) + crc + checksum + endCode;
 
     uint16_t lenToSend = frame.length();
 
@@ -149,11 +159,13 @@ void CustomModbusDeyeInverter::createReqeustDataCommand() {
         test += _requestDataCommand[i];
     }
 
+    /*
     MessageOutput.println("start --------");
     for(int i=0;i<test.length();i++){
         MessageOutput.println((int)test[i]);
     }
     MessageOutput.println("end --------");
+    */
 }
 
 void CustomModbusDeyeInverter::onDataReceived(void *data, size_t len) {
