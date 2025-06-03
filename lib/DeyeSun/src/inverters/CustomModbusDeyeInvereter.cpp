@@ -52,10 +52,19 @@ void CustomModbusDeyeInverter::update() {
                 MessageOutput.printf("Deye Custom Modbus -> skip response not enough data: %d\n",_redBytes);
                 //TODO some more error handling
             }else{
+                /*or(int i=27;i<_redBytes;i+=2){
+                    if(i + 1 < _redBytes){
+                        char cash = _readBuffer[i+1];
+                        _readBuffer[i+1] = _readBuffer[i];
+                        _readBuffer[i] = cash;
+                    }
+                }*/
+
+
                 MessageOutput.println("Deye Custom Modbus -> handled new valid data");
                 _statisticsParser->beginAppendFragment();
                 _statisticsParser->clearBuffer();
-                _statisticsParser->appendFragment(27,(uint8_t *)_readBuffer,114);
+                _statisticsParser->appendFragment(0,(uint8_t *)_readBuffer+26,112);
                 _statisticsParser->setLastUpdate(millis());
                 _statisticsParser->resetRxFailureCount();
                 _statisticsParser->endAppendFragment();
