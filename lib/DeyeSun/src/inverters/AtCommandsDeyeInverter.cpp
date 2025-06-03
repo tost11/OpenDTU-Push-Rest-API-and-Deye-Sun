@@ -17,11 +17,6 @@ _socket(nullptr){
              ((uint32_t)(serial & 0xFFFFFFFF)));
     _serialString = serial_buff;
 
-    _alarmLogParser.reset(new DeyeAlarmLog());
-    _devInfoParser.reset(new DeyeDevInfo());
-    _powerCommandParser.reset(new PowerCommandParser());
-    _statisticsParser.reset(new DefaultStatisticsParser());
-
     _devInfoParser->setMaxPowerDevider(10);
 
     _needInitData = true;
@@ -90,7 +85,7 @@ void AtCommandsDeyeInverter::update() {
                 _powerTargetStatus = nullptr;
             } else if (_limitToSet != nullptr) {
                 MessageOutput.printlnDebug("Start writing register limit");
-                _currentWritCommand = std::make_unique<WriteRegisterMapping>("0028", 1, DeyeUtils::lengthToHexString(*_limitToSet,4));
+                _currentWritCommand = std::make_unique<WriteRegisterMapping>("0028", 1, String(DeyeUtils::lengthToHexString(*_limitToSet,4).c_str()));
                 _limitToSet = nullptr;
             }
         }
@@ -99,23 +94,6 @@ void AtCommandsDeyeInverter::update() {
     if(_currentWritCommand != nullptr){
         handleWrite();
     }
-}
-
-
-String AtCommandsDeyeInverter::typeName() const {
-    return _devInfoParser->getHwModelName();
-}
-
-bool AtCommandsDeyeInverter::isProducing() {
-    auto stats = getStatistics();
-    float totalAc = 0;
-    for (auto& c : stats->getChannelsByType(TYPE_AC)) {
-        if (stats->hasChannelFieldValue(TYPE_AC, c, FLD_PAC)) {
-            totalAc += stats->getChannelFieldValue(TYPE_AC, c, FLD_PAC);
-        }
-    }
-
-    return _enablePolling && totalAc > 0;
 }
 
 bool AtCommandsDeyeInverter::isReachable() {
@@ -318,7 +296,7 @@ int AtCommandsDeyeInverter::handleRegisterRead(size_t length) {
                 value = -1000;
             }
 
-            hexString = DeyeUtils::lengthToHexString(value,4);
+            hexString = String(DeyeUtils::lengthToHexString(value,4).c_str());
 
             finalResult = "";
 
@@ -455,11 +433,6 @@ bool AtCommandsDeyeInverter::resolveHostname() {
     MessageOutput.printf("Could not resolve hostname: %s\n", ipToFind);
     return false;
 }
-
-inverter_type AtCommandsDeyeInverter::getInverterType() const {
-    return inverter_type::Inverter_DeyeSun;
-}
-
 
 bool AtCommandsDeyeInverter::handleRead() {
     if (!_timerHealthCheck.occured()) {

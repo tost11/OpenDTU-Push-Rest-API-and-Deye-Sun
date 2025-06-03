@@ -6,7 +6,16 @@
 
 DeyeInverter::DeyeInverter(uint64_t serial) {
     _serial = serial;
+    _alarmLogParser.reset(new DeyeAlarmLog());
+    _devInfoParser.reset(new DeyeDevInfo());
+    _powerCommandParser.reset(new PowerCommandParser());
+    _statisticsParser.reset(new DefaultStatisticsParser());
 
+    char serial_buff[sizeof(uint64_t) * 8 + 1];
+    snprintf(serial_buff, sizeof(serial_buff), "%0x%08x",
+             static_cast<uint32_t>((serial >> 32) & 0xFFFFFFFF),
+             static_cast<uint32_t>(serial & 0xFFFFFFFF));
+    _serialString = serial_buff;
 }
 
 String DeyeInverter::serialToModel(uint64_t serial) {
@@ -31,4 +40,24 @@ String DeyeInverter::serialToModel(uint64_t serial) {
 
 uint64_t DeyeInverter::serial() const {
     return _serial;
+}
+
+bool DeyeInverter::isProducing() {
+    auto stats = getStatistics();
+    float totalAc = 0;
+    for (auto& c : stats->getChannelsByType(TYPE_AC)) {
+        if (stats->hasChannelFieldValue(TYPE_AC, c, FLD_PAC)) {
+            totalAc += stats->getChannelFieldValue(TYPE_AC, c, FLD_PAC);
+        }
+    }
+
+    return _enablePolling && totalAc > 0;
+}
+
+String DeyeInverter::typeName() const {
+    return _devInfoParser->getHwModelName();
+}
+
+inverter_type DeyeInverter::getInverterType() const {
+    return inverter_type::Inverter_DeyeSun;
 }

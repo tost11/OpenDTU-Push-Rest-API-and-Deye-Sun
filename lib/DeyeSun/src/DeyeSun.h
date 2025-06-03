@@ -7,7 +7,7 @@
 #include <HardwareSerial.h>
 #include "BaseInverterHandler.h"
 #include "inverters/AtCommandsDeyeInverter.h"
-#include "inverters/CustomModbusDeyeInvereter.h"
+#include "inverters/CustomModbusDeyeInverter.h"
 
 class DeyeSunClass: public BaseInverterHandler<DeyeInverter,DefaultStatisticsParser,DeyeDevInfo,DeyeAlarmLog,PowerCommandParser> {
 public:

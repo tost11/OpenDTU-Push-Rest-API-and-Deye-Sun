@@ -38,10 +38,6 @@ public:
     explicit AtCommandsDeyeInverter(uint64_t serial);
     virtual ~AtCommandsDeyeInverter() = default;
 
-    String typeName() const override;
-
-    bool isProducing() override;
-
     bool isReachable() override;
 
     bool sendActivePowerControlRequest(float limit, PowerLimitControlType type) override;
@@ -53,8 +49,6 @@ public:
     bool sendPowerControlRequest(bool turnOn) override;
 
     void update() override;
-
-    inverter_type getInverterType() const override;
 
     deye_inverter_type getDeyeInverterType() const override;
 

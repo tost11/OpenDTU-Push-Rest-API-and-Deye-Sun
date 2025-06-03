@@ -33,6 +33,27 @@ public:
         return std::string(res);
     }
 
+    static unsigned short modbusCRC16FromHex(const std::string &message){
+        const unsigned short generator = 0xA001;
+        unsigned short crc = 0xFFFF;
+        for(int i = 0; i < message.length(); ++i)
+        {
+            crc ^= (unsigned short)message[i];
+            for(int b = 0; b < 8; ++b)
+            {
+                if((crc & 1) != 0)
+                {
+                    crc >>= 1;
+                    crc ^= generator;
+                }
+                else
+                    crc >>= 1;
+
+            }
+        }
+        return crc;
+    }
+
     static unsigned short modbusCRC16FromHex(const String &message){
         const unsigned short generator = 0xA001;
         unsigned short crc = 0xFFFF;
@@ -54,12 +75,31 @@ public:
         return crc;
     }
 
+    static String modbusCRC16FromASCII(const String & input) {
+        //Serial.print("Calculating crc for: ");
+        //Serial.println(input);
+
+        String hexString;
+
+        for(int i=0;i<input.length();i=i+2){
+            unsigned number = hex_char_to_int( input[ i ] ); // most signifcnt nibble
+            unsigned lsn = hex_char_to_int( input[ i + 1 ] ); // least signt nibble
+            number = (number << 4) + lsn;
+            hexString += (char)number;
+        }
+
+        unsigned short res = modbusCRC16FromHex(hexString);
+        std::string stringRes = DeyeUtils::lengthToHexString(res,4);
+
+        return String()+stringRes[2]+stringRes[3]+stringRes[0]+stringRes[1];
+    }
+
     static std::string modbusCRC16FromASCII(const std::string & input) {
 
         //Serial.print("Calculating crc for: ");
         //Serial.println(input);
 
-        String hexString;
+        std::string hexString;
 
         for(int i=0;i<input.length();i=i+2){
             unsigned number = hex_char_to_int( input[ i ] ); // most signifcnt nibble

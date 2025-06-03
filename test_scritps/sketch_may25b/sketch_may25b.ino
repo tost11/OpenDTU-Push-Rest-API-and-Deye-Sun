@@ -238,6 +238,9 @@ void setup() {
 
   lenToSend = frame.length();
 
+  Serial.print("len to send: ");
+  Serial.println(lenToSend);
+
   // copying the contents of the string to
   // char array
   memcpy(toSend, frame.c_str(),frame.size());
@@ -245,7 +248,7 @@ void setup() {
   for(int i=1;i<frame.length() - 2;i++){
       check += toSend[i] & 255;
   }
-    toSend[frame.length() - 2] = int((check & 255));
+  toSend[frame.length() - 2] = int((check & 255));
 
   std::string test;
   for(int i=0;i<frame.length();i++){

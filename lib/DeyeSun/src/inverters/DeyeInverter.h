@@ -34,6 +34,12 @@ public:
 
     virtual void update() = 0;
 
+    bool isProducing() override;
+
+    String typeName() const override;
+
+    inverter_type getInverterType() const override;
+
 };
 
 
