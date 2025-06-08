@@ -35,18 +35,24 @@ void DeyeSunClass::loop()
     performHouseKeeping();
 }
 
-std::shared_ptr<DeyeInverter> DeyeSunClass::addInverter(const char* name, uint64_t serial,const char* hostnameOrIp,uint16_t port)
+std::shared_ptr<DeyeInverter> DeyeSunClass::addInverter(const char* name, uint64_t serial,const char* hostnameOrIp,uint16_t port,deye_inverter_type deyeInverterType)
 {
     std::shared_ptr<DeyeInverter> i = nullptr;
 
     String type = DeyeInverter::serialToModel(serial);
 
-    if(type.startsWith("SUN300G3")){
-        //i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<AT_DS_1CH>(serial,type));
-        i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<CMOD_DS_1CH>(serial,type));
-    }else{
-        //i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<AT_DS_2CH>(serial,type));
-        i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<CMOD_DS_2CH>(serial,type));
+    if(deyeInverterType == deye_inverter_type::Deye_Sun_Custom_Modbus){
+        if(type.startsWith("SUN300G3")){
+            i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<CMOD_DS_1CH>(serial,type));
+        }else{
+            i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<CMOD_DS_2CH>(serial,type));
+        }
+    }else{//eveything else at commands inverter
+        if(type.startsWith("SUN300G3")){
+            i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<AT_DS_1CH>(serial,type));
+        }else{
+            i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<AT_DS_2CH>(serial,type));
+        }
     }
 
     if (i) {

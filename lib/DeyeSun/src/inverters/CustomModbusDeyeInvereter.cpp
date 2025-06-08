@@ -13,11 +13,18 @@ DeyeInverter(serial){
     _requestDataTimeout.zero();
     _statusPrintTimeout.set(5000);
     _statusPrintTimeout.zero();
+    _pollDataTimout.set(_pollTime * 1000);
+    _pollDataTimout.zero();
     createReqeustDataCommand();
 
     _client.onData([&](void * arg, AsyncClient * client,void *data, size_t len){this->onDataReceived(data,len);});
     _redBytes = 0;
 }
+
+CustomModbusDeyeInverter::~CustomModbusDeyeInverter() {
+    _client.stop();
+}
+
 
 deye_inverter_type CustomModbusDeyeInverter::getDeyeInverterType() const {
     return Deye_Sun_Custom_Modbus;
@@ -109,6 +116,8 @@ void CustomModbusDeyeInverter::hostOrPortUpdated() {
 
 void CustomModbusDeyeInverter::createReqeustDataCommand() {
 
+
+
     int start_register = 60;
     int end_register = 116;
     std::string start = DeyeUtils::hex_to_bytes("A5");
@@ -125,7 +134,7 @@ void CustomModbusDeyeInverter::createReqeustDataCommand() {
 
     //TODO find better way to do this
     char hexStr[9];
-    sprintf(hexStr, "%llx", std::strtoull(serialString().c_str(),0,10));
+    sprintf(hexStr, "%08llx", std::strtoull(serialString().c_str(),0,10));
     MessageOutput.printf("Hex value 1: %s\n",hexStr);
     std::string inverter_sn2 = "        ";
     inverter_sn2[0] = hexStr[6];
@@ -208,4 +217,9 @@ void CustomModbusDeyeInverter::resetStats() {
 
 bool CustomModbusDeyeInverter::supportsPowerDistributionLogic() {
     return false;
+}
+
+void CustomModbusDeyeInverter::onPollTimeChanged() {
+    BaseInverter::onPollTimeChanged();
+    _pollDataTimout.setTimeout(_pollTime * 1000);
 }

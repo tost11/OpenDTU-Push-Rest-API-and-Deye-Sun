@@ -18,6 +18,7 @@ private:
     TimeoutHelper _reconnectTimeout;
     TimeoutHelper _requestDataTimeout;
     TimeoutHelper _statusPrintTimeout;
+    TimeoutHelper _pollDataTimout;
 
     char _requestDataCommand[SEND_REQUEST_BUFFER_LENGTH];//TODO check how many characters needed
     char _readBuffer[READ_BUFFER_LENGTH];//TODO check how many characters needed
@@ -27,7 +28,13 @@ private:
     void createReqeustDataCommand();
 
     void onDataReceived(void* data, size_t len);
+
+protected:
+    void onPollTimeChanged() override;
+
 public:
+    virtual ~CustomModbusDeyeInverter();
+
     explicit CustomModbusDeyeInverter(uint64_t serial);
 
     deye_inverter_type getDeyeInverterType() const override;

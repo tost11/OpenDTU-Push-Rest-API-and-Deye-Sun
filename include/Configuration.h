@@ -8,6 +8,7 @@
 #include <condition_variable>
 #include <WString.h>
 #include "defines.h"
+#include "inverters/DeyeInverter.h"
 
 #define CONFIG_FILENAME "/config.json"
 #define CONFIG_VERSION 0x00011d00 // 0.1.29 // make sure to clean all after change
@@ -63,6 +64,7 @@ struct INVERTER_CONFIG_T {
     bool YieldDayCorrection;
     bool DeyeSunOfflineYieldDayCorrection;
     CHANNEL_CONFIG_T channel[INV_MAX_CHAN_COUNT];
+    int32_t MoreInverterInfo;
 };
 
 struct CONFIG_T {

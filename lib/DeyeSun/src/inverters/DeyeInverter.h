@@ -14,6 +14,7 @@
 enum deye_inverter_type {
     Deye_Sun_At_Commands = 0,
     Deye_Sun_Custom_Modbus,
+
     //Coming Soon
     //Deye_Sun_Modbus,
 
