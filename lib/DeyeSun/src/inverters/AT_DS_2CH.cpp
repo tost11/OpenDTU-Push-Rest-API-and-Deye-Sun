@@ -1,4 +1,4 @@
-#include "DS_2CH.h"
+#include "AT_DS_2CH.h"
 
 const std::vector<RegisterMapping> registersToRead = {
         RegisterMapping("0010",1,44),//init rated power
@@ -61,12 +61,12 @@ static const byteAssign_t byteAssignment[] = {
         //{ TYPE_INV, CH0, FLD_EFF, UNIT_PCT, CALC_TOTAL_EFF, 0, CMD_CALC, false,true, 3 }
 };
 
-DS_2CH::DS_2CH(uint64_t serial,const String & model) :
-DeyeInverter(serial) {
+AT_DS_2CH::AT_DS_2CH(uint64_t serial,const String & model) :
+AtCommandsDeyeInverter(serial) {
     _devInfoParser->setHardwareModel(model);
     _statisticsParser->setByteAssignment(byteAssignment,sizeof(byteAssignment) / sizeof(byteAssignment[0]));
 }
 
-const std::vector<RegisterMapping> &DS_2CH::getRegisteresToRead() {
+const std::vector<RegisterMapping> &AT_DS_2CH::getRegisteresToRead() {
     return registersToRead;
 }
