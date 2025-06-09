@@ -605,7 +605,9 @@
         "PollTime": "Data fetch interval",
         "PollTimeHint": "Time interval of fetching current inverter values",
         "PollTimeWarningDeye": "'Data fetch interval' for Deye Sun inverters only means health check, not fetching data (this is only possible every 5 minutes due to device limitations).",
-        "PollTimeWarningHoymilesW": "'Data fetch interval' for Hoymiles W-Series inverters with firmware 1.*.* is 31 Seconds or above! lowering this value will result in hanging values and disconnects."
+        "PollTimeWarningHoymilesW": "'Data fetch interval' for Hoymiles W-Series inverters with firmware 1.*.* is 31 Seconds or above! lowering this value will result in hanging values and disconnects.",
+        "DeyeInverterType": "Inverter Communication Protocol",
+        "DeyeInverterTypeHint": "Underlying communication protocol for the the correct inverter firmware"
     },
     "fileadmin": {
         "ConfigManagement": "Config Management",
