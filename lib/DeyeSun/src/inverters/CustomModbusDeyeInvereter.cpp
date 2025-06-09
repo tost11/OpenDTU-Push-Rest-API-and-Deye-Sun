@@ -19,6 +19,8 @@ DeyeInverter(serial){
 
     _client.onData([&](void * arg, AsyncClient * client,void *data, size_t len){this->onDataReceived(data,len);});
     _redBytes = 0;
+
+    _wasConnecting = false;
 }
 
 CustomModbusDeyeInverter::~CustomModbusDeyeInverter() {
@@ -43,7 +45,7 @@ void inline swapTwoBytes(char * buf,size_t pos){
 void CustomModbusDeyeInverter::update() {
 
     if(_statusPrintTimeout.occured()){
-        MessageOutput.printf("Deye Custom Modbus -> Socket status: %s\n",_client.stateToString());
+        MessageOutput.printfDebug("Deye Custom Modbus -> Socket status: %s\n",_client.stateToString());
         _statusPrintTimeout.reset();
     }
 
@@ -76,13 +78,15 @@ void CustomModbusDeyeInverter::update() {
                 swapTwoBytes(_readBuffer, 26 + 36);
                 swapTwoBytes(_readBuffer, 26 + 8);
 
-                MessageOutput.println("Deye Custom Modbus -> handled new valid data");
+                MessageOutput.printfDebug("Deye Custom Modbus -> handled new valid data");
                 _statisticsParser->beginAppendFragment();
                 _statisticsParser->clearBuffer();
                 _statisticsParser->appendFragment(0,(uint8_t *)_readBuffer+26,112);
                 _statisticsParser->setLastUpdate(millis());
                 _statisticsParser->resetRxFailureCount();
                 _statisticsParser->endAppendFragment();
+
+                ConnectionStatistics.SuccessfulReadDataRequests++;
             }
             _redBytes = 0;
         }
@@ -99,13 +103,21 @@ void CustomModbusDeyeInverter::update() {
         const char * address = _resolvedIpByMacAdress == nullptr ? _oringalIpOrHostname.c_str() : _resolvedIpByMacAdress->c_str();
         _client.connect(address, _port);
         MessageOutput.printf("Deye Custom Modbus -> reconnect %s %d\n",address,_port);
+        ConnectionStatistics.Connects ++;
+        _wasConnecting = true;
     }
 
     if(_client.state() == 4){//establised
+        if(_wasConnecting){
+            _client.setKeepAlive(10 * 1000, 5);
+            _wasConnecting = false;
+            ConnectionStatistics.SuccessfulConnects++;
+        }
         if(_requestDataTimeout.occured()){
-            MessageOutput.println("Deye Custom Modbus -> send new data request");
+            MessageOutput.printfDebug("Deye Custom Modbus -> send new data request");
             _requestDataTimeout.reset();
             _client.write(_requestDataCommand,SEND_REQUEST_BUFFER_LENGTH);
+            ConnectionStatistics.SendReadDataRequests++;
         }
     }
 }
@@ -115,8 +127,6 @@ void CustomModbusDeyeInverter::hostOrPortUpdated() {
 }
 
 void CustomModbusDeyeInverter::createReqeustDataCommand() {
-
-
 
     int start_register = 60;
     int end_register = 116;
@@ -135,7 +145,7 @@ void CustomModbusDeyeInverter::createReqeustDataCommand() {
     //TODO find better way to do this
     char hexStr[9];
     sprintf(hexStr, "%08llx", std::strtoull(serialString().c_str(),0,10));
-    MessageOutput.printf("Hex value 1: %s\n",hexStr);
+    //MessageOutput.printf("Hex value 1: %s\n",hexStr);
     std::string inverter_sn2 = "        ";
     inverter_sn2[0] = hexStr[6];
     inverter_sn2[1] = hexStr[7];
@@ -150,7 +160,7 @@ void CustomModbusDeyeInverter::createReqeustDataCommand() {
 
     uint16_t lenToSend = frame.length();
 
-    MessageOutput.printf("Len to send: %d\n",lenToSend);
+    //MessageOutput.printf("Len to send: %d\n",lenToSend);
 
     assert(SEND_REQUEST_BUFFER_LENGTH >= lenToSend);
 
@@ -185,7 +195,7 @@ void CustomModbusDeyeInverter::onDataReceived(void *data, size_t len) {
     if(len > READ_BUFFER_LENGTH){
         MessageOutput.println("Deye Custom Modbus -> Read buffer to short not all data used!");
     }
-    MessageOutput.println("Deye Custom Modbus -> Received some data");
+    MessageOutput.printfDebug("Deye Custom Modbus -> Received some data");
     std::lock_guard<std::mutex> lock(_readDataLock);
     _redBytes = std::min(len,(size_t)READ_BUFFER_LENGTH);
     memcpy(_readBuffer,data,std::min(len,_redBytes));
@@ -196,23 +206,27 @@ bool CustomModbusDeyeInverter::isReachable() {
 }
 
 bool CustomModbusDeyeInverter::sendActivePowerControlRequest(float limit, const PowerLimitControlType type) {
+    _alarmLogParser->addAlarm(6,10 * 60,"limit command not implemented yet");
     return false;
 }
 
 bool CustomModbusDeyeInverter::resendPowerControlRequest() {
+    _alarmLogParser->addAlarm(6,10 * 60,"resend power command not implemented yet");
     return false;
 }
 
 bool CustomModbusDeyeInverter::sendRestartControlRequest() {
+    _alarmLogParser->addAlarm(6,10 * 60,"restart command not implemented yet");
     return false;
 }
 
 bool CustomModbusDeyeInverter::sendPowerControlRequest(const bool turnOn) {
+    _alarmLogParser->addAlarm(6,10 * 60,"power control command not implemented yet");
     return false;
 }
 
 void CustomModbusDeyeInverter::resetStats() {
-
+    ConnectionStatistics = {};
 }
 
 bool CustomModbusDeyeInverter::supportsPowerDistributionLogic() {

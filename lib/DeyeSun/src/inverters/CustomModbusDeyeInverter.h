@@ -20,10 +20,12 @@ private:
     TimeoutHelper _statusPrintTimeout;
     TimeoutHelper _pollDataTimout;
 
-    char _requestDataCommand[SEND_REQUEST_BUFFER_LENGTH];//TODO check how many characters needed
+    char _requestDataCommand[SEND_REQUEST_BUFFER_LENGTH];
     char _readBuffer[READ_BUFFER_LENGTH];//TODO check how many characters needed
     size_t _redBytes;
     std::mutex _readDataLock;
+
+    bool _wasConnecting;
 
     void createReqeustDataCommand();
 
@@ -31,7 +33,7 @@ private:
 
 protected:
     void onPollTimeChanged() override;
-
+    void hostOrPortUpdated() override;
 public:
     virtual ~CustomModbusDeyeInverter();
 
@@ -52,6 +54,11 @@ public:
 
     bool supportsPowerDistributionLogic() override;
 
-protected:
-    void hostOrPortUpdated() override;
+    struct{
+        uint32_t SendReadDataRequests;
+        uint32_t SuccessfulReadDataRequests;
+
+        uint32_t Connects;
+        uint32_t SuccessfulConnects;
+    } ConnectionStatistics = {};
 };

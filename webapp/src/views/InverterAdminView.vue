@@ -475,7 +475,7 @@ export default defineComponent({
         return {
             modal: {} as bootstrap.Modal,
             modalDelete: {} as bootstrap.Modal,
-            newInverterData: {serial: "",manufacturer:"Hoymiles",port:0,hostname_or_ip:""} as Inverter,//deye 48899
+            newInverterData: {serial: "",manufacturer:"Hoymiles",port:0,hostname_or_ip:"",deye_type:0} as Inverter,//deye 48899
             selectedInverterData: { serial: '' } as Inverter,
             inverters: [] as Inverter[],
             manufacturers: [] as string[],
@@ -537,7 +537,7 @@ export default defineComponent({
                     if(this.manufacturers.length > 0 && this.manufacturers.indexOf(newData.manufacturer)<0){
                         // @ts-ignore
                         newData.manufacturer = this.manufacturers.at(0);
-                        newData.port = getInverterPortByManufacturer(newData.manufacturer);
+                        newData.port = getInverterPortByManufacturer(newData.manufacturer,newData.deye_type);
                     }
                     this.newInverterData = newData
                 });
@@ -555,7 +555,7 @@ export default defineComponent({
                 .then((data) => {
                     if(data.type === "success"){
                         console.log("reset inverter dta")
-                        this.newInverterData = {serial: "",manufacturer:this.newInverterData.manufacturer,port:getInverterPortByManufacturer(this.newInverterData.manufacturer),} as Inverter
+                        this.newInverterData = {serial: "",manufacturer:this.newInverterData.manufacturer,port:getInverterPortByManufacturer(this.newInverterData.manufacturer,this.newInverterData.deye_type),deye_type: this.newInverterData.deye_type} as Inverter
                     }
                     this.getInverters();
                     this.alert = data;

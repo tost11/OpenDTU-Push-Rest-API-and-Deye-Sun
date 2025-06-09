@@ -37,7 +37,7 @@ void DeyeSunClass::loop()
 
 std::shared_ptr<DeyeInverter> DeyeSunClass::addInverter(const char* name, uint64_t serial,const char* hostnameOrIp,uint16_t port,deye_inverter_type deyeInverterType)
 {
-    std::shared_ptr<DeyeInverter> i = nullptr;
+    std::shared_ptr<DeyeInverter> i;
 
     String type = DeyeInverter::serialToModel(serial);
 
@@ -55,14 +55,11 @@ std::shared_ptr<DeyeInverter> DeyeSunClass::addInverter(const char* name, uint64
         }
     }
 
-    if (i) {
-        i->setName(name);
-        i->setHostnameOrIpOrMacAndPort(hostnameOrIp,port);
-        _inverters.push_back(std::move(i));
-        return _inverters.back();
-    }
+    i->setName(name);
+    i->setHostnameOrIpOrMacAndPort(hostnameOrIp,port);
+    _inverters.push_back(i);
 
-    return nullptr;
+    return i;
 }
 
 std::shared_ptr<DeyeInverter> DeyeSunClass::getInverterByPos(uint8_t pos)
