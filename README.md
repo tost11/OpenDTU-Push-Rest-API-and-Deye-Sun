@@ -32,9 +32,16 @@ The original implementation for Hoymiles inverts will work in parallel.
 
 ### Status Deye Sun
 
-The esp will connect via Network (UDP, Modbus) to the configured IP/hostname/MAC (when connected to AP of esp) and port of the Inverter.
+The esp will connect via Network ((UDP, 48899), (TCP, 8899, Modbus) to the configured IP/hostname/MAC (when connected to AP of esp) and port of the Inverter.
 It will read all data every 5 minutes. Reading data more often is not possible due to the limitations of inverters.
 Health checks will be done more often. It is configurable on advanced inverter settings.
+
+Currently, there exist three types of connections to the inverter, depending on the installed Firmware.
+
+|                       | At-Commands                   | Custom Modbus | Modbus          |
+|-----------------------|-------------------------------|---------------|-----------------|
+| Firmware              | Old Firmwares (1.0 - 2.32)    | 1.0B          | ? (Maybe 5.0C)  |
+| Status of development | reding data and writing limit | reading data  | not implemented |
 
 Tested with model: SUN300G3-EU-230
 
@@ -51,7 +58,8 @@ Tested with model: SUN300G3-EU-230
 - Logs show hardware inverter errors
 - restart inverter
 - daily production if inverter not connected to online service
-- on new Deye Firmware versions like: MW3_SSL_5408_1.0B or MW_03_16U_5408_5.0C-S the UDP port 48899 is closed, and therefore this fork isn't working on them. Further information is [here](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/issues/8).
+- setting limit on Custom Modbus Firmware (W3_SSL_5408_1.0B) [here](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/issues/8). Further information is [here](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/issues/8).
+- reading data and setting limit on Modbus Firmware (maby MW_03_16U_5408_5.0C-S could not verify). Further information is [here](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/issues/8).
 
 #### Additional Features
 When the Deye sun inverter is not having a connection to the internet (remote server), the daily KWH will not reset. For fixing that on the
