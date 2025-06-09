@@ -1,7 +1,9 @@
 #include "DeyeSun.h"
 #include "inverters/DeyeInverter.h"
-#include "inverters/DS_1CH.h"
-#include "inverters/DS_2CH.h"
+#include "inverters/AT_DS_1CH.h"
+#include "inverters/AT_DS_2CH.h"
+#include "inverters/CMOD_DS_1CH.h"
+#include "inverters/CMOD_DS_2CH.h"
 
 DeyeSunClass DeyeSun;
 
@@ -33,26 +35,31 @@ void DeyeSunClass::loop()
     performHouseKeeping();
 }
 
-std::shared_ptr<DeyeInverter> DeyeSunClass::addInverter(const char* name, uint64_t serial,const char* hostnameOrIp,uint16_t port)
+std::shared_ptr<DeyeInverter> DeyeSunClass::addInverter(const char* name, uint64_t serial,const char* hostnameOrIp,uint16_t port,deye_inverter_type deyeInverterType)
 {
-    std::shared_ptr<DeyeInverter> i = nullptr;
+    std::shared_ptr<DeyeInverter> i;
 
     String type = DeyeInverter::serialToModel(serial);
 
-    if(type.startsWith("SUN300G3")){
-        i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<DS_1CH>(serial,type));
-    }else{
-        i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<DS_2CH>(serial,type));
+    if(deyeInverterType == deye_inverter_type::Deye_Sun_Custom_Modbus){
+        if(type.startsWith("SUN300G3")){
+            i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<CMOD_DS_1CH>(serial,type));
+        }else{
+            i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<CMOD_DS_2CH>(serial,type));
+        }
+    }else{//eveything else at commands inverter
+        if(type.startsWith("SUN300G3")){
+            i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<AT_DS_1CH>(serial,type));
+        }else{
+            i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<AT_DS_2CH>(serial,type));
+        }
     }
 
-    if (i) {
-        i->setName(name);
-        i->setHostnameOrIpOrMacAndPort(hostnameOrIp,port);
-        _inverters.push_back(std::move(i));
-        return _inverters.back();
-    }
+    i->setName(name);
+    i->setHostnameOrIpOrMacAndPort(hostnameOrIp,port);
+    _inverters.push_back(i);
 
-    return nullptr;
+    return i;
 }
 
 std::shared_ptr<DeyeInverter> DeyeSunClass::getInverterByPos(uint8_t pos)

@@ -20,7 +20,8 @@
 #endif
 
 #ifdef DEYE_SUN
-#include "inverters/DeyeInverter.h"
+#include "inverters/AtCommandsDeyeInverter.h"
+#include "inverters/CustomModbusDeyeInverter.h"
 #endif
 
 #ifndef PIN_MAPPING_REQUIRED
@@ -198,22 +199,32 @@ void WebApiWsLiveClass::generateInverterCommonJsonResponse(JsonObject& root, std
     #ifdef DEYE_SUN
         if(inv->getInverterType() == inverter_type::Inverter_DeyeSun) {
             auto nv = reinterpret_cast<DeyeInverter *>(inv.get());
+            if(nv->getDeyeInverterType() == deye_inverter_type::Deye_Sun_At_Commands){
+                auto nv_at = reinterpret_cast<AtCommandsDeyeInverter *>(inv.get());
+                root["connection_stats_deye_at"]["connects"] = nv_at->ConnectionStatistics.Connects;
+                root["connection_stats_deye_at"]["connects_successful"] = nv_at->ConnectionStatistics.ConnectsSuccessful;
 
-            root["connection_stats_deye"]["connects"] = nv->ConnectionStatistics.Connects;
-            root["connection_stats_deye"]["connects_successful"] = nv->ConnectionStatistics.ConnectsSuccessful;
+                root["connection_stats_deye_at"]["send_commands"] = nv_at->ConnectionStatistics.SendCommands;
+                root["connection_stats_deye_at"]["timout_commands"] = nv_at->ConnectionStatistics.TimeoutCommands;
+                root["connection_stats_deye_at"]["error_commands"] = nv_at->ConnectionStatistics.ErrorCommands;
 
-            root["connection_stats_deye"]["send_commands"] = nv->ConnectionStatistics.SendCommands;
-            root["connection_stats_deye"]["timout_commands"] = nv->ConnectionStatistics.TimeoutCommands;
-            root["connection_stats_deye"]["error_commands"] = nv->ConnectionStatistics.ErrorCommands;
+                root["connection_stats_deye_at"]["heath_checks"] = nv_at->ConnectionStatistics.HealthChecks;
+                root["connection_stats_deye_at"]["heath_checks_successfully"] = nv_at->ConnectionStatistics.HealthChecksSuccessful;
 
-            root["connection_stats_deye"]["heath_checks"] = nv->ConnectionStatistics.HealthChecks;
-            root["connection_stats_deye"]["heath_checks_successfully"] = nv->ConnectionStatistics.HealthChecksSuccessful;
+                root["connection_stats_deye_at"]["write_requests"] = nv_at->ConnectionStatistics.WriteRequests;
+                root["connection_stats_deye_at"]["write_requests_successfully"] = nv_at->ConnectionStatistics.WriteRequestsSuccessful;
 
-            root["connection_stats_deye"]["write_requests"] = nv->ConnectionStatistics.WriteRequests;
-            root["connection_stats_deye"]["write_requests_successfully"] = nv->ConnectionStatistics.WriteRequestsSuccessful;
+                root["connection_stats_deye_at"]["read_requests"] = nv_at->ConnectionStatistics.ReadRequests;
+                root["connection_stats_deye_at"]["read_requests_successfully"] = nv_at->ConnectionStatistics.ReadRequestsSuccessful;
+            }
+            if(nv->getDeyeInverterType() == deye_inverter_type::Deye_Sun_Custom_Modbus){
+                auto nv_cust = reinterpret_cast<CustomModbusDeyeInverter *>(inv.get());
+                root["connection_stats_deye_cust"]["connects"] = nv_cust->ConnectionStatistics.Connects;
+                root["connection_stats_deye_cust"]["connects_successful"] = nv_cust->ConnectionStatistics.SuccessfulConnects;
 
-            root["connection_stats_deye"]["read_requests"] = nv->ConnectionStatistics.ReadRequests;
-            root["connection_stats_deye"]["read_requests_successfully"] = nv->ConnectionStatistics.ReadRequestsSuccessful;
+                root["connection_stats_deye_cust"]["read_requests"] = nv_cust->ConnectionStatistics.SendReadDataRequests;
+                root["connection_stats_deye_cust"]["read_requests_successfully"] = nv_cust->ConnectionStatistics.SuccessfulReadDataRequests;
+            }
         }
     #endif
 }

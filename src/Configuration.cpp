@@ -149,6 +149,7 @@ bool ConfigurationClass::write()
         inv["clear_eventlog"] = config.Inverter[i].ClearEventlogOnMidnight;
         inv["yieldday_correction"] = config.Inverter[i].YieldDayCorrection;
         inv["deye_sun_offline_yieldday_correction"] = config.Inverter[i].DeyeSunOfflineYieldDayCorrection;
+        inv["more_inverter_info"] = config.Inverter[i].MoreInverterInfo;
 
         JsonArray channel = inv["channel"].to<JsonArray>();
         for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
@@ -322,6 +323,7 @@ bool ConfigurationClass::read()
         config.Inverter[i].Order = inv["order"] | 0;
         config.Inverter[i].Port = inv["port"] | 0;
         config.Inverter[i].Type = inv["type"] | inverter_type::Inverter_Hoymiles;
+        config.Inverter[i].MoreInverterInfo = inv["more_inverter_info"] | 0;
 
         config.Inverter[i].Poll_Enable = inv["poll_enable"] | true;
         config.Inverter[i].Poll_Enable = inv["poll_enable"] | true;

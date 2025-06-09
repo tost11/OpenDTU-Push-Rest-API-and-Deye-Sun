@@ -38,7 +38,7 @@ export interface ConnectionStatisticsHoymiles {
     timeouts: number;
 }
 
-export interface ConnectionStatisticsDeye {
+export interface ConnectionStatisticsDeyeAtCommands {
     connects: number;
     connects_successful: number;
     send_commands: number;
@@ -48,6 +48,13 @@ export interface ConnectionStatisticsDeye {
     heath_checks_successfully: number;
     write_requests: number;
     write_requests_successfully: number;
+    read_requests: number;
+    read_requests_successfully: number;
+}
+
+export interface ConnectionStatisticsCustomModbus {
+    connects: number;
+    connects_successful: number;
     read_requests: number;
     read_requests_successfully: number;
 }
@@ -69,7 +76,8 @@ export interface Inverter {
     INV: InverterStatistics[];
     radio_stats: RadioStatistics;
     connection_stats_hoymiles: ConnectionStatisticsHoymiles;
-    connection_stats_deye: ConnectionStatisticsDeye;
+    connection_stats_deye_at: ConnectionStatisticsDeyeAtCommands;
+    connection_stats_deye_cust: ConnectionStatisticsCustomModbus;
 }
 
 export interface Total {
