@@ -2,8 +2,7 @@
 // Created by lukas on 31.05.25.
 //
 
-#ifndef OPENDTU_DEYEINVERTER_H
-#define OPENDTU_DEYEINVERTER_H
+#pragma once
 
 #include <parser/DefaultStatisticsParser.h>
 #include "parser/DeyeDevInfo.h"
@@ -42,6 +41,3 @@ public:
     inverter_type getInverterType() const override;
 
 };
-
-
-#endif //OPENDTU_DEYEINVERTER_H
