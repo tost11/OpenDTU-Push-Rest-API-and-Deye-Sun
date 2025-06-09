@@ -11,3 +11,8 @@ platformio_override.ini
 tmp
 .idea
 get-platformio.py
+lib64
+pyvenv.cfg
+bin
+lib/python*
+test_scripts

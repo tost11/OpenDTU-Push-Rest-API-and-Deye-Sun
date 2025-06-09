@@ -49,15 +49,12 @@ std::shared_ptr<HoymilesWInverter> HoymilesWClass::addInverter(const char* name,
         i->getDevInfo()->setHardwareModel("Unknown");
     }
 
-    if (i) {
-        i->setName(name);
-        i->setHostnameOrIpOrMacAndPort(hostnameOrIp,port);
-        i->startConnection();
-        _inverters.push_back(std::move(i));
-        return _inverters.back();
-    }
+    i->setName(name);
+    i->setHostnameOrIpOrMacAndPort(hostnameOrIp,port);
+    i->startConnection();
+    _inverters.push_back(i);
 
-    return nullptr;
+    return i;
 }
 
 std::shared_ptr<HoymilesWInverter> HoymilesWClass::getInverterByPos(uint8_t pos)

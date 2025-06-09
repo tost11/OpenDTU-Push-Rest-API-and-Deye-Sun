@@ -55,12 +55,13 @@ void InverterSettingsClass::init(Scheduler& scheduler)
             MessageOutput.print("  Adding DeyeSun inverter: ");
             MessageOutput.print(config.Inverter[i].Serial, HEX);
             MessageOutput.print(" - ");
-            MessageOutput.print(config.Inverter[i].Name);
+            MessageOutput.println(config.Inverter[i].Name);
             auto inv = DeyeSun.addInverter(
                     config.Inverter[i].Name,
                     config.Inverter[i].Serial,
                     config.Inverter[i].HostnameOrIp,
-                    config.Inverter[i].Port);
+                    config.Inverter[i].Port,
+                    (deye_inverter_type)config.Inverter[i].MoreInverterInfo);
 
             if (inv != nullptr) {
                 inv->setPollTime(config.Inverter[i].PollTime);
@@ -212,8 +213,6 @@ void InverterSettingsClass::settingsLoop()
 {
     const CONFIG_T& config = Configuration.get();
     const bool isDayPeriod = SunPosition.isDayPeriod();
-
-    MessageOutput.printf("Is Day period: %d\n",isDayPeriod);
 
     for (uint8_t i = 0; i < INV_MAX_COUNT; i++) {
         auto const& inv_cfg = config.Inverter[i];
