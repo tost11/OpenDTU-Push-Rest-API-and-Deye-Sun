@@ -650,7 +650,9 @@
         "PollTime": "Intervall Datenabfrage",
         "PollTimeHint": "Zeitabstand im dem Live Daten des Inverters abgefragt werden",
         "PollTimeWarningDeye": "Die 'Intervall Datenabfrage' bei den Deye Sun Invertern ändert nur das Intervall für den Erreichbarkeit-Check nicht die Datenabfrage (dies ist aufgrund der Geräte Limitierung nicht möglich).",
-        "PollTimeWarningHoymilesW": "Die 'Intervall Datenabfrage' ist bei den Hoymiles-W Invertern und der Firmware Version 1.*.* nur alle 31 Sekunden oder mehr möglich! Verringern dieses Wertes resultiert in hängenden Werten und Neustarts."
+        "PollTimeWarningHoymilesW": "Die 'Intervall Datenabfrage' ist bei den Hoymiles-W Invertern und der Firmware Version 1.*.* nur alle 31 Sekunden oder mehr möglich! Verringern dieses Wertes resultiert in hängenden Werten und Neustarts.",
+        "DeyeInverterType": "Inverter Kommunikationsprotokoll",
+        "DeyeInverterTypeHint": "Darunterliegendes Kommunikationsprotokoll für die passende Firmware"
     },
     "fileadmin": {
         "ConfigManagement": "Konfigurationsverwaltung",
