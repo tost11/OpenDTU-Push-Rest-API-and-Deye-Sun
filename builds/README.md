@@ -1,4 +1,6 @@
-# Build Infromation
+# Build Information
+
+All the build in this folder are the generic build for the Esp with 4MB Ram. More builds for other Platforms can be found in the subfolders.
 
 ## Features
 
