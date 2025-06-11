@@ -23,6 +23,9 @@ enum deye_inverter_type {
 class DeyeInverter : public BaseNetworkInverter<DefaultStatisticsParser,DeyeDevInfo,DeyeAlarmLog,PowerCommandParser> {
 private:
     uint64_t _serial;
+
+protected:
+    void handleDeyeDayCorrection();
 public:
     explicit DeyeInverter(uint64_t serial);
 
