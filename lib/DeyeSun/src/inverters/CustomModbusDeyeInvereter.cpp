@@ -78,13 +78,16 @@ void CustomModbusDeyeInverter::update() {
                 swapTwoBytes(_readBuffer, 26 + 36);
                 swapTwoBytes(_readBuffer, 26 + 8);
 
-                MessageOutput.printfDebug("Deye Custom Modbus -> handled new valid data");
+                MessageOutput.println("Deye Custom Modbus -> handled new valid data");
                 _statisticsParser->beginAppendFragment();
                 _statisticsParser->clearBuffer();
                 _statisticsParser->appendFragment(0,(uint8_t *)_readBuffer+26,112);
-                _statisticsParser->setLastUpdate(millis());
                 _statisticsParser->resetRxFailureCount();
                 _statisticsParser->endAppendFragment();
+
+                handleDeyeDayCorrection();
+
+                _statisticsParser->setLastUpdate(millis());
 
                 ConnectionStatistics.SuccessfulReadDataRequests++;
             }
