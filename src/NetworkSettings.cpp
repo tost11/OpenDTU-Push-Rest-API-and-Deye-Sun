@@ -11,6 +11,8 @@
 #include "defaults.h"
 #include <ESPmDNS.h>
 #include <ETH.h>
+#include <unordered_set>
+#include "esp_wifi.h"
 
 NetworkSettingsClass::NetworkSettingsClass()
     : _loopTask(TASK_IMMEDIATE, TASK_FOREVER, std::bind(&NetworkSettingsClass::loop, this))
@@ -18,6 +20,7 @@ NetworkSettingsClass::NetworkSettingsClass()
     , _apNetmask(255, 255, 255, 0)
 {
     _dnsServer.reset(new DNSServer());
+    _checkZeroIpTimout.set(10*1000);
 }
 
 void NetworkSettingsClass::init(Scheduler& scheduler)
@@ -203,8 +206,95 @@ String NetworkSettingsClass::getApName() const
     return String(ACCESS_POINT_NAME + String(Utils::getChipId()));
 }
 
+extern "C" {
+#include "esp_wifi.h"
+#include "esp_log.h"
+#include "esp_private/wifi.h"  // ← Nicht offiziell dokumentiert
+}
+
 void NetworkSettingsClass::loop()
 {
+
+    auto ret = std::make_unique<std::unordered_map<std::string,std::string>>();
+    if(_checkZeroIpTimout.occured()){
+        MessageOutput.printlnDebug("Look for client zero to kick");
+        _checkZeroIpTimout.reset();
+        //collectmore wifi info
+        wifi_sta_list_t wifi_sta_list;
+        tcpip_adapter_sta_list_t adapter_sta_list;
+
+        memset(&wifi_sta_list, 0, sizeof(wifi_sta_list));
+        memset(&adapter_sta_list, 0, sizeof(adapter_sta_list));
+
+        esp_wifi_ap_get_sta_list(&wifi_sta_list);
+        tcpip_adapter_get_sta_list(&wifi_sta_list, &adapter_sta_list);
+
+        char macBuff[18];
+
+        std::unordered_set<std::string> macsZero;
+
+        for (int i = 0; i < adapter_sta_list.num; i++) {
+
+            const tcpip_adapter_sta_info_t station = adapter_sta_list.sta[i];
+
+            if (station.ip.addr == 0) {
+                //ip is zero means 0.0.0.0
+                MessageOutput.printlnDebug("Found client with zero ip");
+
+                macBuff[17] = '\0';
+                for (int i = 0; i < 6; i++) {
+                    sprintf(macBuff + i * 3, "%02X", station.mac[i]);
+                    if (i < 5) {
+                        sprintf(macBuff + 2 + i * 3, ":");
+                    }
+                }
+
+                std::string mac{macBuff};
+                bool emplace = true;
+
+                auto it = _clients_without_ip_kick_timer.find(mac);
+                if (it == _clients_without_ip_kick_timer.end()) {
+                    _clients_without_ip_kick_timer.emplace(mac, TimeoutHelper(1000 * 6 * 3));//three minutes
+                }else {
+
+                    MessageOutput.printlnDebug("Zero client already known");
+
+                    if (it->second.occured()) {
+                        MessageOutput.printf("Connected client with mac %s has zero ip to long -> kick\n", macBuff);
+
+                        uint16_t aid;
+                        esp_err_t result = esp_wifi_ap_get_sta_aid(station.mac, &aid);
+                        if (result == ESP_OK) {
+                            result = esp_wifi_deauth_sta(aid);
+                            if (result == ESP_OK) {
+                                MessageOutput.println("Client with zero ip kicked");
+                                emplace = false;
+                            } else {
+                                MessageOutput.println("Could not kick client with zero ip");
+                            }
+                        } else {
+                            MessageOutput.printf("Could not get client aid of mac");
+                        }
+                    }
+                }
+                if(emplace){
+                    macsZero.emplace(mac);
+                }
+            }
+        }
+
+        auto it = _clients_without_ip_kick_timer.begin();
+        while (it != _clients_without_ip_kick_timer.end()){
+            if(macsZero.find(it->first) == macsZero.end()){
+                MessageOutput.printfDebug("Removed client from zero map with mac: %s\n",it->first.c_str());
+                it = _clients_without_ip_kick_timer.erase(it);
+            }else {
+                it++;
+            }
+        }
+
+    }
+
     if (_ethConnected) {
         if (_networkMode != network_mode::Ethernet) {
             // Do stuff when switching to Ethernet mode
