@@ -153,7 +153,7 @@ void WebApiNetworkClass::onNetworkAdminPost(AsyncWebServerRequest* request)
         return;
     }
     if (NetworkSettings.NetworkMode() == network_mode::WiFi) {
-        if (root["ssid"].as<String>().length() == 0 || root["ssid"].as<String>().length() > WIFI_MAX_SSID_STRLEN) {
+        if (root["ssid"].as<String>().length() > WIFI_MAX_SSID_STRLEN) {
             retMsg["message"] = "SSID must between 1 and " STR(WIFI_MAX_SSID_STRLEN) " characters long!";
             WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
             return;
