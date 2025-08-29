@@ -102,7 +102,7 @@ void NetworkSettingsClass::NetworkEvent(const WiFiEvent_t event, WiFiEventInfo_t
     case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
         // Reason codes can be found here: https://github.com/espressif/esp-idf/blob/5454d37d496a8c58542eb450467471404c606501/components/esp_wifi/include/esp_wifi_types_generic.h#L79-L141
         MessageOutput.printf("WiFi disconnected: %" PRIu8 "\r\n", info.wifi_sta_disconnected.reason);
-        if (_networkMode == network_mode::WiFi) {
+        if (_networkMode == network_mode::WiFi && strcmp(Configuration.get().WiFi.Ssid, "") != 0) {
             MessageOutput.println("Try reconnecting");
             WiFi.disconnect(true, false);
             WiFi.begin();
@@ -369,18 +369,22 @@ void NetworkSettingsClass::loop()
 void NetworkSettingsClass::applyConfig()
 {
     setHostname();
-    if (!strcmp(Configuration.get().WiFi.Ssid, "")) {
-        return;
-    }
     MessageOutput.print("Configuring WiFi STA using ");
-    if (strcmp(WiFi.SSID().c_str(), Configuration.get().WiFi.Ssid) || strcmp(WiFi.psk().c_str(), Configuration.get().WiFi.Password)) {
+    if (strcmp(WiFi.SSID().c_str(), Configuration.get().WiFi.Ssid) != 0 || strcmp(WiFi.psk().c_str(), Configuration.get().WiFi.Password) != 0) {
         MessageOutput.print("new credentials... ");
-        WiFi.begin(
-            Configuration.get().WiFi.Ssid,
-            Configuration.get().WiFi.Password);
+        if (strcmp(Configuration.get().WiFi.Ssid, "") == 0) {
+            MessageOutput.print("disconnect wifi... ");
+            WiFi.disconnect(true, false);
+        } else {
+            WiFi.begin(
+                    Configuration.get().WiFi.Ssid,
+                    Configuration.get().WiFi.Password);
+        }
     } else {
         MessageOutput.print("existing credentials... ");
-        WiFi.begin();
+        if (strcmp(Configuration.get().WiFi.Ssid, "") != 0) {
+            WiFi.begin();
+        }
     }
     MessageOutput.println("done");
     setStaticIp();
