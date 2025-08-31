@@ -8,11 +8,16 @@
 
 class CustomModbusDeyeInverter : public DeyeInverter {
 
-    static const uint16_t SEND_REQUEST_BUFFER_LENGTH = 36;
-    static const uint16_t READ_BUFFER_LENGTH = 150;
+    //static const uint16_t SEND_REQUEST_BUFFER_WITHOUT_MODBUS_FRAME_LENGTH = 28;
+    static const uint16_t READ_BUFFER_LENGTH = 200;
+
+    static const uint32_t COMMEND_TIMEOUT = 10;
 
 private:
     AsyncClient _client;
+
+    std::unique_ptr<TimeoutHelper> _readTimeout;
+    std::unique_ptr<TimeoutHelper> _writeTimeout;
 
     //TODO implement long timer after some tries
     TimeoutHelper _reconnectTimeout;
@@ -20,14 +25,14 @@ private:
     TimeoutHelper _statusPrintTimeout;
     TimeoutHelper _pollDataTimout;
 
-    char _requestDataCommand[SEND_REQUEST_BUFFER_LENGTH];
+    std::string _requestDataCommand;
     char _readBuffer[READ_BUFFER_LENGTH];//TODO check how many characters needed
     size_t _redBytes;
     std::mutex _readDataLock;
 
     bool _wasConnecting;
 
-    void createReqeustDataCommand();
+    std::string createReqeustDataCommand(const std::string & modbusFrame);
 
     void onDataReceived(void* data, size_t len);
 
@@ -45,11 +50,6 @@ public:
 
     bool isReachable() override;
 
-    //TODO implment
-    bool sendActivePowerControlRequest(float limit, const PowerLimitControlType type) override;
-    bool resendPowerControlRequest() override;
-    bool sendRestartControlRequest() override;
-    bool sendPowerControlRequest(const bool turnOn) override;
     void resetStats() override;
 
     bool supportsPowerDistributionLogic() override;
@@ -57,6 +57,9 @@ public:
     struct{
         uint32_t SendReadDataRequests;
         uint32_t SuccessfulReadDataRequests;
+
+        uint32_t SendWriteDataRequests;
+        uint32_t SuccessfulWriteDataRequests;
 
         uint32_t Connects;
         uint32_t SuccessfulConnects;

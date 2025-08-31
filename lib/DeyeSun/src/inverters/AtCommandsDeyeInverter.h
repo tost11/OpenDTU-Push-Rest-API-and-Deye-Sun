@@ -22,31 +22,12 @@ struct RegisterMapping{
     targetPos(targetPos){}
 };
 
-struct WriteRegisterMapping{
-    String writeRegister;
-    uint8_t length;
-    String valueToWrite;
-
-    WriteRegisterMapping(const String &writeRegister, uint8_t length, const String &valueToWrite):
-    writeRegister(writeRegister),
-    length(length),
-    valueToWrite(valueToWrite){}
-};
-
 class AtCommandsDeyeInverter : public DeyeInverter{
 public:
     explicit AtCommandsDeyeInverter(uint64_t serial);
     virtual ~AtCommandsDeyeInverter() = default;
 
     bool isReachable() override;
-
-    bool sendActivePowerControlRequest(float limit, PowerLimitControlType type) override;
-
-    bool resendPowerControlRequest() override;
-
-    bool sendRestartControlRequest() override;
-
-    bool sendPowerControlRequest(bool turnOn) override;
 
     void update() override;
 
@@ -104,12 +85,7 @@ private:
     std::unique_ptr<UDP> _socket;
     std::unique_ptr<UDP> _oldSocket;
 
-    std::unique_ptr<bool> _powerTargetStatus;
-    std::unique_ptr<uint16_t > _limitToSet;
-
     std::unique_ptr<IPAddress> _ipAdress;
-
-    std::unique_ptr<WriteRegisterMapping> _currentWritCommand;
 
     //these timers seem to work good no idea what's best and what causes what
     static const uint32_t TIMER_FULL_POLL = 5 * 60 * 1000;
