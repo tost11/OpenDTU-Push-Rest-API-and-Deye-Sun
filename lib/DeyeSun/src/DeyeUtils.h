@@ -155,4 +155,18 @@ public:
 
         return result;
     }
+
+    static std::string bytes_to_hex(const std::string &bytes) {
+        static const char *hex_digits = "0123456789abcdef";
+
+        std::string result;
+        result.reserve(bytes.size() * 2);
+
+        for (unsigned char c : bytes) {
+            result.push_back(hex_digits[(c >> 4) & 0xF]); // high nibble
+            result.push_back(hex_digits[c & 0xF]);        // low nibble
+        }
+
+        return result;
+    }
 };
