@@ -20,12 +20,30 @@ enum deye_inverter_type {
     Deye_Sun_Inverter_Count
 };
 
+struct WriteRegisterMapping{
+    String writeRegister;
+    uint8_t length;
+    String valueToWrite;
+
+    WriteRegisterMapping(const String &writeRegister, uint8_t length, const String &valueToWrite):
+            writeRegister(writeRegister),
+            length(length),
+            valueToWrite(valueToWrite){}
+};
+
 class DeyeInverter : public BaseNetworkInverter<DefaultStatisticsParser,DeyeDevInfo,DeyeAlarmLog,PowerCommandParser> {
 private:
     uint64_t _serial;
 
 protected:
     void handleDeyeDayCorrection();
+
+    std::unique_ptr<bool> _powerTargetStatus;
+    std::unique_ptr<uint16_t > _limitToSet;
+
+    std::unique_ptr<WriteRegisterMapping> _currentWritCommand;
+
+    void checkForNewWriteCommands();
 public:
     explicit DeyeInverter(uint64_t serial);
 
@@ -42,5 +60,9 @@ public:
     String typeName() const override;
 
     inverter_type getInverterType() const override;
-
+    
+    bool sendActivePowerControlRequest(float limit, const PowerLimitControlType type) override;
+    bool sendPowerControlRequest(bool turnOn) override;
+    bool resendPowerControlRequest() override;
+    bool sendRestartControlRequest() override;
 };

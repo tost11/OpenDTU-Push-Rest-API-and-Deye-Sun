@@ -3,6 +3,8 @@
 //
 
 #include "DeyeInverter.h"
+#include "DeyeSun.h"
+#include "DeyeUtils.h"
 
 DeyeInverter::DeyeInverter(uint64_t serial) {
     _serial = serial;
@@ -88,3 +90,71 @@ void DeyeInverter::handleDeyeDayCorrection() {
         }
     }
 }
+
+bool DeyeInverter::sendActivePowerControlRequest(float limit, PowerLimitControlType type) {
+    if(typeName().startsWith("Unknown") && !DeyeSun.getUnknownDevicesWriteEnable()){
+        _alarmLogParser->addAlarm(6,10 * 60,"limit command not send because Deye Sun device unknown (checked by Serial number), it is possible to override this security check on DTU/Settings page");//alarm for 10 min
+        MessageOutput.println("Deye AT-Commands -> limit command not send because Deye Sun device unknown (checked by Serial number), it is possible to override this security check on DTU/Settings page");
+        return false;
+    }
+    if(!(type == AbsolutPersistent || type == RelativPersistent)){
+        MessageOutput.println("Deye AT-Commands -> Setting of temporary limit on deye inverter not possible");
+        return false;
+    }
+
+    uint16_t realLimit;
+    if(type == RelativPersistent){
+        realLimit = (uint16_t)(limit + 0.5f);
+    }else{
+        uint16_t maxPower = _devInfoParser->getMaxPower();
+        if(maxPower == 0){
+            _alarmLogParser->addAlarm(6,10 * 60,"limit command not send because init data of device not received yet (max Power)");//alarm for 10 min
+            getSystemConfigParaParser()->setLastLimitRequestSuccess(CMD_NOK);
+            return false;
+        }
+        realLimit = (uint16_t)(limit / (float)maxPower * 100);
+    }
+    if(realLimit > 100){
+        realLimit = 100;
+    }
+    getSystemConfigParaParser()->setLastLimitRequestSuccess(CMD_PENDING);
+    _limitToSet = std::make_unique<uint16_t>(realLimit);
+    return true;
+}
+
+bool DeyeInverter::sendPowerControlRequest(bool turnOn) {
+    if(typeName().startsWith("Unknown") && !DeyeSun.getUnknownDevicesWriteEnable()){
+        _alarmLogParser->addAlarm(6,10 * 60,"power command not send because Deye Sun device unknown (checked by Serial number), it is possible to override this security check on DTU/Settings page");//alarm for 10 min
+        MessageOutput.println("Deye AT-Commands -> power command not send because Deye Sun device unknown (checked by Serial number), it is possible to override this security check on DTU/Settings page");
+        return false;
+    }
+    _powerTargetStatus = std::make_unique<bool>(turnOn);
+    _powerCommandParser->setLastPowerCommandSuccess(CMD_PENDING);
+    return true;
+}
+
+
+bool DeyeInverter::resendPowerControlRequest() {
+    //todo implement
+    return false;
+}
+
+bool DeyeInverter::sendRestartControlRequest() {
+    //todo implement
+    return false;
+}
+
+void DeyeInverter::checkForNewWriteCommands() {
+    if(_currentWritCommand == nullptr && getEnableCommands()) {
+        if (_powerTargetStatus != nullptr) {
+            MessageOutput.printlnDebug("Deye AT-Commands -> Start writing register power status");
+            _currentWritCommand = std::make_unique<WriteRegisterMapping>("002B", 2,*_powerTargetStatus ? "0001" : "0002");
+            _powerTargetStatus = nullptr;
+        } else if (_limitToSet != nullptr) {
+            MessageOutput.printlnDebug("Deye AT-Commands -> Start writing register limit");
+            _currentWritCommand = std::make_unique<WriteRegisterMapping>("0028", 2, String(DeyeUtils::lengthToHexString(*_limitToSet,4).c_str()));
+            _limitToSet = nullptr;
+        }
+    }
+}
+
