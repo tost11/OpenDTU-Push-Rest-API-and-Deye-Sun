@@ -78,16 +78,8 @@ void AtCommandsDeyeInverter::update() {
 
     if(_currentWritCommand == nullptr){
         bool busy = handleRead();
-        if(!busy && _currentWritCommand == nullptr && getEnableCommands()) {
-            if (_powerTargetStatus != nullptr) {
-                MessageOutput.printlnDebug("Deye AT-Commands -> Start writing register power status");
-                _currentWritCommand = std::make_unique<WriteRegisterMapping>("002B", 1,*_powerTargetStatus ? "0001" : "0002");
-                _powerTargetStatus = nullptr;
-            } else if (_limitToSet != nullptr) {
-                MessageOutput.printlnDebug("Deye AT-Commands -> Start writing register limit");
-                _currentWritCommand = std::make_unique<WriteRegisterMapping>("0028", 1, String(DeyeUtils::lengthToHexString(*_limitToSet,4).c_str()));
-                _limitToSet = nullptr;
-            }
+        if(!busy) {
+            checkForNewWriteCommands();
         }
     }
 
@@ -98,57 +90,6 @@ void AtCommandsDeyeInverter::update() {
 
 bool AtCommandsDeyeInverter::isReachable() {
     return _timerHealthCheck.dist() < 60 * 1000;
-}
-
-bool AtCommandsDeyeInverter::sendActivePowerControlRequest(float limit, PowerLimitControlType type) {
-    //TODO do better
-    if(typeName().startsWith("Unknown") && !DeyeSun.getUnknownDevicesWriteEnable()){
-        _alarmLogParser->addAlarm(6,10 * 60,"limit command not send because Deye Sun device unknown (checked by Serial number), it is possible to override this security check on DTU/Settings page");//alarm for 10 min
-        MessageOutput.println("Deye AT-Commands -> limit command not send because Deye Sun device unknown (checked by Serial number), it is possible to override this security check on DTU/Settings page");
-        return false;
-    }
-    if(!(type == AbsolutPersistent || type == RelativPersistent)){
-        MessageOutput.println("Deye AT-Commands -> Setting of temporary limit on deye inverter not possible");
-        return false;
-    }
-
-    uint16_t realLimit;
-    if(type == RelativPersistent){
-        realLimit = (uint16_t)(limit + 0.5f);
-    }else{
-        uint16_t maxPower = _devInfoParser->getMaxPower();
-        if(maxPower == 0){
-            _alarmLogParser->addAlarm(6,10 * 60,"limit command not send because init data of device not received yet (max Power)");//alarm for 10 min
-            getSystemConfigParaParser()->setLastLimitRequestSuccess(CMD_NOK);
-            return false;
-        }
-        realLimit = (uint16_t)(limit / (float)maxPower * 100);
-    }
-    if(realLimit > 100){
-        realLimit = 100;
-    }
-    getSystemConfigParaParser()->setLastLimitRequestSuccess(CMD_PENDING);
-    _limitToSet = std::make_unique<uint16_t>(realLimit);
-    return true;
-}
-
-bool AtCommandsDeyeInverter::resendPowerControlRequest() {
-    return false;
-}
-
-bool AtCommandsDeyeInverter::sendRestartControlRequest() {
-    return false;
-}
-
-bool AtCommandsDeyeInverter::sendPowerControlRequest(bool turnOn) {
-    if(typeName().startsWith("Unknown") && !DeyeSun.getUnknownDevicesWriteEnable()){
-        _alarmLogParser->addAlarm(6,10 * 60,"power command not send because Deye Sun device unknown (checked by Serial number), it is possible to override this security check on DTU/Settings page");//alarm for 10 min
-        MessageOutput.println("Deye AT-Commands -> power command not send because Deye Sun device unknown (checked by Serial number), it is possible to override this security check on DTU/Settings page");
-        return false;
-    }
-    _powerTargetStatus = std::make_unique<bool>(turnOn);
-    _powerCommandParser->setLastPowerCommandSuccess(CMD_PENDING);
-    return true;
 }
 
 bool AtCommandsDeyeInverter::parseInitInformation(size_t length) {
@@ -345,7 +286,7 @@ void AtCommandsDeyeInverter::sendCurrentRegisterRead() {
 
 void AtCommandsDeyeInverter::sendCurrentRegisterWrite() {
 
-    if(_currentWritCommand->length * 2 * 2 != _currentWritCommand->valueToWrite.length()){
+    if(_currentWritCommand->length * 2 != _currentWritCommand->valueToWrite.length()){
         MessageOutput.printf("Deye AT-Commands -> Write register message not correct length, expected: %d is: %d\n",_currentWritCommand->length * 2 * 2,_currentWritCommand->valueToWrite.length());
         assert( 0 );
     }
