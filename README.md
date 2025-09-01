@@ -38,12 +38,12 @@ Health checks will be done more often. It is configurable on advanced inverter s
 
 Currently, there exist three types of connections to the inverter, depending on the installed Firmware.
 
-|                       | At-Commands                   | Custom Modbus | Modbus          |
-|-----------------------|-------------------------------|---------------|-----------------|
-| Firmware              | Old Firmwares (1.0 - 2.32)    | 1.0B          | ? (Maybe 5.0C)  |
-| Status of development | reding data and writing limit | reading data  | not implemented |
+|                       | At-Commands                | Custom Modbus                | Modbus                      |
+|-----------------------|----------------------------|------------------------------|-----------------------------|
+| Firmware              | Old Firmwares (1.0 - 2.32) | new firmware e.g. 1.0B, 5.0C | not seen on micro inverters |
+| Status of development | reding data and writing    | reding data and writing      | not implemented             |
 
-Tested with model: SUN300G3-EU-230
+Tested with models: SUN300G3-EU-230, SUN-M60/80/100G4-EU-Q0, Deye SUN600G3-EU-230
 
 #### Working
 
