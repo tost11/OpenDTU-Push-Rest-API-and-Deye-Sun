@@ -11,7 +11,7 @@ class CustomModbusDeyeInverter : public DeyeInverter {
     //static const uint16_t SEND_REQUEST_BUFFER_WITHOUT_MODBUS_FRAME_LENGTH = 28;
     static const uint16_t READ_BUFFER_LENGTH = 200;
 
-    static const uint32_t COMMEND_TIMEOUT = 10;
+    static const uint32_t COMMEND_TIMEOUT = 5;
 
 private:
     AsyncClient _client;
@@ -35,6 +35,9 @@ private:
     std::string createReqeustDataCommand(const std::string & modbusFrame);
 
     void onDataReceived(void* data, size_t len);
+
+    void handleWriteResponse();
+    void handleReadResponse();
 
 protected:
     void onPollTimeChanged() override;

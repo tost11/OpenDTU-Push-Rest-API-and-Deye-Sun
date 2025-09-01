@@ -224,6 +224,9 @@ void WebApiWsLiveClass::generateInverterCommonJsonResponse(JsonObject& root, std
 
                 root["connection_stats_deye_cust"]["read_requests"] = nv_cust->ConnectionStatistics.SendReadDataRequests;
                 root["connection_stats_deye_cust"]["read_requests_successfully"] = nv_cust->ConnectionStatistics.SuccessfulReadDataRequests;
+
+                root["connection_stats_deye_cust"]["write_requests"] = nv_cust->ConnectionStatistics.SendWriteDataRequests;
+                root["connection_stats_deye_cust"]["write_requests_successfully"] = nv_cust->ConnectionStatistics.SuccessfulWriteDataRequests;
             }
         }
     #endif
