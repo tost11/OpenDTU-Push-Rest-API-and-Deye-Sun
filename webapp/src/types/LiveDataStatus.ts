@@ -57,6 +57,8 @@ export interface ConnectionStatisticsCustomModbus {
     connects_successful: number;
     read_requests: number;
     read_requests_successfully: number;
+    write_requests: number;
+    write_requests_successfully: number;
 }
 
 export interface Inverter {

@@ -623,6 +623,24 @@
                                           }}
                                         </td>
                                       </tr>
+
+                                      <tr>
+                                        <td>{{ $t('home.WriteRequests') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye_cust.write_requests) }}</td>
+                                        <td></td>
+                                      </tr>
+                                      <tr>
+                                        <td>{{ $t('home.WriteRequestsFailed') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye_cust.write_requests-inverter.connection_stats_deye_cust.write_requests_successfully) }}</td>
+                                        <td>
+                                          {{
+                                            ratio(
+                                                inverter.connection_stats_deye_cust.write_requests-inverter.connection_stats_deye_cust.write_requests_successfully,
+                                                inverter.connection_stats_deye_cust.write_requests
+                                            )
+                                          }}
+                                        </td>
+                                      </tr>
                                     </tbody>
                                   </table>
                                   <div class="d-flex">
