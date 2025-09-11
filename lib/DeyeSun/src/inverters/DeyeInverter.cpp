@@ -31,7 +31,7 @@ String DeyeInverter::serialToModel(uint64_t serial) {
         return "SUN600G3-EU-230";
     }else if(serialString.startsWith("413") || serialString.startsWith("411")){//TODO find out more ids and check if correct
         return "SUN300G3-EU-230";
-    }else if(serialString.startsWith("384") || serialString.startsWith("385") || serialString.startsWith("386") || serialString.startsWith("240")){
+    }else if(serialString.startsWith("384") || serialString.startsWith("385") || serialString.startsWith("386")){
         return "SUN-M60/80/100G4-EU-Q0";
     }/*else if(serialString.startsWith("41")){//TODO find out full serial
         return "EPP-300G3-EU-230";
