@@ -64,6 +64,11 @@
                                 </router-link>
                             </li>
                             <li>
+                                <router-link @click="onClick" class="dropdown-item" to="/settings/logging"
+                                    >{{ $t('menu.LoggingSettings') }}
+                                </router-link>
+                            </li>
+                            <li>
                                 <router-link @click="onClick" class="dropdown-item" to="/settings/dtu">{{
                                     $t('menu.DTUSettings')
                                 }}</router-link>
@@ -172,7 +177,7 @@ export default defineComponent({
     },
     data() {
         return {
-            isLogged: this.isLoggedIn(),
+            isLogged: isLoggedIn(),
             now: {} as Date,
         };
     },

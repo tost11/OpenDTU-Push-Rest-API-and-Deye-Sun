@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
- * Copyright (C) 2022-2024 Thomas Basler and others
+ * Copyright (C) 2022-2025 Thomas Basler and others
  */
 
 /*
@@ -27,6 +27,8 @@ Source Address: 80 12 23 04
      Target Addr   Source Addr      CRC8
 */
 #include "CommandAbstract.h"
+#include "../Utils.h"
+#include "../inverters/InverterAbstract.h"
 #include "crc.h"
 #include <string.h>
 #include "../inverters/InverterAbstract.h"
@@ -51,13 +53,10 @@ const uint8_t* CommandAbstract::getDataPayload()
     return _payload;
 }
 
-void CommandAbstract::dumpDataPayload()
+String CommandAbstract::dumpDataPayload()
 {
     const uint8_t* payload = getDataPayload();
-    for (uint8_t i = 0; i < getDataSize(); i++) {
-        MessageOutput.printfDebug("%02X ", payload[i]);
-    }
-    MessageOutput.printlnDebug("");
+    return Utils::dumpArray(payload, getDataSize());
 }
 
 uint8_t CommandAbstract::getDataSize() const
