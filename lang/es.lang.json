@@ -22,6 +22,7 @@
             "MQTTSettings": "Ajustes MQTT",
             "InverterSettings": "Ajustes Inversor",
             "SecuritySettings": "Ajustes Seguridad",
+            "LoggingSettings": "Logging Settings",
             "DTUSettings": "Ajustes DTU",
             "DeviceManager": "Administrador Dispositivos",
             "ConfigManagement": "Gestión configuración",
@@ -60,6 +61,10 @@
             "Dark": "Oscuro",
             "Light": "Claro",
             "Auto": "Automático"
+        },
+        "dataagedisplay": {
+            "DataAge": "Edad de los Datos",
+            "SecondsSince": "0 segundos | 1 segundos | {n} segundos"
         },
         "apiresponse": {
             "1001": "¡Opciones guardadas!",
@@ -108,12 +113,15 @@
             "7015": "¡El tema Hass no debe contener caracteres de espacio!",
             "7016": "¡La QoS LWT no debe ser mayor que {max}!",
             "7017": "Client ID must not longer then {max} characters!",
+            "7018": "Hass topic must end with slash (/)!",
             "8001": "¡La dirección IP no es válida!",
             "8002": "¡La máscara de red no es válida!",
             "8003": "¡El gateway no es válido!",
             "8004": "¡La dirección IP del servidor DNS 1 no es válida!",
             "8005": "¡La dirección IP del servidor DNS 2 no es válida!",
             "8006": "¡El valor de tiempo de espera del punto de acceso administrativo es inválido!",
+            "8007": "Syslog Server must between 1 and {max} characters long!",
+            "8008": "Port must be a number between 1 and 65535!",
             "9001": "¡El servidor NTP debe tener entre 1 y {max} caracteres de longitud!",
             "9002": "¡La zona horaria debe tener entre 1 y {max} caracteres de longitud!",
             "9003": "¡La descripción de la zona horaria debe tener entre 1 y {max} caracteres de longitud!",
@@ -133,9 +141,7 @@
         "home": {
             "LiveData": "Datos en Vivo",
             "SerialNumber": "Número de Serie: ",
-            "CurrentLimit": "Límite de Corriente: ",
-            "DataAge": "Edad de los Datos: ",
-            "Seconds": "{val} segundos",
+            "CurrentLimit": "Límite de Corriente",
             "ShowSetInverterLimit": "Ver / Establecer Límite del Inversor",
             "TurnOnOff": "Encender/Apagar el Inversor",
             "ShowInverterInfo": "Ver Información del Inversor",
@@ -145,15 +151,15 @@
             "EventLog": "Registro de Eventos",
             "InverterInfo": "Información del Inversor",
             "LimitSettings": "Configuración de Límites",
-            "LastLimitSetStatus": "Último Estado de Configuración del Límite:",
-            "SetLimit": "Establecer Límite:",
+            "LastLimitSetStatus": "Último Estado de Configuración del Límite",
+            "SetLimit": "Establecer Límite",
             "Relative": "Relativo (%)",
             "Absolute": "Absoluto (W)",
             "LimitHint": "<b>Consejo:</b> Si establece el límite como un valor absoluto, la visualización del valor actual solo se actualizará después de ~4 minutos.",
             "SetPersistent": "Establecer Límite Permanente",
             "SetNonPersistent": "Establecer Límite No Permanente",
             "PowerSettings": "Configuración de Energía",
-            "LastPowerSetStatus": "Último Estado de Configuración de Energía:",
+            "LastPowerSetStatus": "Último Estado de Configuración de Energía",
             "TurnOn": "Encender",
             "TurnOff": "Apagar",
             "Restart": "Reiniciar",
@@ -223,6 +229,7 @@
             "SdkVersion": "Versión del SDK",
             "ConfigVersion": "Versión de la configuración",
             "FirmwareVersion": "Versión del firmware / Hash de Git",
+            "FirmwareBranch": "Firmware Branch",
             "PioEnv": "Entorno PIO",
             "FirmwareVersionHint": "Haga clic aquí para mostrar información sobre su versión actual",
             "FirmwareUpdate": "Actualización de firmware",
@@ -274,12 +281,7 @@
             "Task_tit": "TCP/IP",
             "Task_looptask": "Arduino Main Loop",
             "Task_asynctcp": "Async TCP",
-            "Task_mqttclient": "MQTT Client",
-            "Task_huaweican0": "AC Charger CAN",
-            "Task_pmsdm": "PowerMeter (SDM)",
-            "Task_pmhttpjson": "PowerMeter (HTTP+JSON)",
-            "Task_pmsml": "PowerMeter (Serial SML)",
-            "Task_pmhttpsml": "PowerMeter (HTTP+SML)"
+            "Task_mqttclient": "MQTT Client"
         },
         "radioinfo": {
             "RadioInformation": "Información de la radio",
@@ -377,7 +379,11 @@
             "VirtualDebugConsole": "Consola de Depuración Virtual",
             "EnableAutoScroll": "Habilitar Desplazamiento Automático",
             "ClearConsole": "Limpiar Consola",
-            "CopyToClipboard": "Copiar al Portapapeles"
+            "CopyToClipboard": "Copiar al Portapapeles",
+            "Download": "Download",
+            "RegularExpression": "Regular Expression",
+            "Lines": "{lines} Lines",
+            "LogLevel": "Log Level ({cnt})"
         },
         "inverterchannelinfo": {
             "String": "Cadena {num}",
@@ -487,7 +493,11 @@
             "ApTimeoutHint": "Tiempo que se mantiene abierto el Punto de Acceso. Un valor de 0 significa infinito.",
             "Minutes": "minutos",
             "EnableMdns": "Habilitar mDNS",
-            "MdnsSettings": "Configuración de mDNS"
+            "MdnsSettings": "Configuración de mDNS",
+            "EnableSyslog": "Enable Syslog",
+            "SyslogSettings": "Syslog Settings",
+            "SyslogHostname": "Syslog Server",
+            "SyslogPort": "Port"
         },
         "mqttadmin": {
             "MqttSettings": "Configuración de MQTT",
@@ -640,7 +650,7 @@
             "ErrorReporting": "Reporte de Errores",
             "ErrorReportingBody": "Por favor, informa problemas utilizando la función proporcionada por <a href=\"https://github.com/tbnobody/OpenDTU/issues\" target=\"_blank\">Github</a>",
             "Discussion": "Discusión",
-            "DiscussionBody": "Discute con nosotros en <a href=\"https://discord.gg/WzhxEY62mB\" target=\"_blank\">Discord</a> o <a href=\"https://github.com/tbnobody/OpenDTU/discussions\" target=\"_blank\">Github</a>"
+            "DiscussionBody": "Discute con nosotros en <a href=\"https://discord.gg/46hWaXsn\" target=\"_blank\">Discord</a> o <a href=\"https://github.com/tbnobody/OpenDTU/discussions\" target=\"_blank\">Github</a>"
         },
         "hints": {
             "RadioProblem": "No se pudo conectar a un módulo de radio configurado. Por favor, verifica la conexión.",
@@ -696,6 +706,25 @@
             "format_herf_valid": "E-Star HERF format (will be saved converted): {serial}",
             "format_herf_invalid": "E-Star HERF format: Invalid checksum",
             "format_unknown": "Unknown format"
+        },
+        "loggingadmin": {
+            "LoggingSettings": "Logging Settings",
+            "LogLevel": "Log Level",
+            "DefaultLevel": "Default log level",
+            "Module": "Module",
+            "Module_CORE": "Núcleo ESP-IDF",
+            "Module_hoymiles": "RF Hoymiles",
+            "Module_mqtt": "Cliente MQTT",
+            "Module_network": "Red",
+            "Module_webapi": "API Web",
+            "CoreHint": "Warning: A too detailed log level of the CORE module can significantly impact performance and lead to unpredictable behavior. The log level setting should only be temporarily adjusted for targeted troubleshooting. The default setting 'Error' is sufficient for normal operation.",
+            "log_inherit": "Inherit from default",
+            "log_none": "None",
+            "log_error": "(E) Error",
+            "log_warn": "(W) Warning",
+            "log_info": "(I) Info",
+            "log_debug": "(D) Debug",
+            "log_verbose": "(V) Verbose"
         }
     }
 }

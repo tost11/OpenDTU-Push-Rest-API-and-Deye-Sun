@@ -22,6 +22,7 @@
             "MQTTSettings": "Impostazioni MQTT",
             "InverterSettings": "Impostazioni Inverter",
             "SecuritySettings": "Impostazioni di Sicurezza",
+            "LoggingSettings": "Logging Settings",
             "DTUSettings": "Impostazioni DTU",
             "DeviceManager": "Gestione Dispositivi",
             "ConfigManagement": "Gestione Configurazione",
@@ -60,6 +61,10 @@
             "Dark": "Scuro",
             "Light": "Chiaro",
             "Auto": "Automatico"
+        },
+        "dataagedisplay": {
+            "DataAge": "Aggiornamento Dati",
+            "SecondsSince": "0 secondi | 1 secondi | {n} secondi"
         },
         "apiresponse": {
             "1001": "Settings saved!",
@@ -108,12 +113,15 @@
             "7015": "Hass topic must not contain space characters!",
             "7016": "LWT QOS must not greater then {max}!",
             "7017": "Client ID must not longer then {max} characters!",
+            "7018": "Hass topic must end with slash (/)!",
             "8001": "IP address is invalid!",
             "8002": "Netmask is invalid!",
             "8003": "Gateway is invalid!",
             "8004": "DNS Server IP 1 is invalid!",
             "8005": "DNS Server IP 2 is invalid!",
             "8006": "Administrative AccessPoint Timeout value is invalid",
+            "8007": "Syslog Server must between 1 and {max} characters long!",
+            "8008": "Port must be a number between 1 and 65535!",
             "9001": "NTP Server must between 1 and {max} characters long!",
             "9002": "Timezone must between 1 and {max} characters long!",
             "9003": "Timezone description must between 1 and {max} characters long!",
@@ -133,9 +141,7 @@
         "home": {
             "LiveData": "Dati in tempo reale",
             "SerialNumber": "Numero seriale: ",
-            "CurrentLimit": "Limite attuale: ",
-            "DataAge": "Aggiornamento Dati: ",
-            "Seconds": "{val} secondi",
+            "CurrentLimit": "Limite attuale",
             "ShowSetInverterLimit": "Mostra / Imposta Limite di Potenza",
             "TurnOnOff": "Accendi/Spegni Inverter",
             "ShowInverterInfo": "Mostra info Inverter",
@@ -145,15 +151,15 @@
             "EventLog": "Log Eventi",
             "InverterInfo": "Info Inverter",
             "LimitSettings": "Impostazioni Limite Potenza",
-            "LastLimitSetStatus": "Stato ultimo limite impostato:",
-            "SetLimit": "Imposta Limite a:",
+            "LastLimitSetStatus": "Stato ultimo limite impostato",
+            "SetLimit": "Imposta Limite a",
             "Relative": "Percentuale (%)",
             "Absolute": "Assoluto (W)",
             "LimitHint": "<b>Nota:</b> Se imposti il limite assoluto, il valore sul display sarà aggiornato dopo circa 4 minuti.",
             "SetPersistent": "Imposta Limite in Modo Persistente",
             "SetNonPersistent": "Imposta Limite Temporaneamente",
             "PowerSettings": "Impostazioni Potenza",
-            "LastPowerSetStatus": "Ultimo Stato dell'Inverter:",
+            "LastPowerSetStatus": "Ultimo Stato dell'Inverter",
             "TurnOn": "Accendi Inverter",
             "TurnOff": "Spegni Inverter",
             "Restart": "Riavvia Inverter",
@@ -223,6 +229,7 @@
             "SdkVersion": "SDK Version",
             "ConfigVersion": "Config Version",
             "FirmwareVersion": "Firmware Version / Git Hash",
+            "FirmwareBranch": "Firmware Branch",
             "PioEnv": "PIO Environment",
             "FirmwareVersionHint": "Click here to show information about your current version",
             "FirmwareUpdate": "Firmware Update",
@@ -274,12 +281,7 @@
             "Task_tit": "TCP/IP",
             "Task_looptask": "Arduino Main Loop",
             "Task_asynctcp": "Async TCP",
-            "Task_mqttclient": "MQTT Client",
-            "Task_huaweican0": "AC Charger CAN",
-            "Task_pmsdm": "PowerMeter (SDM)",
-            "Task_pmhttpjson": "PowerMeter (HTTP+JSON)",
-            "Task_pmsml": "PowerMeter (Serial SML)",
-            "Task_pmhttpsml": "PowerMeter (HTTP+SML)"
+            "Task_mqttclient": "MQTT Client"
         },
         "radioinfo": {
             "RadioInformation": "Info Transceiver Radio",
@@ -377,7 +379,11 @@
             "VirtualDebugConsole": "Virtual Debug Console",
             "EnableAutoScroll": "Abilita AutoScroll",
             "ClearConsole": "Pulisci Console",
-            "CopyToClipboard": "Copia nella clipboard"
+            "CopyToClipboard": "Copia nella clipboard",
+            "Download": "Download",
+            "RegularExpression": "Regular Expression",
+            "Lines": "{lines} Lines",
+            "LogLevel": "Log Level ({cnt})"
         },
         "inverterchannelinfo": {
             "String": "Stringa {num}",
@@ -487,7 +493,11 @@
             "ApTimeoutHint": "Tempo in cui la modalità AccessPoint rimarrà attiva. 0=per sempre.",
             "Minutes": "minuti",
             "EnableMdns": "Abilita mDNS",
-            "MdnsSettings": "Configurazione mDNS"
+            "MdnsSettings": "Configurazione mDNS",
+            "EnableSyslog": "Enable Syslog",
+            "SyslogSettings": "Syslog Settings",
+            "SyslogHostname": "Syslog Server",
+            "SyslogPort": "Port"
         },
         "mqttadmin": {
             "MqttSettings": "Impostazioni MQTT",
@@ -640,7 +650,7 @@
             "ErrorReporting": "Segnalazione Errori",
             "ErrorReportingBody": "Per favore segnala eventuali problemi utilizzando le funzionalità della piattaforma <a href=\"https://github.com/tbnobody/OpenDTU/issues\" target=\"_blank\">Github</a>",
             "Discussion": "Discussioni",
-            "DiscussionBody": "Puoi avviare una discussione con noi su <a href=\"https://discord.gg/WzhxEY62mB\" target=\"_blank\">Discord</a> o <a href=\"https://github.com/tbnobody/OpenDTU/discussions\" target=\"_blank\">Github</a>"
+            "DiscussionBody": "Puoi avviare una discussione con noi su <a href=\"https://discord.gg/46hWaXsn\" target=\"_blank\">Discord</a> o <a href=\"https://github.com/tbnobody/OpenDTU/discussions\" target=\"_blank\">Github</a>"
         },
         "hints": {
             "RadioProblem": "Non è possibile dialogare con il modulo radio selezionato. Controlla i collegamenti alla radio.",
@@ -696,6 +706,25 @@
             "format_herf_valid": "E-Star HERF format (will be saved converted): {serial}",
             "format_herf_invalid": "E-Star HERF format: Invalid checksum",
             "format_unknown": "Unknown format"
+        },
+        "loggingadmin": {
+            "LoggingSettings": "Logging Settings",
+            "LogLevel": "Log Level",
+            "DefaultLevel": "Default log level",
+            "Module": "Module",
+            "Module_CORE": "Nucleo ESP-IDF",
+            "Module_hoymiles": "RF Hoymiles",
+            "Module_mqtt": "Client MQTT",
+            "Module_network": "Rete",
+            "Module_webapi": "API Web",
+            "CoreHint": "Warning: A too detailed log level of the CORE module can significantly impact performance and lead to unpredictable behavior. The log level setting should only be temporarily adjusted for targeted troubleshooting. The default setting 'Error' is sufficient for normal operation.",
+            "log_inherit": "Inherit from default",
+            "log_none": "None",
+            "log_error": "(E) Error",
+            "log_warn": "(W) Warning",
+            "log_info": "(I) Info",
+            "log_debug": "(D) Debug",
+            "log_verbose": "(V) Verbose"
         }
     }
 }
