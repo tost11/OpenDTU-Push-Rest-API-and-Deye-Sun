@@ -24,7 +24,6 @@ The number of values depends on the respective section and its version. After th
 #include <esp_log.h>
 #include <frozen/map.h>
 #include <frozen/string.h>
-#include <MessageOutput.h>
 
 #undef TAG
 static const char* TAG = "hoymiles";

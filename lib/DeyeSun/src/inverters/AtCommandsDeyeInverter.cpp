@@ -4,8 +4,9 @@
 #include "DeyeSun.h"
 
 #include <Dns.h>
-#include <MessageOutput.h>
 
+#undef TAG
+static const char* TAG = "DeyeSun(AT)";
 
 AtCommandsDeyeInverter::AtCommandsDeyeInverter(uint64_t serial):
 DeyeInverter(serial),
@@ -26,9 +27,9 @@ _socket(nullptr){
     _ipAdress = nullptr;
 }
 
-void AtCommandsDeyeInverter::sendSocketMessage(String message) {
+void AtCommandsDeyeInverter::sendSocketMessage(const String & message) {
 
-    MessageOutput.printlnDebug("Deye AT-Commands -> Sending deye message: "+message);
+    ESP_LOGD(TAG,"Sending deye message: %s",message.c_str());
 
     _socket->beginPacket(*_ipAdress, _port);
     _socket->print(message);
@@ -55,7 +56,8 @@ void AtCommandsDeyeInverter::update() {
             if(resolveHostname()){
                 _timerResolveHostname.set(TIMER_RESOLVE_HOSTNAME_LONG);
             }else{
-                MessageOutput.println("Deye AT-Commands -> Resolved hostname isn't valid anymore -> reset resolved ip");
+                ESP_LOGI(TAG,"Resolved hostname isn't valid anymore -> reset resolved ip");
+
                 _ipAdress = nullptr;
                 _timerResolveHostname.set(TIMER_RESOLVE_HOSTNAME);
             }
@@ -94,7 +96,7 @@ bool AtCommandsDeyeInverter::isReachable() {
 
 bool AtCommandsDeyeInverter::parseInitInformation(size_t length) {
     String ret = String(_readBuff,length);
-    MessageOutput.printlnDebug("Deye AT-Commands -> Received Initial Read: " + ret);
+    ESP_LOGD(TAG,"Received Initial Read: %s", ret.c_str());
 
     int index = ret.lastIndexOf(',');
     if(index < 0){
@@ -110,7 +112,7 @@ bool AtCommandsDeyeInverter::parseInitInformation(size_t length) {
 
     if(!serial.equalsIgnoreCase(_serialString)){
         _alarmLogParser->addAlarm(5,10 * 60);//alarm for 10 min
-        MessageOutput.println("Deye AT-Commands -> Serial dose not match");
+        ESP_LOGI(TAG,"Serial dose not match");
         return false;
     }
 
@@ -131,7 +133,7 @@ String AtCommandsDeyeInverter::filterReceivedResponse(size_t length){
 int AtCommandsDeyeInverter::handleRegisterWrite(size_t length) {
     String ret = filterReceivedResponse(length);
 
-    MessageOutput.printlnDebug("Deye AT-Commands -> Filtered received register write: " + ret);
+    ESP_LOGD(TAG,"Filtered received register write: %s", ret.c_str());
 
     if(ret.startsWith("+ERR=")) {
         if (ret.startsWith("+ERR=-1")) {
@@ -146,7 +148,7 @@ int AtCommandsDeyeInverter::handleRegisterWrite(size_t length) {
 
     //todo checksum
     if(!ret.startsWith(expected)) {
-        MessageOutput.printlnDebug("Deye AT-Commands -> Write response not correct");
+        ESP_LOGD(TAG,"Write response not correct");
         return -1000;
     }
     return 0;
@@ -155,7 +157,7 @@ int AtCommandsDeyeInverter::handleRegisterWrite(size_t length) {
 int AtCommandsDeyeInverter::handleRegisterRead(size_t length) {
     String ret= filterReceivedResponse(length);
 
-    MessageOutput.printlnDebug("Deye AT-Commands -> Filtered received Register Read: " + ret);
+    ESP_LOGD(TAG,"Filtered received Register Read: %s", ret.c_str());
 
     if(ret.startsWith("+ERR=")) {
         if (ret.startsWith("+ERR=-1")) {
@@ -171,7 +173,7 @@ int AtCommandsDeyeInverter::handleRegisterRead(size_t length) {
             int start = 4;
 
             if(ret.length() <= start){
-                MessageOutput.printlnDebug("Deye AT-Commands -> Error while reading data not enough data on: " + current.readRegister);
+                ESP_LOGD(TAG,"Error while reading data not enough data on: %s", current.readRegister.c_str());
                 return -2000;
             }
 
@@ -184,28 +186,28 @@ int AtCommandsDeyeInverter::handleRegisterRead(size_t length) {
 
     if(current.length == 2){
         if(!ret.startsWith("+ok=010304")){
-            MessageOutput.printlnDebug("Deye AT-Commands -> Length for 2 not matching");
+            ESP_LOGD(TAG,"Length for 2 not matching");
             return -1;
         }
     }if(current.length == 5){
         if(!ret.startsWith("+ok=01030A")){
-            MessageOutput.printlnDebug("Deye AT-Commands -> Length for 5 not matching");
+            ESP_LOGD(TAG,"Length for 5 not matching");
             return -1;
         }
     }else if(current.length == 1){
         if(!ret.startsWith("+ok=010302")){
-            MessageOutput.printlnDebug("Deye AT-Commands -> Length for 1 not matching");
+            ESP_LOGD(TAG,"Length for 1 not matching");
             return -1;
         }
     }else{
-        MessageOutput.printlnDebug("Deye AT-Commands -> Unknown Length");
+        ESP_LOGD(TAG,"Unknown Length");
     }
 
     //+ok= plus first 6 header characters
     int start = 4 + 6;
 
     if(ret.length() < start+(current.length*2)){
-        MessageOutput.printlnDebug("Deye AT-Commands -> Error while reading data not enough data on: " + current.readRegister);
+        ESP_LOGD(TAG,"Error while reading data not enough data on: %s", current.readRegister.c_str());
         return -1000;
     }
 
@@ -258,7 +260,7 @@ int AtCommandsDeyeInverter::handleRegisterRead(size_t length) {
 void AtCommandsDeyeInverter::appendFragment(uint8_t offset, uint8_t* payload, uint8_t len)
 {
     if (offset + len > STATISTIC_PACKET_SIZE) {
-        MessageOutput.printf("Deye AT-Commands -> FATAL: (%s, %d) stats packet too large for buffer\r\n", __FILE__, __LINE__);
+        ESP_LOGE(TAG,"FATAL: (%s, %d) stats packet too large for buffer", __FILE__, __LINE__);
         return;
     }
     memcpy(&_payloadStatisticBuffer[offset], payload, len);
@@ -287,7 +289,7 @@ void AtCommandsDeyeInverter::sendCurrentRegisterRead() {
 void AtCommandsDeyeInverter::sendCurrentRegisterWrite() {
 
     if(_currentWritCommand->length * 2 != _currentWritCommand->valueToWrite.length()){
-        MessageOutput.printf("Deye AT-Commands -> Write register message not correct length, expected: %d is: %d\n",_currentWritCommand->length * 2 * 2,_currentWritCommand->valueToWrite.length());
+        ESP_LOGE(TAG,"Write register message not correct length, expected: %d is: %d\n",_currentWritCommand->length * 2 * 2,_currentWritCommand->valueToWrite.length());
         assert( 0 );
     }
 
@@ -299,7 +301,7 @@ void AtCommandsDeyeInverter::sendCurrentRegisterWrite() {
 
     String checksum = DeyeUtils::modbusCRC16FromASCII(data);
 
-    MessageOutput.printlnDebug("Deye AT-Commands -> Sending socket message write: ");
+    ESP_LOGD(TAG,"Sending socket message write: ");
     //Serial.println("AT+INVDATA=11,"+data+checksum+"\n");
     sendSocketMessage("AT+INVDATA=11,"+data+checksum+"\n");
 
@@ -339,16 +341,16 @@ bool AtCommandsDeyeInverter::resolveHostname() {
 
     const char * ipToFind = (_resolvedIpByMacAdress != nullptr) ? _resolvedIpByMacAdress->c_str() : _oringalIpOrHostname.c_str();
 
-    MessageOutput.printlnDebug(String("Deye AT-Commands -> Try to resolve hostname: ") + ipToFind);
+    ESP_LOGD(TAG,"Try to resolve hostname: %s",ipToFind);
 
     dns.begin(WiFi.dnsIP());
     auto ret = dns.getHostByName(ipToFind, remote_addr);
     if (ret == 1) {
-        MessageOutput.printlnDebug("Deye AT-Commands -> Resolved Ip is: " + remote_addr.toString());
+        ESP_LOGD(TAG,"Resolved Ip is: %s", remote_addr.toString().c_str());
         _ipAdress = std::make_unique<IPAddress>(remote_addr);
         return true;
     }
-    MessageOutput.printf("Deye AT-Commands -> Could not resolve hostname: %s\n", ipToFind);
+    ESP_LOGI(TAG,"Could not resolve hostname: %s\n", ipToFind);
     return false;
 }
 
@@ -364,14 +366,14 @@ bool AtCommandsDeyeInverter::handleRead() {
             _commandPosition = _needInitData ? 0 : INIT_COMMAND_START_SKIP;
             _timerAfterCounterTimout.set(TIMER_COUNTER_ERROR_TIMEOUT);
             _errorCounter = -1;
-            MessageOutput.printf("Deye AT-Commands -> Read Data of Timeout (or not reachable) of Deye Sun Inverter: %s\n", name());
+            ESP_LOGI(TAG,"Read Data of Timeout (or not reachable) of Deye Sun Inverter: %s", name());
             return true;//busy true so timeout works and so write is send
         }
         if (!_timerErrorBackOff.occured()) {
             //wait after error for try again
             return true;
         }
-        MessageOutput.printfDebug("Deye AT-Commands -> New connection to: %s\n",(_ipAdress != nullptr ? _ipAdress->toString().c_str():""));
+        ESP_LOGD(TAG,"New connection to: %s\n",(_ipAdress != nullptr ? _ipAdress->toString().c_str():""));
         _socket = std::make_unique<WiFiUDP>();
         sendSocketMessage("WIFIKIT-214028-READ");
         _startCommand = true;
@@ -381,7 +383,7 @@ bool AtCommandsDeyeInverter::handleRead() {
 
     int packetSize = _socket->parsePacket();
     while (packetSize > 0){
-        MessageOutput.printlnDebug("Deye AT-Commands -> Received new package");
+        ESP_LOGD(TAG,"Received new package");
         size_t num = _socket->read(_readBuff,packetSize);
         _socket->flush();
         _timerTimeoutCheck.set(TIMER_TIMEOUT);
@@ -406,7 +408,7 @@ bool AtCommandsDeyeInverter::handleRead() {
                         _timerHealthCheck.set(getInternalPollTime());
                         swapBuffers(false);
                         _errorCounter = -1;
-                        MessageOutput.println("Deye AT-Commands -> Successfully healthcheck");
+                        ESP_LOGI(TAG,"Successfully healthcheck");
                         ConnectionStatistics.HealthChecksSuccessful++;
                         return false;
                     }else{
@@ -429,7 +431,7 @@ bool AtCommandsDeyeInverter::handleRead() {
                             _timerFullPoll.extend(TIMER_FULL_POLL);
                         }
                     }
-                    MessageOutput.println("Deye AT-Commands -> Red successful all values");
+                    ESP_LOGI(TAG,"Red successful all values");
                     ConnectionStatistics.ReadRequestsSuccessful++;
                     return false;
                 }
@@ -455,7 +457,7 @@ bool AtCommandsDeyeInverter::handleRead() {
     }else {
         //timeout of one ca. second
         if (_timerTimeoutCheck.occured()) {
-            MessageOutput.printlnDebug("Deye AT-Commands -> Max poll time overtook try again");
+            ESP_LOGD(TAG,"Max poll time overtook try again");
             endSocket();
 
             if(!_startCommand){
@@ -494,7 +496,7 @@ void AtCommandsDeyeInverter::handleWrite() {
             //wait after error for try again
             return;
         }
-        MessageOutput.printlnDebug("Deye AT-Commands -> New connection for write");
+        ESP_LOGD(TAG,"New connection for write");
         _socket = std::make_unique<WiFiUDP>();
         sendSocketMessage("WIFIKIT-214028-READ");
         _startCommand = true;
@@ -504,7 +506,7 @@ void AtCommandsDeyeInverter::handleWrite() {
 
     int packetSize = _socket->parsePacket();
     while (packetSize > 0){
-        MessageOutput.printlnDebug("Deye AT-Commands -> Received new package for write");
+        ESP_LOGD(TAG,"Received new package for write");
         size_t num = _socket->read(_readBuff,packetSize);
         _socket->flush();
         _timerTimeoutCheck.set(TIMER_TIMEOUT);
@@ -549,7 +551,7 @@ void AtCommandsDeyeInverter::handleWrite() {
     }else {
         //timeout of one second
         if (_timerTimeoutCheck.occured()) {
-            MessageOutput.printlnDebug("Deye AT-Commands -> Max poll time for write overtook from write, try again");
+            ESP_LOGD(TAG,"Max poll time for write overtook from write, try again");
             endSocket();
             if(!_startCommand){
                 ConnectionStatistics.TimeoutCommands++;
@@ -589,4 +591,8 @@ void AtCommandsDeyeInverter::onPollTimeChanged() {
 
 deye_inverter_type AtCommandsDeyeInverter::getDeyeInverterType() const {
     return Deye_Sun_At_Commands;
+}
+
+String AtCommandsDeyeInverter::LogTag() {
+    return TAG;
 }

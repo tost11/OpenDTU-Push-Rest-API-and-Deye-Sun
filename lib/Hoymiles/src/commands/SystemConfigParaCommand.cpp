@@ -25,8 +25,6 @@ ID   Target Addr   Source Addr   Idx  DT   ?    Time          Gap             Pa
 #undef TAG
 static const char* TAG = "hoymiles";
 
-#include <MessageOutput.h>
-
 SystemConfigParaCommand::SystemConfigParaCommand(InverterAbstract* inv, const uint64_t router_address, const time_t time)
     : MultiDataCommand(inv, router_address)
 {

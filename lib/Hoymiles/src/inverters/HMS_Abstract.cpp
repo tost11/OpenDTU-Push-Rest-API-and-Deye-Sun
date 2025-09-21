@@ -42,7 +42,7 @@ bool HMS_Abstract::sendActivePowerControlRequest(float limit, const PowerLimitCo
     auto cmd = _radio->prepareCommand<ActivePowerControlCommand>(this);
     cmd->setDeviceType(ActivePowerControlDeviceType::HmsActivePowerControl);
     cmd->setActivePowerLimit(limit, type);
-    SystemConfigPara()->setLastLimitCommandSuccess(CMD_PENDING);
+    getSystemConfigParaParser()->setLastLimitCommandSuccess(CMD_PENDING);
     _radio->enqueCommand(cmd);
 
     return true;

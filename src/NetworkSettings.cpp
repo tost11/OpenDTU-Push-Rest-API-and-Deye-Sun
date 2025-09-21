@@ -245,7 +245,7 @@ void NetworkSettingsClass::loop()
 
     auto ret = std::make_unique<std::unordered_map<std::string,std::string>>();
     if(_checkZeroIpTimout.occured()){
-        MessageOutput.printlnDebug("Look for client zero to kick");
+        ESP_LOGD(TAG, "Look for client zero to kick");
         _checkZeroIpTimout.reset();
         //collectmore wifi info
         wifi_sta_list_t wifi_sta_list;
@@ -267,7 +267,7 @@ void NetworkSettingsClass::loop()
 
             if (station.ip.addr == 0) {
                 //ip is zero means 0.0.0.0
-                MessageOutput.printlnDebug("Found client with zero ip");
+                ESP_LOGD(TAG, "Found client with zero ip");
 
                 macBuff[17] = '\0';
                 for (int i = 0; i < 6; i++) {
@@ -284,24 +284,23 @@ void NetworkSettingsClass::loop()
                 if (it == _clients_without_ip_kick_timer.end()) {
                     _clients_without_ip_kick_timer.emplace(mac, TimeoutHelper(1000 * 6 * 3));//three minutes
                 }else {
-
-                    MessageOutput.printlnDebug("Zero client already known");
+                    ESP_LOGD(TAG, "Zero client already known");
 
                     if (it->second.occured()) {
-                        MessageOutput.printf("Connected client with mac %s has zero ip to long -> kick\n", macBuff);
+                        ESP_LOGI(TAG, "Connected client with mac %s has zero ip to long -> kick\n", macBuff);
 
                         uint16_t aid;
                         esp_err_t result = esp_wifi_ap_get_sta_aid(station.mac, &aid);
                         if (result == ESP_OK) {
                             result = esp_wifi_deauth_sta(aid);
                             if (result == ESP_OK) {
-                                MessageOutput.println("Client with zero ip kicked");
+                                ESP_LOGI(TAG, "Client with zero ip kicked");
                                 emplace = false;
                             } else {
-                                MessageOutput.println("Could not kick client with zero ip");
+                                ESP_LOGI(TAG, "Could not kick client with zero ip");
                             }
                         } else {
-                            MessageOutput.printf("Could not get client aid of mac");
+                            ESP_LOGI(TAG, "Could not get client aid of mac");
                         }
                     }
                 }
@@ -314,7 +313,7 @@ void NetworkSettingsClass::loop()
         auto it = _clients_without_ip_kick_timer.begin();
         while (it != _clients_without_ip_kick_timer.end()){
             if(macsZero.find(it->first) == macsZero.end()){
-                MessageOutput.printfDebug("Removed client from zero map with mac: %s\n",it->first.c_str());
+                ESP_LOGD(TAG, "Removed client from zero map with mac: %s\n",it->first.c_str());
                 it = _clients_without_ip_kick_timer.erase(it);
             }else {
                 it++;
@@ -420,7 +419,7 @@ void NetworkSettingsClass::applyConfig()
     bool success = false;
     if (newCredentials) {
         if (strcmp(config.Ssid, "") == 0) {
-            MessageOutput.print("disconnect wifi... ");
+            ESP_LOGI(TAG, "disconnect wifi... ");
             success = WiFi.disconnect(true, false);
         }else{
             success = WiFi.begin(

@@ -3,7 +3,6 @@
 #include "BaseInverter.h"
 #include <InverterUtils.h>
 #include <TimeoutHelper.h>
-#include <MessageOutput.h>
 
 template<class StatT,class DevT,class AlarmT,class PowerT>
 class BaseNetworkInverter :public BaseInverter<StatT,DevT,AlarmT,PowerT> {
@@ -33,7 +32,7 @@ private:
         ++mac;
         }
         _IpOrHostnameIsMac = (i == 12 && s == 5 );
-        MessageOutput.printf("Check if ip ist Mac: %s\n",_IpOrHostnameIsMac ? "true" : "false");
+        ESP_LOGI(LogTag().c_str(),"Check if ip ist Mac: %s\n",_IpOrHostnameIsMac ? "true" : "false");
     }
 
 public:
@@ -46,6 +45,7 @@ public:
         _macToIpResolverTimer.zero();
     }
     ~BaseNetworkInverter() = default;
+
 
     virtual void setHostnameOrIpOrMac(const char * ip){
         _oringalIpOrHostname = String(ip);
@@ -69,6 +69,7 @@ public:
         hostOrPortUpdated();
     }
 protected:
+    virtual String LogTag() = 0;
     virtual void hostOrPortUpdated(){};
 
     bool _IpOrHostnameIsMac;
@@ -79,27 +80,27 @@ protected:
     bool checkForMacResolution(bool force){
         if(_IpOrHostnameIsMac){
             if(force || _macToIpResolverTimer.occured()){
-                MessageOutput.printfDebug("Try to resolve Mac: %s to ip\n",_oringalIpOrHostname.c_str());
+                ESP_LOGD(LogTag().c_str(),"Try to resolve Mac: %s to ip\n",_oringalIpOrHostname.c_str());
                 auto apMacsAndIps = InverterUtils::getConnectedClients();
                 auto ip = String(_oringalIpOrHostname.c_str());
                 ip.toUpperCase();
                 auto found = apMacsAndIps->find(std::string(ip.c_str()));
                 if(found != apMacsAndIps->end()){
-                    MessageOutput.printfDebug("Found ip for mac is: %s\n",found->second.c_str());
+                    ESP_LOGD(LogTag().c_str(),"Found ip for mac is: %s\n",found->second.c_str());
                     if(found->second != "0.0.0.0" && !found->second.empty()){
-                        MessageOutput.printf("Resolved Mac to ip: %s\n", found->second.c_str());
+                        ESP_LOGI(LogTag().c_str(),"Resolved Mac to ip: %s\n", found->second.c_str());
                         if(_resolvedIpByMacAdress == nullptr || found->second != *_resolvedIpByMacAdress){
                             _resolvedIpByMacAdress = std::make_unique<std::string>(found->second);
                             _macToIpResolverTimer.set(TIMER_SUCCES_MAC_IP_RESOLUTION);
                             return true;
                         }
                         _macToIpResolverTimer.set(TIMER_FAILED_MAC_IP_RESOLUTION);
-                        MessageOutput.printfDebug("Resolved Ip is same as before\n");
+                        ESP_LOGD(LogTag().c_str(),"Resolved Ip is same as before\n");
                         return false;
                     }
                 }
                 _macToIpResolverTimer.set(TIMER_FAILED_MAC_IP_RESOLUTION);
-                MessageOutput.printfDebug("Failed on resolving Mac to Ip\n");
+                ESP_LOGD(LogTag().c_str(),"Failed on resolving Mac to Ip\n");
                 return false;
             }
         }

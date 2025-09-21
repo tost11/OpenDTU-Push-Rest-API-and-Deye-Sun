@@ -2,8 +2,12 @@
 // Created by lukas on 31.05.25.
 //
 
+#include <mutex>
 #include "CustomModbusDeyeInverter.h"
 #include "DeyeUtils.h"
+
+#undef TAG
+static const char* TAG = "DeyeSun(CM)";
 
 CustomModbusDeyeInverter::CustomModbusDeyeInverter(uint64_t serial):
 DeyeInverter(serial){
@@ -54,7 +58,7 @@ void inline swapTwoBytes(char * buf,size_t pos){
 void CustomModbusDeyeInverter::update() {
 
     if(_statusPrintTimeout.occured()){
-        MessageOutput.printfDebug("Deye Custom Modbus -> Socket status: %s\n",_client.stateToString());
+        ESP_LOGD(TAG, "Deye Custom Modbus -> Socket status: %s\n",_client.stateToString());
         _statusPrintTimeout.reset();
     }
 
@@ -75,7 +79,7 @@ void CustomModbusDeyeInverter::update() {
     if(_client.connected()){
 
         if(!getEnablePolling()){
-            MessageOutput.println("Deye Custom Modbus -> stop polling data");
+            ESP_LOGI(TAG,"Deye Custom Modbus -> stop polling data");
             _client.stop();
         }
 
@@ -83,37 +87,37 @@ void CustomModbusDeyeInverter::update() {
         if(_redBytes > 0) {
             std::lock_guard<std::mutex> lock(_readDataLock);
             if (_redBytes < 27) {
-                MessageOutput.printlnDebug("not enoth data");
+                ESP_LOGD(TAG,"not enough data");
                 //not enoth data
                 _writeTimeout = nullptr;
                 _readTimeout = nullptr;
             } else if (_redBytes == 29) {
                 //TODO handle
-                MessageOutput.printlnDebug("Deye Custom Modbus -> error response");
+                ESP_LOGD(TAG,"error response");
                 //error
                 _writeTimeout = nullptr;
                 _readTimeout = nullptr;
             } else if (_redBytes < 29 + 4) {
-                MessageOutput.printlnDebug("Deye Custom Modbus -> not enoth data for valid frame");
+                ESP_LOGD(TAG,"not enoth data for valid frame");
                 //not enoth data
                 _writeTimeout = nullptr;
                 _readTimeout = nullptr;
             } else if(_readBuffer[0] != 0xA5) {
-                MessageOutput.printlnDebug("Deye Custom Modbus -> start bytes wrong");
+                ESP_LOGD(TAG,"start bytes wrong");
                 _writeTimeout = nullptr;
                 _readTimeout = nullptr;
             } else if(_readBuffer[_redBytes -1] != 0x15) {
-                MessageOutput.printlnDebug("Deye Custom Modbus -> end bytes wrong");
+                ESP_LOGD(TAG,"end bytes wrong");
                 _writeTimeout = nullptr;
                 _readTimeout = nullptr;
             } else {
-                MessageOutput.printfDebug("Deye Custom Modbus -> Received bytes are: %d\n", _redBytes);
+                ESP_LOGD(TAG,"Received bytes are: %d\n", _redBytes);
                 if (_readTimeout != nullptr) {
                     handleReadResponse();
                 } else if (_writeTimeout != nullptr) {
                     handleWriteResponse();
                 } else {
-                    MessageOutput.printlnDebug("Deye Custom Modbus -> received data but no where requested...");
+                    ESP_LOGD(TAG,"received data but no where requested...");
                 }
             }
             _redBytes = 0;
@@ -131,7 +135,7 @@ void CustomModbusDeyeInverter::update() {
             _limitToSet = nullptr;
             _powerTargetStatus = nullptr;
 
-            MessageOutput.printf("Deye Custom Modbus -> connection lost, so currently queued write commands are canceled");
+            ESP_LOGI(TAG,"connection lost, so currently queued write commands are canceled");
         }
     }
 
@@ -146,7 +150,7 @@ void CustomModbusDeyeInverter::update() {
         _reconnectTimeout.reset();
         const char * address = _resolvedIpByMacAdress == nullptr ? _oringalIpOrHostname.c_str() : _resolvedIpByMacAdress->c_str();
         _client.connect(address, _port);
-        MessageOutput.printf("Deye Custom Modbus -> reconnect %s %d\n",address,_port);
+        ESP_LOGI(TAG,"reconnect %s %d\n",address,_port);
         ConnectionStatistics.Connects ++;
         _wasConnecting = true;
     }
@@ -161,12 +165,12 @@ void CustomModbusDeyeInverter::update() {
         }
 
         if(_readTimeout != nullptr && _readTimeout->occured()){
-            MessageOutput.println("Deye Custom Modbus -> read timout hit while waiting for data");
+            ESP_LOGI(TAG,"read timout hit while waiting for data");
             _readTimeout = nullptr;
         }
 
         if(_writeTimeout != nullptr && _writeTimeout->occured()){
-            MessageOutput.println("Deye Custom Modbus -> write timout hit while waiting for data");
+            ESP_LOGI(TAG,"write timout hit while waiting for data");
             _writeTimeout = nullptr;
             _systemConfigParaParser->setLastLimitRequestSuccess(LastCommandSuccess::CMD_NOK);
         }
@@ -174,7 +178,7 @@ void CustomModbusDeyeInverter::update() {
         if(_requestDataTimeout.occured() && _writeTimeout == nullptr && _readTimeout == nullptr){
             _readTimeout = std::make_unique<TimeoutHelper>(COMMEND_TIMEOUT * 1000);
 
-            MessageOutput.printlnDebug("Deye Custom Modbus -> send new read data request");
+            ESP_LOGD(TAG,"end new read data request");
             _requestDataTimeout.reset();
             _client.write(_requestDataCommand.c_str(),_requestDataCommand.length());
             ConnectionStatistics.SendReadDataRequests++;
@@ -183,7 +187,7 @@ void CustomModbusDeyeInverter::update() {
         if(_currentWritCommand != nullptr && _readTimeout == nullptr && _writeTimeout == nullptr){
             _writeTimeout = std::make_unique<TimeoutHelper>(COMMEND_TIMEOUT * 1000);
 
-            MessageOutput.printlnDebug("Deye Custom Modbus -> send new write data request");
+            ESP_LOGD(TAG,"send new write data request");
 
             //modbus frame
             std::string businessfield = std::string("0110") + _currentWritCommand->writeRegister.c_str() + "0001" + DeyeUtils::lengthToString(_currentWritCommand->length,2).c_str() + _currentWritCommand->valueToWrite.c_str();
@@ -270,9 +274,9 @@ std::string CustomModbusDeyeInverter::createReqeustDataCommand(const std::string
 
 void CustomModbusDeyeInverter::onDataReceived(void *data, size_t len) {
     if(len > READ_BUFFER_LENGTH){
-        MessageOutput.printf("Deye Custom Modbus -> Read buffer to short not all data used!\n",len);
+        ESP_LOGE(TAG,"Read buffer to short not all data used!");
     }
-    MessageOutput.printfDebug("Deye Custom Modbus -> Received some data: %d\n",len);
+    ESP_LOGD(TAG,"Deye Custom Modbus -> Received some data: %d",len);
     std::lock_guard<std::mutex> lock(_readDataLock);
     size_t useLen = std::min(len,(size_t)READ_BUFFER_LENGTH);
     memcpy(_readBuffer,data,useLen);
@@ -296,10 +300,10 @@ void CustomModbusDeyeInverter::onPollTimeChanged() {
 }
 
 void CustomModbusDeyeInverter::handleWriteResponse() {
-    MessageOutput.printlnDebug("Deye Custom Modbus -> received wire data response");
+    ESP_LOGD(TAG,"received wire data response");
 
     if (_redBytes < 25 + 10) {
-        MessageOutput.printlnDebug("Deye Custom Modbus -> write response not enoth data, skip");
+        ESP_LOGD(TAG,"write response not enough data -> skip");
         return;
     }
 
@@ -308,17 +312,17 @@ void CustomModbusDeyeInverter::handleWriteResponse() {
     std::string frame = std::string(_readBuffer + i,6);
     frame = DeyeUtils::bytes_to_hex(frame);
 
-    MessageOutput.printfDebug("Deye Custom Modbus -> frame is: %s\n",frame.c_str());
+    ESP_LOGD(TAG,"frame is: %s\n",frame.c_str());
 
     if(frame.substr(0,4) != "0110"){
         //not a write response
-        MessageOutput.printlnDebug("Deye Custom Modbus -> write response not a valid write response, skip");
+        ESP_LOGD(TAG,"write response not a valid write response -> skip");
         return;
     }
 
     if(frame.substr(4,4) != _currentWritCommand->writeRegister.c_str()){
         //not a write response
-        MessageOutput.printlnDebug("Deye Custom Modbus -> write response not same register as written, skip");
+        ESP_LOGD(TAG,"write response not same register as written -> skip");
         return;
     }
 
@@ -326,10 +330,10 @@ void CustomModbusDeyeInverter::handleWriteResponse() {
     isCrc = DeyeUtils::bytes_to_hex(isCrc);
 
     std::string calcCrc = DeyeUtils::modbusCRC16FromASCII(frame);
-    MessageOutput.printfDebug("Deye Custom Modbus -> compare crcs: %s -> %s\n", isCrc.c_str(),calcCrc.c_str());
+    ESP_LOGD(TAG,"compare crcs: %s -> %s\n", isCrc.c_str(),calcCrc.c_str());
 
     if(isCrc != calcCrc){
-        MessageOutput.println("Deye Custom Modbus -> write crc not correct, failed");
+        ESP_LOGI(TAG,"write crc not correct, failed");
 
         _systemConfigParaParser->setLastLimitRequestSuccess(LastCommandSuccess::CMD_NOK);
         //no return still reset data with error
@@ -338,13 +342,13 @@ void CustomModbusDeyeInverter::handleWriteResponse() {
             char * p;
             float val = (float)std::strtoul( _currentWritCommand->valueToWrite.c_str(), & p, 16 );
             _systemConfigParaParser->setLimitPercent(val);
-            MessageOutput.printf("Deye Custom Modbus -> successfully set new limit %f\n",val);
+            ESP_LOGI(TAG,"successfully set new limit %f\n",val);
         }else if(frame.substr(4,4) == "002B"){
             char * p;
             uint32_t val = std::strtoul( _currentWritCommand->valueToWrite.c_str(), & p, 16 );
-            MessageOutput.printf("Deye Custom Modbus -> successfully set on/off flag %d\n",val);
+            ESP_LOGI(TAG, "successfully set on/off flag %d\n",val);
         }else{
-            MessageOutput.printf("Deye Custom Modbus -> received write response to unknown register\n");
+            ESP_LOGI(TAG, "received write response to unknown register");
         }
 
         ConnectionStatistics.SuccessfulWriteDataRequests++;
@@ -359,7 +363,7 @@ void CustomModbusDeyeInverter::handleWriteResponse() {
 void CustomModbusDeyeInverter::handleReadResponse() {
     _readTimeout = nullptr;
     if (_redBytes < 25 + 156 + 4) {
-        MessageOutput.printfDebug("Deye Custom Modbus -> skip response not enough data: %d\n", _redBytes);
+        ESP_LOGD(TAG, "skip response not enough data: %d\n", _redBytes);
         return;
     }
 
@@ -368,11 +372,11 @@ void CustomModbusDeyeInverter::handleReadResponse() {
     std::string frame = std::string(_readBuffer + i,_redBytes - i - 4);
     frame = DeyeUtils::bytes_to_hex(frame);
 
-    MessageOutput.printfDebug("Deye Custom Modbus -> frame is: %s\n",frame.c_str());
+    ESP_LOGD(TAG, "frame is: %s\n",frame.c_str());
 
     if(frame.substr(0,4) != "0103"){
         //not a write response
-        MessageOutput.printlnDebug("Deye Custom Modbus -> write response not a valid write response, skip");
+        ESP_LOGD(TAG, "write response not a valid write response -> skip");
         return;
     }
 
@@ -380,10 +384,10 @@ void CustomModbusDeyeInverter::handleReadResponse() {
     isCrc = DeyeUtils::bytes_to_hex(isCrc);
 
     std::string calcCrc = DeyeUtils::modbusCRC16FromASCII(frame);
-    MessageOutput.printfDebug("Deye Custom Modbus -> compare crcs: %s -> %s\n", isCrc.c_str(),calcCrc.c_str());
+    ESP_LOGD(TAG, "compare crcs: %s -> %s\n", isCrc.c_str(),calcCrc.c_str());
 
     if(isCrc != calcCrc){
-        MessageOutput.println("Deye Custom Modbus -> read crc not correct, failed");
+        ESP_LOGI(TAG, "read crc not correct, failed");
     }else {
 
         i = i + 1;
@@ -409,8 +413,12 @@ void CustomModbusDeyeInverter::handleReadResponse() {
 
         _systemConfigParaParser->setLimitPercent(DeyeUtils::defaultParseFloat(i + 2 , (uint8_t *) _readBuffer));
 
-        MessageOutput.printlnDebug("Deye Custom Modbus -> handled new valid read data");
+        ESP_LOGD(TAG, "handled new valid read data");
     }
 
     _readTimeout = nullptr;
+}
+
+String CustomModbusDeyeInverter::LogTag() {
+    return TAG;
 }

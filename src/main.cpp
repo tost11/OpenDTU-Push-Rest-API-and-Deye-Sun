@@ -9,7 +9,6 @@
 #include "InverterSettings.h"
 #include "Led_Single.h"
 #include "Logging.h"
-#include "MessageOutput.h"
 #include "MqttHandleDtu.h"
 #include "MqttHandleHass.h"
 #include "MqttHandleInverter.h"
@@ -44,8 +43,6 @@ void setup()
     while (!Serial)
         yield();
 #endif
-    //MessageOutput.logDebug = false;
-    MessageOutput.init(scheduler);
 
     // For now, the log levels are just hard coded
     esp_log_level_set("*", ESP_LOG_VERBOSE);

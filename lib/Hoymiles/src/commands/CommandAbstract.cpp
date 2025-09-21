@@ -27,12 +27,10 @@ Source Address: 80 12 23 04
      Target Addr   Source Addr      CRC8
 */
 #include "CommandAbstract.h"
-#include "../Utils.h"
+#include <InverterUtils.h>
 #include "../inverters/InverterAbstract.h"
 #include "crc.h"
-#include <string.h>
 #include "../inverters/InverterAbstract.h"
-#include <MessageOutput.h>
 
 CommandAbstract::CommandAbstract(InverterAbstract* inv, const uint64_t router_address)
 {
@@ -56,7 +54,7 @@ const uint8_t* CommandAbstract::getDataPayload()
 String CommandAbstract::dumpDataPayload()
 {
     const uint8_t* payload = getDataPayload();
-    return Utils::dumpArray(payload, getDataSize());
+    return InverterUtils::dumpArray(payload, getDataSize());
 }
 
 uint8_t CommandAbstract::getDataSize() const

@@ -5,6 +5,9 @@
 #include <ios>
 #include <iomanip>
 
+#undef TAG
+static const char* TAG = "HoymilesW";
+
 HoymilesWInverter::HoymilesWInverter(uint64_t serial):
 _dtuInterface(ConnectionStatistics)
 {
@@ -39,7 +42,7 @@ void HoymilesWInverter::update() {
     }
 
     if(_resolvedIpByMacAdress != nullptr && *_resolvedIpByMacAdress != std::string(_dtuInterface.getServer().c_str())){
-        MessageOutput.println("Set new ip by mac to DTU interface");
+        ESP_LOGI(TAG,"Set new ip by mac to DTU interface");
         _dtuInterface.setServerAndPort(String(_resolvedIpByMacAdress->c_str()),_port);
     }
 
@@ -89,7 +92,7 @@ void HoymilesWInverter::update() {
         if(_dtuInterface.isSerialValid(_serial)){
             swapBuffers(data.get());
         }else{
-            MessageOutput.printf("Skipped setting red inverter data because serial isn valid! (dtu red %llu to configured: %llu)\n",_dtuInterface.getRedSerial(),_serial);
+            ESP_LOGI(TAG,"Skipped setting red inverter data because serial isn valid! (dtu red %llu to configured: %llu)",_dtuInterface.getRedSerial(),_serial);
             _alarmLogParser->addAlarm(6,60,"received inverter data not used because serials not matching (correct serial and ip?)");
 
             //anyway set timer so its shown as online but not production (helps for debugging error)
@@ -193,7 +196,7 @@ void HoymilesWInverter::hostOrPortUpdated(){
         ip = _resolvedIpByMacAdress->c_str();
     }
     if(ip != _dtuInterface.getServer() || _port != _dtuInterface.getPort()){
-        MessageOutput.println("Set new ip to DTU interface");
+        ESP_LOGI(TAG,"Set new ip to DTU interface");
         _dtuInterface.setServerAndPort(ip,_port);
     }
 }
@@ -222,4 +225,8 @@ void HoymilesWInverter::onPollTimeChanged() {
 
 void HoymilesWInverter::resetStats() {
     ConnectionStatistics = {};
+}
+
+String HoymilesWInverter::LogTag() {
+    return TAG;
 }

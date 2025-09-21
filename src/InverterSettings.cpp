@@ -45,42 +45,50 @@ void InverterSettingsClass::init(Scheduler& scheduler)
     const CONFIG_T& config = Configuration.get();
 
     #ifdef DEYE_SUN
-    MessageOutput.print("Initialize Deye interface... ");
+    ESP_LOGI(TAG, "Initialize Deye interface... ");
     DeyeSun.init();
 
-    MessageOutput.println("  Setting Deye poll interval... ");
+    ESP_LOGI(TAG, "Setting Deye poll interval...");
     DeyeSun.setPollInterval(config.Dtu.PollInterval);
     DeyeSun.setUnknownDevicesWriteEnable(config.DeyeSettings.UnknownInverterWrite);
 
     for (uint8_t i = 0; i < INV_MAX_COUNT; i++) {
         if (config.Inverter[i].Type == inverter_type::Inverter_DeyeSun && config.Inverter[i].Serial > 0) {
-            MessageOutput.print("  Adding DeyeSun inverter: ");
-            MessageOutput.print(config.Inverter[i].Serial, HEX);
-            MessageOutput.print(" - ");
-            MessageOutput.println(config.Inverter[i].Name);
+            const auto& inv_cfg = config.Inverter[i];
+            if (inv_cfg.Serial == 0) {
+                continue;
+            }
+
+            ESP_LOGI(TAG, "Adding inverter: %0" PRIx32 "%08" PRIx32 " - %s",
+                     static_cast<uint32_t>((inv_cfg.Serial >> 32) & 0xFFFFFFFF),
+                     static_cast<uint32_t>(inv_cfg.Serial & 0xFFFFFFFF),
+                     inv_cfg.Name);
+
             auto inv = DeyeSun.addInverter(
                     config.Inverter[i].Name,
                     config.Inverter[i].Serial,
                     config.Inverter[i].HostnameOrIp,
                     config.Inverter[i].Port,
                     (deye_inverter_type)config.Inverter[i].MoreInverterInfo);
-
-            if (inv != nullptr) {
-                inv->setPollTime(config.Inverter[i].PollTime);
-                inv->setReachableThreshold(config.Inverter[i].ReachableThreshold);
-                inv->setZeroValuesIfUnreachable(config.Inverter[i].ZeroRuntimeDataIfUnrechable);
-                inv->setZeroYieldDayOnMidnight(config.Inverter[i].ZeroYieldDayOnMidnight);
-                inv->getStatistics()->setYieldDayCorrection(config.Inverter[i].YieldDayCorrection);
-                inv->getStatistics()->setDeyeSunOfflineYieldDayCorrection(config.Inverter[i].DeyeSunOfflineYieldDayCorrection);
-                for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
-                    inv->getStatistics()->setStringMaxPower(c, config.Inverter[i].channel[c].MaxChannelPower);
-                }
+            if (inv == nullptr) {
+                ESP_LOGW(TAG, "Adding inverter failed: Unsupported type");
+                continue;
             }
-            MessageOutput.println(" done");
+
+            inv->setPollTime(config.Inverter[i].PollTime);
+            inv->setReachableThreshold(config.Inverter[i].ReachableThreshold);
+            inv->setZeroValuesIfUnreachable(config.Inverter[i].ZeroRuntimeDataIfUnrechable);
+            inv->setZeroYieldDayOnMidnight(config.Inverter[i].ZeroYieldDayOnMidnight);
+            inv->getStatistics()->setYieldDayCorrection(config.Inverter[i].YieldDayCorrection);
+            inv->getStatistics()->setDeyeSunOfflineYieldDayCorrection(config.Inverter[i].DeyeSunOfflineYieldDayCorrection);
+            for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
+                inv->getStatistics()->setStringMaxPower(c, config.Inverter[i].channel[c].MaxChannelPower);
+            }
+            ESP_LOGI(TAG,"Adding complete");
         }
     }
 
-    MessageOutput.println("done");
+    ESP_LOGI(TAG,"Initialization complete");
     #endif
 
     #ifdef HOYMILES
@@ -165,39 +173,47 @@ void InverterSettingsClass::init(Scheduler& scheduler)
     #endif
 
     #ifdef HOYMILES_W
-    MessageOutput.print("Initialize HoymilesW interface... ");
+    ESP_LOGI(TAG, "Initialize HoymilesW interface...");
     //HoymilesW.setMessageOutput(&MessageOutput);
     HoymilesW.init();
-    MessageOutput.println("  Setting HoymilesW poll interval... ");
+    ESP_LOGI(TAG, "Setting HoymilesW poll interval...");
     HoymilesW.setPollInterval(config.Dtu.PollInterval);
 
     for (uint8_t i = 0; i < INV_MAX_COUNT; i++) {
         if (config.Inverter[i].Type == inverter_type::Inverter_HoymilesW && config.Inverter[i].Serial > 0) {
-            MessageOutput.print("  Adding HoymilesW inverter: ");
-            MessageOutput.print(config.Inverter[i].Serial, HEX);
-            MessageOutput.print(" - ");
-            MessageOutput.print(config.Inverter[i].Name);
+            const auto& inv_cfg = config.Inverter[i];
+            if (inv_cfg.Serial == 0) {
+                continue;
+            }
+
+            ESP_LOGI(TAG, "Adding inverter: %0" PRIx32 "%08" PRIx32 " - %s",
+                     static_cast<uint32_t>((inv_cfg.Serial >> 32) & 0xFFFFFFFF),
+                     static_cast<uint32_t>(inv_cfg.Serial & 0xFFFFFFFF),
+                     inv_cfg.Name);
+
             auto inv = HoymilesW.addInverter(
                     config.Inverter[i].Name,
                     config.Inverter[i].Serial,
                     config.Inverter[i].HostnameOrIp,
                     config.Inverter[i].Port);
-
-            if (inv != nullptr) {
-                inv->setPollTime(config.Inverter[i].PollTime);
-                inv->setReachableThreshold(config.Inverter[i].ReachableThreshold);
-                inv->setZeroValuesIfUnreachable(config.Inverter[i].ZeroRuntimeDataIfUnrechable);
-                inv->setZeroYieldDayOnMidnight(config.Inverter[i].ZeroYieldDayOnMidnight);
-                inv->getStatistics()->setYieldDayCorrection(config.Inverter[i].YieldDayCorrection);
-                inv->getStatistics()->setDeyeSunOfflineYieldDayCorrection(config.Inverter[i].DeyeSunOfflineYieldDayCorrection);
-                for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
-                    inv->getStatistics()->setStringMaxPower(c, config.Inverter[i].channel[c].MaxChannelPower);
-                }
+            if (inv == nullptr) {
+                ESP_LOGW(TAG, "Adding inverter failed: Unsupported type");
+                continue;
             }
-            MessageOutput.println(" done");
+
+            inv->setPollTime(config.Inverter[i].PollTime);
+            inv->setReachableThreshold(config.Inverter[i].ReachableThreshold);
+            inv->setZeroValuesIfUnreachable(config.Inverter[i].ZeroRuntimeDataIfUnrechable);
+            inv->setZeroYieldDayOnMidnight(config.Inverter[i].ZeroYieldDayOnMidnight);
+            inv->getStatistics()->setYieldDayCorrection(config.Inverter[i].YieldDayCorrection);
+            inv->getStatistics()->setDeyeSunOfflineYieldDayCorrection(config.Inverter[i].DeyeSunOfflineYieldDayCorrection);
+            for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
+                inv->getStatistics()->setStringMaxPower(c, config.Inverter[i].channel[c].MaxChannelPower);
+            }
+            ESP_LOGI(TAG, "Adding complete");
         }
     }
-    MessageOutput.println("done");
+    ESP_LOGI(TAG, "Initialization complete");
     #endif
 
     #ifdef HOYMILES
@@ -218,9 +234,9 @@ void InverterSettingsClass::init(Scheduler& scheduler)
     scheduler.addTask(_settingsTask);
     _settingsTask.enable();
 
-    MessageOutput.print("Initialize InverterHandler... ");
+    ESP_LOGI(TAG, "Initialize InverterHandler...");
     InverterHandler.init();
-    MessageOutput.println(" done");
+    ESP_LOGI(TAG, "done");
 }
 
 void InverterSettingsClass::settingsLoop()

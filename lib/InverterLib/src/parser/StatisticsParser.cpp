@@ -3,7 +3,6 @@
  * Copyright (C) 2022 - 2025 Thomas Basler and others
  */
 #include "StatisticsParser.h"
-#include <MessageOutput.h>
 #include <esp_log.h>
 
 #undef TAG
@@ -408,14 +407,14 @@ void StatisticsParser::resetDeyeSunOfflineYieldDayCorrection(bool setZero) {
                     if(currentOffset != 0){
                         //only do if present (if not persent keep last value)
                         setChannelFieldOffset(t,c,FLD_YD,currentOffset,2);
-                        MessageOutput.printf("Daily Reset Deye Offline offset to: %f\n",currentOffset);
+                        ESP_LOGI(TAG,"Daily Reset Deye Offline offset to: %f",currentOffset);
                     }else{
-                        MessageOutput.printf("Daily Reset kept last offset value: %f\n",getChannelFieldOffset(t,c,FLD_YD,2));
+                        ESP_LOGI(TAG,"Daily Reset kept last offset value: %f\n",getChannelFieldOffset(t,c,FLD_YD,2));
                     }
                 }else{
                     //if reset data on midnight set everything to zero
                     setChannelFieldOffset(t,c,FLD_YD,0,2);
-                    MessageOutput.printf("Daily Reset Deye Offline offset to zero");
+                    ESP_LOGI(TAG,"Daily Reset Deye Offline offset to zero");
                 }
                 setting->offset = 0.f;
             }

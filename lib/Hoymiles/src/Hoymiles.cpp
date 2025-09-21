@@ -75,7 +75,7 @@ void HoymilesClass::loop()
                 iv->sendChangeChannelRequest();
             }
 
-            if (Utils::getTimeAvailable()) {
+            if (InverterUtils::getTimeAvailable()) {
                 // Fetch statistics
                 iv->sendStatsRequest();
 
