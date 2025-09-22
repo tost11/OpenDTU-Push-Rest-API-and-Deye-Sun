@@ -62,13 +62,13 @@ public:
     fieldSettings_t* getSettingByChannelField(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId, uint8_t index);
     float calculateOffsetByChannelField(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId);
 
-    float getChannelFieldValue(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId) override;
-    String getChannelFieldValueString(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId) override;
-    bool hasChannelFieldValue(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId) const override;
-    const char* getChannelFieldUnit(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId) const override;
-    virtual UnitId_t getChannelFieldUnitId(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) const override;
-    const char* getChannelFieldName(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId) const override;
-    uint8_t getChannelFieldDigits(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId) const override;
+    float getChannelFieldValue(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId);
+    String getChannelFieldValueString(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId);
+    bool hasChannelFieldValue(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId) const;
+    const char* getChannelFieldUnit(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId) const;
+    UnitId_t getChannelFieldUnitId(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId) const;
+    const char* getChannelFieldName(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId) const;
+    uint8_t getChannelFieldDigits(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId) const;
 
     bool setChannelFieldValue(const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId, float value);
 

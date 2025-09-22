@@ -14,6 +14,7 @@
 #include "MqttHandleInverter.h"
 #include "MqttHandleInverterTotal.h"
 #include "MqttSettings.h"
+#include "TostHandle.h"
 #include "NetworkSettings.h"
 #include "NtpSettings.h"
 #include "PinMapping.h"
@@ -102,6 +103,10 @@ void setup()
     // Initialize SunPosition
     ESP_LOGI(TAG, "Initializing SunPosition...");
     SunPosition.init(scheduler);
+
+    // Initialize Tost
+    ESP_LOGI(TAG, "Initialize Tost's rest push service... ");
+    TostHandle.init(scheduler);
 
     // Initialize MqTT
     ESP_LOGI(TAG, "Initializing MQTT...");

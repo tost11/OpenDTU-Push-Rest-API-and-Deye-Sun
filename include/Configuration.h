@@ -23,6 +23,10 @@
 #define NTP_MAX_TIMEZONE_STRLEN 50
 #define NTP_MAX_TIMEZONEDESCR_STRLEN 50
 
+#define TOST_MAX_URL_STRLEN 128
+#define TOST_MAX_SYSTEM_ID_STRLEN 64
+#define TOST_MAX_TOKEN_STRLEN 64
+
 #define MQTT_MAX_HOSTNAME_STRLEN 128
 #define MQTT_MAX_CLIENTID_STRLEN 64
 #define MQTT_MAX_USERNAME_STRLEN 64
@@ -109,6 +113,15 @@ struct CONFIG_T {
         double Latitude;
         uint8_t SunsetType;
     } Ntp;
+
+    struct{
+        bool Enabled;
+        uint Duration;
+        char SystemId[TOST_MAX_SYSTEM_ID_STRLEN + 1];
+        char Token[TOST_MAX_TOKEN_STRLEN + 1];
+        char Url[TOST_MAX_URL_STRLEN + 1];
+        char SecondUrl[TOST_MAX_URL_STRLEN + 1];
+    } Tost;
 
     struct {
         bool Enabled;

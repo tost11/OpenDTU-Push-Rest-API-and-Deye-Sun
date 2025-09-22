@@ -125,7 +125,12 @@
         "10002": "Authentifizierung erfolgreich!",
         "11001": "@:apiresponse.2001",
         "11002": "@:apiresponse.5004",
-        "12001": "Profilname muss zwischen 1 und {max} Zeichen lang sein!"
+        "12001": "Profilname muss zwischen 1 und {max} Zeichen lang sein!",
+        "13001": "Primäre URL muss zwischen 1 und {max} Zeichen lang sein!",
+        "13002": "Sekundäre URL darf {max} Zeichen lang sein!",
+        "13003": "System Id muss zwischen 1 und {max} Zeichen lang sein!",
+        "13004": "System Token muss zwischen 1 und {max} Zeichen lang sein!",
+        "13005": "Veröffentlichungsintervall muss eine Zahl zwischen {min} und {max} sein"
     },
     "home": {
         "LiveData": "Live-Daten",
@@ -355,6 +360,25 @@
         "Day": "Tag",
         "Night": "Nacht"
     },
+    "tostinfo": {
+        "tostInformation": "Tost's Solar Monitoring Informationen",
+        "ConfigurationSummary": "Konfigurationszusammenfassung",
+        "Status": "@:ntpinfo.Status",
+        "Enabled": "aktiv",
+        "Disabled": "nicht aktiv",
+        "Url": "Primäre URL:",
+        "SecondUrl": "Sekundäre URL:",
+        "SystemId": "System Id",
+        "Duration": "Veröffentlichungsintervall",
+        "Seconds": "{sec} Sekunden",
+        "LastSuccessTimestamp": "Letztes erfolgreiches Senden",
+        "LastErrorTimestamp": "Letztes fehlerhaftes Senden",
+        "LastErrorCode": "Letzter Http Fehler Code",
+        "LastErrorMessage": "Letzter Http Fehler Message",
+        "never": "nie",
+        "Summary": "Statussusammenfassung",
+        "Error": "Errorsusammenfassung"
+    },
     "mqttinfo": {
         "MqttInformation": "MQTT-Informationen",
         "ConfigurationSummary": "@:ntpinfo.ConfigurationSummary",
@@ -510,6 +534,22 @@
         "SyslogSettings": "Syslog-Einstellungen",
         "SyslogHostname": "Syslog Server",
         "SyslogPort": "Port"
+    },
+    "tostadmin": {
+        "TostSettings": "Tost's Solar Monitoring Einstellungen",
+        "TostConfiguration": "Tost's Solar Monitoring Einstellungen",
+        "EnableTost": "Daten senden aktivieren:",
+        "TostParameters": "Client Parameter",
+        "Url": "Primäre URL:",
+        "SecondUrl": "Sekundäre URL:",
+        "UrlHint": "Url und IP Adresse mit Protokol und Port(optional)",
+        "SystemId": "System Id:",
+        "SystemIdHint": "System Id (sieht aus wie UUID)",
+        "Token": "Token:",
+        "TokenHint": "Token (looks like UUID)",
+        "Duration": "Veröffentlichungsintervall:",
+        "Save": "@:base.Save",
+        "Seconds": "Sekunden"
     },
     "mqttadmin": {
         "MqttSettings": "MQTT-Einstellungen",
