@@ -154,6 +154,7 @@ public:
 
     bool getYieldDayCorrection() const;
     void setYieldDayCorrection(const bool enabled);
+
 private:
     void zeroFields(const FieldId_t* fields);
 

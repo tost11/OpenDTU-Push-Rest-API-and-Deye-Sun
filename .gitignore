@@ -11,3 +11,4 @@ get-platformio.py
 .idea
 .DS_Store
 tmp
+test_scripts

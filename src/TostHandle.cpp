@@ -14,6 +14,9 @@
 
 TostHandleClass TostHandle;
 
+#undef TAG
+static const char* TAG = "rest-push";
+
 void TostHandleClass::init(Scheduler& scheduler)
 {
     //_lastPublish.set(Configuration.get().Tost.Duration * 1000);
@@ -65,14 +68,13 @@ void TostHandleClass::loop()
     //9: temperature
 
     if (!Configuration.get().Tost.Enabled || !Hoymiles.isAllRadioIdle()) {
-        //MessageOutput.println("tost skip");
         return;
     }
 
     //if (_lastPublish.occured()) {
 
     if(_cleanupCheck.occured()){
-        MessageOutput.println("Run cleanup");
+        ESP_LOGD(TAG,"Run cleanup");
         _cleanupCheck.set(TIMER_CLEANUP);
 
         auto toClean = _lastPublishedInverters;
@@ -89,8 +91,7 @@ void TostHandleClass::loop()
         }
 
         for (const auto &item: toClean){
-            MessageOutput.print("cleaned: ");
-            MessageOutput.println(item.first.c_str());
+            ESP_LOGD(TAG,"cleaned: %s",item.first.c_str());
             _lastPublishedInverters.erase(item.first);
         }
     }
@@ -123,9 +124,9 @@ void TostHandleClass::loop()
             diff = lastUpdate - cachedLastUpdate;
         }
 
-        MessageOutput.printf("last: %d ",lastUpdate);
-        MessageOutput.printf("calc: %d ",cachedLastUpdate);
-        MessageOutput.printf("diff: %d\n",diff);
+        ESP_LOGD(TAG,"last: %d ",lastUpdate);
+        ESP_LOGD(TAG,"calc: %d ",cachedLastUpdate);
+        ESP_LOGD(TAG,"diff: %d\n",diff);
 
         if(cachedLastUpdate != 0 && diff < Configuration.get().Tost.Duration * 1000){
             //no update needed
@@ -134,7 +135,7 @@ void TostHandleClass::loop()
 
         uint64_t id = inv->serial();
 
-        MessageOutput.printf("-> New data to push for Inverter %llu\n\r", id);
+        ESP_LOGI(TAG,"New data to push for Inverter %llu\n\r", id);
         _lastPublishedInverters[uniqueID] = lastUpdate;
 
         JsonDocument data;
@@ -152,7 +153,7 @@ void TostHandleClass::loop()
             time(&now);
             data["timeUnit"] = "SECONDS";
             data["timestamp"] = time(&now);
-            MessageOutput.printf("Time set on new inverter info manually %lu\n\r", time(&now));
+            ESP_LOGD(TAG,"Time set on new inverter info manually %lu\n\r", time(&now));
         }
 
         JsonArray devices = data["devices"].to<JsonArray>();
@@ -213,11 +214,11 @@ void TostHandleClass::loop()
 
                 serializeJson(data, toSend);
 
-                MessageOutput.println("adding new request to queue");
+                ESP_LOGD(TAG,"adding new request to queue");
                 requestsToSend.push(std::make_unique<String>(std::move(toSend)));
             }else{
                 //todo remove first form list/queue and add this one
-                MessageOutput.print("New request not added to list not requtests because que is full");
+                ESP_LOGD(TAG,"New request not added to list not requtests because que is full");
             }
         }
     }
@@ -225,16 +226,16 @@ void TostHandleClass::loop()
 
     //check if last request ist send succesfully
     if(_lastRequestResponse.has_value()){
-        MessageOutput.println("http request finished");
+        ESP_LOGD(TAG,"http request finished");
         _runningThread.join();
         handleResponse();
         _lastRequestResponse.reset();
     }
 
-    if(!_lastRequestResponse.has_value() && _currentlySendingData == nullptr && requestsToSend.size() > 0 && restTimeout.occured()){
+    if(!_lastRequestResponse.has_value() && _currentlySendingData == nullptr && !requestsToSend.empty() && restTimeout.occured()){
         restTimeout.set(0);//reset if errror was before
         //send new request
-        MessageOutput.printf("start new http request send queue size is: %d\r\n",requestsToSend.size());
+        ESP_LOGD(TAG,"start new http request send queue size is: %d\r\n",requestsToSend.size());
         //runNextHttpRequest(std::move(data));
 
         _currentlySendingData = requestsToSend.front().get();
@@ -253,19 +254,16 @@ int TostHandleClass::doRequest(String url,uint16_t timeout){
 
     url+="/api/solar/data?systemId=";
     url+=Configuration.get().Tost.SystemId;
-    MessageOutput.print("Send reqeust to: ");
-    MessageOutput.println(url.c_str());
+    ESP_LOGD(TAG,"Send reqeust to: %s:",url.c_str());
 
     http->begin(url.c_str());
     http->addHeader("clientToken",Configuration.get().Tost.Token);
     http->addHeader("Content-Type", "application/json");
     http->setTimeout(timeout);
 
-    MessageOutput.println(String("Begin post data to: ") + url);
-
     int statusCode = http->POST(*_currentlySendingData);
 
-    MessageOutput.println(String("Finished post data response: ") + statusCode);
+    ESP_LOGD(TAG,"Finished post data response: %d",statusCode);
 
     _lastRequestResponse = std::make_pair(statusCode,std::move(http));
 
@@ -274,19 +272,23 @@ int TostHandleClass::doRequest(String url,uint16_t timeout){
 
 void TostHandleClass::runNextHttpRequest() {
 
-    MessageOutput.println("start reqeust thread");
-    //MessageOutput.println(_currentlySendingData->c_str());
+    ESP_LOGD(TAG,"start reqeust thread");
+    ESP_LOGD(TAG,"sending data: %s",_currentlySendingData->c_str());
 
     int statusCode = doRequest(Configuration.get().Tost.Url,15 * 1000);//15 sec
 
     if((statusCode <= 0 || statusCode == 502) && strlen(Configuration.get().Tost.SecondUrl) > 0 ){
 
-        MessageOutput.println("First post url not working try second one");
+        ESP_LOGW(TAG,"First post url not working try second one");
 
-        doRequest(Configuration.get().Tost.SecondUrl,10 * 1000);//10 sec
+        int nextStatus = doRequest(Configuration.get().Tost.SecondUrl,10 * 1000);//10 sec
+
+        if(nextStatus <= 0 || nextStatus == 502){
+            ESP_LOGE(TAG,"Second post url not working too");
+        }
     }
 
-    MessageOutput.println("Thread finished request");
+    ESP_LOGD(TAG,"Thread finished request");
 
     _currentlySendingData = nullptr;
 }
@@ -304,14 +306,14 @@ void TostHandleClass::handleResponse()
         lastErrorTimestamp = lastTimestamp;
     }else{
         String payload = _lastRequestResponse->second->getString();
-        //MessageOutput.printf("Full Status: %s\n\r", payload.c_str());
+        ESP_LOGD(TAG,"Full Status: %s", payload.c_str());
         if (statusCode == 200) {
             lastSuccessfullyTimestamp = lastTimestamp;
+            ESP_LOGI(TAG,"Tost's Solar Monitoring Successfully send data");
         }else {
-            lastErrorMessage == payload.c_str();
             lastErrorStatusCode = statusCode;
             lastErrorTimestamp = lastTimestamp;
-            MessageOutput.printf("Tost's Solar Monitoring Error on rest call: %s\n\r",lastErrorMessage.c_str());
+            ESP_LOGE(TAG,"Tost's Solar Monitoring Error on rest call: %s\n\r",lastErrorMessage.c_str());
 
             JsonDocument doc;
             DeserializationError error = deserializeJson(doc, payload);
@@ -332,8 +334,9 @@ void TostHandleClass::handleResponse()
     if(statusCode > 0 && statusCode != 403 && statusCode != 401){
         //clear if not connection error or forbidden (bad request/internal server error => ok, because of mostly data error)
         requestsToSend.pop();
+
     }else{
-        MessageOutput.println("Tost's Solar Monitoring use rest send pause (1 min) because last request failed, queue is\n\r");
+        ESP_LOGI(TAG,"Tost's Solar Monitoring use rest send pause (1 min) because last request failed, queue is\n\r");
         restTimeout.set(60 * 1000);
     }
 }
