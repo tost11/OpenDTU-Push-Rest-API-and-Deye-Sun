@@ -295,7 +295,7 @@ void DTUInterface::dtuConnectionObserver()
     else if (millis() - lastOnlineOfflineChange > 60000 && currentOnlineOfflineState == false)
     {
         ESP_LOGI(TAG,"DTUinterface:\t setOverallOnlineOfflineState - timeout - reset online offline state");
-        ESP_LOGD(TAG," - difference: %dl ms - current conn state: %d",((millis() - lastOnlineOfflineChange)/1000,3),dtuConnection.dtuConnectState);
+        ESP_LOGD(TAG," - difference: %lul ms - current conn state: %d",(millis() - lastOnlineOfflineChange)/1000,dtuConnection.dtuConnectState);
         dtuConnection.dtuConnectionOnline = false;
     }
 }

@@ -165,12 +165,12 @@ void CustomModbusDeyeInverter::update() {
         }
 
         if(_readTimeout != nullptr && _readTimeout->occured()){
-            ESP_LOGI(TAG,"read timout hit while waiting for data");
+            ESP_LOGW(TAG,"read timout hit while waiting for data");
             _readTimeout = nullptr;
         }
 
         if(_writeTimeout != nullptr && _writeTimeout->occured()){
-            ESP_LOGI(TAG,"write timout hit while waiting for data");
+            ESP_LOGW(TAG,"write timout hit while waiting for data");
             _writeTimeout = nullptr;
             _systemConfigParaParser->setLastLimitRequestSuccess(LastCommandSuccess::CMD_NOK);
         }

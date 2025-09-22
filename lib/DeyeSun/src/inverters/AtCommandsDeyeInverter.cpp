@@ -350,7 +350,7 @@ bool AtCommandsDeyeInverter::resolveHostname() {
         _ipAdress = std::make_unique<IPAddress>(remote_addr);
         return true;
     }
-    ESP_LOGI(TAG,"Could not resolve hostname: %s\n", ipToFind);
+    ESP_LOGW(TAG,"Could not resolve hostname: %s\n", ipToFind);
     return false;
 }
 

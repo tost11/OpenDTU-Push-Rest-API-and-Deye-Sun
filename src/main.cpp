@@ -23,6 +23,7 @@
 #include "Utils.h"
 #include "WebApi.h"
 #include "defaults.h"
+#include "MessageOutput.h"
 #include <Arduino.h>
 #include <LittleFS.h>
 #include <TaskScheduler.h>
@@ -43,6 +44,7 @@ void setup()
     while (!Serial)
         yield();
 #endif
+    MessageOutput.init(scheduler);
 
     // For now, the log levels are just hard coded
     esp_log_level_set("*", ESP_LOG_VERBOSE);
