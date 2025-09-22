@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
- * Copyright (C) 2022-2024 Thomas Basler and others
+ * Copyright (C) 2022-2025 Thomas Basler and others
  */
 #include "WebApi_ws_live.h"
 #include "Datastore.h"
@@ -10,6 +10,9 @@
 #include "defaults.h"
 #include "InverterHandler.h"
 #include <AsyncJson.h>
+
+#undef TAG
+static const char* TAG = "webapi";
 
 #ifdef HOYMILES
 #include <Hoymiles.h>
@@ -25,7 +28,7 @@
 #endif
 
 #ifndef PIN_MAPPING_REQUIRED
-    #define PIN_MAPPING_REQUIRED 0
+#define PIN_MAPPING_REQUIRED 0
 #endif
 
 WebApiWsLiveClass::WebApiWsLiveClass()
@@ -66,7 +69,9 @@ void WebApiWsLiveClass::reload()
 
     auto const& config = Configuration.get();
 
-    if (config.Security.AllowReadonly) { return; }
+    if (config.Security.AllowReadonly) {
+        return;
+    }
 
     _ws.enable(false);
     _simpleDigestAuth.setPassword(config.Security.Password);
@@ -127,9 +132,9 @@ void WebApiWsLiveClass::sendDataTaskCb()
             _ws.textAll(buffer);
 
         } catch (const std::bad_alloc& bad_alloc) {
-            MessageOutput.printf("Call to /api/livedata/status temporarely out of resources. Reason: \"%s\".\r\n", bad_alloc.what());
+            ESP_LOGE(TAG, "Call to /api/livedata/status temporarely out of resources. Reason: \"%s\".", bad_alloc.what());
         } catch (const std::exception& exc) {
-            MessageOutput.printf("Unknown exception in /api/livedata/status. Reason: \"%s\".\r\n", exc.what());
+            ESP_LOGE(TAG, "Unknown exception in /api/livedata/status. Reason: \"%s\".", exc.what());
         }
     }
 }
@@ -163,6 +168,7 @@ void WebApiWsLiveClass::generateInverterCommonJsonResponse(JsonObject& root, std
     root["name"] = inv->name();
     root["order"] = inv_cfg->Order;
     root["data_age"] = (millis() - inv->getStatistics()->getLastUpdate()) / 1000;
+    root["data_age_ms"] = millis() - inv->getStatistics()->getLastUpdate();
     root["poll_enabled"] = inv->getEnablePolling();
     root["reachable"] = inv->isReachable();
     root["producing"] = inv->isProducing();
@@ -304,9 +310,9 @@ void WebApiWsLiveClass::addTotalField(JsonObject& root, const String& name, cons
 void WebApiWsLiveClass::onWebsocketEvent(AsyncWebSocket* server, AsyncWebSocketClient* client, AwsEventType type, void* arg, uint8_t* data, size_t len)
 {
     if (type == WS_EVT_CONNECT) {
-        MessageOutput.printf("Websocket: [%s][%u] connect\r\n", server->url(), client->id());
+        ESP_LOGD(TAG, "Websocket: [%s][%" PRIu32 "] connect", server->url(), client->id());
     } else if (type == WS_EVT_DISCONNECT) {
-        MessageOutput.printf("Websocket: [%s][%u] disconnect\r\n", server->url(), client->id());
+        ESP_LOGD(TAG, "Websocket: [%s][%" PRIu32 "] disconnect", server->url(), client->id());
     }
 }
 
@@ -349,10 +355,10 @@ void WebApiWsLiveClass::onLivedataStatus(AsyncWebServerRequest* request)
         WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
 
     } catch (const std::bad_alloc& bad_alloc) {
-        MessageOutput.printf("Call to /api/livedata/status temporarely out of resources. Reason: \"%s\".\r\n", bad_alloc.what());
+        ESP_LOGE(TAG, "Call to /api/livedata/status temporarely out of resources. Reason: \"%s\".", bad_alloc.what());
         WebApi.sendTooManyRequests(request);
     } catch (const std::exception& exc) {
-        MessageOutput.printf("Unknown exception in /api/livedata/status. Reason: \"%s\".\r\n", exc.what());
+        ESP_LOGE(TAG, "Unknown exception in /api/livedata/status. Reason: \"%s\".", exc.what());
         WebApi.sendTooManyRequests(request);
     }
 }

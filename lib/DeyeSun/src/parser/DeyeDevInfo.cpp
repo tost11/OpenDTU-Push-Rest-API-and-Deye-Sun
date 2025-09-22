@@ -2,8 +2,6 @@
 #include "DeyeDevInfo.h"
 #include "DeyeUtils.h"
 
-#include <MessageOutput.h>
-
 uint32_t DeyeDevInfo::getLastUpdateAll() const {
     return 0;
 }
@@ -62,7 +60,7 @@ void DeyeDevInfo::clearBuffer() {
 
 void DeyeDevInfo::appendFragment(uint8_t offset, uint8_t *payload, uint8_t len) {
     if (offset + len > DEV_INFO_SIZE_DEYE) {
-        MessageOutput.printf("FATAL: (%s, %d) dev info all packet too large for buffer\r\n", __FILE__, __LINE__);
+        ESP_LOGE("DeyeSun","FATAL: (%s, %d) dev info all packet too large for buffer\r\n", __FILE__, __LINE__);
         return;
     }
     memcpy(&_payloadDevInfo[offset], payload, len);

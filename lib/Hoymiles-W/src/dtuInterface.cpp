@@ -1,7 +1,9 @@
 #include "dtuInterface.h"
 #include <Arduino.h>
-#include <MessageOutput.h>
 #include <memory>
+
+#undef TAG
+static const char* TAG = "HoymilesW";
 
 DTUInterface::DTUInterface(HoymilesWConnectionStatistics & connectionStats,const char *server, uint16_t port) :
 connectionStatistics(connectionStats),
@@ -40,7 +42,7 @@ void DTUInterface::setup()
         //This is not working because keep alive is not fine for rxTimeout
         //client->setRxTimeout(60);//sets timeout to 60 seconds (if no ack or data received in this time connection is handled as closed (timout))
         //std::function<void(void*, AsyncClient*)> f = std::bind(&dtuInterface,client);
-        MessageOutput.println("DTUinterface:\t setup for DTU '"+String(serverIP)+":"+String(serverPort)+"'");
+        ESP_LOGI(TAG,"DTUinterface:\t setup for DTU '%s':'%d'",serverIP.c_str(),serverPort);
         client->onConnect([&](void * arg, AsyncClient * client){this->onConnect();});
         client->onDisconnect([&](void * arg, AsyncClient * client){this->onDisconnect();});
         client->onError([&](void * arg, AsyncClient * client,int8_t error){this->onError(error);});
@@ -59,14 +61,14 @@ void DTUInterface::connect()
     dtuConnection.dtuSerial = 0;//reset serial
     if (client && !client->connected())
     {
-        MessageOutput.println("DTUinterface:\t client not connected with DTU! try to connect (server: " + String(serverIP) + " - port: " + String(serverPort) + ") ...");
+        ESP_LOGI(TAG,"DTUinterface:\t client not connected with DTU! try to connect (server: %s - port: %d) ...",serverIP.c_str(),serverPort);
         if (client->connect(serverIP.c_str(), serverPort))
         {
             // Serial.println(F("DTUinterface:\t connection attempt successfully started..."));
         }
         else
         {
-            MessageOutput.println(F("DTUinterface:\t connection attempt failed..."));
+            ESP_LOGI(TAG,"DTUinterface:\t connection attempt failed...");
             dtuConnection.dtuConnectState = DTU_STATE_OFFLINE;
         }
     }
@@ -80,7 +82,7 @@ void DTUInterface::disconnect(uint8_t tgtState)
         client->close(true);
         dtuConnection.dtuConnectState = tgtState;
         // inverterData.dtuRssi = 0;
-        MessageOutput.println(F("DTUinterface:\t disconnect request - DTU connection closed"));
+        ESP_LOGI(TAG,"DTUinterface:\t disconnect request - DTU connection closed");
         /* if (tgtState == DTU_STATE_STOPPED)
         {
             delete client;
@@ -89,7 +91,7 @@ void DTUInterface::disconnect(uint8_t tgtState)
     }
     else if (tgtState != DTU_STATE_STOPPED)
     {
-        MessageOutput.printlnDebug("DTUinterface:\t disconnect request - no DTU connection to close");
+        ESP_LOGD(TAG,"DTUinterface:\t disconnect request - no DTU connection to close");
     }
 }
 
@@ -157,12 +159,12 @@ void DTUInterface::setPowerLimit(int limit)
     inverterData.powerLimitSet = limit;
     if (client->connected())
     {
-        MessageOutput.println("DTUinterface:\t try to set setPowerLimit: " + String(limit) + " %");
+        ESP_LOGI(TAG,"DTUinterface:\t try to set setPowerLimit: %d%%", limit);
         writeReqCommand(limit);
     }
     else
     {
-        MessageOutput.println(F("DTUinterface:\t try to setPowerLimit - client not connected."));
+        ESP_LOGI(TAG,"DTUinterface:\t try to setPowerLimit - client not connected.");
     }
 }
 
@@ -170,12 +172,12 @@ void DTUInterface::requestRestartDevice()
 {
     if (client->connected())
     {
-        MessageOutput.println(F("DTUinterface:\t requestRestartDevice - send command to DTU ..."));
+        ESP_LOGI(TAG,"DTUinterface:\t requestRestartDevice - send command to DTU ...");
         writeCommandRestartDevice();
     }
     else
     {
-        MessageOutput.println(F("DTUinterface:\t requestRestartDevice - client not connected."));
+        ESP_LOGI(TAG,"DTUinterface:\t requestRestartDevice - client not connected.");
     }
 }
 
@@ -231,13 +233,13 @@ void DTUInterface::dtuLoop()
                 dtuConnection.dtuConnectRetriesShort += 1;
                 if (dtuConnection.dtuConnectRetriesShort <= 5)
                 {
-                    MessageOutput.println("DTUinterface:\t dtuLoop - try to connect ... short: " + String(dtuConnection.dtuConnectRetriesShort) + " - long: " + String(dtuConnection.dtuConnectRetriesLong));
+                    ESP_LOGI(TAG,"DTUinterface:\t dtuLoop - try to connect ... short: %d - long: %d",dtuConnection.dtuConnectRetriesShort,dtuConnection.dtuConnectRetriesLong);
                     dtuConnection.dtuConnectState = DTU_STATE_TRY_RECONNECT;
                     connect(); // Attempt to connect
                 }
                 else
                 {
-                    MessageOutput.println("DTUinterface:\t dtuLoop - PAUSE ... short: " + String(dtuConnection.dtuConnectRetriesShort) + " - long: " + String(dtuConnection.dtuConnectRetriesLong));
+                    ESP_LOGI(TAG,"DTUinterface:\t dtuLoop - PAUSE ... short: %d - long: %d",dtuConnection.dtuConnectRetriesShort,dtuConnection.dtuConnectRetriesLong);
                     dtuConnection.dtuConnectState = DTU_STATE_OFFLINE;
                     // Exceeded 5 attempts, initiate pause period
                     dtuConnection.dtuConnectRetriesShort = 0; // Reset short retry counter
@@ -254,14 +256,14 @@ void DTUInterface::txrxStateObserver()
     // check current txrx state and set seen at time and check for timeout
     if (dtuConnection.dtuTxRxState != dtuConnection.dtuTxRxStateLast)
     {
-        MessageOutput.printlnDebug("DTUinterface:\t stateObserver - change from " + String(dtuConnection.dtuTxRxStateLast) + " to " + String(dtuConnection.dtuTxRxState) + " - difference: " + String(millis() - dtuConnection.dtuTxRxStateLastChange) + " ms");
+        ESP_LOGD(TAG,"DTUinterface:\t stateObserver - change from %d to %d - difference: %lul ms",dtuConnection.dtuTxRxStateLast,dtuConnection.dtuTxRxState,(unsigned long)(millis() - dtuConnection.dtuTxRxStateLastChange));
         dtuConnection.dtuTxRxStateLast = dtuConnection.dtuTxRxState;
         dtuConnection.dtuTxRxStateLastChange = millis();
     }
     else if (millis() - dtuConnection.dtuTxRxStateLastChange > 15000 && dtuConnection.dtuTxRxState != DTU_TXRX_STATE_IDLE)
     {
         dtuConnection.updateFailed = true;
-        MessageOutput.printlnDebug("DTUinterface:\t stateObserver - timeout - reset txrx state to DTU_TXRX_STATE_IDLE");
+        ESP_LOGD(TAG,"DTUinterface:\t stateObserver - timeout - reset txrx state to DTU_TXRX_STATE_IDLE");
         dtuConnection.dtuTxRxState = DTU_TXRX_STATE_IDLE;
     }
 }
@@ -280,7 +282,7 @@ void DTUInterface::dtuConnectionObserver()
 
     if (currentOnlineOfflineState != lastOnlineOfflineState)
     {
-        MessageOutput.println("DTUinterface:\t setOverallOnlineOfflineState - change from " + String(lastOnlineOfflineState) + " to " + String(dtuConnection.dtuConnectionOnline));
+        ESP_LOGI(TAG,"DTUinterface:\t setOverallOnlineOfflineState - change from %d to %d",lastOnlineOfflineState,dtuConnection.dtuConnectionOnline);
         lastOnlineOfflineChange = millis();
         lastOnlineOfflineState = currentOnlineOfflineState;
     }
@@ -292,8 +294,8 @@ void DTUInterface::dtuConnectionObserver()
     }
     else if (millis() - lastOnlineOfflineChange > 60000 && currentOnlineOfflineState == false)
     {
-        MessageOutput.println(F("DTUinterface:\t setOverallOnlineOfflineState - timeout - reset online offline state"));
-        MessageOutput.printlnDebug(" - difference: " + String((millis() - lastOnlineOfflineChange)/1000,3) + " ms - current conn state: " + String(dtuConnection.dtuConnectState));
+        ESP_LOGI(TAG,"DTUinterface:\t setOverallOnlineOfflineState - timeout - reset online offline state");
+        ESP_LOGD(TAG," - difference: %lul ms - current conn state: %d",(millis() - lastOnlineOfflineChange)/1000,dtuConnection.dtuConnectState);
         dtuConnection.dtuConnectionOnline = false;
     }
 }
@@ -312,11 +314,11 @@ void DTUInterface::keepAlive()
     {
         const char *keepAliveMsg = "\0"; // minimal message
         client->write(keepAliveMsg, strlen(keepAliveMsg));
-        MessageOutput.printfDebug("DTUinterface:\t keepAlive message sent.\n");
+        ESP_LOGD(TAG,"DTUinterface:\t keepAlive message sent");
     }
     else
     {
-        MessageOutput.println(F("DTUinterface:\t keepAlive - client not connected."));
+        ESP_LOGI(TAG,"DTUinterface:\t keepAlive - client not connected.");
     }
 }
 
@@ -330,16 +332,16 @@ void DTUInterface::keepAliveStatic(DTUInterface *dtuInterface)
 
 void DTUInterface::flushConnection()
 {
-    MessageOutput.printlnDebug("DTUinterface:\t Flushing connection and instance...");
+    ESP_LOGD(TAG,"DTUinterface:\t Flushing connection and instance...");
 
     loopTimer.detach();
-    MessageOutput.printlnDebug("DTUinterface:\t All timers stopped.");
+    ESP_LOGD(TAG,"DTUinterface:\t All timers stopped.");
 
     // Disconnect if connected
     if (client && client->connected())
     {
         client->close(true);
-        MessageOutput.println("DTUinterface:\t Connection closed.");
+        ESP_LOGD(TAG,"DTUinterface:\t Connection closed.");
     }
 
     // Free the client memory
@@ -347,13 +349,13 @@ void DTUInterface::flushConnection()
     {
         delete client;
         client = nullptr;
-        MessageOutput.printlnDebug("DTUinterface:\t Client memory freed.");
+        ESP_LOGD(TAG,"DTUinterface:\t Client memory freed.");
     }
 
     // Reset connection control and global data
     memset((void*)(&dtuConnection), 0, sizeof(ConnectionControl));
     memset((void*)(&inverterData), 0, sizeof(InverterData));
-    MessageOutput.println(F("DTUinterface:\t Connection control and global data reset."));
+    ESP_LOGI(TAG,"DTUinterface:\t Connection control and global data reset.");
 }
 
 // event driven methods
@@ -363,7 +365,7 @@ void DTUInterface::onConnect()
     // Connection established
     dtuConnection.dtuConnectState = DTU_STATE_CONNECTED;
     // DTUInterface *conn = static_cast<DTUInterface *>(arg);
-    MessageOutput.println(F("DTUinterface:\t connected to DTU"));
+    ESP_LOGI(TAG,"DTUinterface:\t connected to DTU");
     //MessageOutput.println(F("DTUinterface:\t starting keep-alive timer..."));
     //keepAliveTimer.attach(10, DTUInterface::keepAliveStatic, this);
     // initiate next data update immediately (at startup or re-connect)
@@ -375,7 +377,7 @@ void DTUInterface::onConnect()
 void DTUInterface::onDisconnect()
 {
     // Connection lost
-    MessageOutput.println(F("DTUinterface:\t disconnected from DTU"));
+    ESP_LOGI(TAG,"DTUinterface:\t disconnected from DTU");
     resetConnectionInfo();
 }
 
@@ -391,7 +393,7 @@ void DTUInterface::onError(int8_t error)
 
     // Connection error
     String errorStr = client->errorToString(error);
-    MessageOutput.println("DTUinterface:\t DTU Connection error: " + errorStr + " (" + String(error) + ")");
+    ESP_LOGI(TAG,"DTUinterface:\t DTU Connection error: %s (%d)",errorStr.c_str(),error);
     dtuConnection.dtuConnectState = DTU_STATE_CONNECT_ERROR;
     inverterData.dtuRssi = 0;
 }
@@ -402,8 +404,7 @@ void DTUInterface::handleError(uint8_t errorState)
     {
         dtuConnection.dtuErrorState = errorState;
         dtuConnection.dtuConnectState = DTU_STATE_DTU_REBOOT;
-        MessageOutput.print(F("DTUinterface:\t DTU Connection --- ERROR - try with reboot of DTU - error state: "));
-        MessageOutput.printlnDebug(errorState);
+        ESP_LOGE(TAG,"DTUinterface:\t DTU Connection --- ERROR - try with reboot of DTU - error state: %d",errorState);
         writeCommandRestartDevice();
         dtuConnection.dtuResetRequested = dtuConnection.dtuResetRequested + 1;
         // disconnect(dtuConnection.dtuConnectState);
@@ -439,7 +440,7 @@ void DTUInterface::onDataReceived(void *data, size_t len)
         readRespCommandRestartDevice(istream);
         break;
     default:
-        MessageOutput.println(F("DTUinterface:\t onDataReceived - no valid or known state"));
+        ESP_LOGW(TAG,"DTUinterface:\t onDataReceived - no valid or known state");
         break;
     }
 }
@@ -449,28 +450,28 @@ void DTUInterface::onDataReceived(void *data, size_t len)
 void DTUInterface::printDataAsTextToSerial()
 {
     std::lock_guard<std::mutex>lock (inverterDataMutex);
-    MessageOutput.print("power limit (set): " + String(inverterData.powerLimit) + " % (" + String(inverterData.powerLimitSet) + " %) --- ");
-    MessageOutput.print("inverter temp: " + String(inverterData.inverterTemp) + " °C \n");
+    ESP_LOGD(TAG,"power limit (set): %d%% (%d%%) --- ",inverterData.powerLimit,inverterData.powerLimitSet);
+    ESP_LOGD(TAG,"inverter temp: %d °C \n",inverterData.inverterTemp);
 
-    MessageOutput.print(F(" \t |_____current____|_____voltage___|_____power_____|________daily______|_____total_____|\n"));
+    ESP_LOGD(TAG," \t |_____current____|_____voltage___|_____power_____|________daily______|_____total_____|\n");
     // 12341234 |1234 current  |1234 voltage  |1234 power1234|12341234daily 1234|12341234total 1234|
     // grid1234 |1234 123456 A |1234 123456 V |1234 123456 W |1234 12345678 kWh |1234 12345678 kWh |
     // pvO 1234 |1234 123456 A |1234 123456 V |1234 123456 W |1234 12345678 kWh |1234 12345678 kWh |
     // pvI 1234 |1234 123456 A |1234 123456 V |1234 123456 W |1234 12345678 kWh |1234 12345678 kWh |
-    MessageOutput.print(F("grid\t"));
-    MessageOutput.printf(" |\t %6.2f A", calcValue(inverterData.grid.current,100));
-    MessageOutput.printf(" |\t %6.2f V", calcValue(inverterData.grid.voltage));
-    MessageOutput.printf(" |\t %6.2f W", calcValue(inverterData.grid.power));
-    MessageOutput.printf(" |\t %8.3f kWh", calcValue(inverterData.grid.dailyEnergy,1000));
-    MessageOutput.printf(" |\t %8.3f kWh |\n", calcValue(inverterData.grid.totalEnergy,1000));
+    ESP_LOGD(TAG,"grid\t |\t %6.2f A |\t %6.2f V |\t %6.2f W |\t %8.3f kWh |\t %8.3f kWh |",
+                        calcValue(inverterData.grid.current,100),
+                        calcValue(inverterData.grid.voltage),
+                        calcValue(inverterData.grid.power),
+                        calcValue(inverterData.grid.dailyEnergy,1000),
+                        calcValue(inverterData.grid.totalEnergy,1000));
 
     for(int i=0;i<4;i++){
-        MessageOutput.printf("pv%d\t",i);
-        MessageOutput.printf(" |\t %6.2f A", calcValue(inverterData.pv[i].current,100));
-        MessageOutput.printf(" |\t %6.2f V", calcValue(inverterData.pv[i].voltage));
-        MessageOutput.printf(" |\t %6.2f W", calcValue(inverterData.pv[i].power));
-        MessageOutput.printf(" |\t %8.3f kWh", calcValue(inverterData.pv[i].dailyEnergy,1000));
-        MessageOutput.printf(" |\t %8.3f kWh |\n", calcValue(inverterData.pv[i].totalEnergy,1000));
+        ESP_LOGD(TAG,"pv%d\t |\t %6.2f A |\t %6.2f V |\t %6.2f W |\t %8.3f kWh |\t %8.3f kWh |",i,
+                 calcValue(inverterData.pv[i].current,100),
+                 calcValue(inverterData.pv[i].voltage),
+                 calcValue(inverterData.pv[i].power),
+                 calcValue(inverterData.pv[i].dailyEnergy,1000),
+                 calcValue(inverterData.pv[i].totalEnergy,1000));
     }
 }
 
@@ -534,7 +535,7 @@ void DTUInterface::checkingForLastDataReceived()//TODO (FOR ME) understand what 
         dtuConnection.dtuErrorState = DTU_ERROR_LAST_SEND;
         dtuConnection.dtuConnectState = DTU_STATE_OFFLINE;
         //inverterData.updateReceived = true;
-        MessageOutput.println("DTUinterface:\t checkingForLastDataReceived >>>>> TIMEOUT 5 min for DTU -> NIGHT - send zero values +++ currentTimestamp: " + String(inverterData.currentTimestamp) + " - lastRespTimestamp: " + String(inverterData.lastRespTimestamp));
+        ESP_LOGI(TAG,"DTUinterface:\t checkingForLastDataReceived >>>>> TIMEOUT 5 min for DTU -> NIGHT - send zero values +++ currentTimestamp: %d - lastRespTimestamp: %d",inverterData.currentTimestamp,inverterData.lastRespTimestamp);
     }
 }
 
@@ -550,7 +551,7 @@ void DTUInterface::checkingDataUpdate()
     // checking for hanging values on DTU side
     // fill grid voltage history
 
-    MessageOutput.printfDebug("Current dataHitId %d of %d\n",dataHitsCount,dataHist.size());
+    ESP_LOGD(TAG,"Current dataHitId %d of %d\n",dataHitsCount,dataHist.size());
     memcpy(dataHist[dataHitsCount].get(),&inverterData,sizeof(BaseData)*5 + sizeof(uint16_t) + sizeof(int16_t));
     dataHitsCount++;
     if(dataHitsCount >= dataHist.size()){
@@ -562,13 +563,13 @@ void DTUInterface::checkingDataUpdate()
     // compare all values in history with the first value - if all are equal, then the value is hanging
     if(inverterData.grid.voltage < 10 || dataHist.size() <= 1){//when grid voltage below zero inverter not conneced to grid so no restart needed
         gridVoltValueHanging = false;
-        MessageOutput.printlnDebug("Data hang check not possible");
+        ESP_LOGD(TAG,"Data hang check not possible");
     }else{
         for (unsigned int i = 1; i < dataHist.size(); i++)
         {
             // Serial.println("DTUinterface:\t --> " + String(i) + " compare : " + String(gridVoltHist[i]) + " V - with: " + String(gridVoltHist[0]) + " V");
             int ret = memcmp(dataHist[i].get(),dataHist[0].get(),sizeof(BaseData)*5 + sizeof(uint16_t) + sizeof(int16_t));
-            MessageOutput.printfDebug("Dif on memcompare is: %d\n",ret);
+            ESP_LOGD(TAG,"Dif on memcompare is: %d\n",ret);
             if (ret != 0)
             {
                 gridVoltValueHanging = false;
@@ -579,7 +580,7 @@ void DTUInterface::checkingDataUpdate()
     // Serial.println("DTUinterface:\t GridV check result: " + String(gridVoltValueHanging));
     if (gridVoltValueHanging)
     {
-        MessageOutput.println(F("DTUinterface:\t checkingDataUpdate -> grid voltage observer found hanging value (DTU_ERROR_DATA_NO_CHANGE) - try to reboot DTU"));
+        ESP_LOGI(TAG,"DTUinterface:\t checkingDataUpdate -> grid voltage observer found hanging value (DTU_ERROR_DATA_NO_CHANGE) - try to reboot DTU");
         handleError(DTU_ERROR_DATA_NO_CHANGE);
         dtuConnection.uptodate = false;
     }
@@ -593,13 +594,13 @@ void DTUInterface::checkingDataUpdate()
         if (abs((int(inverterData.respTimestamp) - int(inverterData.currentTimestamp))) > 3)
         {
             inverterData.currentTimestamp = inverterData.respTimestamp;
-            MessageOutput.print(F("DTUinterface:\t checkingDataUpdate ---> synced local time with DTU time\n"));
+            ESP_LOGI(TAG,"DTUinterface:\t checkingDataUpdate ---> synced local time with DTU time");
         }
     }
     else
     {
         dtuConnection.uptodate = false;
-        MessageOutput.println(F("DTUinterface:\t checkingDataUpdate -> (DTU_ERROR_NO_TIME) - try to reboot DTU"));
+        ESP_LOGI(TAG,"DTUinterface:\t checkingDataUpdate -> (DTU_ERROR_NO_TIME) - try to reboot DTU");
         // stopping connection to DTU when response time error - try with reconnec
         //removed by me
         handleError(DTU_ERROR_NO_TIME);
@@ -621,7 +622,7 @@ void DTUInterface::writeReqRealDataNew()
 
     if (!status)
     {
-        MessageOutput.println(F("DTUinterface:\t writeReqRealDataNew - failed to encode"));
+        ESP_LOGI(TAG,"DTUinterface:\t writeReqRealDataNew - failed to encode");
         return;
     }
 
@@ -694,7 +695,7 @@ void DTUInterface::readRespRealDataNew(pb_istream_t istream)
     }
 
     pb_decode(&istream, &RealDataNewReqDTO_msg, &realdatanewreqdto);
-    MessageOutput.printlnDebug("DTUinterface:\t RealDataNew  - got remote (" + String(realdatanewreqdto.timestamp) + "):\t" + getTimeStringByTimestamp(realdatanewreqdto.timestamp));
+    ESP_LOGD(TAG,"DTUinterface:\t RealDataNew  - got remote (%d):\t %s",realdatanewreqdto.timestamp,getTimeStringByTimestamp(realdatanewreqdto.timestamp).c_str());
     if (realdatanewreqdto.timestamp != 0)
     {
         inverterData.respTimestamp = uint32_t(realdatanewreqdto.timestamp);
@@ -736,7 +737,7 @@ void DTUInterface::readRespRealDataNew(pb_istream_t istream)
     }
     else
     {
-        MessageOutput.println(F("DTUinterface:\t readRespRealDataNew -> got timestamp == 0 (DTU_ERROR_NO_TIME) - try to reboot DTU"));
+        ESP_LOGI(TAG,"DTUinterface:\t readRespRealDataNew -> got timestamp == 0 (DTU_ERROR_NO_TIME) - try to reboot DTU");
         //removed by me
         handleError(DTU_ERROR_NO_TIME);
     }
@@ -753,7 +754,7 @@ void DTUInterface::writeReqAppGetHistPower()
 
     if (!status)
     {
-        MessageOutput.println(F("DTUinterface:\t writeReqAppGetHistPower - failed to encode"));
+        ESP_LOGI(TAG,"DTUinterface:\t writeReqAppGetHistPower - failed to encode");
         return;
     }
 
@@ -796,7 +797,7 @@ void DTUInterface::writeReqAppGetHistPower()
 
     //     dtuClient.write(message, 10 + stream.bytes_written);
 
-    MessageOutput.printlnDebug("DTUinterface:\t writeReqAppGetHistPower --- send request to DTU ...");
+    ESP_LOGI(TAG,"DTUinterface:\t writeReqAppGetHistPower --- send request to DTU ...");
     dtuConnection.dtuTxRxState = DTU_TXRX_STATE_WAIT_APPGETHISTPOWER;
     client->write((const char *)message, 10 + stream.bytes_written);
     //     readRespAppGetHistPower();
@@ -857,7 +858,7 @@ void DTUInterface::writeReqGetConfig()
 
     if (!status)
     {
-        MessageOutput.println(F("DTUinterface:\t writeReqGetConfig - failed to encode"));
+        ESP_LOGI(TAG,"DTUinterface:\t writeReqGetConfig - failed to encode");
         return;
     }
 
@@ -921,13 +922,13 @@ void DTUInterface::readRespGetConfig(pb_istream_t istream)
     // Serial.printf("\nrequest_time (transl):\t %s", getTimeStringByTimestamp(getconfigreqdto.request_time));
     // Serial.printf("DTUinterface:\t limit_power_mypower:\t %f %%\n", calcValue(getconfigreqdto.limit_power_mypower));
 
-    MessageOutput.printlnDebug("DTUinterface:\t GetConfig    - got remote (" + String(getconfigreqdto.request_time) + "):\t" + getTimeStringByTimestamp(getconfigreqdto.request_time));
+    ESP_LOGD(TAG,"DTUinterface:\t GetConfig    - got remote (%d):\t%s",getconfigreqdto.request_time,getTimeStringByTimestamp(getconfigreqdto.request_time).c_str());
 
     if (getconfigreqdto.request_time != 0 && dtuConnection.dtuErrorState == DTU_ERROR_NO_TIME)
     {
         dtuConnection.updateFailed = true;
         inverterData.respTimestamp = uint32_t(getconfigreqdto.request_time);
-        MessageOutput.printlnDebug(" --> redundant remote time takeover to local");
+        ESP_LOGD(TAG," --> redundant remote time takeover to local");
     }
 
     int powerLimit = int(calcValue(getconfigreqdto.limit_power_mypower));
@@ -981,7 +982,7 @@ boolean DTUInterface::writeReqCommand(uint8_t setPercent)
 
     if (!status)
     {
-        MessageOutput.println(F("DTUinterface:\t writeReqCommand - failed to encode"));
+        ESP_LOGI(TAG,"DTUinterface:\t writeReqCommand - failed to encode");
         return false;
     }
 
@@ -1023,7 +1024,7 @@ boolean DTUInterface::writeReqCommand(uint8_t setPercent)
     // Serial.println("");
 
     //     dtuClient.write(message, 10 + stream.bytes_written);
-    MessageOutput.printlnDebug("DTUinterface:\t writeReqCommand --- send request to DTU ...");
+    ESP_LOGD(TAG,"DTUinterface:\t writeReqCommand --- send request to DTU ...");
     dtuConnection.dtuTxRxState = DTU_TXRX_STATE_WAIT_COMMAND;
     client->write((const char *)message, 10 + stream.bytes_written);
     //     if (!readRespCommand())
@@ -1052,7 +1053,7 @@ boolean DTUInterface::writeCommandRestartDevice()
 {
     if (!client->connected())
     {
-        MessageOutput.println(F("DTUinterface:\t writeCommandRestartDevice - not possible - currently not connect"));
+        ESP_LOGI(TAG,"DTUinterface:\t writeCommandRestartDevice - not possible - currently not connect");
         return false;
     }
 
@@ -1071,7 +1072,7 @@ boolean DTUInterface::writeCommandRestartDevice()
 
     if (!status)
     {
-        MessageOutput.println(F("DTUinterface:\t writeCommandRestartDevice - failed to encode"));
+        ESP_LOGI(TAG,"DTUinterface:\t writeCommandRestartDevice - failed to encode");
         return false;
     }
 
@@ -1112,7 +1113,7 @@ boolean DTUInterface::writeCommandRestartDevice()
     // }
     // Serial.println("");
 
-    MessageOutput.printlnDebug("DTUinterface:\t writeCommandRestartDevice --- send request to DTU ...");
+    ESP_LOGI(TAG,"DTUinterface:\t writeCommandRestartDevice --- send request to DTU ...");
     dtuConnection.dtuTxRxState = DTU_TXRX_STATE_WAIT_RESTARTDEVICE;
     client->write((const char *)message, 10 + stream.bytes_written);
 
@@ -1128,15 +1129,15 @@ boolean DTUInterface::readRespCommandRestartDevice(pb_istream_t istream)
     dtuConnection.dtuTxRxState = DTU_TXRX_STATE_IDLE;
     CommandReqDTO commandreqdto = CommandReqDTO_init_default;
 
-    MessageOutput.print("DTUinterface:\t -readRespCommandRestartDevice - got remote: " + getTimeStringByTimestamp(commandreqdto.time));
+    ESP_LOGI(TAG,"DTUinterface:\t -readRespCommandRestartDevice - got remote: %s", getTimeStringByTimestamp(commandreqdto.time).c_str());
 
     pb_decode(&istream, &GetConfigReqDTO_msg, &commandreqdto);
-    MessageOutput.printf("\ncommand req action: %i", commandreqdto.action);
-    MessageOutput.printf("\ncommand req: %s", commandreqdto.dtu_sn);
-    MessageOutput.printf("\ncommand req: %i", commandreqdto.err_code);
-    MessageOutput.printf("\ncommand req: %i", commandreqdto.package_now);
-    MessageOutput.printf("\ncommand req: %i", int(commandreqdto.tid));
-    MessageOutput.printf("\ncommand req time: %i", commandreqdto.time);
+    ESP_LOGI(TAG,"command req action: %i", commandreqdto.action);
+    ESP_LOGI(TAG,"command req: %s", commandreqdto.dtu_sn);
+    ESP_LOGI(TAG,"command req: %i", commandreqdto.err_code);
+    ESP_LOGI(TAG,"command req: %i", commandreqdto.package_now);
+    ESP_LOGI(TAG,"command req: %i", int(commandreqdto.tid));
+    ESP_LOGI(TAG,"command req time: %i", commandreqdto.time);
     return true;
 }
 
