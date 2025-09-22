@@ -112,6 +112,7 @@ struct CONFIG_T {
         double Longitude;
         double Latitude;
         uint8_t SunsetType;
+        uint32_t StartupDate;
     } Ntp;
 
     struct{

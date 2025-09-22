@@ -114,7 +114,7 @@ private:
 
     bool _startCommand;
     virtual const std::vector<RegisterMapping> & getRegisteresToRead() = 0;
-    int _errorCounter;
+    int _errorCounter = -1;
 
     uint8_t _payloadStatisticBuffer[STATISTIC_PACKET_SIZE] = {};
 

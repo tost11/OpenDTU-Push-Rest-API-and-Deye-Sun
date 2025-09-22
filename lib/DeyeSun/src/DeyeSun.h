@@ -1,10 +1,8 @@
 #pragma once
 
-#include <Print.h>
 #include <memory>
 #include <vector>
 #include <mutex>
-#include <HardwareSerial.h>
 #include "BaseInverterHandler.h"
 #include "inverters/AtCommandsDeyeInverter.h"
 #include "inverters/CustomModbusDeyeInverter.h"

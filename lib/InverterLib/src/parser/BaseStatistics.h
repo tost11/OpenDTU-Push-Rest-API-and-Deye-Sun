@@ -1,7 +1,6 @@
 #pragma once
 
 #include <list>
-#include <cstdint>
 #include <WString.h>
 #include "Updater.h"
 
@@ -82,6 +81,7 @@ public:
     virtual const char* getChannelFieldUnit(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) const = 0;
     virtual UnitId_t getChannelFieldUnitId(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId) const = 0;
     virtual void setChannelFieldOffset(ChannelType_t type, ChannelNum_t channel, FieldId_t fieldId, float offset,uint8_t index = 0) = 0;
+
     virtual void zeroDailyData() = 0;
     virtual void resetYieldDayCorrection() = 0;
     virtual void resetDeyeSunOfflineYieldDayCorrection(bool setZero) = 0;

@@ -5,8 +5,9 @@
 #include "TostHandle.h"
 #include "Configuration.h"
 #include "Datastore.h"
-#include "MessageOutput.h"
-#include <Hoymiles.h>
+#include <MessageOutput.h>
+#include "InverterHandler.h"
+#include "NtpSettings.h"
 #include <HTTPClient.h>
 #include <ctime>
 #include <ArduinoJson.h>
@@ -34,14 +35,14 @@ void TostHandleClass::init(Scheduler& scheduler)
     _loopTask.enable();
 }
 
-bool TostHandleClass::parseKWHValues(InverterAbstract * inv, JsonObject & doc, const ChannelType_t type, const ChannelNum_t channel) {
+bool TostHandleClass::parseKWHValues(BaseInverterClass * inv, JsonObject & doc, const ChannelType_t type, const ChannelNum_t channel) {
     bool changed = false;
-    if(inv->Statistics()->hasChannelFieldValue(type, channel, FLD_YT)) {
-        doc["totalKWH"] = inv->Statistics()->getChannelFieldValue(type, channel, FLD_YT) / (inv->Statistics()->getChannelFieldUnitId(type,channel,FLD_YT) == UNIT_WH ? 1000.f : 1.f);
+    if(inv->getStatistics()->hasChannelFieldValue(type, channel, FLD_YT)) {
+        doc["totalKWH"] = inv->getStatistics()->getChannelFieldValue(type, channel, FLD_YT) / (inv->getStatistics()->getChannelFieldUnitId(type,channel,FLD_YT) == UNIT_WH ? 1000.f : 1.f);
         changed = true;
     }
-    if(inv->Statistics()->hasChannelFieldValue(type, channel, FLD_YD)) {
-        doc["dailyKWH"] = inv->Statistics()->getChannelFieldValue(type, channel, FLD_YD)  / (inv->Statistics()->getChannelFieldUnitId(type,channel,FLD_YD) == UNIT_WH ? 1000.f : 1.f);
+    if(inv->getStatistics()->hasChannelFieldValue(type, channel, FLD_YD)) {
+        doc["dailyKWH"] = inv->getStatistics()->getChannelFieldValue(type, channel, FLD_YD)  / (inv->getStatistics()->getChannelFieldUnitId(type,channel,FLD_YD) == UNIT_WH ? 1000.f : 1.f);
         changed = true;
     }
     return changed;
@@ -67,7 +68,8 @@ void TostHandleClass::loop()
     //channel 2 -> temperature
     //9: temperature
 
-    if (!Configuration.get().Tost.Enabled || !Hoymiles.isAllRadioIdle()) {
+    if (!Configuration.get().Tost.Enabled || !InverterHandler.isAllRadioIdle()) {
+        //MessageOutput.println("tost skip");
         return;
     }
 
@@ -79,14 +81,14 @@ void TostHandleClass::loop()
 
         auto toClean = _lastPublishedInverters;
 
-        for (uint8_t i = 0; i < Hoymiles.getNumInverters(); i++) {
+        for (uint8_t i = 0; i < InverterHandler.getNumInverters(); i++) {
 
-            auto inv = Hoymiles.getInverterByPos(i);
-            if (inv->DevInfo()->getLastUpdate() <= 0) {
+            auto inv = InverterHandler.getInverterByPos(i);
+            if (inv->getDevInfo()->getLastUpdate() <= 0) {
                 continue;
             }
 
-            std::string uniqueId = inv->serialString().c_str();
+            std::string uniqueId = generateUniqueId(*inv);
             toClean.erase(uniqueId);
         }
 
@@ -96,21 +98,21 @@ void TostHandleClass::loop()
         }
     }
 
-    for (uint8_t i = 0; i < Hoymiles.getNumInverters(); i++) {
+    for (uint8_t i = 0; i < InverterHandler.getNumInverters(); i++) {
 
-        auto inv = Hoymiles.getInverterByPos(i);
-        if (inv->DevInfo()->getLastUpdate() <= 0) {
+        auto inv = InverterHandler.getInverterByPos(i);
+        if (inv->getDevInfo()->getLastUpdate() <= 0) {
             continue;
         }
 
-        std::string uniqueID = inv->serialString().c_str();
+        std::string uniqueID = generateUniqueId(*inv);
         uint32_t cachedLastUpdate = 0;
         auto it = _lastPublishedInverters.find(uniqueID);
         if(it != _lastPublishedInverters.end()){
             cachedLastUpdate = it->second;
         }
 
-        uint32_t lastUpdate = inv->Statistics()->getLastUpdate();
+        uint32_t lastUpdate = inv->getStatistics()->getLastUpdate();
 
         if(lastUpdate <= 0 || lastUpdate == cachedLastUpdate){
             continue;
@@ -152,8 +154,12 @@ void TostHandleClass::loop()
             time_t now;
             time(&now);
             data["timeUnit"] = "SECONDS";
-            data["timestamp"] = time(&now);
-            ESP_LOGD(TAG,"Time set on new inverter info manually %lu\n\r", time(&now));
+            if(NtpSettings.isTimeInSync()){
+                data["timestamp"] = time(&now);
+            }else{
+                data["timestamp"] = 0;
+            }
+            ESP_LOGD(TAG,"Time set on new inverter info manually %lu", time(&now));
         }
 
         JsonArray devices = data["devices"].to<JsonArray>();
@@ -169,8 +175,8 @@ void TostHandleClass::loop()
         bool isData = false;
 
         // Loop all channels
-        for (auto& channelType : inv->Statistics()->getChannelTypes()) {
-            for (auto& c : inv->Statistics()->getChannelsByType(channelType)) {
+        for (auto& channelType : inv->getStatistics()->getChannelTypes()) {
+            for (auto& c : inv->getStatistics()->getChannelsByType(channelType)) {
 
                 //MessageOutput.printf("Next Channel: %d\n\r",channelType);
 
@@ -178,23 +184,23 @@ void TostHandleClass::loop()
                     isData = true;
                     auto output = outputs.add<JsonObject>();
                     output["id"] = outputCount++;
-                    output["voltage"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_UAC);
-                    output["ampere"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_IAC);
-                    output["watt"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_PAC);
-                    output["frequency"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_F);
+                    output["voltage"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_UAC);
+                    output["ampere"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_IAC);
+                    output["watt"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_PAC);
+                    output["frequency"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_F);
                     parseKWHValues(inv.get(),output,channelType,c);
                 }else if(channelType == 1){
                     isData = true;
                     auto input = inputs.add<JsonObject>();
                     input["id"] = inputCount++;
-                    input["voltage"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_UDC);
-                    input["ampere"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_IDC);
-                    input["watt"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_PDC);
+                    input["voltage"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_UDC);
+                    input["ampere"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_IDC);
+                    input["watt"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_PDC);
                     parseKWHValues(inv.get(),input,channelType,c);
                 }else if(channelType == 2){
-                    if(inv->Statistics()->hasChannelFieldValue(channelType, c, FLD_T)) {
+                    if(inv->getStatistics()->hasChannelFieldValue(channelType, c, FLD_T)) {
                         isData = true;
-                        device["temperature"] = inv->Statistics()->getChannelFieldValue(channelType, c, FLD_T);
+                        device["temperature"] = inv->getStatistics()->getChannelFieldValue(channelType, c, FLD_T);
                     }
                     if(parseKWHValues(inv.get(),device,channelType,c)){
                         isData = true;
@@ -291,6 +297,10 @@ void TostHandleClass::runNextHttpRequest() {
     ESP_LOGD(TAG,"Thread finished request");
 
     _currentlySendingData = nullptr;
+}
+
+std::string TostHandleClass::generateUniqueId(const BaseInverterClass &inv) {
+    return (from_inverter_type(inv.getInverterType()) + inv.serialString()).c_str();
 }
 
 void TostHandleClass::handleResponse()

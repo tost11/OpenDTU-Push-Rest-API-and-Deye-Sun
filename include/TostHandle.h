@@ -6,10 +6,10 @@
 #include "inverters/InverterAbstract.h"
 #include <TaskSchedulerDeclarations.h>
 #include <ArduinoJson.h>
+#include <future>
+#include <HTTPClient.h>
+#include <inverter/BaseInverter.h>
 #include <queue>
-#include <thread>
-
-class HTTPClient;
 
 class TostHandleClass {
 public:
@@ -38,6 +38,8 @@ private:
 
     const long TIMER_CLEANUP = 1000 * 60 * 5;
 
+    std::string generateUniqueId(const BaseInverterClass & inv);
+
     void handleResponse();
 
     void runNextHttpRequest();
@@ -46,7 +48,7 @@ private:
 
     std::thread _runningThread;
 
-    static bool parseKWHValues(InverterAbstract *inv, JsonObject &doc, const ChannelType_t type, const ChannelNum_t channel) ;
+    static bool parseKWHValues(BaseInverterClass *inv, JsonObject &doc, const ChannelType_t type, const ChannelNum_t channel) ;
 public:
     unsigned long getLastErrorTimestamp()const{return lastErrorTimestamp;}
     unsigned long getLastSuccessfullyTimestamp()const{return lastSuccessfullyTimestamp;}

@@ -71,6 +71,7 @@ bool ConfigurationClass::write()
     ntp["latitude"] = config.Ntp.Latitude;
     ntp["longitude"] = config.Ntp.Longitude;
     ntp["sunsettype"] = config.Ntp.SunsetType;
+    ntp["startup_date"] = config.Ntp.StartupDate;
 
     JsonObject tost = doc["tost"].to<JsonObject>();
     tost["enabled"] = config.Tost.Enabled;
@@ -278,6 +279,7 @@ bool ConfigurationClass::read()
     config.Ntp.Latitude = ntp["latitude"] | NTP_LATITUDE;
     config.Ntp.Longitude = ntp["longitude"] | NTP_LONGITUDE;
     config.Ntp.SunsetType = ntp["sunsettype"] | NTP_SUNSETTYPE;
+    config.Ntp.StartupDate = ntp["startup_date"] | 0;
 
     JsonObject tost = doc["tost"];
     config.Tost.Enabled = tost["enabled"] | TOST_ENABLED;
