@@ -418,8 +418,6 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
     INVERTER_CONFIG_T const& inverter = Configuration.get().Inverter[root["id"].as<uint8_t>()];
     std::shared_ptr<BaseInverterClass> inv = InverterHandler.getInverterBySerial(old_serial,inverter.Type);
 
-    MessageOutput.printf("Compare: %d with %d\n",old_more_inverter_info,inverter.MoreInverterInfo);
-
     if (inv != nullptr && ( new_serial != old_serial || (inverter.Type == inverter_type::Inverter_DeyeSun && old_more_inverter_info != inverter.MoreInverterInfo))) {
         // Valid inverter exists but serial changed --> remove it and insert new one
         // or inverter is deye sun and DeyeInverterType Changed

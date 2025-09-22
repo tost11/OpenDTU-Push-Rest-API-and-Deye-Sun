@@ -58,6 +58,8 @@ public:
 protected:
     virtual void hostOrPortUpdated() override;
 
+    String LogTag() override;
+
 private:
     uint64_t _serial;
 

@@ -1,7 +1,9 @@
 #include "HoymilesWAlarmLog.h"
 
 #include <Arduino.h>
-#include <MessageOutput.h>
+
+#undef TAG
+static const char* TAG = "HoymilesW";
 
 uint8_t HoymilesWAlarmLog::getEntryCount() const {
     return _errors.size();
@@ -44,7 +46,8 @@ void HoymilesWAlarmLog::addAlarm(uint16_t id, time_t start, time_t end,const Str
 
     //remove oldest entry
     if(_errors.size() >= ALARM_LOG_ENTRY_COUNT){
-        MessageOutput.println("HoymilesW: Alert que full -> removed first one (oldest) Removed alert");
+
+        ESP_LOGI(TAG,"Alert que full -> removed first one (oldest) Removed alert");
         _errors.erase(_errors.begin());
     }
 
@@ -65,7 +68,7 @@ void HoymilesWAlarmLog::checkErrorsForTimeout() {
     while(it != _errors.end()){
         if(timeinfo.tm_sec > it->EndTime){
             it = _errors.erase(it);
-            MessageOutput.println("HoymilesW: Removed alert");
+            ESP_LOGI(TAG,"Removed alert");
             continue;
         }
         it++;

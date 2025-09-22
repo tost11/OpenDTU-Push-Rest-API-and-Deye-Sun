@@ -5,6 +5,8 @@
 #pragma once
 
 #include "DeyeInverter.h"
+#include <AsyncTCP.h>
+#include <mutex>
 
 class CustomModbusDeyeInverter : public DeyeInverter {
 
@@ -42,6 +44,9 @@ private:
 protected:
     void onPollTimeChanged() override;
     void hostOrPortUpdated() override;
+
+    String LogTag() override;
+
 public:
     virtual ~CustomModbusDeyeInverter();
 

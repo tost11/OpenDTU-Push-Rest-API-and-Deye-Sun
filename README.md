@@ -3,6 +3,7 @@
 [![OpenDTU Build](https://github.com/tbnobody/OpenDTU/actions/workflows/build.yml/badge.svg)](https://github.com/tbnobody/OpenDTU/actions/workflows/build.yml)
 [![cpplint](https://github.com/tbnobody/OpenDTU/actions/workflows/cpplint.yml/badge.svg)](https://github.com/tbnobody/OpenDTU/actions/workflows/cpplint.yml)
 [![Yarn Linting](https://github.com/tbnobody/OpenDTU/actions/workflows/yarnlint.yml/badge.svg)](https://github.com/tbnobody/OpenDTU/actions/workflows/yarnlint.yml)
+[![Yarn Prettier](https://github.com/tbnobody/OpenDTU/actions/workflows/yarnprettier.yml/badge.svg)](https://github.com/tbnobody/OpenDTU/actions/workflows/yarnprettier.yml)
 
 ## What's this fork about ?
 
@@ -38,12 +39,12 @@ Health checks will be done more often. It is configurable on advanced inverter s
 
 Currently, there exist three types of connections to the inverter, depending on the installed Firmware.
 
-|                       | At-Commands                   | Custom Modbus | Modbus          |
-|-----------------------|-------------------------------|---------------|-----------------|
-| Firmware              | Old Firmwares (1.0 - 2.32)    | 1.0B          | ? (Maybe 5.0C)  |
-| Status of development | reding data and writing limit | reading data  | not implemented |
+|                       | At-Commands                | Custom Modbus                | Modbus                      |
+|-----------------------|----------------------------|------------------------------|-----------------------------|
+| Firmware              | Old Firmwares (1.0 - 2.32) | new firmware e.g. 1.0B, 5.0C | not seen on micro inverters |
+| Status of development | reding data and writing    | reding data and writing      | not implemented             |
 
-Tested with models: SUN300G3-EU-230 and SUN600G3-EU-230
+Tested with models: SUN300G3-EU-230, SUN-M60/80/100G4-EU-Q0, Deye SUN600G3-EU-230
 
 #### Working
 
@@ -154,6 +155,8 @@ Please feel free to support and create a PR in [this](https://github.com/tbnobod
 Generated using: `git log --date=short --pretty=format:"* %h%x09%ad%x09%s" | grep BREAKING`
 
 ```code
+* 8cab3335      2025-08-07      BREAKING CHANGE: WebAPI endpoint `/api/limit/config` requires different parameters
+* 8372deaf      2025-04-18      BREAKING CHANGE: Logging newline changed from "\r\n" to "\n"
 * 1b637f08      2024-01-30      BREAKING CHANGE: Web API Endpoint /api/livedata/status and /api/prometheus/metrics
 * e1564780      2024-01-30      BREAKING CHANGE: Web API Endpoint /api/livedata/status and /api/prometheus/metrics
 * f0b5542c      2024-01-30      BREAKING CHANGE: Web API Endpoint /api/livedata/status and /api/prometheus/metrics

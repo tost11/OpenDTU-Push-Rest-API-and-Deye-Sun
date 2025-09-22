@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
- * Copyright (C) 2022-2024 Thomas Basler and others
+ * Copyright (C) 2022-2025 Thomas Basler and others
  */
 
 /*
@@ -23,9 +23,11 @@ Data structure:
 ID   Source Addr   Target Addr   Idx  ?       wcode   ?       Start   End     ?    ?    ?    ?    wcode   CRC8
 */
 #include "AlarmLogParser.h"
-#include "../Hoymiles.h"
 #include <cstring>
-#include <MessageOutput.h>
+#include <esp_log.h>
+
+#undef TAG
+static const char* TAG = "hoymiles";
 
 AlarmLogParser::AlarmLogParser()
     : Parser()
@@ -42,7 +44,7 @@ void AlarmLogParser::clearBuffer()
 void AlarmLogParser::appendFragment(const uint8_t offset, const uint8_t* payload, const uint8_t len)
 {
     if (offset + len > ALARM_LOG_PAYLOAD_SIZE) {
-        MessageOutput.printf("FATAL: (%s, %d) stats packet too large for buffer (%d > %d)\r\n", __FILE__, __LINE__, offset + len, ALARM_LOG_PAYLOAD_SIZE);
+        ESP_LOGE(TAG, "(%s, %d) stats packet too large for buffer (%d > %d)", __FILE__, __LINE__, offset + len, ALARM_LOG_PAYLOAD_SIZE);
         return;
     }
     memcpy(&_payloadAlarmLog[offset], payload, len);

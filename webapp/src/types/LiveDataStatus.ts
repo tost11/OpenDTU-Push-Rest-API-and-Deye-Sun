@@ -67,6 +67,7 @@ export interface Inverter {
     order: number;
     manufacturer: string;
     data_age: number;
+    data_age_ms: number;
     poll_enabled: boolean;
     reachable: boolean;
     producing: boolean;

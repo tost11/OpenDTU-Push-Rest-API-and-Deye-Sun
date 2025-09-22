@@ -2,7 +2,6 @@
 
 #include "BaseAlarmLog.h"
 
-
 const std::array<const AlarmMessage_t, ALARM_MSG_COUNT> BaseAlarmLog::_alarmMessages = { {
    { AlarmMessageType_t::ALL, 1, "Inverter start", "Wechselrichter gestartet", "L'onduleur a démarré" },
    { AlarmMessageType_t::ALL, 2, "Time calibration", "Zeitabgleich", "" },
@@ -170,4 +169,3 @@ const std::array<const AlarmMessage_t, ALARM_MSG_COUNT> BaseAlarmLog::_alarmMess
    { AlarmMessageType_t::ALL, 8320, "Locked by remote control", "", "" },
    { AlarmMessageType_t::ALL, 9000, "Microinverter is suspected of being stolen", "", "" },
 } };
-

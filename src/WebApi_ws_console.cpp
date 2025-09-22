@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
- * Copyright (C) 2022-2024 Thomas Basler and others
+ * Copyright (C) 2022-2025 Thomas Basler and others
  */
 #include "WebApi_ws_console.h"
 #include "Configuration.h"
-#include <MessageOutput.h>
+#include "MessageOutput.h"
 #include "WebApi.h"
 #include "defaults.h"
 
@@ -19,9 +19,6 @@ WebApiWsConsoleClass::WebApiWsConsoleClass()
 void WebApiWsConsoleClass::init(AsyncWebServer& server, Scheduler& scheduler)
 {
     using std::placeholders::_1;
-
-    server.on("/api/console/debug", HTTP_GET, std::bind(&WebApiWsConsoleClass::onDebugGet, this, _1));
-    server.on("/api/console/debug", HTTP_POST, std::bind(&WebApiWsConsoleClass::onDebugSet, this, _1));
 
     server.addHandler(&_ws);
     MessageOutput.register_ws_output(&_ws);
@@ -41,7 +38,9 @@ void WebApiWsConsoleClass::reload()
 
     auto const& config = Configuration.get();
 
-    if (config.Security.AllowReadonly) { return; }
+    if (config.Security.AllowReadonly) {
+        return;
+    }
 
     _ws.enable(false);
     _simpleDigestAuth.setPassword(config.Security.Password);
@@ -54,39 +53,4 @@ void WebApiWsConsoleClass::wsCleanupTaskCb()
 {
     // see: https://github.com/me-no-dev/ESPAsyncWebServer#limiting-the-number-of-web-socket-clients
     _ws.cleanupClients();
-}
-
-void WebApiWsConsoleClass::onDebugGet(AsyncWebServerRequest* request){
-    AsyncJsonResponse* response = new AsyncJsonResponse();
-    auto& root = response->getRoot();
-
-    root["debugLogging"] = MessageOutput.logDebug;
-
-    WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
-}
-
-
-void WebApiWsConsoleClass::onDebugSet(AsyncWebServerRequest* request){
-    AsyncJsonResponse* response = new AsyncJsonResponse();
-    JsonDocument root;
-    if (!WebApi.parseRequestData(request, response, root)) {
-        return;
-    }
-
-    auto& retMsg = response->getRoot();
-
-    if (!(root["debugLogging"].is<bool>())) {
-        retMsg["message"] = "Values are missing!";
-        retMsg["code"] = WebApiError::GenericValueMissing;
-        WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
-        return;
-    }
-
-    MessageOutput.logDebug = root["debugLogging"].as<bool>();
-
-    auto& ret = response->getRoot();
-
-    ret["debugLogging"] = MessageOutput.logDebug;
-
-    WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
 }
