@@ -7,6 +7,9 @@
 #include "Configuration.h"
 #include <iterator>
 
+#undef TAG
+static const char* TAG = "Servo";
+
 ServoHandleClass::ServoHandleClass():
 _loopTask(TASK_IMMEDIATE, TASK_FOREVER, std::bind(&ServoHandleClass::loop, this)){
     _loopTask.setInterval(1 * TASK_SECOND);
@@ -15,9 +18,11 @@ _loopTask(TASK_IMMEDIATE, TASK_FOREVER, std::bind(&ServoHandleClass::loop, this)
     _lastUpdate = 0;
     _selfTestStep = -1;
     _selfTestTimer.set(1000);
+    _lastResolution = -1;
+    _pin = -1;
 }
 
-void ServoHandleClass::init(Scheduler &scheduler,uint8_t pin){
+void ServoHandleClass::init(Scheduler &scheduler){
     scheduler.addTask(_loopTask);
     _loopTask.enable();
 
@@ -25,12 +30,12 @@ void ServoHandleClass::init(Scheduler &scheduler,uint8_t pin){
     _lastFrequency = Configuration.get().Servo.Frequency;
     _lastResolution = Configuration.get().Servo.Resolution;
 
-    _pin = pin;
+    _pin = PinMapping.get().servo_pwm;
 
     if(_pin > 0){
         ledcSetup(_ledChannel, _lastFrequency, _lastResolution);
         ledcWrite(_ledChannel, _lastPosition);
-        ledcAttachPin(pin,_ledChannel);
+        ledcAttachPin(PinMapping.get().servo_pwm,_ledChannel);
     }
 
     startSelfTest();
@@ -43,9 +48,10 @@ void ServoHandleClass::startSelfTest(){
 }
 
 int ServoHandleClass::handleSelfTest(){
-    Serial.printf("Handle self test\n");
+
+    ESP_LOGD(TAG,"Handle self test");
     if(_selfTestTimer.occured()){
-        Serial.printf("Test occured\n");
+        ESP_LOGV(TAG,"Sveltest timer occurred");
         _selfTestTimer.reset();
         if(Configuration.get().Servo.RangeMin > Configuration.get().Servo.RangeMax){
             _selfTestStep--;
@@ -99,18 +105,18 @@ int ServoHandleClass::calculatePosition(){
     }
 
     if(inv == nullptr){
-        Serial.printf("Inverter not found by Serial or first one\n");
+        ESP_LOGD(TAG,"Inverter not found by Serial or first one");
         return setTo;
     }
 
     if(!inv->isReachable()){
-        Serial.printf("Servo -> Inverter not reachabled\n");
+        ESP_LOGD(TAG,"Inverter not reachable");
         return setTo;
     }
 
     if(_lastUpdate == inv->Statistics()->getLastUpdate()){
         return _lastPosition;
-        Serial.printf("Servo -> No update\n");
+        ESP_LOGD(TAG,"No update");
     }
     _lastUpdate = inv->Statistics()->getLastUpdate();
 
@@ -118,14 +124,14 @@ int ServoHandleClass::calculatePosition(){
     if(Configuration.get().Servo.InputIndex == 0){
         auto c = inv->Statistics()->getChannelsByType(ChannelType_t::TYPE_AC);
         if(c.empty()){
-            Serial.printf("Servo -> AC Output not found\n");
+            ESP_LOGD(TAG,"AC Output not found");
             return setTo;
         }
         value = inv->Statistics()->getChannelFieldValue(ChannelType_t::TYPE_AC,*c.begin(), FLD_PAC);
     }else{
         auto c = inv->Statistics()->getChannelsByType(ChannelType_t::TYPE_DC);
         if(c.size() < Configuration.get().Servo.InputIndex){
-            Serial.printf("Servo -> DC Input not found\n");
+            ESP_LOGD(TAG,"DC Input not found");
             return setTo;
         }
         auto it = c.begin();
@@ -147,7 +153,7 @@ int ServoHandleClass::calculatePosition(){
         setTo = std::max(setTo,(int)Configuration.get().Servo.RangeMax);
     }
 
-    Serial.printf("Watt is: %f so set to %d\n",value,setTo);
+    ESP_LOGD(TAG,"Watt is: %f so set to %d",value,setTo);
     return setTo;
 }
 
@@ -157,7 +163,7 @@ void ServoHandleClass::loop(){
 
     if(_lastPosition != calculatedPosition){
         _lastPosition = calculatedPosition;
-        Serial.printf("Set servo to %d\n",_lastPosition);
+        ESP_LOGI(TAG,"Set servo to %d\n",_lastPosition);
         ledcWrite(_ledChannel, _lastPosition);
     }
 }

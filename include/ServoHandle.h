@@ -6,7 +6,7 @@
 class ServoHandleClass{
 public:
     ServoHandleClass();
-    void init(Scheduler &scheduler,uint8_t pin);
+    void init(Scheduler &scheduler);
 
     void startSelfTest();
 
