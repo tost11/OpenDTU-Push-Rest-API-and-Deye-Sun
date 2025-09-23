@@ -60,7 +60,7 @@ public:
     String typeName() const override;
 
     inverter_type getInverterType() const override;
-    
+
     bool sendActivePowerControlRequest(float limit, const PowerLimitControlType type) override;
     bool sendPowerControlRequest(bool turnOn) override;
     bool resendPowerControlRequest() override;

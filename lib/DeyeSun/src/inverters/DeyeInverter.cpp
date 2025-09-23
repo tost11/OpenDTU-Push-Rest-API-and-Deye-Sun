@@ -74,12 +74,12 @@ void DeyeInverter::handleDeyeDayCorrection() {
             _statisticsParser->setChannelFieldOffset(type, channel, FLD_YD, 0, 2);
             if(_statisticsParser->getDeyeSunOfflineYieldDayCorrection()) {
                 float currentOffset = _statisticsParser->getChannelFieldOffset(type, channel, FLD_YD,1);
-                MessageOutput.printfDebug("Deye -> Current Deye Offline offset: %f\n",currentOffset);
+                ESP_LOGD(LogTag().c_str(),"Current Deye Offline offset: %f",currentOffset);
                 if (!(currentOffset > 0.f || currentOffset < 0.f)) {
                     float val = _statisticsParser->getChannelFieldValue(type, channel, FLD_YD);
                     _statisticsParser->setChannelFieldOffset(type, channel, FLD_YD, val * -1.f,1);
                     float checkOffset = _statisticsParser->getChannelFieldOffset(type, channel, FLD_YD,1);
-                    MessageOutput.printfDebug("Deye -> Set daily production offset for type: %d and channel: %d to:%f\n",(int)type,(int)channel,checkOffset);
+                    ESP_LOGD(LogTag().c_str(),"Set daily production offset for type: %d and channel: %d to:%f\n",(int)type,(int)channel,checkOffset);
                 }
             }else{
                 //MessageOutput.println("nope");
@@ -94,11 +94,11 @@ void DeyeInverter::handleDeyeDayCorrection() {
 bool DeyeInverter::sendActivePowerControlRequest(float limit, PowerLimitControlType type) {
     if(typeName().startsWith("Unknown") && !DeyeSun.getUnknownDevicesWriteEnable()){
         _alarmLogParser->addAlarm(6,10 * 60,"limit command not send because Deye Sun device unknown (checked by Serial number), it is possible to override this security check on DTU/Settings page");//alarm for 10 min
-        MessageOutput.println("Deye AT-Commands -> limit command not send because Deye Sun device unknown (checked by Serial number), it is possible to override this security check on DTU/Settings page");
+        ESP_LOGI(LogTag().c_str(),"limit command not send because Deye Sun device unknown (checked by Serial number), it is possible to override this security check on DTU/Settings page");
         return false;
     }
     if(!(type == AbsolutPersistent || type == RelativPersistent)){
-        MessageOutput.println("Deye AT-Commands -> Setting of temporary limit on deye inverter not possible");
+        ESP_LOGI(LogTag().c_str(),"Setting of temporary limit on deye inverter not possible");
         return false;
     }
 
@@ -125,7 +125,7 @@ bool DeyeInverter::sendActivePowerControlRequest(float limit, PowerLimitControlT
 bool DeyeInverter::sendPowerControlRequest(bool turnOn) {
     if(typeName().startsWith("Unknown") && !DeyeSun.getUnknownDevicesWriteEnable()){
         _alarmLogParser->addAlarm(6,10 * 60,"power command not send because Deye Sun device unknown (checked by Serial number), it is possible to override this security check on DTU/Settings page");//alarm for 10 min
-        MessageOutput.println("Deye AT-Commands -> power command not send because Deye Sun device unknown (checked by Serial number), it is possible to override this security check on DTU/Settings page");
+        ESP_LOGI(LogTag().c_str(),"power command not send because Deye Sun device unknown (checked by Serial number), it is possible to override this security check on DTU/Settings page");
         return false;
     }
     _powerTargetStatus = std::make_unique<bool>(turnOn);
@@ -147,11 +147,11 @@ bool DeyeInverter::sendRestartControlRequest() {
 void DeyeInverter::checkForNewWriteCommands() {
     if(_currentWritCommand == nullptr && getEnableCommands()) {
         if (_powerTargetStatus != nullptr) {
-            MessageOutput.printlnDebug("Deye AT-Commands -> Start writing register power status");
+            ESP_LOGD(LogTag().c_str(),"Start writing register power status");
             _currentWritCommand = std::make_unique<WriteRegisterMapping>("002B", 2,*_powerTargetStatus ? "0001" : "0002");
             _powerTargetStatus = nullptr;
         } else if (_limitToSet != nullptr) {
-            MessageOutput.printlnDebug("Deye AT-Commands -> Start writing register limit");
+            ESP_LOGD(LogTag().c_str(),"Start writing register limit");
             _currentWritCommand = std::make_unique<WriteRegisterMapping>("0028", 2, String(DeyeUtils::lengthToHexString(*_limitToSet,4).c_str()));
             _limitToSet = nullptr;
         }

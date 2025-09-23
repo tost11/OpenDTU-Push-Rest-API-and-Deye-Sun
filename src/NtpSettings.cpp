@@ -10,7 +10,6 @@
 #include "MessageOutput.h"
 
 void timeavailable(struct timeval *t) {
-  MessageOutput.println("Got time adjustment from NTP!");
   NtpSettings.setTimeInSync(true);
 }
 

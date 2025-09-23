@@ -59,7 +59,7 @@ public:
     void resetStats() override;
 protected:
     void onPollTimeChanged() override;
-
+    String LogTag() override;
 private:
     bool parseInitInformation(size_t length);
     int handleRegisterRead(size_t length);
@@ -77,7 +77,7 @@ private:
 
     void endSocket();
 
-    void sendSocketMessage(String message);
+    void sendSocketMessage(const String & message);
     void sendCurrentRegisterRead();
     void sendCurrentRegisterWrite();
     char _readBuff[1000];

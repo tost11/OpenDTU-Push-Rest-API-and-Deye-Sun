@@ -3,6 +3,7 @@
 
 #include <ArduinoJson.h>
 #include <TaskSchedulerDeclarations.h>
+#include <TimeoutHelper.h>
 #include <parser/BaseStatistics.h>
 #include <memory>
 #include <inverter/BaseInverter.h>
@@ -38,7 +39,6 @@ enum CategoryType {
     CATEGORY_DIAGNOSTIC
 };
 const char* const category_name[] = { 0, "config", "diagnostic" };
-
 
 typedef struct {
     FieldId_t fieldId; // field id
@@ -101,6 +101,7 @@ private:
     static String getDtuUrl();
 
     Task _loopTask;
+    TimeoutHelper _publishConfigTimeout;
 
     bool _wasConnected = false;
     bool _updateForced = false;

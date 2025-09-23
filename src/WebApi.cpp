@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
- * Copyright (C) 2022-2024 Thomas Basler and others
+ * Copyright (C) 2022-2025 Thomas Basler and others
  */
 #include "WebApi.h"
 #include "Configuration.h"
 #include <MessageOutput.h>
 #include "defaults.h"
 #include <AsyncJson.h>
+
+#undef TAG
+static const char* TAG = "webapi";
 
 WebApiClass::WebApiClass()
     : _server(HTTP_PORT)
@@ -25,6 +28,7 @@ void WebApiClass::init(Scheduler& scheduler)
     _webApiI18n.init(_server, scheduler);
     _webApiInverter.init(_server, scheduler);
     _webApiLimit.init(_server, scheduler);
+    _webApiLogging.init(_server, scheduler);
     _webApiMaintenance.init(_server, scheduler);
     _webApiMqtt.init(_server, scheduler);
     _webApiTost.init(_server, scheduler);
@@ -58,7 +62,7 @@ bool WebApiClass::checkCredentials(AsyncWebServerRequest* request)
 
     // WebAPI should set the X-Requested-With to prevent browser internal auth dialogs
     if (!request->hasHeader("X-Requested-With")) {
-        r->addHeader("WWW-Authenticate", "Basic realm=\"Login Required\"");
+        r->addHeader(asyncsrv::T_WWW_AUTH, "Basic realm=\"Login Required\"");
     }
     request->send(r);
 
@@ -77,8 +81,8 @@ bool WebApiClass::checkCredentialsReadonly(AsyncWebServerRequest* request)
 
 void WebApiClass::sendTooManyRequests(AsyncWebServerRequest* request)
 {
-    auto response = request->beginResponse(429, "text/plain", "Too Many Requests");
-    response->addHeader("Retry-After", "60");
+    auto response = request->beginResponse(429, asyncsrv::T_text_plain, "Too Many Requests");
+    response->addHeader(asyncsrv::T_retry_after, "60");
     request->send(response);
 }
 
@@ -139,7 +143,7 @@ bool WebApiClass::sendJsonResponse(AsyncWebServerRequest* request, AsyncJsonResp
         root["code"] = WebApiError::GenericInternalServerError;
         root["type"] = "danger";
         response->setCode(500);
-        MessageOutput.printf("WebResponse failed: %s, %" PRId16 "\r\n", function, line);
+        ESP_LOGE(TAG, "WebResponse failed: %s, %" PRIu16 "", function, line);
         ret_val = false;
     }
 

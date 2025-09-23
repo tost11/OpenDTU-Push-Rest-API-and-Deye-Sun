@@ -32,8 +32,8 @@ private:
     int lastErrorStatusCode;
     String lastErrorMessage;
 
-    long lastErrorTimestamp;
-    long lastSuccessfullyTimestamp;
+    unsigned long lastErrorTimestamp;
+    unsigned long lastSuccessfullyTimestamp;
     TimeoutHelper restTimeout;
 
     const long TIMER_CLEANUP = 1000 * 60 * 5;

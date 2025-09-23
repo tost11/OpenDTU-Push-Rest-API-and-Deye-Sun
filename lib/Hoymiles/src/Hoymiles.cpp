@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
- * Copyright (C) 2022-2024 Thomas Basler and others
+ * Copyright (C) 2022-2025 Thomas Basler and others
  */
 #include "Hoymiles.h"
 #include "inverters/HERF_1CH.h"
@@ -16,7 +16,10 @@
 #include "inverters/HM_2CH.h"
 #include "inverters/HM_4CH.h"
 #include <Arduino.h>
-#include <MessageOutput.h>
+#include <esp_log.h>
+
+#undef TAG
+static const char* TAG = "hoymiles";
 
 HoymilesClass Hoymiles;
 
@@ -46,34 +49,34 @@ void HoymilesClass::loop()
     _radioNrf->loop();
     _radioCmt->loop();
 
-    if (getNumInverters() == 0) {
+    if (getNumInverters() == 0 || millis() - _lastPoll <= (_pollInterval * 1000)) {
         return;
     }
 
-    if (millis() - _lastPoll > (_pollInterval * 1000)) {
-        static uint8_t inverterPos = 0;
+    static uint8_t inverterPos = 0;
 
-        std::shared_ptr<InverterAbstract> iv = getInverterByPos(inverterPos);
-        if ((iv == nullptr) || ((iv != nullptr) && (!iv->getRadio()->isInitialized()))) {
-            if (++inverterPos >= getNumInverters()) {
-                inverterPos = 0;
-            }
+    std::shared_ptr<InverterAbstract> iv = getInverterByPos(inverterPos);
+    if ((iv == nullptr) || ((iv != nullptr) && (!iv->getRadio()->isInitialized()))) {
+        if (++inverterPos >= getNumInverters()) {
+            inverterPos = 0;
+        }
+    }
+
+    if (iv != nullptr && iv->getRadio()->isInitialized()) {
+
+        if (iv->getZeroValuesIfUnreachable() && !iv->isReachable()) {
+            iv->getStatistics()->zeroRuntimeData();
         }
 
-        if (iv != nullptr && iv->getRadio()->isInitialized()) {
+        if (iv->getEnablePolling() || iv->getEnableCommands()) {
+            ESP_LOGI(TAG, "Fetch inverter: %s", iv->serialString().c_str());
 
-            if (iv->getZeroValuesIfUnreachable() && !iv->isReachable()) {
-                iv->getStatistics()->zeroRuntimeData();
+            if (!iv->isReachable()) {
+                iv->sendChangeChannelRequest();
             }
 
-            if (iv->getEnablePolling() || iv->getEnableCommands()) {
-                MessageOutput.printf("Hoymiles Fetch inverter: %s\n",iv->serialString().c_str());
-                //MessageOutput.println(iv->serial(), HEX);
-
-                if (!iv->isReachable()) {
-                    iv->sendChangeChannelRequest();
-                }
-
+            if (InverterUtils::getTimeAvailable()) {
+                // Fetch statistics
                 iv->sendStatsRequest();
 
                 // Fetch event log
@@ -83,20 +86,13 @@ void HoymilesClass::loop()
                 // Fetch limit
                 if (((millis() - iv->getSystemConfigParaParser()->getLastUpdateRequest() > HOY_SYSTEM_CONFIG_PARA_POLL_INTERVAL)
                         && (millis() - iv->getSystemConfigParaParser()->getLastUpdateCommand() > HOY_SYSTEM_CONFIG_PARA_POLL_MIN_DURATION))) {
-                    MessageOutput.println("Hoymiles Request SystemConfigPara");
+                    ESP_LOGI(TAG, "Request SystemConfigPara");
                     iv->sendSystemConfigParaRequest();
                 }
 
-                // Set limit if required
-                if (iv->getSystemConfigParaParser()->getLastLimitCommandSuccess() == CMD_NOK) {
-                    MessageOutput.println("Hoymiles Resend ActivePowerControl");
-                    iv->resendActivePowerControlRequest();
-                }
-
-                // Set power status if required
-                if (iv->getPowerCommand()->getLastPowerCommandSuccess() == CMD_NOK) {
-                    MessageOutput.println("Hoymiles Resend PowerCommand");
-                    iv->resendPowerControlRequest();
+                // Fetch grid profile
+                if (iv->getStatistics()->getLastUpdate() > 0 && (iv->getGridProfileParser()->getLastUpdate() == 0 || !iv->getGridProfileParser()->containsValidData())) {
+                    iv->sendGridOnProFileParaRequest();
                 }
 
                 // Fetch dev info (but first fetch stats)
@@ -106,34 +102,41 @@ void HoymilesClass::loop()
                         && iv->getDevInfo()->getLastUpdateSimple() > 0;
 
                     if (invalidDevInfo) {
-                        MessageOutput.println("Hoymiles getDevInfo: No Valid Data");
+                        ESP_LOGW(TAG, "DevInfo: No Valid Data");
                     }
 
                     if ((iv->getDevInfo()->getLastUpdateAll() == 0)
                         || (iv->getDevInfo()->getLastUpdateSimple() == 0)
                         || invalidDevInfo) {
-                        MessageOutput.println("Hoymiles Request device info");
+                        ESP_LOGI(TAG, "Request device info");
                         iv->sendDevInfoRequest();
                     }
                 }
-
-                // Fetch grid profile
-                if (iv->getStatistics()->getLastUpdate() > 0 && (iv->getGridProfileParser()->getLastUpdate() == 0 || !iv->getGridProfileParser()->containsValidData())) {
-                    iv->sendGridOnProFileParaRequest();
-                }
-
-                 MessageOutput.printf("Queue size - NRF: %" PRId32 " CMT: %" PRId32 "\r\n", _radioNrf->getQueueSize(), _radioCmt->getQueueSize());
-                _lastPoll = millis();
             }
 
-            if (++inverterPos >= getNumInverters()) {
-                inverterPos = 0;
+            // Set limit if required
+            if (iv->getSystemConfigParaParser()->getLastLimitCommandSuccess() == CMD_NOK) {
+                ESP_LOGI(TAG, "Resend ActivePowerControl");
+                iv->resendActivePowerControlRequest();
             }
+
+            // Set power status if required
+            if (iv->getPowerCommand()->getLastPowerCommandSuccess() == CMD_NOK) {
+                ESP_LOGI(TAG, "Resend PowerCommand");
+                iv->resendPowerControlRequest();
+            }
+
+            ESP_LOGI(TAG, "Queue size - NRF: %" PRIu32 " CMT: %" PRIu32 "", _radioNrf->getQueueSize(), _radioCmt->getQueueSize());
+            _lastPoll = millis();
         }
 
-        // Perform housekeeping handles for all inverter type in base class
-        performHouseKeeping();
+        if (++inverterPos >= getNumInverters()) {
+            inverterPos = 0;
+        }
     }
+
+    // Perform housekeeping of all inverters on day change
+        performHouseKeeping();
 }
 
 std::shared_ptr<InverterAbstract> HoymilesClass::addInverter(const char* name, const uint64_t serial)
