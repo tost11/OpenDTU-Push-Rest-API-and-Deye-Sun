@@ -12,7 +12,7 @@ createBuild() {
   git checkout $1
   #clear existing old build stuff (some times not clear build done)
   rm -Rf .pio/build
-  yarn run build
+  yarn --cwd webapp run build
 
   eval $BUILD_COMMAND
   echo "Build Generic: $2_esp32dev_firmware.bin copy to: $TARGET_FOLDER"
