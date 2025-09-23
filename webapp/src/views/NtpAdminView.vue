@@ -1,7 +1,12 @@
 <template>
     <BasePage :title="$t('ntpadmin.NtpSettings')" :isLoading="dataLoading || timezoneLoading">
-        <BootstrapAlert v-model="showAlert" dismissible :variant="alertType">
-            {{ alertMessage }}
+        <BootstrapAlert
+            v-model="alert.show"
+            dismissible
+            :variant="alert.type"
+            :auto-dismiss="alert.type != 'success' ? 0 : 5000"
+        >
+            {{ alert.message }}
         </BootstrapAlert>
 
         <form @submit="saveNtpConfig">
@@ -100,6 +105,7 @@ import BootstrapAlert from '@/components/BootstrapAlert.vue';
 import CardElement from '@/components/CardElement.vue';
 import InputElement from '@/components/InputElement.vue';
 import FormFooter from '@/components/FormFooter.vue';
+import type { AlertResponse } from '@/types/AlertResponse';
 import type { NtpConfig } from '@/types/NtpConfig';
 import { authHeader, handleResponse } from '@/utils/authentication';
 import { defineComponent } from 'vue';
@@ -126,6 +132,7 @@ export default defineComponent({
             startupDateEnabled: false,
             startupDate: "",
             dataAgeInterval: 0,
+            alert: {} as AlertResponse,
             alertMessage: '',
             alertType: '1970-01-01',
             showAlert: false,
@@ -212,9 +219,9 @@ export default defineComponent({
             })
                 .then((response) => handleResponse(response, this.$emitter, this.$router))
                 .then((response) => {
-                    this.alertMessage = this.$t('apiresponse.' + response.code, response.param);
-                    this.alertType = response.type;
-                    this.showAlert = true;
+                    this.alert.message = this.$t('apiresponse.' + response.code, response.param);
+                    this.alert.type = response.type;
+                    this.alert.show = true;
                 })
                 .then(() => {
                     this.getCurrentTime();
@@ -242,9 +249,9 @@ export default defineComponent({
             })
                 .then((response) => handleResponse(response, this.$emitter, this.$router))
                 .then((response) => {
-                    this.alertMessage = this.$t('apiresponse.' + response.code, response.param);
-                    this.alertType = response.type;
-                    this.showAlert = true;
+                    this.alert.message = this.$t('apiresponse.' + response.code, response.param);
+                    this.alert.type = response.type;
+                    this.alert.show = true;
                 });
         },
     },
