@@ -80,7 +80,6 @@ std::shared_ptr<BaseInverterClass> InverterHandlerClass::getInverterBySerial(uin
     return nullptr;
 }
 
-
 std::shared_ptr<BaseInverterClass> InverterHandlerClass::getInverterBySerialString(const String & serial) {
     for (const auto &item: _handlers){
         auto ret = item->getInverterBySerialString(serial);

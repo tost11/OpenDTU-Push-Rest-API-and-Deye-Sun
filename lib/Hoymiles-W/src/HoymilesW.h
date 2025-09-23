@@ -18,6 +18,7 @@ public:
     std::shared_ptr<HoymilesWInverter> getInverterByPos(uint8_t pos) override;
     std::shared_ptr<HoymilesWInverter> getInverterBySerial(uint64_t serial) override;
     std::shared_ptr<HoymilesWInverter> getInverterBySerialString(const String & serial) override;
+
     void removeInverterBySerial(uint64_t serial) override;
     size_t getNumInverters() const override;
 

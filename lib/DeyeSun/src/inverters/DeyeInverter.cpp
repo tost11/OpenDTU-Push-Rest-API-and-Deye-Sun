@@ -6,7 +6,7 @@
 #include "DeyeSun.h"
 #include "DeyeUtils.h"
 
-DeyeInverter::DeyeInverter(uint64_t serial) {
+DeyeInverter::DeyeInverter(uint64_t serial){
     _serial = serial;
     _alarmLogParser.reset(new DeyeAlarmLog());
     _devInfoParser.reset(new DeyeDevInfo());

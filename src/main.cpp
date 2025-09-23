@@ -21,7 +21,6 @@
 #include "RestartHelper.h"
 #include "Scheduler.h"
 #include "SunPosition.h"
-#include "Utils.h"
 #include "WebApi.h"
 #include "defaults.h"
 #include "ServoHandle.h"

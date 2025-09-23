@@ -3,9 +3,10 @@
 //
 
 #include "ServoHandle.h"
-#include "Hoymiles.h"
+#include "InverterHandler.h"
 #include "Configuration.h"
 #include <iterator>
+#include <MessageOutput.h>
 
 #undef TAG
 static const char* TAG = "Servo";
@@ -92,16 +93,17 @@ int ServoHandleClass::calculatePosition(){
         return setTo;
     }
 
-    InverterAbstract * inv = nullptr;
+    BaseInverterClass * inv = nullptr;
     if(Configuration.get().Servo.Serial == 0){
-        for(int i=0;i<Hoymiles.getNumInverters();i++){
-            inv = Hoymiles.getInverterByPos(i).get();
+        for(int i=0;i<InverterHandler.getNumInverters();i++){
+            inv = InverterHandler.getInverterByPos(i).get();
             if(inv != nullptr){
                 break;
             }
         }
     }else{
-        inv = Hoymiles.getInverterBySerialString(std::to_string(Configuration.get().Servo.Serial).c_str()).get();
+        //this is not correct if some inverts have same id //TODO fix
+        inv = InverterHandler.getInverterBySerialString(std::to_string(Configuration.get().Servo.Serial).c_str()).get();
     }
 
     if(inv == nullptr){
@@ -114,22 +116,22 @@ int ServoHandleClass::calculatePosition(){
         return setTo;
     }
 
-    if(_lastUpdate == inv->Statistics()->getLastUpdate()){
+    if(_lastUpdate == inv->getStatistics()->getLastUpdate()){
         return _lastPosition;
         ESP_LOGD(TAG,"No update");
     }
-    _lastUpdate = inv->Statistics()->getLastUpdate();
+    _lastUpdate = inv->getStatistics()->getLastUpdate();
 
     float value = 0;
     if(Configuration.get().Servo.InputIndex == 0){
-        auto c = inv->Statistics()->getChannelsByType(ChannelType_t::TYPE_AC);
+        auto c = inv->getStatistics()->getChannelsByType(ChannelType_t::TYPE_AC);
         if(c.empty()){
             ESP_LOGD(TAG,"AC Output not found");
             return setTo;
         }
-        value = inv->Statistics()->getChannelFieldValue(ChannelType_t::TYPE_AC,*c.begin(), FLD_PAC);
+        value = inv->getStatistics()->getChannelFieldValue(ChannelType_t::TYPE_AC,*c.begin(), FLD_PAC);
     }else{
-        auto c = inv->Statistics()->getChannelsByType(ChannelType_t::TYPE_DC);
+        auto c = inv->getStatistics()->getChannelsByType(ChannelType_t::TYPE_DC);
         if(c.size() < Configuration.get().Servo.InputIndex){
             ESP_LOGD(TAG,"DC Input not found");
             return setTo;
@@ -138,7 +140,7 @@ int ServoHandleClass::calculatePosition(){
         for(int i = 1; i < Configuration.get().Servo.InputIndex; i++){
             it++;
         }
-        value = inv->Statistics()->getChannelFieldValue(ChannelType_t::TYPE_DC,*it, FLD_PDC);
+        value = inv->getStatistics()->getChannelFieldValue(ChannelType_t::TYPE_DC,*it, FLD_PDC);
     }
 
     int dif = Configuration.get().Servo.RangeMax - Configuration.get().Servo.RangeMin;

@@ -17,6 +17,7 @@ public:
     std::shared_ptr<DeyeInverter> getInverterByPos(uint8_t pos) override;
     std::shared_ptr<DeyeInverter> getInverterBySerial(uint64_t serial) override;
     std::shared_ptr<DeyeInverter> getInverterBySerialString(const String & serial) override;
+    
     void removeInverterBySerial(uint64_t serial) override;
     size_t getNumInverters() const override;
 
