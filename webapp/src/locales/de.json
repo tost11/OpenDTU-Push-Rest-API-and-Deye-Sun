@@ -10,6 +10,7 @@
         "LoggingSettings": "Protokollierung",
         "DTUSettings": "DTU/Generelle Einstellungen",
         "DeviceManager": "Hardware",
+        "ServoManager": "Servo Anzeige",
         "ConfigManagement": "Konfigurationsverwaltung",
         "FirmwareUpgrade": "Firmware-Aktualisierung",
         "DeviceReboot": "Neustart",
@@ -130,7 +131,8 @@
         "13002": "Sekundäre URL darf {max} Zeichen lang sein!",
         "13003": "System Id muss zwischen 1 und {max} Zeichen lang sein!",
         "13004": "System Token muss zwischen 1 und {max} Zeichen lang sein!",
-        "13005": "Veröffentlichungsintervall muss eine Zahl zwischen {min} und {max} sein"
+        "13005": "Veröffentlichungsintervall muss eine Zahl zwischen {min} und {max} sein",
+        "14010": "Servo Test wurde gestartet!"
     },
     "home": {
         "LiveData": "Live-Daten",
@@ -764,7 +766,21 @@
         "fr": "Französisch",
         "Leds": "LEDs",
         "EqualBrightness": "Gleiche Helligkeit",
-        "LedBrightness": "LED {led} Helligkeit ({brightness})"
+        "LedBrightness": "LED {led} Helligkeit ({brightness})",
+        "servo": "Servo",
+        "servoResoution": "Auflösung",
+        "servoRangeMin": "Anschlag Minium",
+        "servoRangeMax": "Anschlag Maximum",
+        "servoSerial": "Seriennumer",
+        "servoInputIndex": "Eingangs Index",
+        "servoPower": "Leistung",
+        "servoUnitFrequency": "Hz",
+        "servoFrequency": "Frequenz",
+        "servoUnitPower": "W",
+        "servoHintPower": "Wert ab dem die Anzeige am Maximum ist",
+        "servoHintSerial": "Seriennummer des zu verwenden Inverters (0 = erster gefundene)",
+        "servoHintInputIndex": "Index des DC Eingangs der für die Berechnung verwendet werden soll (0 = Alle)",
+        "testServo": "Servo testen"
     },
     "pininfo": {
         "Category": "Kategorie",

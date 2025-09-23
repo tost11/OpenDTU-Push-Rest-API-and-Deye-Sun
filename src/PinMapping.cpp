@@ -33,6 +33,10 @@ static const char* TAG = "pinmapping";
 #define DISPLAY_RESET GPIO_NUM_NC
 #endif
 
+#ifndef SERVO_PIN
+#define SERVO_PIN 0
+#endif
+
 #ifndef LED0
 #define LED0 GPIO_NUM_NC
 #endif
@@ -187,6 +191,8 @@ PinMappingClass::PinMappingClass()
     _pinMapping.display_cs = DISPLAY_CS;
     _pinMapping.display_reset = DISPLAY_RESET;
 
+    _pinMapping.servo_pwm = SERVO_PIN;
+
     _pinMapping.led[0] = LED0;
     _pinMapping.led[1] = LED1;
 }
@@ -268,6 +274,8 @@ bool PinMappingClass::init(const String& deviceMapping)
             _pinMapping.display_clk = doc[i]["display"]["clk"] | DISPLAY_CLK;
             _pinMapping.display_cs = doc[i]["display"]["cs"] | DISPLAY_CS;
             _pinMapping.display_reset = doc[i]["display"]["reset"] | DISPLAY_RESET;
+
+            _pinMapping.servo_pwm = doc[i]["servo"]["pwm"] | SERVO_PIN;
 
             _pinMapping.led[0] = doc[i]["led"]["led0"] | LED0;
             _pinMapping.led[1] = doc[i]["led"]["led1"] | LED1;

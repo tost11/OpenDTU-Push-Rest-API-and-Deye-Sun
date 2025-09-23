@@ -207,6 +207,16 @@ std::shared_ptr<InverterAbstract> HoymilesClass::getInverterBySerialString(const
     return nullptr;
 }
 
+std::shared_ptr<InverterAbstract> HoymilesClass::getInverterBySerialString(const String & serialString)
+{
+    for (uint8_t i = 0; i < _inverters.size(); i++) {
+        if (_inverters[i]->serialString() == serialString) {
+            return _inverters[i];
+        }
+    }
+    return nullptr;
+}
+
 std::shared_ptr<InverterAbstract> HoymilesClass::getInverterByFragment(const fragment_t& fragment)
 {
     if (fragment.len <= 4) {

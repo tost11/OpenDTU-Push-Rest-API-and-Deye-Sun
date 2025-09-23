@@ -24,6 +24,7 @@
 #include "Utils.h"
 #include "WebApi.h"
 #include "defaults.h"
+#include "ServoHandle.h"
 #include "MessageOutput.h"
 #include <Arduino.h>
 #include <LittleFS.h>
@@ -131,6 +132,10 @@ void setup()
     // Initialize WebApi
     ESP_LOGI(TAG, "Initializing WebApi...");
     WebApi.init(scheduler);
+
+    // Initialize WebApi
+    ESP_LOGI(TAG, "Initialize Servo... ");
+    ServoHandle.init(scheduler);
 
     // Initialize Display
     ESP_LOGI(TAG, "Initializing Display...");
