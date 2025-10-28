@@ -58,9 +58,6 @@ Tested with models: SUN300G3-EU-230, SUN-M60/80/100G4-EU-Q0, Deye SUN600G3-EU-23
 
 - Logs show hardware inverter errors
 - restart inverter
-- daily production if inverter not connected to online service
-- setting limit on Custom Modbus Firmware (W3_SSL_5408_1.0B) [here](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/issues/8). Further information is [here](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/issues/8).
-- reading data and setting limit on Modbus Firmware (maby MW_03_16U_5408_5.0C-S could not verify). Further information is [here](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/issues/8).
 
 #### Additional Features
 When the Deye sun inverter is not having a connection to the internet (remote server), the daily KWH will not reset. For fixing that on the
