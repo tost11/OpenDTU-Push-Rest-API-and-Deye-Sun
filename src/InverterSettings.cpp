@@ -101,7 +101,7 @@ void InverterSettingsClass::init(Scheduler& scheduler)
 
     if (!PinMapping.isValidNrf24Config() && !PinMapping.isValidCmt2300Config()) {
         ESP_LOGE(TAG, "Invalid pin config");
-        return;
+        //return;
     }
 
     // Initialize NRF24 if configured
