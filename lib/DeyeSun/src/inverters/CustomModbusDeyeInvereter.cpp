@@ -74,6 +74,9 @@ void CustomModbusDeyeInverter::update() {
     // Check and fetch firmware version periodically
     checkAndFetchFirmwareVersion();
 
+    // Check restart command result
+    checkRestartCommandResult();
+
     //TODO think about better handling for this
     if(_currentWritCommand == nullptr){
         checkForNewWriteCommands();

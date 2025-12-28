@@ -46,10 +46,15 @@ private:
     TimeoutHelper _timerFirmwareVersionFetch;
     static const uint32_t TIMER_FIRMWARE_VERSION_FETCH_SUCCESS = 15 * 60 * 1000; // 15 minutes
     static const uint32_t TIMER_FIRMWARE_VERSION_FETCH_RETRY = 30 * 1000;       // 30 seconds
+    std::mutex _restartCommandMutex;
+
+    // Restart command tracking
+    std::optional<std::future<RestResponse>> _restartCommandFuture;
 
 protected:
     void handleDeyeDayCorrection();
     void checkAndFetchFirmwareVersion();
+    void checkRestartCommandResult();
     String parseCoverVerFromHtml(const String& htmlBody);
     String parseCoverMidFromHtml(const String& htmlBody);
 

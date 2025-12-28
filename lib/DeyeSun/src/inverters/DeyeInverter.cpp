@@ -144,14 +144,39 @@ bool DeyeInverter::resendPowerControlRequest() {
 }
 
 bool DeyeInverter::sendRestartControlRequest() {
-    // Build REST request URL
-    String url = "http://" + String(_oringalIpOrHostname.c_str());
-    url += "/restart";  // Restart endpoint
+    // Check if restart already in progress
+    //rust check without to return isntantly
+    if (_restartCommandFuture.has_value()) {
+        ESP_LOGW(LogTag().c_str(), "Restart command already in progress, skipping");
+        return false;
+    }
 
-    // Prepare headers with authentication
+    std::lock_guard<std::mutex> lock(_restartCommandMutex);
+    //again check now we are secure no other threads run intermediate
+    if (_restartCommandFuture.has_value()) {
+        ESP_LOGW(LogTag().c_str(), "Restart command already in progress, skipping");
+        return false;
+    }
+
+    // Build REST request URL - use /up_succ.html endpoint
+    String url = "http://" + String(_oringalIpOrHostname.c_str());
+    url += "/up_succ.html";
+
+    // Prepare headers with authentication and Referer
     std::map<String, String> headers;
+
+    // Form data body
+    String body = "HF_PROCESS_CMD=RESTART";
+
+    // Add Referer header (required by Deye protocol)
+    String referer = "http://" + String(_oringalIpOrHostname.c_str()) + "/autorestart.html";
+    headers["Referer"] = referer;
+
+    // Add Content-Length header
+    headers["Content-Length"] = String(body.length());
+
+    // Basic Auth
     if (!_username.isEmpty() && !_password.isEmpty()) {
-        // Basic Auth - create base64 encoded credentials
         String auth = _username + ":" + _password;
         size_t olen = 0;
         unsigned char encoded[128];
@@ -163,25 +188,29 @@ bool DeyeInverter::sendRestartControlRequest() {
             headers["Authorization"] = authHeader;
         } else {
             ESP_LOGE(LogTag().c_str(), "Failed to encode authentication credentials");
+            return false;
         }
     }
 
-    // Queue request and get future
+    // Content type
+    String contentType = "application/x-www-form-urlencoded";
+
+    // Queue request
     auto future = RestRequestHandler.queueRequestWithHeaders(
         url,
         "POST",
-        "",  // No body
-        "",  // No content type
-        headers,
-        2,      // maxRetries
-        5000    // timeout
+        body,           // Form data
+        contentType,    // Content type
+        headers,        // Auth + Referer + Content-Length
+        2,              // maxRetries
+        5000            // timeout
     );
 
-    // Fire and forget - request is queued
-    // Result can be checked later if needed by storing the future
+    // Store future for result tracking
+    _restartCommandFuture = std::move(future);
 
     ESP_LOGI(LogTag().c_str(), "Restart command queued for %s", serialString().c_str());
-    return true; // Queued successfully
+    return true;
 }
 
 String DeyeInverter::parseCoverVerFromHtml(const String& htmlBody) {
@@ -322,6 +351,29 @@ void DeyeInverter::checkAndFetchFirmwareVersion() {
     _firmwareVersionFuture = std::move(future);
 
     ESP_LOGD(LogTag().c_str(), "Queued firmware version fetch request");
+}
+
+void DeyeInverter::checkRestartCommandResult() {
+    // Check if future is pending and ready
+    if (_restartCommandFuture.has_value()) {
+        auto& future = _restartCommandFuture.value();
+
+        if (future.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+            auto response = future.get();
+
+            if (response.success && response.httpCode == 200) {
+                ESP_LOGI(LogTag().c_str(), "Restart command succeeded for %s", serialString().c_str());
+            } else {
+                ESP_LOGE(LogTag().c_str(), "Restart command failed for %s (code=%d): %s",
+                         serialString().c_str(), response.httpCode, response.body.c_str());
+
+                // Add alarm for 5 minutes
+                _alarmLogParser->addAlarm(8, 5 * 60, "Restart command failed");
+            }
+
+            _restartCommandFuture.reset();
+        }
+    }
 }
 
 void DeyeInverter::checkForNewWriteCommands() {
