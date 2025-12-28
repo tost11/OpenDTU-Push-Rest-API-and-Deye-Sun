@@ -9,6 +9,12 @@
 #include "parser/DeyeAlarmLog.h"
 #include "parser/PowerCommandParser.h"
 #include <inverter/BaseNetworkInverter.h>
+#include <TimeoutHelper.h>
+#include <optional>
+#include <future>
+
+// Forward declaration
+struct RestResponse;
 
 enum deye_inverter_type {
     Deye_Sun_At_Commands = 0,
@@ -35,8 +41,17 @@ class DeyeInverter : public BaseNetworkInverter<DefaultStatisticsParser,DeyeDevI
 private:
     uint64_t _serial;
 
+    // Firmware version fetching
+    std::optional<std::future<RestResponse>> _firmwareVersionFuture;
+    TimeoutHelper _timerFirmwareVersionFetch;
+    static const uint32_t TIMER_FIRMWARE_VERSION_FETCH_SUCCESS = 15 * 60 * 1000; // 15 minutes
+    static const uint32_t TIMER_FIRMWARE_VERSION_FETCH_RETRY = 30 * 1000;       // 30 seconds
+
 protected:
     void handleDeyeDayCorrection();
+    void checkAndFetchFirmwareVersion();
+    String parseCoverVerFromHtml(const String& htmlBody);
+    String parseCoverMidFromHtml(const String& htmlBody);
 
     std::unique_ptr<bool> _powerTargetStatus;
     std::unique_ptr<uint16_t > _limitToSet;

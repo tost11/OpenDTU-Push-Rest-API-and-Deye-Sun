@@ -5,6 +5,8 @@
 #include "DeyeInverter.h"
 #include "DeyeSun.h"
 #include "DeyeUtils.h"
+#include <RestRequestHandler.h>
+#include <mbedtls/base64.h>
 
 DeyeInverter::DeyeInverter(uint64_t serial) {
     _serial = serial;
@@ -18,6 +20,8 @@ DeyeInverter::DeyeInverter(uint64_t serial) {
              static_cast<uint32_t>((serial >> 32) & 0xFFFFFFFF),
              static_cast<uint32_t>(serial & 0xFFFFFFFF));
     _serialString = serial_buff;
+
+    // TimeoutHelper initializes itself - starts at 0 (expired), so first fetch happens immediately
 }
 
 String DeyeInverter::serialToModel(uint64_t serial) {
@@ -140,8 +144,184 @@ bool DeyeInverter::resendPowerControlRequest() {
 }
 
 bool DeyeInverter::sendRestartControlRequest() {
-    //todo implement
-    return false;
+    // Build REST request URL
+    String url = "http://" + String(_oringalIpOrHostname.c_str());
+    url += "/restart";  // Restart endpoint
+
+    // Prepare headers with authentication
+    std::map<String, String> headers;
+    if (!_username.isEmpty() && !_password.isEmpty()) {
+        // Basic Auth - create base64 encoded credentials
+        String auth = _username + ":" + _password;
+        size_t olen = 0;
+        unsigned char encoded[128];
+        int ret = mbedtls_base64_encode(encoded, sizeof(encoded), &olen,
+                            (const unsigned char*)auth.c_str(), auth.length());
+
+        if (ret == 0) {
+            String authHeader = "Basic " + String((char*)encoded);
+            headers["Authorization"] = authHeader;
+        } else {
+            ESP_LOGE(LogTag().c_str(), "Failed to encode authentication credentials");
+        }
+    }
+
+    // Queue request and get future
+    auto future = RestRequestHandler.queueRequestWithHeaders(
+        url,
+        "POST",
+        "",  // No body
+        "",  // No content type
+        headers,
+        2,      // maxRetries
+        5000    // timeout
+    );
+
+    // Fire and forget - request is queued
+    // Result can be checked later if needed by storing the future
+
+    ESP_LOGI(LogTag().c_str(), "Restart command queued for %s", serialString().c_str());
+    return true; // Queued successfully
+}
+
+String DeyeInverter::parseCoverVerFromHtml(const String& htmlBody) {
+    // Search for "var cover_ver = "
+    int startIdx = htmlBody.indexOf("var cover_ver = \"");
+    if (startIdx < 0) {
+        ESP_LOGW(LogTag().c_str(), "Could not find 'var cover_ver' in HTML response");
+        return "";
+    }
+
+    // Move past "var cover_ver = ""
+    startIdx += 17; // length of "var cover_ver = \""
+
+    // Find closing quote
+    int endIdx = htmlBody.indexOf("\"", startIdx);
+    if (endIdx < 0) {
+        ESP_LOGW(LogTag().c_str(), "Could not find closing quote for cover_ver");
+        return "";
+    }
+
+    // Extract version string
+    String version = htmlBody.substring(startIdx, endIdx);
+    ESP_LOGI(LogTag().c_str(), "Parsed firmware version: %s", version.c_str());
+    return version;
+}
+
+String DeyeInverter::parseCoverMidFromHtml(const String& htmlBody) {
+    // Search for "var cover_mid = "
+    int startIdx = htmlBody.indexOf("var cover_mid = \"");
+    if (startIdx < 0) {
+        ESP_LOGW(LogTag().c_str(), "Could not find 'var cover_mid' in HTML response");
+        return "";
+    }
+
+    // Move past "var cover_mid = ""
+    startIdx += 17; // length of "var cover_mid = \""
+
+    // Find closing quote
+    int endIdx = htmlBody.indexOf("\"", startIdx);
+    if (endIdx < 0) {
+        ESP_LOGW(LogTag().c_str(), "Could not find closing quote for cover_mid");
+        return "";
+    }
+
+    // Extract serial string
+    String serial = htmlBody.substring(startIdx, endIdx);
+    ESP_LOGD(LogTag().c_str(), "Parsed serial number: %s", serial.c_str());
+    return serial;
+}
+
+void DeyeInverter::checkAndFetchFirmwareVersion() {
+    // Check if future is pending and ready
+    if (_firmwareVersionFuture.has_value()) {
+        auto& future = _firmwareVersionFuture.value();
+
+        if (future.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+            auto response = future.get();
+            bool fetchSuccess = false;
+
+            if (response.success && response.httpCode == 200) {
+                // First validate serial number matches
+                String htmlSerial = parseCoverMidFromHtml(response.body);
+                if (htmlSerial.isEmpty()) {
+                    ESP_LOGE(LogTag().c_str(), "Could not extract serial number from status.html");
+                } else if (!htmlSerial.equalsIgnoreCase(_serialString)) {
+                    // Serial mismatch
+                    ESP_LOGE(LogTag().c_str(),
+                             "Serial number mismatch! Expected: %s, Got: %s - NOT setting firmware version",
+                             _serialString.c_str(), htmlSerial.c_str());
+                } else {
+                    // Serial matches, parse firmware version
+                    String version = parseCoverVerFromHtml(response.body);
+                    if (!version.isEmpty()) {
+                        _devInfoParser->setHardwareVersion(version);
+                        _devInfoParser->setLastUpdate(millis());
+                        fetchSuccess = true;
+                        ESP_LOGI(LogTag().c_str(), "Successfully fetched firmware version: %s (serial validated)",
+                                 version.c_str());
+                    }
+                }
+            } else {
+                ESP_LOGW(LogTag().c_str(), "Failed to fetch firmware version (code=%d): %s",
+                         response.httpCode, response.body.c_str());
+            }
+
+            _firmwareVersionFuture.reset();
+
+            // Set timer based on success/failure
+            if (fetchSuccess) {
+                _timerFirmwareVersionFetch.set(TIMER_FIRMWARE_VERSION_FETCH_SUCCESS); // 15 minutes
+                ESP_LOGD(LogTag().c_str(), "Next firmware fetch in 15 minutes");
+            } else {
+                _timerFirmwareVersionFetch.set(TIMER_FIRMWARE_VERSION_FETCH_RETRY);   // 30 seconds
+                ESP_LOGD(LogTag().c_str(), "Firmware fetch failed, retry in 30 seconds");
+            }
+        }
+
+        return; // Don't queue new request while one is pending
+    }
+
+    // Check if timer has expired (should we fetch?)
+    if (!_timerFirmwareVersionFetch.occured()) {
+        return;
+    }
+
+    // Build URL
+    String url = "http://" + String(_oringalIpOrHostname.c_str());
+    url += "/status.html";
+
+    // Prepare headers with authentication if configured
+    std::map<String, String> headers;
+    if (!_username.isEmpty() && !_password.isEmpty()) {
+        String auth = _username + ":" + _password;
+        size_t olen = 0;
+        unsigned char encoded[128];
+        int ret = mbedtls_base64_encode(encoded, sizeof(encoded), &olen,
+                            (const unsigned char*)auth.c_str(), auth.length());
+
+        if (ret == 0) {
+            String authHeader = "Basic " + String((char*)encoded);
+            headers["Authorization"] = authHeader;
+        } else {
+            ESP_LOGW(LogTag().c_str(), "Failed to encode auth credentials for firmware fetch");
+        }
+    }
+
+    // Queue request
+    auto future = RestRequestHandler.queueRequestWithHeaders(
+        url,
+        "GET",
+        "",  // No body
+        "",  // No content type
+        headers,
+        2,      // maxRetries
+        10000   // 10s timeout
+    );
+
+    _firmwareVersionFuture = std::move(future);
+
+    ESP_LOGD(LogTag().c_str(), "Queued firmware version fetch request");
 }
 
 void DeyeInverter::checkForNewWriteCommands() {

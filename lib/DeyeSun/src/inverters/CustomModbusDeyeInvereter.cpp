@@ -71,6 +71,9 @@ void CustomModbusDeyeInverter::update() {
     }
     getEventLog()->checkErrorsForTimeout();
 
+    // Check and fetch firmware version periodically
+    checkAndFetchFirmwareVersion();
+
     //TODO think about better handling for this
     if(_currentWritCommand == nullptr){
         checkForNewWriteCommands();

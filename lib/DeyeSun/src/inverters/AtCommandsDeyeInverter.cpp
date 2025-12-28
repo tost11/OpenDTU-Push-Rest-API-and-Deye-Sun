@@ -68,6 +68,9 @@ void AtCommandsDeyeInverter::update() {
         return;
     }
 
+    // Check and fetch firmware version periodically
+    checkAndFetchFirmwareVersion();
+
     //polling is disabled (night whatever) wait for existing socket connection and command if null not active skip check
     if(_socket == nullptr && !getEnablePolling()){
         return;
