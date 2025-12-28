@@ -15,7 +15,7 @@ public:
 
     void loop();
 
-    std::shared_ptr<DeyeInverter> addInverter(const char* name, uint64_t serial,const char* hostnameOrIp,uint16_t port,deye_inverter_type deyeInverterType);
+    std::shared_ptr<DeyeInverter> addInverter(const char* name, uint64_t serial,const char* hostnameOrIp,uint16_t port,deye_inverter_type deyeInverterType,const char * username, const char * password);
     std::shared_ptr<DeyeInverter> getInverterByPos(uint8_t pos) override;
     std::shared_ptr<DeyeInverter> getInverterBySerial(uint64_t serial) override;
     std::shared_ptr<DeyeInverter> getInverterBySerialString(const String & serial) override;

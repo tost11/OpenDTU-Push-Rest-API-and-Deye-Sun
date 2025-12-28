@@ -35,6 +35,8 @@
 #define INV_MAX_COUNT 10
 #define INV_MAX_CHAN_COUNT 6
 #define INV_MAX_HOSTNAME_STRLEN 31
+#define INV_MAX_USERNAME_STRLEN 31
+#define INV_MAX_PASSWORD_STRLEN 63
 
 #define CHAN_MAX_NAME_STRLEN 31
 
@@ -56,6 +58,8 @@ struct INVERTER_CONFIG_T {
     char Name[INV_MAX_NAME_STRLEN + 1];
     char HostnameOrIp[INV_MAX_HOSTNAME_STRLEN + 1];
     uint16_t Port;
+    char Username[INV_MAX_USERNAME_STRLEN + 1];
+    char Password[INV_MAX_PASSWORD_STRLEN + 1];
     uint8_t Order;
     bool Poll_Enable;
     bool Poll_Enable_Night;
