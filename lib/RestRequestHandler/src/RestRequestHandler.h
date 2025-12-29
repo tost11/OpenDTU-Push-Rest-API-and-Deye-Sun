@@ -8,7 +8,7 @@
 #include <vector>
 #include <thread>
 #include <memory>
-#include <future>
+#include <utils/LightFuture.h>
 #include <WString.h>
 
 struct RestResponse {
@@ -27,7 +27,7 @@ struct RestRequest {
     uint8_t maxRetries;
     uint32_t timeout;
     uint32_t nextRetryTime;  // Internal: for retry backoff
-    std::shared_ptr<std::promise<RestResponse>> promise;  // For future result
+    std::shared_ptr<LightPromise<RestResponse>> promise;  // For future result
 };
 
 class RestRequestHandlerClass {
@@ -36,12 +36,12 @@ public:
     void init(Scheduler& scheduler);
 
     // Queue a request and return a future for the result
-    std::future<RestResponse> queueRequest(String url, String method = "GET",
+    LightFuture<RestResponse> queueRequest(String url, String method = "GET",
                                           String body = "", String contentType = "",
                                           uint8_t maxRetries = 2, uint32_t timeout = 0);
 
     // Advanced: Queue with custom headers
-    std::future<RestResponse> queueRequestWithHeaders(String url, String method,
+    LightFuture<RestResponse> queueRequestWithHeaders(String url, String method,
                                                      String body, String contentType,
                                                      std::map<String, String> headers,
                                                      uint8_t maxRetries = 2, uint32_t timeout = 0);

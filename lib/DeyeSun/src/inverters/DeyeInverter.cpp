@@ -6,11 +6,11 @@
 #include "DeyeSun.h"
 #include "DeyeUtils.h"
 #include <RestRequestHandler.h>
-#include <mbedtls/base64.h>
+#include "utils/Base64.h"
 
 DeyeInverter::DeyeInverter(uint64_t serial) {
     _serial = serial;
-    _alarmLogParser.reset(new DeyeAlarmLog());
+    _alarmLogParser.reset(new DefaultAlarmLog("DeyeSun"));
     _devInfoParser.reset(new DeyeDevInfo());
     _powerCommandParser.reset(new PowerCommandParser());
     _statisticsParser.reset(new DefaultStatisticsParser());
@@ -176,20 +176,8 @@ bool DeyeInverter::sendRestartControlRequest() {
     headers["Content-Length"] = String(body.length());
 
     // Basic Auth
-    if (!_username.isEmpty() && !_password.isEmpty()) {
-        String auth = _username + ":" + _password;
-        size_t olen = 0;
-        unsigned char encoded[128];
-        int ret = mbedtls_base64_encode(encoded, sizeof(encoded), &olen,
-                            (const unsigned char*)auth.c_str(), auth.length());
-
-        if (ret == 0) {
-            String authHeader = "Basic " + String((char*)encoded);
-            headers["Authorization"] = authHeader;
-        } else {
-            ESP_LOGE(LogTag().c_str(), "Failed to encode authentication credentials");
-            return false;
-        }
+    if (!addBasicAuthHeader(headers)) {
+        return false;
     }
 
     // Content type
@@ -213,52 +201,49 @@ bool DeyeInverter::sendRestartControlRequest() {
     return true;
 }
 
-String DeyeInverter::parseCoverVerFromHtml(const String& htmlBody) {
-    // Search for "var cover_ver = "
-    int startIdx = htmlBody.indexOf("var cover_ver = \"");
-    if (startIdx < 0) {
-        ESP_LOGW(LogTag().c_str(), "Could not find 'var cover_ver' in HTML response");
-        return "";
+bool DeyeInverter::addBasicAuthHeader(std::map<String, String>& headers) {
+    if (_username.isEmpty() || _password.isEmpty()) {
+        return true;  // No auth needed
     }
 
-    // Move past "var cover_ver = ""
-    startIdx += 17; // length of "var cover_ver = \""
+    String auth = _username + ":" + _password;
+    size_t olen = 0;
+    unsigned char encoded[128];
+    int ret = Base64::encode(encoded, sizeof(encoded), &olen,
+                        (const unsigned char*)auth.c_str(), auth.length());
 
-    // Find closing quote
-    int endIdx = htmlBody.indexOf("\"", startIdx);
-    if (endIdx < 0) {
-        ESP_LOGW(LogTag().c_str(), "Could not find closing quote for cover_ver");
-        return "";
+    if (ret == 0) {
+        String authHeader = "Basic " + String((char*)encoded);
+        headers["Authorization"] = authHeader;
+        return true;
+    } else {
+        ESP_LOGE(LogTag().c_str(), "Failed to encode authentication credentials");
+        return false;
     }
-
-    // Extract version string
-    String version = htmlBody.substring(startIdx, endIdx);
-    ESP_LOGI(LogTag().c_str(), "Parsed firmware version: %s", version.c_str());
-    return version;
 }
 
-String DeyeInverter::parseCoverMidFromHtml(const String& htmlBody) {
-    // Search for "var cover_mid = "
-    int startIdx = htmlBody.indexOf("var cover_mid = \"");
+String DeyeInverter::parseHtmlVariable(const String& htmlBody, const String& varName) {
+    // Build search pattern: "var varName = ""
+    String searchPattern = "var " + varName + " = \"";
+
+    int startIdx = htmlBody.indexOf(searchPattern);
     if (startIdx < 0) {
-        ESP_LOGW(LogTag().c_str(), "Could not find 'var cover_mid' in HTML response");
+        ESP_LOGW(LogTag().c_str(), "Could not find 'var %s' in HTML", varName.c_str());
         return "";
     }
 
-    // Move past "var cover_mid = ""
-    startIdx += 17; // length of "var cover_mid = \""
+    // Move past the search pattern
+    startIdx += searchPattern.length();
 
     // Find closing quote
     int endIdx = htmlBody.indexOf("\"", startIdx);
     if (endIdx < 0) {
-        ESP_LOGW(LogTag().c_str(), "Could not find closing quote for cover_mid");
+        ESP_LOGW(LogTag().c_str(), "Could not find closing quote for %s", varName.c_str());
         return "";
     }
 
-    // Extract serial string
-    String serial = htmlBody.substring(startIdx, endIdx);
-    ESP_LOGD(LogTag().c_str(), "Parsed serial number: %s", serial.c_str());
-    return serial;
+    // Extract and return value
+    return htmlBody.substring(startIdx, endIdx);
 }
 
 void DeyeInverter::checkAndFetchFirmwareVersion() {
@@ -266,13 +251,13 @@ void DeyeInverter::checkAndFetchFirmwareVersion() {
     if (_firmwareVersionFuture.has_value()) {
         auto& future = _firmwareVersionFuture.value();
 
-        if (future.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+        if (future.wait_for(0) == LightFuture<RestResponse>::Status::READY) {
             auto response = future.get();
             bool fetchSuccess = false;
 
             if (response.success && response.httpCode == 200) {
                 // First validate serial number matches
-                String htmlSerial = parseCoverMidFromHtml(response.body);
+                String htmlSerial = parseHtmlVariable(response.body, "cover_mid");
                 if (htmlSerial.isEmpty()) {
                     ESP_LOGE(LogTag().c_str(), "Could not extract serial number from status.html");
                 } else if (!htmlSerial.equalsIgnoreCase(_serialString)) {
@@ -282,13 +267,15 @@ void DeyeInverter::checkAndFetchFirmwareVersion() {
                              _serialString.c_str(), htmlSerial.c_str());
                 } else {
                     // Serial matches, parse firmware version
-                    String version = parseCoverVerFromHtml(response.body);
+                    String version = parseHtmlVariable(response.body, "cover_ver");
                     if (!version.isEmpty()) {
                         _devInfoParser->setHardwareVersion(version);
                         _devInfoParser->setLastUpdate(millis());
                         fetchSuccess = true;
                         ESP_LOGI(LogTag().c_str(), "Successfully fetched firmware version: %s (serial validated)",
                                  version.c_str());
+                    } else {
+                        ESP_LOGW(LogTag().c_str(), "Could not extract firmware version");
                     }
                 }
             } else {
@@ -322,19 +309,9 @@ void DeyeInverter::checkAndFetchFirmwareVersion() {
 
     // Prepare headers with authentication if configured
     std::map<String, String> headers;
-    if (!_username.isEmpty() && !_password.isEmpty()) {
-        String auth = _username + ":" + _password;
-        size_t olen = 0;
-        unsigned char encoded[128];
-        int ret = mbedtls_base64_encode(encoded, sizeof(encoded), &olen,
-                            (const unsigned char*)auth.c_str(), auth.length());
-
-        if (ret == 0) {
-            String authHeader = "Basic " + String((char*)encoded);
-            headers["Authorization"] = authHeader;
-        } else {
-            ESP_LOGW(LogTag().c_str(), "Failed to encode auth credentials for firmware fetch");
-        }
+    if (!addBasicAuthHeader(headers)) {
+        ESP_LOGW(LogTag().c_str(), "Failed to add auth header for firmware fetch");
+        // Don't return - continue anyway, might work without auth
     }
 
     // Queue request
@@ -358,7 +335,7 @@ void DeyeInverter::checkRestartCommandResult() {
     if (_restartCommandFuture.has_value()) {
         auto& future = _restartCommandFuture.value();
 
-        if (future.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+        if (future.wait_for(0) == LightFuture<RestResponse>::Status::READY) {
             auto response = future.get();
 
             if (response.success && response.httpCode == 200) {

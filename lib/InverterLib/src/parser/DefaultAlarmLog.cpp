@@ -1,15 +1,16 @@
-#include "HoymilesWAlarmLog.h"
+//
+// Created by consolidating DeyeAlarmLog and HoymilesWAlarmLog
+//
+
+#include "DefaultAlarmLog.h"
 
 #include <Arduino.h>
 
-#undef TAG
-static const char* TAG = "HoymilesW";
-
-uint8_t HoymilesWAlarmLog::getEntryCount() const {
+uint8_t DefaultAlarmLog::getEntryCount() const {
     return _errors.size();
 }
 
-void HoymilesWAlarmLog::getLogEntry(const uint8_t entryId, AlarmLogEntry_t &entry, const AlarmMessageLocale_t locale) {
+void DefaultAlarmLog::getLogEntry(const uint8_t entryId, AlarmLogEntry_t &entry, const AlarmMessageLocale_t locale) {
     assert(entryId <= _errors.size());
     auto & ret = _errors[entryId];
 
@@ -34,7 +35,7 @@ void HoymilesWAlarmLog::getLogEntry(const uint8_t entryId, AlarmLogEntry_t &entr
     }
 }
 
-void HoymilesWAlarmLog::addAlarm(uint16_t id, time_t start, time_t end,const String & message) {
+void DefaultAlarmLog::addAlarm(uint16_t id, time_t start, time_t end,const String & message) {
     for (auto &item: _errors){
         if(item.MessageId == id) {
             item.StartTime = start;
@@ -46,15 +47,14 @@ void HoymilesWAlarmLog::addAlarm(uint16_t id, time_t start, time_t end,const Str
 
     //remove oldest entry
     if(_errors.size() >= ALARM_LOG_ENTRY_COUNT){
-
-        ESP_LOGI(TAG,"Alert que full -> removed first one (oldest) Removed alert");
+        ESP_LOGI(_tag,"Alert queue full -> removed first one (oldest) Removed alert");
         _errors.erase(_errors.begin());
     }
 
     _errors.emplace_back(id,message,start,end);
 }
 
-void HoymilesWAlarmLog::checkErrorsForTimeout() {
+void DefaultAlarmLog::checkErrorsForTimeout() {
 
     //TODO timer do not check so often
 
@@ -68,14 +68,14 @@ void HoymilesWAlarmLog::checkErrorsForTimeout() {
     while(it != _errors.end()){
         if(timeinfo.tm_sec > it->EndTime){
             it = _errors.erase(it);
-            ESP_LOGI(TAG,"Removed alert");
+            ESP_LOGI(_tag,"Removed alert");
             continue;
         }
         it++;
     }
 }
 
-void HoymilesWAlarmLog::addAlarm(uint16_t id, uint32_t sec, const String &message) {
+void DefaultAlarmLog::addAlarm(uint16_t id, uint32_t sec, const String &message) {
     struct tm timeinfo;
     if (!getLocalTime(&timeinfo,5)) {
         return;
@@ -85,6 +85,6 @@ void HoymilesWAlarmLog::addAlarm(uint16_t id, uint32_t sec, const String &messag
 }
 
 
-void HoymilesWAlarmLog::clearBuffer(){
+void DefaultAlarmLog::clearBuffer(){
     _errors.clear();
 }

@@ -3,8 +3,8 @@
 #include <cstdint>
 #include <type_traits>
 #include <WString.h>
-#include <cstdio>
 #include <string>
+#include <CRC.h>
 
 class DeyeUtils {
 public:
@@ -34,45 +34,13 @@ public:
     }
 
     static unsigned short modbusCRC16FromHex(const std::string &message){
-        const unsigned short generator = 0xA001;
-        unsigned short crc = 0xFFFF;
-        for(int i = 0; i < message.length(); ++i)
-        {
-            crc ^= (unsigned short)message[i];
-            for(int b = 0; b < 8; ++b)
-            {
-                if((crc & 1) != 0)
-                {
-                    crc >>= 1;
-                    crc ^= generator;
-                }
-                else
-                    crc >>= 1;
-
-            }
-        }
-        return crc;
+        // Use shared CRC16 Modbus implementation
+        return crc16(reinterpret_cast<const uint8_t*>(message.data()), message.length());
     }
 
     static unsigned short modbusCRC16FromHex(const String &message){
-        const unsigned short generator = 0xA001;
-        unsigned short crc = 0xFFFF;
-        for(int i = 0; i < message.length(); ++i)
-        {
-            crc ^= (unsigned short)message[i];
-            for(int b = 0; b < 8; ++b)
-            {
-                if((crc & 1) != 0)
-                {
-                    crc >>= 1;
-                    crc ^= generator;
-                }
-                else
-                    crc >>= 1;
-
-            }
-        }
-        return crc;
+        // Use shared CRC16 Modbus implementation
+        return crc16(reinterpret_cast<const uint8_t*>(message.c_str()), message.length());
     }
 
     static String modbusCRC16FromASCII(const String & input) {

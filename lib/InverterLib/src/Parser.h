@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 #include <Arduino.h>
-#include <cstdint>
-#include <defines.h>
 
 #define HOY_SEMAPHORE_TAKE() \
     do {                     \

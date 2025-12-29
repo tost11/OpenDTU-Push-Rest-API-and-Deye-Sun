@@ -3,8 +3,6 @@
 #include "DeyeUtils.h"
 #include "DeyeSun.h"
 
-#include <Dns.h>
-
 #undef TAG
 static const char* TAG = "DeyeSun(AT)";
 
@@ -342,15 +340,14 @@ bool AtCommandsDeyeInverter::resolveHostname() {
         checkForMacResolution();
     }
 
-    DNSClient dns;
     IPAddress remote_addr;
 
     const char * ipToFind = (_resolvedIpByMacAdress != nullptr) ? _resolvedIpByMacAdress->c_str() : _oringalIpOrHostname.c_str();
 
     ESP_LOGD(TAG,"Try to resolve hostname: %s",ipToFind);
 
-    dns.begin(WiFi.dnsIP());
-    auto ret = dns.getHostByName(ipToFind, remote_addr);
+    // Use WiFi.hostByName() instead of DNSClient
+    auto ret = WiFi.hostByName(ipToFind, remote_addr);
     if (ret == 1) {
         ESP_LOGD(TAG,"Resolved Ip is: %s", remote_addr.toString().c_str());
         _ipAdress = std::make_unique<IPAddress>(remote_addr);

@@ -1,12 +1,9 @@
 #pragma once
 
-#include "types.h"
 #include <inverter/BaseNetworkInverter.h>
 #include <Arduino.h>
 #include <cstdint>
 #include <list>
-#include <Ethernet.h>
-#include <EthernetUdp.h>
 #include <WiFi.h>
 #include <WiFiUdp.h>
 #include <TimeoutHelper.h>
