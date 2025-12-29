@@ -681,7 +681,7 @@
         "ProjectOriginBody4": "OpenDTU is freely available. If you paid money for the software, you probably got ripped off.",
         "NewsUpdates": "News & Updates",
         "NewsUpdatesBody": "New updates can be found on Github: <a href=\"https://github.com/tbnobody/OpenDTU\" target=\"_blank\">https://github.com/tbnobody/OpenDTU</a>",
-        "NewsUpdatesBodyFork": "New updates for this fork can be found on Github <a href=\"https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/tree/master/builds\" target=\"_blank\">https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/tree/master/builds</a>",
+        "NewsUpdatesBodyFork": "New updates for this fork can be found on Github <a href=\"https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/releases\" target=\"_blank\">https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/tree/master/builds</a>",
         "ErrorReporting": "Error Reporting",
         "ErrorReportingBody": "Please report issues using the feature provided by <a href=\"https://github.com/tbnobody/OpenDTU/issues\" target=\"_blank\">Github</a>",
         "ErrorReportingBodyFork": "Please report issues regarding this fork using the feature provided by <a href=\"https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/issues\" target=\"_blank\">Github</a>.",
