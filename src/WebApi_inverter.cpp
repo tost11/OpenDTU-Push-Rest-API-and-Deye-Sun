@@ -11,6 +11,7 @@
 #include "helper.h"
 #include <AsyncJson.h>
 #include <InverterHandler.h>
+#include <inverter/BaseNetworkInverter.h>
 
 #ifdef HOYMILES
 #include <Hoymiles.h>
@@ -79,6 +80,8 @@ void WebApiInverterClass::onInverterList(AsyncWebServerRequest* request)
             obj["deye_sun_offline_yieldday_correction"] = config.Inverter[i].DeyeSunOfflineYieldDayCorrection;
             obj["port"] = config.Inverter[i].Port;
             obj["hostname_or_ip"] = config.Inverter[i].HostnameOrIp;
+            obj["username"] = config.Inverter[i].Username;
+            obj["password"] = config.Inverter[i].Password;
 
             auto inv = InverterHandler.getInverterBySerial(config.Inverter[i].Serial,config.Inverter[i].Type);
             uint8_t max_channels;
@@ -211,6 +214,8 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
     }else if(root["manufacturer"].as<String>() == from_inverter_type(inverter_type::Inverter_DeyeSun)){
         strncpy(inverter->HostnameOrIp, root["hostname_or_ip"].as<String>().c_str(), INV_MAX_HOSTNAME_STRLEN);
         inverter->Port = root["port"].as<uint16_t>();
+        strncpy(inverter->Username, root["username"].as<String>().c_str(), INV_MAX_USERNAME_STRLEN);
+        strncpy(inverter->Password, root["password"].as<String>().c_str(), INV_MAX_PASSWORD_STRLEN);
         inverter->Type = inverter_type::Inverter_DeyeSun;
     }else if(root["manufacturer"].as<String>() == from_inverter_type(inverter_type::Inverter_HoymilesW)){
         strncpy(inverter->HostnameOrIp, root["hostname_or_ip"].as<String>().c_str(), INV_MAX_HOSTNAME_STRLEN);
@@ -240,7 +245,14 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
     #endif
     #ifdef DEYE_SUN
     if(root["manufacturer"].as<String>() == from_inverter_type(inverter_type::Inverter_DeyeSun)){
-        inv = std::reinterpret_pointer_cast<BaseInverterClass>(DeyeSun.addInverter(inverter->Name, inverter->Serial,inverter->HostnameOrIp,inverter->Port,(deye_inverter_type)inverter->MoreInverterInfo));
+        inv = std::reinterpret_pointer_cast<BaseNetworkInverterClass>(DeyeSun.addInverter(
+            inverter->Name,
+            inverter->Serial,
+            inverter->HostnameOrIp,
+            inverter->Port,
+            (deye_inverter_type)inverter->MoreInverterInfo,
+            inverter->Username,
+            inverter->Password));
     }
     #endif
     #ifdef HOYMILES_W
@@ -385,6 +397,8 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
         }
 
         if(inverter.Type == inverter_type::Inverter_DeyeSun){
+            strncpy(inverter.Username, root["username"].as<String>().c_str(), INV_MAX_USERNAME_STRLEN);
+            strncpy(inverter.Password, root["password"].as<String>().c_str(), INV_MAX_PASSWORD_STRLEN);
             inverter.MoreInverterInfo = root["deye_type"] | 0;
         }else{
             inverter.MoreInverterInfo = 0;
@@ -429,7 +443,14 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
         #endif
         #ifdef DEYE_SUN
         if(inverter.Type == inverter_type::Inverter_DeyeSun){
-            inv = std::reinterpret_pointer_cast<BaseInverterClass>(DeyeSun.addInverter(inverter.Name, inverter.Serial,inverter.HostnameOrIp,inverter.Port,(deye_inverter_type)inverter.MoreInverterInfo));
+            inv = std::reinterpret_pointer_cast<BaseNetworkInverterClass>(DeyeSun.addInverter(
+                inverter.Name,
+                inverter.Serial,
+                inverter.HostnameOrIp,
+                inverter.Port,
+                (deye_inverter_type)inverter.MoreInverterInfo,
+                inverter.Username,
+                inverter.Password));
         }
         #endif
         #ifdef HOYMILES_W
@@ -444,6 +465,7 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
         if(root["manufacturer"].as<String>() == "DeyeSun"){
             auto deye_inv = reinterpret_cast<DeyeInverter*>(inv.get());
             deye_inv->setHostnameOrIpOrMacAndPort(inverter.HostnameOrIp,inverter.Port);
+            deye_inv->setUsernameAndPassword(inverter.Username, inverter.Password);
         }
         #endif
         #ifdef HOYMILES_W
@@ -461,7 +483,14 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
         #endif
         #ifdef DEYE_SUN
         if(inverter.Type == inverter_type::Inverter_DeyeSun){
-            inv = std::reinterpret_pointer_cast<BaseInverterClass>(DeyeSun.addInverter(inverter.Name, inverter.Serial,inverter.HostnameOrIp,inverter.Port,(deye_inverter_type)inverter.MoreInverterInfo));
+            inv = std::reinterpret_pointer_cast<BaseNetworkInverterClass>(DeyeSun.addInverter(
+                inverter.Name,
+                inverter.Serial,
+                inverter.HostnameOrIp,
+                inverter.Port,
+                (deye_inverter_type)inverter.MoreInverterInfo,
+                inverter.Username,
+                inverter.Password));
         }
         #endif
         #ifdef HOYMILES_W

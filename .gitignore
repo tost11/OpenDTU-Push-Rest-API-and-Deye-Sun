@@ -17,3 +17,4 @@ bin
 lib/python*
 test_scripts
 compile_commands.json
+CLAUDE.md

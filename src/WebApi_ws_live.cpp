@@ -276,7 +276,7 @@ void WebApiWsLiveClass::generateInverterChannelJsonResponse(JsonObject& root, st
         }
     }
 
-    if (inv->getStatistics()->hasChannelFieldValue(TYPE_INV, CH0, FLD_EVT_LOG)) {
+    if (inv->getStatistics()->hasChannelFieldValue(TYPE_INV, CH0, FLD_EVT_LOG) || inv->getInverterType() == Inverter_DeyeSun || inv->getInverterType() == Inverter_HoymilesW) {
         root["events"] = inv->getEventLog()->getEntryCount();
     } else {
         root["events"] = -1;
