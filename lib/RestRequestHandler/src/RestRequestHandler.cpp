@@ -2,7 +2,6 @@
 #include "RestRequestHandler.h"
 #include <esp_pthread.h>
 #include <esp_log.h>
-#include <Arduino.h>
 
 RestRequestHandlerClass RestRequestHandler;
 
@@ -183,12 +182,9 @@ void RestRequestHandlerClass::processActiveRequests()
                 timeoutResponse.body = "Timeout";
 
                 // Set promise with timeout response
+                // LightPromise::set_value() is idempotent - safe to call multiple times
                 if (active.request.promise) {
-                    try {
-                        active.request.promise->set_value(timeoutResponse);
-                    } catch (const std::future_error&) {
-                        // Promise already set by thread - ignore
-                    }
+                    active.request.promise->set_value(timeoutResponse);
                 }
 
                 active.completed = true;
@@ -212,14 +208,14 @@ void RestRequestHandlerClass::processActiveRequests()
     }
 }
 
-std::future<RestResponse> RestRequestHandlerClass::queueRequest(String url, String method,
+LightFuture<RestResponse> RestRequestHandlerClass::queueRequest(String url, String method,
                                                                 String body, String contentType,
                                                                 uint8_t maxRetries, uint32_t timeout)
 {
     return queueRequestWithHeaders(url, method, body, contentType, {}, maxRetries, timeout);
 }
 
-std::future<RestResponse> RestRequestHandlerClass::queueRequestWithHeaders(
+LightFuture<RestResponse> RestRequestHandlerClass::queueRequestWithHeaders(
     String url, String method, String body, String contentType,
     std::map<String, String> headers, uint8_t maxRetries, uint32_t timeout)
 {
@@ -228,7 +224,7 @@ std::future<RestResponse> RestRequestHandlerClass::queueRequestWithHeaders(
         ESP_LOGW("REST", "Request queue is full (%d) do not handle new one",MAX_REQUEST_QUEUE_SIZE);
 
         // Return already resolved future with error
-        auto errorPromise = std::make_shared<std::promise<RestResponse>>();
+        auto errorPromise = std::make_shared<LightPromise<RestResponse>>();
         auto errorFuture = errorPromise->get_future();
 
         RestResponse errorResponse;
@@ -252,7 +248,7 @@ std::future<RestResponse> RestRequestHandlerClass::queueRequestWithHeaders(
     request.nextRetryTime = 0;
 
     // Create promise/future pair
-    request.promise = std::make_shared<std::promise<RestResponse>>();
+    request.promise = std::make_shared<LightPromise<RestResponse>>();
     auto future = request.promise->get_future();
 
     // Queue the request
