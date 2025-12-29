@@ -26,7 +26,7 @@ Command structure:
 ID   Target Addr   Source Addr   Idx  DT   ?    Time          Gap             Password      CRC16   CRC8
 */
 #include "MultiDataCommand.h"
-#include "crc.h"
+#include <CRC.h>
 
 MultiDataCommand::MultiDataCommand(InverterAbstract* inv, const uint64_t router_address, const uint8_t data_type, const time_t time)
     : CommandAbstract(inv, router_address)

@@ -6,12 +6,13 @@
 
 #include <parser/DefaultStatisticsParser.h>
 #include "parser/DeyeDevInfo.h"
-#include "parser/DeyeAlarmLog.h"
+#include <parser/DefaultAlarmLog.h>
 #include "parser/PowerCommandParser.h"
 #include <inverter/BaseNetworkInverter.h>
 #include <TimeoutHelper.h>
 #include <optional>
-#include <future>
+#include <map>
+#include <utils/LightFuture.h>
 
 // Forward declaration
 struct RestResponse;
@@ -37,26 +38,26 @@ struct WriteRegisterMapping{
             valueToWrite(valueToWrite){}
 };
 
-class DeyeInverter : public BaseNetworkInverter<DefaultStatisticsParser,DeyeDevInfo,DeyeAlarmLog,PowerCommandParser> {
+class DeyeInverter : public BaseNetworkInverter<DefaultStatisticsParser,DeyeDevInfo,DefaultAlarmLog,PowerCommandParser> {
 private:
     uint64_t _serial;
 
     // Firmware version fetching
-    std::optional<std::future<RestResponse>> _firmwareVersionFuture;
+    std::optional<LightFuture<RestResponse>> _firmwareVersionFuture;
     TimeoutHelper _timerFirmwareVersionFetch;
     static const uint32_t TIMER_FIRMWARE_VERSION_FETCH_SUCCESS = 15 * 60 * 1000; // 15 minutes
     static const uint32_t TIMER_FIRMWARE_VERSION_FETCH_RETRY = 30 * 1000;       // 30 seconds
     std::mutex _restartCommandMutex;
 
     // Restart command tracking
-    std::optional<std::future<RestResponse>> _restartCommandFuture;
+    std::optional<LightFuture<RestResponse>> _restartCommandFuture;
 
 protected:
     void handleDeyeDayCorrection();
     void checkAndFetchFirmwareVersion();
     void checkRestartCommandResult();
-    String parseCoverVerFromHtml(const String& htmlBody);
-    String parseCoverMidFromHtml(const String& htmlBody);
+    bool addBasicAuthHeader(std::map<String, String>& headers);
+    String parseHtmlVariable(const String& htmlBody, const String& varName);
 
     std::unique_ptr<bool> _powerTargetStatus;
     std::unique_ptr<uint16_t > _limitToSet;

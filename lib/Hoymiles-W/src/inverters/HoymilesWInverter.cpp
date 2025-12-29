@@ -1,9 +1,6 @@
 #include "HoymilesWInverter.h"
-#include "Dns.h"
 
 #include <cstring>
-#include <ios>
-#include <iomanip>
 
 #undef TAG
 static const char* TAG = "HoymilesW";
@@ -19,7 +16,7 @@ _dtuInterface(ConnectionStatistics)
              ((uint32_t)(serial & 0xFFFFFFFF)));
     _serialString = serial_buff;
 
-    _alarmLogParser.reset(new HoymilesWAlarmLog());
+    _alarmLogParser.reset(new DefaultAlarmLog("HoymilesW"));
     _devInfoParser.reset(new HoymilesWDevInfo());
     _powerCommandParser.reset(new PowerCommandParser());
     _statisticsParser.reset(new HoymilesWStatisticsParser());

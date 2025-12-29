@@ -2,6 +2,13 @@
 #include <Arduino.h>
 #include <memory>
 
+#include "dtuConst.h"
+#include "pb_encode.h"
+#include "pb_decode.h"
+#include "AppGetHistPower.pb.h"
+#include "RealtimeDataNew.pb.h"
+#include "GetConfig.pb.h"
+
 #undef TAG
 static const char* TAG = "HoymilesW";
 
