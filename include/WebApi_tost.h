@@ -13,6 +13,4 @@ private:
     void onTostStatus(AsyncWebServerRequest* request);
     void onTostAdminGet(AsyncWebServerRequest* request);
     void onTostAdminPost(AsyncWebServerRequest* request);
-
-    AsyncWebServer* _server;
 };

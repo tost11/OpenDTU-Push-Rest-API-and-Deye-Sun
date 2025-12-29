@@ -5,7 +5,7 @@
 #include "HoymilesRadio_CMT.h"
 #include "Hoymiles.h"
 #include <InverterUtils.h>
-#include "crc.h"
+#include <CRC.h>
 #include <FunctionalInterrupt.h>
 #include <frozen/map.h>
 #include <esp_log.h>

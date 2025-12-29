@@ -3,7 +3,6 @@
  * Copyright (C) 2022-2025 Thomas Basler and others
  */
 #include "InverterAbstract.h"
-#include "crc.h"
 #include <cstring>
 #include <esp_log.h>
 

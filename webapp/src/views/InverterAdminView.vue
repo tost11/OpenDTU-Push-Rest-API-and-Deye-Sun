@@ -162,6 +162,18 @@
                 >
                     {{ $t('inverteradmin.Advanced') }}
                 </button>
+                <button
+                    v-if="selectedInverterData.manufacturer === 'DeyeSun'"
+                    class="nav-link"
+                    id="nav-auth-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#nav-auth"
+                    type="button"
+                    role="tab"
+                    aria-controls="nav-auth"
+                >
+                    {{ $t('inverteradmin.Authentication') }}
+                </button>
             </div>
         </nav>
         <div class="tab-content" id="nav-tabContent">
@@ -405,6 +417,33 @@
               </div>
 
             </div>
+
+            <div
+                v-if="selectedInverterData.manufacturer === 'DeyeSun'"
+                class="tab-pane fade show pt-3"
+                id="nav-auth"
+                role="tabpanel"
+                aria-labelledby="nav-auth-tab"
+                tabindex="0"
+            >
+                <InputElement
+                    :label="$t('inverteradmin.Username')"
+                    v-model="selectedInverterData.username"
+                    type="text"
+                    maxlength="31"
+                    :tooltip="$t('inverteradmin.UsernameHint')"
+                    wide
+                />
+
+                <InputElement
+                    :label="$t('inverteradmin.Password')"
+                    v-model="selectedInverterData.password"
+                    type="password"
+                    maxlength="63"
+                    :tooltip="$t('inverteradmin.PasswordHint')"
+                    wide
+                />
+            </div>
         </div>
         <template #footer>
             <button type="button" class="btn btn-primary" @click="onEditSubmit">
@@ -475,7 +514,7 @@ export default defineComponent({
         return {
             modal: {} as bootstrap.Modal,
             modalDelete: {} as bootstrap.Modal,
-            newInverterData: {serial: "",manufacturer:"Hoymiles",port:0,hostname_or_ip:"",deye_type:0} as Inverter,//deye 48899
+            newInverterData: {serial: "",manufacturer:"Hoymiles",port:0,hostname_or_ip:"",deye_type:0,username:"admin",password:"admin"} as Inverter,//deye 48899
             selectedInverterData: { serial: '' } as Inverter,
             inverters: [] as Inverter[],
             manufacturers: [] as string[],
@@ -555,7 +594,7 @@ export default defineComponent({
                 .then((data) => {
                     if(data.type === "success"){
                         console.log("reset inverter dta")
-                        this.newInverterData = {serial: "",manufacturer:this.newInverterData.manufacturer,port:getInverterPortByManufacturer(this.newInverterData.manufacturer,this.newInverterData.deye_type),deye_type: this.newInverterData.deye_type} as Inverter
+                        this.newInverterData = {serial: "",manufacturer:this.newInverterData.manufacturer,port:getInverterPortByManufacturer(this.newInverterData.manufacturer,this.newInverterData.deye_type),deye_type: this.newInverterData.deye_type,username:"admin",password:"admin"} as Inverter
                     }
                     this.getInverters();
                     this.alert = data;
