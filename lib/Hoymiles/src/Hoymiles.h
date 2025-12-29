@@ -6,7 +6,6 @@
 #include "inverters/InverterAbstract.h"
 #include "types.h"
 #include <BaseInverterHandler.h>
-#include <Print.h>
 #include <SPI.h>
 #include <memory>
 #include <vector>

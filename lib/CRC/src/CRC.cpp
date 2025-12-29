@@ -2,7 +2,7 @@
 /*
  * Copyright (C) 2022 Thomas Basler and others
  */
-#include "crc.h"
+#include "CRC.h"
 
 uint8_t crc8(const uint8_t buf[], const uint8_t len)
 {
@@ -27,7 +27,7 @@ uint16_t crc16(const uint8_t buf[], const uint8_t len, const uint16_t start)
             shift = (crc & 0x0001);
             crc = crc >> 1;
             if (shift != 0)
-                crc = crc ^ 0xA001;
+                crc = crc ^ CRC16_MODBUS_POLYNOM;
         }
     }
     return crc;
