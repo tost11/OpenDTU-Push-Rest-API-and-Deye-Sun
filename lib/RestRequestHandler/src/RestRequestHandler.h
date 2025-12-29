@@ -62,6 +62,7 @@ private:
 
     Task _loopTask;
     ThreadSafeQueue<RestRequest> _requestQueue;
+    static const uint32_t MAX_REQUEST_QUEUE_SIZE = 20;       // 30 seconds
 
     struct ActiveRequest {
         uint32_t id;
