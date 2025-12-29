@@ -223,6 +223,23 @@ std::future<RestResponse> RestRequestHandlerClass::queueRequestWithHeaders(
     String url, String method, String body, String contentType,
     std::map<String, String> headers, uint8_t maxRetries, uint32_t timeout)
 {
+
+    if (_requestQueue.size() >= MAX_REQUEST_QUEUE_SIZE){
+        ESP_LOGW("REST", "Request queue is full (%d) do not handle new one",MAX_REQUEST_QUEUE_SIZE);
+
+        // Return already resolved future with error
+        auto errorPromise = std::make_shared<std::promise<RestResponse>>();
+        auto errorFuture = errorPromise->get_future();
+
+        RestResponse errorResponse;
+        errorResponse.success = false;
+        errorResponse.httpCode = -1;
+        errorResponse.body = "Request queue is full";
+
+        errorPromise->set_value(errorResponse);
+        return errorFuture;
+    }
+
     RestRequest request;
     request.id = _nextRequestId++;
     request.url = url;
