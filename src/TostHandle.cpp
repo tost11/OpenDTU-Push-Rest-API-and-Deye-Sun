@@ -300,7 +300,7 @@ void TostHandleClass::processActiveRequest()
     }
 
     // Non-blocking check if ready
-    if (_activeRequest->future.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready) {
+    if (_activeRequest->future.wait_for(0) == LightFuture<RestResponse>::Status::READY) {
         RestResponse response = _activeRequest->future.get();
         bool isSecondary = _activeRequest->isSecondaryUrl;
         _activeRequest.reset();  // Clear active request
@@ -339,10 +339,7 @@ void TostHandleClass::sendNextRequest()
     );
 
     // Store as active request
-    ActiveRequest active;
-    active.future = std::move(future);
-    active.isSecondaryUrl = false;
-    _activeRequest = std::move(active);
+    _activeRequest = ActiveRequest{std::move(future), false};
 }
 
 void TostHandleClass::queueSecondaryUrlRequest()
@@ -363,8 +360,5 @@ void TostHandleClass::queueSecondaryUrlRequest()
     );
 
     // Replace active request with secondary URL attempt
-    ActiveRequest active;
-    active.future = std::move(future);
-    active.isSecondaryUrl = true;
-    _activeRequest = std::move(active);
+    _activeRequest = ActiveRequest{std::move(future), true};
 }

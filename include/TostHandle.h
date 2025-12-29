@@ -7,7 +7,6 @@
 #include <TaskSchedulerDeclarations.h>
 #include <ArduinoJson.h>
 #include <queue>
-#include <future>
 #include "RestRequestHandler.h"
 
 class TostHandleClass {
@@ -21,7 +20,7 @@ private:
     static const uint8_t MAX_QUEUE_SIZE = 10;  // Maximum unsent requests
 
     struct ActiveRequest {
-        std::future<RestResponse> future;
+        LightFuture<RestResponse> future;
         bool isSecondaryUrl;
     };
     std::optional<ActiveRequest> _activeRequest;  // Only 0 or 1 active request
