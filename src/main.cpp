@@ -9,21 +9,23 @@
 #include "InverterSettings.h"
 #include "Led_Single.h"
 #include "Logging.h"
-#include "MessageOutput.h"
 #include "MqttHandleDtu.h"
 #include "MqttHandleHass.h"
 #include "MqttHandleInverter.h"
 #include "MqttHandleInverterTotal.h"
 #include "MqttSettings.h"
+#include "TostHandle.h"
 #include "NetworkSettings.h"
 #include "NtpSettings.h"
 #include "PinMapping.h"
 #include "RestartHelper.h"
+#include "RestRequestHandler.h"
 #include "Scheduler.h"
 #include "SunPosition.h"
-#include "Utils.h"
 #include "WebApi.h"
 #include "defaults.h"
+#include "ServoHandle.h"
+#include "MessageOutput.h"
 #include <Arduino.h>
 #include <LittleFS.h>
 #include <TaskScheduler.h>
@@ -82,6 +84,18 @@ void setup()
     ESP_LOGI(TAG, "Reading language pack...");
     I18n.init(scheduler);
 
+    //setting up init time
+    if(Configuration.get().Ntp.StartupDate != 0) {
+        struct timeval now;
+        now.tv_sec = Configuration.get().Ntp.StartupDate;
+        now.tv_usec = 0;
+
+        settimeofday(&now, NULL);
+
+        time_t t = time(NULL);
+        struct tm tm = *localtime(&t);
+        printf("Manual initial start date: %d-%02d-%02d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
+    }
     // Load PinMapping
     ESP_LOGI(TAG, "Reading PinMapping...");
     if (PinMapping.init(Configuration.get().Dev_PinMapping)) {
@@ -103,6 +117,10 @@ void setup()
     ESP_LOGI(TAG, "Initializing SunPosition...");
     SunPosition.init(scheduler);
 
+    // Initialize Tost
+    ESP_LOGI(TAG, "Initialize Tost's rest push service... ");
+    TostHandle.init(scheduler);
+
     // Initialize MqTT
     ESP_LOGI(TAG, "Initializing MQTT...");
     MqttSettings.init();
@@ -114,6 +132,14 @@ void setup()
     // Initialize WebApi
     ESP_LOGI(TAG, "Initializing WebApi...");
     WebApi.init(scheduler);
+
+    // Initialize REST request handler
+    ESP_LOGI(TAG, "Initializing REST request handler...");
+    RestRequestHandler.init(scheduler);
+
+    // Initialize WebApi
+    ESP_LOGI(TAG, "Initialize Servo... ");
+    ServoHandle.init(scheduler);
 
     // Initialize Display
     ESP_LOGI(TAG, "Initializing Display...");

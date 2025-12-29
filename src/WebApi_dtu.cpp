@@ -7,7 +7,15 @@
 #include "WebApi.h"
 #include "WebApi_errors.h"
 #include <AsyncJson.h>
+#include <InverterHandler.h>
+
+#if HOYMILES
 #include <Hoymiles.h>
+#endif
+
+#if DEYE_SUN
+#include <DeyeSun.h>
+#endif
 
 WebApiDtuClass::WebApiDtuClass()
     : _applyDataTask(TASK_IMMEDIATE, TASK_ONCE, std::bind(&WebApiDtuClass::applyDataTaskCb, this))
@@ -28,6 +36,8 @@ void WebApiDtuClass::applyDataTaskCb()
 {
     // Execute stuff in main thread to avoid busy SPI bus
     auto const& config = Configuration.get();
+
+#if HOYMILES
     Hoymiles.getRadioNrf()->setPALevel((rf24_pa_dbm_e)config.Dtu.Nrf.PaLevel);
     Hoymiles.getRadioCmt()->setPALevel(config.Dtu.Cmt.PaLevel);
     Hoymiles.getRadioNrf()->setDtuSerial(config.Dtu.Serial);
@@ -35,6 +45,11 @@ void WebApiDtuClass::applyDataTaskCb()
     Hoymiles.getRadioCmt()->setCountryMode(static_cast<CountryModeId_t>(config.Dtu.Cmt.CountryMode));
     Hoymiles.getRadioCmt()->setInverterTargetFrequency(config.Dtu.Cmt.Frequency);
     Hoymiles.setPollInterval(config.Dtu.PollInterval);
+#endif
+
+#ifdef DEYE_SUN
+    DeyeSun.setUnknownDevicesWriteEnable(config.DeyeSettings.UnknownInverterWrite);
+#endif
 }
 
 void WebApiDtuClass::onDtuAdminGet(AsyncWebServerRequest* request)
@@ -47,6 +62,19 @@ void WebApiDtuClass::onDtuAdminGet(AsyncWebServerRequest* request)
     auto& root = response->getRoot();
     const CONFIG_T& config = Configuration.get();
 
+    JsonArray manufacturer = root["manufacturers"].to<JsonArray>();
+
+    #ifdef HOYMILES
+        manufacturer.add(from_inverter_type(inverter_type::Inverter_Hoymiles));
+    #endif
+    #ifdef DEYE_SUN
+        manufacturer.add(from_inverter_type(inverter_type::Inverter_DeyeSun));
+    #endif
+    #ifdef HOYMILES_W
+        manufacturer.add(from_inverter_type(inverter_type::Inverter_HoymilesW));
+    #endif
+
+
     // DTU Serial is read as HEX
     char buffer[sizeof(uint64_t) * 8 + 1];
     snprintf(buffer, sizeof(buffer), "%0" PRIx32 "%08" PRIx32,
@@ -54,12 +82,17 @@ void WebApiDtuClass::onDtuAdminGet(AsyncWebServerRequest* request)
         static_cast<uint32_t>(config.Dtu.Serial & 0xFFFFFFFF));
     root["serial"] = buffer;
     root["pollinterval"] = config.Dtu.PollInterval;
-    root["nrf_enabled"] = Hoymiles.getRadioNrf()->isInitialized();
+    root["nrf_enabled"] = false;
     root["nrf_palevel"] = config.Dtu.Nrf.PaLevel;
-    root["cmt_enabled"] = Hoymiles.getRadioCmt()->isInitialized();
+    root["cmt_enabled"] = false;
     root["cmt_palevel"] = config.Dtu.Cmt.PaLevel;
     root["cmt_frequency"] = config.Dtu.Cmt.Frequency;
     root["cmt_country"] = config.Dtu.Cmt.CountryMode;
+    root["cmt_chan_width"] = 0;
+
+#ifdef HOYMILES
+    root["nrf_enabled"] = Hoymiles.getRadioNrf()->isInitialized();
+    root["cmt_enabled"] = Hoymiles.getRadioCmt()->isInitialized();
     root["cmt_chan_width"] = Hoymiles.getRadioCmt()->getChannelWidth();
 
     auto data = root["country_def"].to<JsonArray>();
@@ -72,6 +105,9 @@ void WebApiDtuClass::onDtuAdminGet(AsyncWebServerRequest* request)
         obj["freq_legal_min"] = definition.definition.Freq_Legal_Min;
         obj["freq_legal_max"] = definition.definition.Freq_Legal_Max;
     }
+#endif
+
+    root["deye_unknown_device_write"] = config.DeyeSettings.UnknownInverterWrite;
 
     WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
 }
@@ -90,12 +126,20 @@ void WebApiDtuClass::onDtuAdminPost(AsyncWebServerRequest* request)
 
     auto& retMsg = response->getRoot();
 
+        if(!root["deye_unknown_device_write"].is<bool>()){
+            retMsg["message"] = "Values are missing!";
+            retMsg["code"] = WebApiError::GenericValueMissing;
+            WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
+            return;
+        }
+
     if (!(root["serial"].is<String>()
             && root["pollinterval"].is<uint32_t>()
             && root["nrf_palevel"].is<uint8_t>()
             && root["cmt_palevel"].is<int8_t>()
             && root["cmt_frequency"].is<uint32_t>()
-            && root["cmt_country"].is<uint8_t>())) {
+            && root["cmt_country"].is<uint8_t>()
+            && root["deye_unknown_device_write"].is<bool>())) {
         retMsg["message"] = "Values are missing!";
         retMsg["code"] = WebApiError::GenericValueMissing;
         WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
@@ -140,6 +184,7 @@ void WebApiDtuClass::onDtuAdminPost(AsyncWebServerRequest* request)
         return;
     }
 
+#ifdef HOYMILES
     auto FrequencyDefinition = Hoymiles.getRadioCmt()->getCountryFrequencyList()[root["cmt_country"].as<CountryModeId_t>()].definition;
     if (root["cmt_frequency"].as<uint32_t>() < FrequencyDefinition.Freq_Min
         || root["cmt_frequency"].as<uint32_t>() > FrequencyDefinition.Freq_Max
@@ -152,6 +197,7 @@ void WebApiDtuClass::onDtuAdminPost(AsyncWebServerRequest* request)
         WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
         return;
     }
+#endif
 
     {
         auto guard = Configuration.getWriteGuard();
@@ -162,6 +208,8 @@ void WebApiDtuClass::onDtuAdminPost(AsyncWebServerRequest* request)
         config.Dtu.Cmt.PaLevel = root["cmt_palevel"].as<int8_t>();
         config.Dtu.Cmt.Frequency = root["cmt_frequency"].as<uint32_t>();
         config.Dtu.Cmt.CountryMode = root["cmt_country"].as<CountryModeId_t>();
+
+        config.DeyeSettings.UnknownInverterWrite = root["deye_unknown_device_write"].as<bool>();
     }
 
     WebApi.writeConfig(retMsg);

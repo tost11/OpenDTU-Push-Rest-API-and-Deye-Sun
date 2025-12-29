@@ -1,0 +1,130 @@
+#include "DeyeSun.h"
+#include "inverters/DeyeInverter.h"
+#include "inverters/AT_DS_1CH.h"
+#include "inverters/AT_DS_2CH.h"
+#include "inverters/CMOD_DS_1CH.h"
+#include "inverters/CMOD_DS_2CH.h"
+
+DeyeSunClass DeyeSun;
+
+DeyeSunClass::DeyeSunClass():
+_inverters(*reinterpret_cast<std::vector<std::shared_ptr<DeyeInverter>>*>(&_baseInverters)){
+
+}
+
+void DeyeSunClass::loop()
+{
+    std::lock_guard<std::mutex> lock(_mutex);
+    if (getNumInverters() > 0) {
+        for(size_t pos = 0; pos <= getNumInverters(); pos++){
+            auto inv = getInverterByPos(pos);
+            if(inv == nullptr){
+                continue;
+            }
+
+            if (inv->getZeroValuesIfUnreachable() && !inv->isReachable()) {
+                inv->getStatistics()->zeroRuntimeData();
+            }
+
+            if (inv->getEnablePolling() || inv->getEnableCommands()) {
+                inv->update();
+            }
+        }
+    }
+
+    performHouseKeeping();
+}
+
+std::shared_ptr<DeyeInverter> DeyeSunClass::addInverter(const char* name, uint64_t serial,const char* hostnameOrIp,uint16_t port,deye_inverter_type deyeInverterType,const char * username, const char * password)
+{
+    std::shared_ptr<DeyeInverter> i;
+
+    String type = DeyeInverter::serialToModel(serial);
+
+    if(deyeInverterType == deye_inverter_type::Deye_Sun_Custom_Modbus){
+        if(type.startsWith("SUN300G3")){
+            i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<CMOD_DS_1CH>(serial,type));
+        }else{
+            i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<CMOD_DS_2CH>(serial,type));
+        }
+    }else{//eveything else at commands inverter
+        if(type.startsWith("SUN300G3")){
+            i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<AT_DS_1CH>(serial,type));
+        }else{
+            i = std::reinterpret_pointer_cast<DeyeInverter>(std::make_shared<AT_DS_2CH>(serial,type));
+        }
+    }
+
+    i->setName(name);
+    i->setHostnameOrIpOrMacAndPort(hostnameOrIp,port);
+    i->setUsernameAndPassword(username,password);
+    _inverters.push_back(i);
+
+    return i;
+}
+
+std::shared_ptr<DeyeInverter> DeyeSunClass::getInverterByPos(uint8_t pos)
+{
+    if (pos >= _inverters.size()) {
+        return nullptr;
+    } else {
+        return _inverters[pos];
+    }
+}
+
+std::shared_ptr<DeyeInverter> DeyeSunClass::getInverterBySerial(uint64_t serial)
+{
+    for (uint8_t i = 0; i < _inverters.size(); i++) {
+        if (_inverters[i]->serial() == serial) {
+            return _inverters[i];
+        }
+    }
+    return nullptr;
+}
+
+std::shared_ptr<DeyeInverter> DeyeSunClass::getInverterBySerialString(const String & serial)
+{
+    for (uint8_t i = 0; i < _inverters.size(); i++) {
+        if (_inverters[i]->serialString() == serial) {
+            return _inverters[i];
+        }
+    }
+    return nullptr;
+}
+
+void DeyeSunClass::removeInverterBySerial(uint64_t serial)
+{
+    for (uint8_t i = 0; i < _inverters.size(); i++) {
+        if (_inverters[i]->serial() == serial) {
+            std::lock_guard<std::mutex> lock(_mutex);
+            _inverters.erase(_inverters.begin() + i);
+            return;
+        }
+    }
+}
+
+size_t DeyeSunClass::getNumInverters() const
+{
+    return _inverters.size();
+}
+
+
+bool DeyeSunClass::isAllRadioIdle() const
+{
+    //TODO
+    return true;
+}
+
+
+void DeyeSunClass::init() {
+
+}
+
+void DeyeSunClass::setUnknownDevicesWriteEnable(bool enabled) {
+    _unknownDeviceWriteEnabled = enabled;
+}
+
+bool DeyeSunClass::getUnknownDevicesWriteEnable() const {
+    return _unknownDeviceWriteEnabled;
+}
+

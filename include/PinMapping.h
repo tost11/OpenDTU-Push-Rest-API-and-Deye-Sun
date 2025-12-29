@@ -51,6 +51,8 @@ struct PinMapping_t {
     gpio_num_t display_reset;
 
     gpio_num_t led[PINMAPPING_LED_COUNT];
+
+    uint8_t servo_pwm;
 };
 
 class PinMappingClass {

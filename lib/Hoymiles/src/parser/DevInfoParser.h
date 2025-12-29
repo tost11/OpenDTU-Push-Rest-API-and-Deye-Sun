@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
-#include "Parser.h"
+
+#include <Parser.h>
+#include <parser/BaseDevInfo.h>
 
 #define DEV_INFO_SIZE 20
 
-class DevInfoParser : public Parser {
+class DevInfoParser : public Parser, public BaseDevInfo {
 public:
     DevInfoParser();
     void clearBufferAll();
@@ -13,22 +15,22 @@ public:
     void clearBufferSimple();
     void appendFragmentSimple(const uint8_t offset, const uint8_t* payload, const uint8_t len);
 
-    uint32_t getLastUpdateAll() const;
-    void setLastUpdateAll(const uint32_t lastUpdate);
+    uint32_t getLastUpdateAll() const override;
+    void setLastUpdateAll(const uint32_t lastUpdate) override;
 
-    uint32_t getLastUpdateSimple() const;
-    void setLastUpdateSimple(const uint32_t lastUpdate);
+    uint32_t getLastUpdateSimple() const override;
+    void setLastUpdateSimple(const uint32_t lastUpdate) override;
 
-    uint16_t getFwBuildVersion() const;
-    time_t getFwBuildDateTime() const;
-    String getFwBuildDateTimeStr() const;
-    uint16_t getFwBootloaderVersion() const;
+    uint16_t getFwBuildVersion() const override;
+    time_t getFwBuildDateTime() const override;
+    String getFwBuildDateTimeStr() const override;
+    uint16_t getFwBootloaderVersion() const override;
 
-    uint32_t getHwPartNumber() const;
-    String getHwVersion() const;
+    uint32_t getHwPartNumber() const override;
+    String getHwVersion() const override;
 
-    uint16_t getMaxPower() const;
-    String getHwModelName() const;
+    uint16_t getMaxPower() const override;
+    String getHwModelName() const override;
 
     bool containsValidData() const;
 

@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
- * Copyright (C) 2022-2025 Thomas Basler and others
+ * Copyright (C) 2022 - 2024 Thomas Basler and others
  */
 
 #include "Utils.h"
+#include <MessageOutput.h>
 #include "PinMapping.h"
 #include <LittleFS.h>
 #include <MD5Builder.h>
-
-#undef TAG
-static const char* TAG = "utils";
 
 uint32_t Utils::getChipId()
 {
@@ -63,7 +61,7 @@ int Utils::getTimezoneOffset()
 bool Utils::checkJsonAlloc(const JsonDocument& doc, const char* function, const uint16_t line)
 {
     if (doc.overflowed()) {
-        ESP_LOGE(TAG, "Alloc failed: %s, %" PRIu16 "", function, line);
+        ESP_LOGD("generic","Alloc failed: %s, %" PRId16 "\r\n", function, line);
         return false;
     }
 

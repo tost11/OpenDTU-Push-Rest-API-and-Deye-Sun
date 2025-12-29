@@ -4,6 +4,7 @@
  */
 #include "NetworkSettings.h"
 #include "Configuration.h"
+#include <MessageOutput.h>
 #include "SyslogLogger.h"
 #include "PinMapping.h"
 #include "Utils.h"
@@ -11,6 +12,8 @@
 #include "defaults.h"
 #include <ESPmDNS.h>
 #include <ETH.h>
+#include <unordered_set>
+#include "esp_wifi.h"
 
 #undef TAG
 static const char* TAG = "network";
@@ -21,6 +24,7 @@ NetworkSettingsClass::NetworkSettingsClass()
     , _apNetmask(255, 255, 255, 0)
     , _dnsServer(std::make_unique<DNSServer>())
 {
+    _checkZeroIpTimout.set(10*1000);
 }
 
 void NetworkSettingsClass::init(Scheduler& scheduler)
@@ -104,7 +108,7 @@ void NetworkSettingsClass::NetworkEvent(const WiFiEvent_t event, WiFiEventInfo_t
     case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
         // Reason codes can be found here: https://github.com/espressif/esp-idf/blob/5454d37d496a8c58542eb450467471404c606501/components/esp_wifi/include/esp_wifi_types_generic.h#L79-L141
         ESP_LOGW(TAG, "WiFi disconnected: %" PRIu8 "", info.wifi_sta_disconnected.reason);
-        if (_networkMode == network_mode::WiFi) {
+        if (_networkMode == network_mode::WiFi && strcmp(Configuration.get().WiFi.Ssid, "") != 0) {
             ESP_LOGI(TAG, "Try reconnecting");
             _lastReconnectAttempt = millis();
             WiFi.disconnect(true, false);
@@ -230,8 +234,94 @@ String NetworkSettingsClass::getApName() const
     return String(ACCESS_POINT_NAME + String(Utils::getChipId()));
 }
 
+extern "C" {
+#include "esp_wifi.h"
+#include "esp_log.h"
+#include "esp_private/wifi.h"  // ← Nicht offiziell dokumentiert
+}
+
 void NetworkSettingsClass::loop()
 {
+
+    auto ret = std::make_unique<std::unordered_map<std::string,std::string>>();
+    if(_checkZeroIpTimout.occured()){
+        ESP_LOGD(TAG, "Look for client zero to kick");
+        _checkZeroIpTimout.reset();
+        //collectmore wifi info
+        wifi_sta_list_t wifi_sta_list;
+        tcpip_adapter_sta_list_t adapter_sta_list;
+
+        memset(&wifi_sta_list, 0, sizeof(wifi_sta_list));
+        memset(&adapter_sta_list, 0, sizeof(adapter_sta_list));
+
+        esp_wifi_ap_get_sta_list(&wifi_sta_list);
+        tcpip_adapter_get_sta_list(&wifi_sta_list, &adapter_sta_list);
+
+        char macBuff[18];
+
+        std::unordered_set<std::string> macsZero;
+
+        for (int i = 0; i < adapter_sta_list.num; i++) {
+
+            const tcpip_adapter_sta_info_t station = adapter_sta_list.sta[i];
+
+            if (station.ip.addr == 0) {
+                //ip is zero means 0.0.0.0
+                ESP_LOGD(TAG, "Found client with zero ip");
+
+                macBuff[17] = '\0';
+                for (int i = 0; i < 6; i++) {
+                    sprintf(macBuff + i * 3, "%02X", station.mac[i]);
+                    if (i < 5) {
+                        sprintf(macBuff + 2 + i * 3, ":");
+                    }
+                }
+
+                std::string mac{macBuff};
+                bool emplace = true;
+
+                auto it = _clients_without_ip_kick_timer.find(mac);
+                if (it == _clients_without_ip_kick_timer.end()) {
+                    _clients_without_ip_kick_timer.emplace(mac, TimeoutHelper(1000 * 6 * 3));//three minutes
+                }else {
+                    ESP_LOGD(TAG, "Zero client already known");
+
+                    if (it->second.occured()) {
+                        ESP_LOGI(TAG, "Connected client with mac %s has zero ip to long -> kick\n", macBuff);
+
+                        uint16_t aid;
+                        esp_err_t result = esp_wifi_ap_get_sta_aid(station.mac, &aid);
+                        if (result == ESP_OK) {
+                            result = esp_wifi_deauth_sta(aid);
+                            if (result == ESP_OK) {
+                                ESP_LOGI(TAG, "Client with zero ip kicked");
+                                emplace = false;
+                            } else {
+                                ESP_LOGI(TAG, "Could not kick client with zero ip");
+                            }
+                        } else {
+                            ESP_LOGI(TAG, "Could not get client aid of mac");
+                        }
+                    }
+                }
+                if(emplace){
+                    macsZero.emplace(mac);
+                }
+            }
+        }
+
+        auto it = _clients_without_ip_kick_timer.begin();
+        while (it != _clients_without_ip_kick_timer.end()){
+            if(macsZero.find(it->first) == macsZero.end()){
+                ESP_LOGD(TAG, "Removed client from zero map with mac: %s\n",it->first.c_str());
+                it = _clients_without_ip_kick_timer.erase(it);
+            }else {
+                it++;
+            }
+        }
+
+    }
+
     if (_ethConnected) {
         if (_networkMode != network_mode::Ethernet) {
             // Do stuff when switching to Ethernet mode
@@ -328,11 +418,20 @@ void NetworkSettingsClass::applyConfig()
 
     bool success = false;
     if (newCredentials) {
-        success = WiFi.begin(
+        if (strcmp(config.Ssid, "") == 0) {
+            ESP_LOGI(TAG, "disconnect wifi... ");
+            success = WiFi.disconnect(true, false);
+        }else{
+            success = WiFi.begin(
             config.Ssid,
             config.Password) != WL_CONNECT_FAILED;
+        }
     } else {
-        success = WiFi.begin() != WL_CONNECT_FAILED;
+        if (strcmp(config.Ssid, "") != 0) {
+            success = WiFi.begin() != WL_CONNECT_FAILED;
+        }else{
+            success = true;
+        }
     }
 
     ESP_LOG_LEVEL_LOCAL((success ? ESP_LOG_INFO : ESP_LOG_ERROR), TAG, "Configuring WiFi %s", success ? "done" : "failed");

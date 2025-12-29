@@ -8,16 +8,24 @@ export interface Inverter {
     id: string;
     serial: string;
     name: string;
+    hostname_or_ip: string;
+    port: number;
     type: string;
+    manufacturer: string;
     order: number;
     poll_enable: boolean;
     poll_enable_night: boolean;
     command_enable: boolean;
     command_enable_night: boolean;
     reachable_threshold: number;
+    poll_time: number;
     zero_runtime: boolean;
     zero_day: boolean;
     clear_eventlog: boolean;
     yieldday_correction: boolean;
+    deye_sun_offline_yieldday_correction: boolean;
     channel: Array<InverterChannel>;
+    deye_type: number;
+    username: string;
+    password: string;
 }

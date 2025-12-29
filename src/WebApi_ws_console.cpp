@@ -8,6 +8,8 @@
 #include "WebApi.h"
 #include "defaults.h"
 
+#include <MessageOutput.h>
+
 WebApiWsConsoleClass::WebApiWsConsoleClass()
     : _ws("/console")
     , _wsCleanupTask(1 * TASK_SECOND, TASK_FOREVER, std::bind(&WebApiWsConsoleClass::wsCleanupTaskCb, this))
@@ -16,6 +18,8 @@ WebApiWsConsoleClass::WebApiWsConsoleClass()
 
 void WebApiWsConsoleClass::init(AsyncWebServer& server, Scheduler& scheduler)
 {
+    using std::placeholders::_1;
+
     server.addHandler(&_ws);
     MessageOutput.register_ws_output(&_ws);
 

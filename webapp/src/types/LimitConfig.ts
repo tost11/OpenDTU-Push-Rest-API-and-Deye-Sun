@@ -9,5 +9,6 @@ export enum LimitType {
 export interface LimitConfig {
     serial: string;
     limit_value: number;
+    manufacturer: String;
     limit_type: LimitType;
 }

@@ -4,6 +4,7 @@
  */
 #include "MqttSettings.h"
 #include "Configuration.h"
+#include <MessageOutput.h>
 #include <frozen/map.h>
 #include <frozen/string.h>
 

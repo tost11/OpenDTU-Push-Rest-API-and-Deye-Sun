@@ -8,6 +8,7 @@ export interface CountryDef {
 
 export interface DtuConfig {
     serial: string;
+    manufacturers: string[];
     pollinterval: number;
     nrf_enabled: boolean;
     nrf_palevel: number;
@@ -17,4 +18,5 @@ export interface DtuConfig {
     cmt_country: number;
     country_def: Array<CountryDef>;
     cmt_chan_width: number;
+    deye_unknown_device_write: boolean;
 }

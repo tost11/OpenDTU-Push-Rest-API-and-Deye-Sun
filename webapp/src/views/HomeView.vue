@@ -108,7 +108,7 @@
                                         :disabled="!isLogged"
                                         type="button"
                                         class="btn btn-sm btn-danger"
-                                        @click="onShowLimitSettings(inverter.serial)"
+                                        @click="onShowLimitSettings(inverter.serial,inverter.manufacturer)"
                                         v-tooltip
                                         :title="$t('home.ShowSetInverterLimit')"
                                     >
@@ -121,7 +121,7 @@
                                         :disabled="!isLogged"
                                         type="button"
                                         class="btn btn-sm btn-danger"
-                                        @click="onShowPowerSettings(inverter.serial)"
+                                        @click="onShowPowerSettings(inverter.serial,inverter.manufacturer)"
                                         v-tooltip
                                         :title="$t('home.TurnOnOff')"
                                     >
@@ -133,7 +133,7 @@
                                     <button
                                         type="button"
                                         class="btn btn-sm btn-info"
-                                        @click="onShowDevInfo(inverter.serial)"
+                                        @click="onShowDevInfo(inverter.serial,inverter.manufacturer)"
                                         v-tooltip
                                         :title="$t('home.ShowInverterInfo')"
                                     >
@@ -145,7 +145,7 @@
                                     <button
                                         type="button"
                                         class="btn btn-sm btn-info"
-                                        @click="onShowGridProfile(inverter.serial)"
+                                        @click="onShowGridProfile(inverter.serial,inverter.manufacturer)"
                                         v-tooltip
                                         :title="$t('home.ShowGridProfile')"
                                     >
@@ -158,7 +158,7 @@
                                         v-if="inverter.events >= 0"
                                         type="button"
                                         class="btn btn-sm btn-secondary position-relative"
-                                        @click="onShowEventlog(inverter.serial)"
+                                        @click="onShowEventlog(inverter.serial,inverter.manufacturer)"
                                         v-tooltip
                                         :title="$t('home.ShowEventlog')"
                                     >
@@ -222,7 +222,7 @@
                                 </div>
                             </BootstrapAlert>
 
-                            <div class="accordion mt-5" id="accordionRadioStats">
+                            <div v-if="inverter.radio_stats" class="accordion mt-5" id="accordionRadioStats">
                                 <div class="accordion-item accordion-table">
                                     <h2 class="accordion-header">
                                         <button
@@ -337,7 +337,333 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+
+                            <div v-if="inverter.connection_stats_hoymiles" class="accordion mt-5" id="accordionRadioStats">
+                              <div class="accordion-item accordion-table">
+                                <h2 class="accordion-header">
+                                  <button
+                                      class="accordion-button collapsed"
+                                      type="button"
+                                      data-bs-toggle="collapse"
+                                      data-bs-target="#collapseStats"
+                                      aria-expanded="true"
+                                      aria-controls="collapseStats"
+                                  >
+                                    <BIconBroadcast />&nbsp;{{ $t('home.ConnectionStats') }}
+                                  </button>
+                                </h2>
+                                <div
+                                    id="collapseStats"
+                                    class="accordion-collapse collapse"
+                                    data-bs-parent="#accordionRadioStats"
+                                >
+                                  <div class="accordion-body">
+                                    <table class="table table-striped table-hover">
+                                      <tbody>
+                                      <tr>
+                                        <td>{{ $t('home.SendRequests') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_hoymiles.send_requests) }}</td>
+                                        <td></td>
+                                      </tr>
+                                      <tr>
+                                        <td>{{ $t('home.ResponsesReceived') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_hoymiles.received_responses) }}</td>
+                                        <td>
+                                          {{
+                                            ratio(
+                                                inverter.connection_stats_hoymiles.received_responses,
+                                                inverter.connection_stats_hoymiles.send_requests
+                                            )
+                                          }}
+                                        </td>
+                                      </tr>
+                                      <tr>
+                                        <td>{{ $t('home.Disconnects') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_hoymiles.disconnects) }}</td>
+                                        <td></td>
+                                      </tr>
+                                      <tr>
+                                        <td>{{ $t('home.Timeouts') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_hoymiles.timeouts) }}</td>
+                                        <td></td>
+                                      </tr>
+                                      </tbody>
+                                    </table>
+                                    <div class="d-flex">
+                                      <button
+                                          :disabled="!isLogged || performRadioStatsReset"
+                                          type="button"
+                                          class="btn btn-danger ms-auto me-3 mt-3"
+                                          @click="onResetRadioStats(inverter.serial)"
+                                      >
+                                        <template v-if="!performRadioStatsReset">
+                                          <BIconArrowCounterclockwise />&nbsp;{{ $t('home.StatsReset') }}
+                                        </template>
+                                        <template v-else>
+                                                          <span
+                                                              class="spinner-border spinner-border-sm"
+                                                              aria-hidden="true"
+                                                          ></span>
+                                          <span role="status">&nbsp;{{ $t('home.StatsResetting') }}</span>
+                                        </template>
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div v-if="inverter.connection_stats_deye_at" class="accordion mt-5" id="accordionRadioStats">
+                              <div class="accordion-item accordion-table">
+                                <h2 class="accordion-header">
+                                  <button
+                                      class="accordion-button collapsed"
+                                      type="button"
+                                      data-bs-toggle="collapse"
+                                      data-bs-target="#collapseStats"
+                                      aria-expanded="true"
+                                      aria-controls="collapseStats"
+                                  >
+                                    <BIconBroadcast />&nbsp;{{ $t('home.ConnectionStats') }}
+                                  </button>
+                                </h2>
+                                <div
+                                    id="collapseStats"
+                                    class="accordion-collapse collapse"
+                                    data-bs-parent="#accordionRadioStats"
+                                >
+                                  <div class="accordion-body">
+                                    <table class="table table-striped table-hover">
+                                      <tbody>
+                                      <tr>
+                                        <td>{{ $t('home.Connects') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye_at.connects) }}</td>
+                                        <td></td>
+                                      </tr>
+                                      <tr>
+                                        <td>{{ $t('home.ConnectsFailed') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye_at.connects - inverter.connection_stats_deye_at.connects_successful) }}</td>
+                                        <td>
+                                          {{
+                                            ratio(
+                                                inverter.connection_stats_deye_at.connects - inverter.connection_stats_deye_at.connects_successful,
+                                                inverter.connection_stats_deye_at.connects
+                                            )
+                                          }}
+                                        </td>
+                                      </tr>
+
+                                      <tr>
+                                        <td>{{ $t('home.SendCommands') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye_at.send_commands) }}</td>
+                                        <td></td>
+                                      </tr>
+                                      <tr>
+                                        <td>{{ $t('home.ErrorCommands') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye_at.error_commands) }}</td>
+                                        <td>
+                                          {{
+                                            ratio(
+                                                inverter.connection_stats_deye_at.error_commands,
+                                                inverter.connection_stats_deye_at.send_commands
+                                            )
+                                          }}
+                                        </td>
+                                      </tr>
+                                      <tr>
+                                        <td>{{ $t('home.TimeoutCommands') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye_at.timout_commands) }}</td>
+                                        <td>
+                                          {{
+                                            ratio(
+                                                inverter.connection_stats_deye_at.timout_commands,
+                                                inverter.connection_stats_deye_at.send_commands
+                                            )
+                                          }}
+                                        </td>
+                                      </tr>
+
+                                      <tr>
+                                        <td>{{ $t('home.Heathchecks') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye_at.heath_checks) }}</td>
+                                        <td></td>
+                                      </tr>
+                                      <tr>
+                                        <td>{{ $t('home.HeathchecksFailed') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye_at.heath_checks-inverter.connection_stats_deye_at.heath_checks_successfully) }}</td>
+                                        <td>
+                                          {{
+                                            ratio(
+                                                inverter.connection_stats_deye_at.heath_checks-inverter.connection_stats_deye_at.heath_checks_successfully,
+                                                inverter.connection_stats_deye_at.heath_checks
+                                            )
+                                          }}
+                                        </td>
+                                      </tr>
+
+                                      <tr>
+                                        <td>{{ $t('home.ReadRequests') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye_at.read_requests) }}</td>
+                                        <td></td>
+                                      </tr>
+                                      <tr>
+                                        <td>{{ $t('home.ReadRequestsFailed') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye_at.read_requests-inverter.connection_stats_deye_at.read_requests_successfully) }}</td>
+                                        <td>
+                                          {{
+                                            ratio(
+                                                inverter.connection_stats_deye_at.read_requests-inverter.connection_stats_deye_at.read_requests_successfully,
+                                                inverter.connection_stats_deye_at.read_requests
+                                            )
+                                          }}
+                                        </td>
+                                      </tr>
+
+                                      <tr>
+                                        <td>{{ $t('home.WriteRequests') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye_at.write_requests) }}</td>
+                                        <td></td>
+                                      </tr>
+                                      <tr>
+                                        <td>{{ $t('home.WriteRequestsFailed') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye_at.write_requests-inverter.connection_stats_deye_at.write_requests_successfully) }}</td>
+                                        <td>
+                                          {{
+                                            ratio(
+                                                inverter.connection_stats_deye_at.write_requests-inverter.connection_stats_deye_at.write_requests_successfully,
+                                                inverter.connection_stats_deye_at.write_requests
+                                            )
+                                          }}
+                                        </td>
+                                      </tr>
+                                      </tbody>
+                                    </table>
+                                    <div class="d-flex">
+                                      <button
+                                          :disabled="!isLogged || performRadioStatsReset"
+                                          type="button"
+                                          class="btn btn-danger ms-auto me-3 mt-3"
+                                          @click="onResetRadioStats(inverter.serial)"
+                                      >
+                                        <template v-if="!performRadioStatsReset">
+                                          <BIconArrowCounterclockwise />&nbsp;{{ $t('home.StatsReset') }}
+                                        </template>
+                                        <template v-else>
+                                                          <span
+                                                              class="spinner-border spinner-border-sm"
+                                                              aria-hidden="true"
+                                                          ></span>
+                                          <span role="status">&nbsp;{{ $t('home.StatsResetting') }}</span>
+                                        </template>
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div v-if="inverter.connection_stats_deye_cust" class="accordion mt-5" id="accordionRadioStats">
+                            <div class="accordion-item accordion-table">
+                              <h2 class="accordion-header">
+                                <button
+                                    class="accordion-button collapsed"
+                                    type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#collapseStats"
+                                    aria-expanded="true"
+                                    aria-controls="collapseStats"
+                                >
+                                  <BIconBroadcast />&nbsp;{{ $t('home.ConnectionStats') }}
+                                </button>
+                              </h2>
+                              <div
+                                  id="collapseStats"
+                                  class="accordion-collapse collapse"
+                                  data-bs-parent="#accordionRadioStats"
+                              >
+                                <div class="accordion-body">
+                                  <table class="table table-striped table-hover">
+                                    <tbody>
+                                      <tr>
+                                        <td>{{ $t('home.Connects') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye_cust.connects) }}</td>
+                                        <td></td>
+                                      </tr>
+                                      <tr>
+                                        <td>{{ $t('home.ConnectsFailed') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye_cust.connects - inverter.connection_stats_deye_cust.connects_successful) }}</td>
+                                        <td>
+                                          {{
+                                            ratio(
+                                                inverter.connection_stats_deye_cust.connects - inverter.connection_stats_deye_cust.connects_successful,
+                                                inverter.connection_stats_deye_cust.connects
+                                            )
+                                          }}
+                                        </td>
+                                      </tr>
+
+                                      <tr>
+                                        <td>{{ $t('home.ReadRequests') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye_cust.read_requests) }}</td>
+                                        <td></td>
+                                      </tr>
+                                      <tr>
+                                        <td>{{ $t('home.ReadRequestsFailed') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye_cust.read_requests-inverter.connection_stats_deye_cust.read_requests_successfully) }}</td>
+                                        <td>
+                                          {{
+                                            ratio(
+                                                inverter.connection_stats_deye_cust.read_requests-inverter.connection_stats_deye_cust.read_requests_successfully,
+                                                inverter.connection_stats_deye_cust.read_requests
+                                            )
+                                          }}
+                                        </td>
+                                      </tr>
+
+                                      <tr>
+                                        <td>{{ $t('home.WriteRequests') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye_cust.write_requests) }}</td>
+                                        <td></td>
+                                      </tr>
+                                      <tr>
+                                        <td>{{ $t('home.WriteRequestsFailed') }}</td>
+                                        <td>{{ $n(inverter.connection_stats_deye_cust.write_requests-inverter.connection_stats_deye_cust.write_requests_successfully) }}</td>
+                                        <td>
+                                          {{
+                                            ratio(
+                                                inverter.connection_stats_deye_cust.write_requests-inverter.connection_stats_deye_cust.write_requests_successfully,
+                                                inverter.connection_stats_deye_cust.write_requests
+                                            )
+                                          }}
+                                        </td>
+                                      </tr>
+                                    </tbody>
+                                  </table>
+                                  <div class="d-flex">
+                                    <button
+                                        :disabled="!isLogged || performRadioStatsReset"
+                                        type="button"
+                                        class="btn btn-danger ms-auto me-3 mt-3"
+                                        @click="onResetRadioStats(inverter.serial)"
+                                    >
+                                      <template v-if="!performRadioStatsReset">
+                                        <BIconArrowCounterclockwise />&nbsp;{{ $t('home.StatsReset') }}
+                                      </template>
+                                      <template v-else>
+                                                          <span
+                                                              class="spinner-border spinner-border-sm"
+                                                              aria-hidden="true"
+                                                          ></span>
+                                        <span role="status">&nbsp;{{ $t('home.StatsResetting') }}</span>
+                                      </template>
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          </div>
                     </div>
                 </div>
             </div>
@@ -455,7 +781,7 @@
                 {{ $t('home.SetPersistent') }}
             </button>
 
-            <button type="button" class="btn btn-danger" @click="onSetLimitSettings(false)">
+            <button v-if="targetLimitList.manufacturer!='DeyeSun' && targetLimitList.manufacturer!='HoymilesW'" type="button" class="btn btn-danger" @click="onSetLimitSettings(false)">
                 {{ $t('home.SetNonPersistent') }}
             </button>
         </template>
@@ -594,6 +920,7 @@ export default defineComponent({
 
             powerSettingView: {} as bootstrap.Modal,
             powerSettingSerial: '',
+            powerManufacturer: '',
             powerSettingLoading: true,
             alertMessagePower: '',
             alertTypePower: 'info',
@@ -778,9 +1105,9 @@ export default defineComponent({
             }
             this.isFirstFetchAfterConnect = true;
         },
-        onShowEventlog(serial: string) {
+        onShowEventlog(serial: string,manufacturer: string) {
             this.eventLogLoading = true;
-            fetch('/api/eventlog/status?inv=' + serial + '&locale=' + this.$i18n.locale, {
+            fetch('/api/eventlog/status?inv=' + serial + '&locale=' + this.$i18n.locale + '&manufacturer=' + manufacturer, {
                 headers: authHeader(),
             })
                 .then((response) => handleResponse(response, this.$emitter, this.$router))
@@ -791,21 +1118,22 @@ export default defineComponent({
 
             this.eventLogView.show();
         },
-        onShowDevInfo(serial: string) {
+        onShowDevInfo(serial: string,manufacturer: string) {
             this.devInfoLoading = true;
-            fetch('/api/devinfo/status?inv=' + serial, { headers: authHeader() })
+            fetch('/api/devinfo/status?inv=' + serial + '&manufacturer=' + manufacturer, { headers: authHeader() })
                 .then((response) => handleResponse(response, this.$emitter, this.$router))
                 .then((data) => {
                     this.devInfoList = data;
                     this.devInfoList.serial = serial;
+                    this.devInfoList.manufacturer = manufacturer;
                     this.devInfoLoading = false;
                 });
 
             this.devInfoView.show();
         },
-        onShowGridProfile(serial: string) {
+        onShowGridProfile(serial: string,manufacturer: string) {
             this.gridProfileLoading = true;
-            fetch('/api/gridprofile/status?inv=' + serial, { headers: authHeader() })
+            fetch('/api/gridprofile/status?inv=' + serial + '&manufacturer=' + manufacturer, { headers: authHeader() })
                 .then((response) => handleResponse(response, this.$emitter, this.$router))
                 .then((data) => {
                     this.gridProfileList = data;
@@ -820,11 +1148,12 @@ export default defineComponent({
 
             this.gridProfileView.show();
         },
-        onShowLimitSettings(serial: string) {
+        onShowLimitSettings(serial: string,manufacturer: string) {
             this.showAlertLimit = false;
             this.targetLimitList.serial = '';
             this.targetLimitList.limit_value = 0;
             this.onSelectType(true);
+            this.targetLimitList.manufacturer = manufacturer;
 
             this.limitSettingLoading = true;
             fetch('/api/limit/status', { headers: authHeader() })
@@ -893,7 +1222,7 @@ export default defineComponent({
             this.targetLimitRelative = isRelative;
         },
 
-        onShowPowerSettings(serial: string) {
+        onShowPowerSettings(serial: string,manufacturer: string) {
             this.showAlertPower = false;
             this.powerSettingSerial = '';
             this.powerSettingLoading = true;
@@ -904,6 +1233,7 @@ export default defineComponent({
                     this.powerSettingSerial = serial;
                     this.powerSettingLoading = false;
                 });
+            this.powerManufacturer = manufacturer;
             this.powerSettingView.show();
         },
 
@@ -912,11 +1242,13 @@ export default defineComponent({
             if (restart) {
                 data = {
                     serial: this.powerSettingSerial,
+                    manufacturer: this.powerManufacturer,
                     restart: true,
                 };
             } else {
                 data = {
                     serial: this.powerSettingSerial,
+                    manufacturer: this.powerManufacturer,
                     power: turnOn,
                 };
             }

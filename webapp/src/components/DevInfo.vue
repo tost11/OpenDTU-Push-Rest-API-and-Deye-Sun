@@ -9,11 +9,11 @@
                 <td>{{ $t('devinfo.Serial') }}</td>
                 <td>{{ devInfoList.serial }}</td>
             </tr>
-            <tr>
+            <tr v-if="devInfoList.manufacturer=='Hoymiles'">
                 <td>{{ $t('devinfo.ProdYear') }}</td>
                 <td>{{ productionYear() }}</td>
             </tr>
-            <tr>
+            <tr v-if="devInfoList.manufacturer=='Hoymiles'">
                 <td>{{ $t('devinfo.ProdWeek') }}</td>
                 <td>{{ productionWeek() }}</td>
             </tr>
@@ -26,24 +26,25 @@
                 <td>{{ $t('devinfo.DetectedMaxPower') }}</td>
                 <td>{{ $n(devInfoList.max_power, 'decimal') }} W</td>
             </tr>
-            <tr>
+            <tr v-if="devInfoList.manufacturer=='Hoymiles'">
                 <td>{{ $t('devinfo.BootloaderVersion') }}</td>
                 <td>{{ formatVersion(devInfoList.fw_bootloader_version) }}</td>
             </tr>
-            <tr>
+            <tr v-if="devInfoList.manufacturer=='Hoymiles'">
                 <td>{{ $t('devinfo.FirmwareVersion') }}</td>
                 <td>{{ formatVersion(devInfoList.fw_build_version) }}</td>
             </tr>
-            <tr>
+            <tr v-if="devInfoList.manufacturer=='Hoymiles'">
                 <td>{{ $t('devinfo.FirmwareBuildDate') }}</td>
                 <td>{{ devInfoList.fw_build_datetime }}</td>
             </tr>
-            <tr>
+            <tr v-if="devInfoList.manufacturer=='Hoymiles'">
                 <td>{{ $t('devinfo.HardwarePartNumber') }}</td>
                 <td>{{ devInfoList.hw_part_number }}</td>
             </tr>
             <tr>
-                <td>{{ $t('devinfo.HardwareVersion') }}</td>
+                <td v-if="devInfoList.manufacturer=='Hoymiles'">{{ $t('devinfo.HardwareVersion') }}</td>
+                <td v-else>{{ $t('devinfo.FirmwareVersion') }}</td>
                 <td>{{ devInfoList.hw_version }}</td>
             </tr>
             <tr>

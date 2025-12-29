@@ -12,6 +12,8 @@
         <InterfaceNetworkInfo :networkStatus="networkDataList" />
         <div class="mt-5"></div>
         <InterfaceApInfo :networkStatus="networkDataList" />
+        <div class="mt-5"></div>        
+        <WifiStationDevices :networkStatus="networkDataList" />
         <div class="mt-5"></div>
     </BasePage>
 </template>
@@ -21,6 +23,7 @@ import BasePage from '@/components/BasePage.vue';
 import InterfaceApInfo from '@/components/InterfaceApInfo.vue';
 import InterfaceNetworkInfo from '@/components/InterfaceNetworkInfo.vue';
 import WifiApInfo from '@/components/WifiApInfo.vue';
+import WifiStationDevices from '@/components/WifiStationDevices.vue';
 import WifiStationInfo from '@/components/WifiStationInfo.vue';
 import type { NetworkStatus } from '@/types/NetworkStatus';
 import { authHeader, handleResponse } from '@/utils/authentication';
@@ -33,6 +36,7 @@ export default defineComponent({
         InterfaceNetworkInfo,
         WifiApInfo,
         WifiStationInfo,
+        WifiStationDevices
     },
     data() {
         return {

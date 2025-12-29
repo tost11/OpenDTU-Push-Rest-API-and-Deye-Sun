@@ -4,6 +4,9 @@
 #include "PinMapping.h"
 #include <TaskSchedulerDeclarations.h>
 #include <condition_variable>
+#include <WString.h>
+#include "defines.h"
+#include "inverters/DeyeInverter.h"
 #include <cstdint>
 #include <mutex>
 
@@ -20,6 +23,10 @@
 #define NTP_MAX_TIMEZONE_STRLEN 50
 #define NTP_MAX_TIMEZONEDESCR_STRLEN 50
 
+#define TOST_MAX_URL_STRLEN 128
+#define TOST_MAX_SYSTEM_ID_STRLEN 64
+#define TOST_MAX_TOKEN_STRLEN 64
+
 #define MQTT_MAX_HOSTNAME_STRLEN 128
 #define MQTT_MAX_CLIENTID_STRLEN 64
 #define MQTT_MAX_USERNAME_STRLEN 64
@@ -31,6 +38,9 @@
 #define INV_MAX_NAME_STRLEN 31
 #define INV_MAX_COUNT 10
 #define INV_MAX_CHAN_COUNT 6
+#define INV_MAX_HOSTNAME_STRLEN 31
+#define INV_MAX_USERNAME_STRLEN 31
+#define INV_MAX_PASSWORD_STRLEN 63
 
 #define CHAN_MAX_NAME_STRLEN 31
 
@@ -47,19 +57,27 @@ struct CHANNEL_CONFIG_T {
 };
 
 struct INVERTER_CONFIG_T {
+    inverter_type Type;
     uint64_t Serial;
     char Name[INV_MAX_NAME_STRLEN + 1];
+    char HostnameOrIp[INV_MAX_HOSTNAME_STRLEN + 1];
+    uint16_t Port;
+    char Username[INV_MAX_USERNAME_STRLEN + 1];
+    char Password[INV_MAX_PASSWORD_STRLEN + 1];
     uint8_t Order;
     bool Poll_Enable;
     bool Poll_Enable_Night;
     bool Command_Enable;
     bool Command_Enable_Night;
     uint8_t ReachableThreshold;
+    uint16_t PollTime;
     bool ZeroRuntimeDataIfUnrechable;
     bool ZeroYieldDayOnMidnight;
     bool ClearEventlogOnMidnight;
     bool YieldDayCorrection;
+    bool DeyeSunOfflineYieldDayCorrection;
     CHANNEL_CONFIG_T channel[INV_MAX_CHAN_COUNT];
+    int32_t MoreInverterInfo;
 };
 
 struct CONFIG_T {
@@ -98,7 +116,17 @@ struct CONFIG_T {
         double Longitude;
         double Latitude;
         uint8_t SunsetType;
+        uint32_t StartupDate;
     } Ntp;
+
+    struct{
+        bool Enabled;
+        uint Duration;
+        char SystemId[TOST_MAX_SYSTEM_ID_STRLEN + 1];
+        char Token[TOST_MAX_TOKEN_STRLEN + 1];
+        char Url[TOST_MAX_URL_STRLEN + 1];
+        char SecondUrl[TOST_MAX_URL_STRLEN + 1];
+    } Tost;
 
     struct {
         bool Enabled;
@@ -150,6 +178,10 @@ struct CONFIG_T {
     } Dtu;
 
     struct {
+        bool UnknownInverterWrite;
+    } DeyeSettings;
+
+    struct {
         char Password[WIFI_MAX_PASSWORD_STRLEN + 1];
         bool AllowReadonly;
     } Security;
@@ -169,6 +201,17 @@ struct CONFIG_T {
     struct {
         uint8_t Brightness;
     } Led_Single[PINMAPPING_LED_COUNT];
+
+    struct {
+        uint8_t Frequency;
+        uint8_t Resolution;
+        uint8_t RangeMin;
+        uint8_t RangeMax;
+        //uint8_t Pin;
+        uint64_t Serial;
+        uint8_t InputIndex;
+        uint16_t Power;
+    } Servo;
 
     INVERTER_CONFIG_T Inverter[INV_MAX_COUNT];
     char Dev_PinMapping[DEV_MAX_MAPPING_NAME_STRLEN + 1];

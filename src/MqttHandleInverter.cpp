@@ -3,8 +3,15 @@
  * Copyright (C) 2022-2025 Thomas Basler and others
  */
 #include "MqttHandleInverter.h"
+#include <MessageOutput.h>
 #include "MqttSettings.h"
+#include "InverterHandler.h"
 #include <ctime>
+#include "inverters/InverterAbstract.h"
+
+#ifdef HOYMILES
+#include <inverters/InverterAbstract.h>
+#endif
 
 #undef TAG
 static const char* TAG = "mqtt";
@@ -31,72 +38,76 @@ void MqttHandleInverterClass::loop()
 {
     _loopTask.setInterval(Configuration.get().Mqtt.PublishInterval * TASK_SECOND);
 
-    if (!MqttSettings.getConnected() || !Hoymiles.isAllRadioIdle()) {
+    if (!MqttSettings.getConnected() || !InverterHandler.isAllRadioIdle()) {
         _loopTask.forceNextIteration();
         return;
     }
 
     // Loop all inverters
-    for (uint8_t i = 0; i < Hoymiles.getNumInverters(); i++) {
-        auto inv = Hoymiles.getInverterByPos(i);
+    for (uint8_t i = 0; i < InverterHandler.getNumInverters(); i++) {
+        auto inv = InverterHandler.getInverterByPos(i);
 
         const String subtopic = inv->serialString();
 
         // Name
         MqttSettings.publish(subtopic + "/name", inv->name());
 
-        // Radio Statistics
-        MqttSettings.publish(subtopic + "/radio/tx_request", String(inv->RadioStats.TxRequestData));
-        MqttSettings.publish(subtopic + "/radio/tx_re_request", String(inv->RadioStats.TxReRequestFragment));
-        MqttSettings.publish(subtopic + "/radio/rx_success", String(inv->RadioStats.RxSuccess));
-        MqttSettings.publish(subtopic + "/radio/rx_fail_nothing", String(inv->RadioStats.RxFailNoAnswer));
-        MqttSettings.publish(subtopic + "/radio/rx_fail_partial", String(inv->RadioStats.RxFailPartialAnswer));
-        MqttSettings.publish(subtopic + "/radio/rx_fail_corrupt", String(inv->RadioStats.RxFailCorruptData));
-        MqttSettings.publish(subtopic + "/radio/rssi", String(inv->getLastRssi()));
-
-        if (inv->DevInfo()->getLastUpdate() > 0) {
-            // Bootloader Version
-            MqttSettings.publish(subtopic + "/device/bootloaderversion", String(inv->DevInfo()->getFwBootloaderVersion()));
-
-            // Firmware Version
-            MqttSettings.publish(subtopic + "/device/fwbuildversion", String(inv->DevInfo()->getFwBuildVersion()));
-
-            // Firmware Build DateTime
-            MqttSettings.publish(subtopic + "/device/fwbuilddatetime", inv->DevInfo()->getFwBuildDateTimeStr());
-
-            // Hardware part number
-            MqttSettings.publish(subtopic + "/device/hwpartnumber", String(inv->DevInfo()->getHwPartNumber()));
-
-            // Hardware version
-            MqttSettings.publish(subtopic + "/device/hwversion", inv->DevInfo()->getHwVersion());
+        if(inv->getInverterType() == inverter_type::Inverter_Hoymiles) {
+            auto hoy = (InverterAbstract*)inv.get();
+            // Radio Statistics
+            MqttSettings.publish(subtopic + "/radio/tx_request", String(hoy->RadioStats.TxRequestData));
+            MqttSettings.publish(subtopic + "/radio/tx_re_request", String(hoy->RadioStats.TxReRequestFragment));
+            MqttSettings.publish(subtopic + "/radio/rx_success", String(hoy->RadioStats.RxSuccess));
+            MqttSettings.publish(subtopic + "/radio/rx_fail_nothing", String(hoy->RadioStats.RxFailNoAnswer));
+            MqttSettings.publish(subtopic + "/radio/rx_fail_partial", String(hoy->RadioStats.RxFailPartialAnswer));
+            MqttSettings.publish(subtopic + "/radio/rx_fail_corrupt", String(hoy->RadioStats.RxFailCorruptData));
+            MqttSettings.publish(subtopic + "/radio/rssi", String(hoy->getLastRssi()));
         }
 
-        if (inv->SystemConfigPara()->getLastUpdate() > 0) {
-            // Limit
-            MqttSettings.publish(subtopic + "/status/limit_relative", String(inv->SystemConfigPara()->getLimitPercent()));
+        if (inv->getDevInfo()->getLastUpdate() > 0) {
+            // Bootloader Version
+            MqttSettings.publish(subtopic + "/device/bootloaderversion", String(inv->getDevInfo()->getFwBootloaderVersion()));
 
-            uint16_t maxpower = inv->DevInfo()->getMaxPower();
+            // Firmware Version
+            MqttSettings.publish(subtopic + "/device/fwbuildversion", String(inv->getDevInfo()->getFwBuildVersion()));
+
+            // Firmware Build DateTime
+            MqttSettings.publish(subtopic + "/device/fwbuilddatetime", inv->getDevInfo()->getFwBuildDateTimeStr());
+
+            // Hardware part number
+            MqttSettings.publish(subtopic + "/device/hwpartnumber", String(inv->getDevInfo()->getHwPartNumber()));
+
+            // Hardware version
+            MqttSettings.publish(subtopic + "/device/hwversion", inv->getDevInfo()->getHwVersion());
+        }
+
+        if (inv->getSystemConfigParaParser()->getLastUpdate() > 0) {
+            // Limit
+            MqttSettings.publish(subtopic + "/status/limit_relative", String(inv->getSystemConfigParaParser()->getLimitPercent()));
+
+            uint16_t maxpower = inv->getDevInfo()->getMaxPower();
             if (maxpower > 0) {
-                MqttSettings.publish(subtopic + "/status/limit_absolute", String(inv->SystemConfigPara()->getLimitPercent() * maxpower / 100));
+                MqttSettings.publish(subtopic + "/status/limit_absolute", String(inv->getSystemConfigParaParser()->getLimitPercent() * maxpower / 100));
             }
         }
 
         MqttSettings.publish(subtopic + "/status/reachable", String(inv->isReachable()));
         MqttSettings.publish(subtopic + "/status/producing", String(inv->isProducing()));
 
-        if (inv->Statistics()->getLastUpdate() > 0) {
-            MqttSettings.publish(subtopic + "/status/last_update", String(std::time(0) - (millis() - inv->Statistics()->getLastUpdate()) / 1000));
+        if (inv->getStatistics()->getLastUpdate() > 0) {
+            MqttSettings.publish(subtopic + "/status/last_update", String(std::time(0) - (millis() - inv->getStatistics()->getLastUpdate()) / 1000));
         } else {
             MqttSettings.publish(subtopic + "/status/last_update", String(0));
         }
 
-        const uint32_t lastUpdateInternal = inv->Statistics()->getLastUpdateFromInternal();
-        if (inv->Statistics()->getLastUpdate() > 0 && (lastUpdateInternal != _lastPublishStats[i])) {
+        //TODO find better way for deye chek
+        const uint32_t lastUpdateInternal = inv->getStatistics()->getLastUpdateFromInternal();
+        if (inv->getStatistics()->getLastUpdate() > 0 && ((inv->getInverterType() == Inverter_DeyeSun && inv->isReachable()) || lastUpdateInternal != _lastPublishStats[i])) {
             _lastPublishStats[i] = lastUpdateInternal;
 
             // Loop all channels
-            for (auto& t : inv->Statistics()->getChannelTypes()) {
-                for (auto& c : inv->Statistics()->getChannelsByType(t)) {
+            for (auto& t : inv->getStatistics()->getChannelTypes()) {
+                for (auto& c : inv->getStatistics()->getChannelsByType(t)) {
                     if (t == TYPE_DC) {
                         INVERTER_CONFIG_T* inv_cfg = Configuration.getInverterConfig(inv->serial());
                         if (inv_cfg != nullptr) {
@@ -115,19 +126,19 @@ void MqttHandleInverterClass::loop()
     }
 }
 
-void MqttHandleInverterClass::publishField(std::shared_ptr<InverterAbstract> inv, const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId)
+void MqttHandleInverterClass::publishField(std::shared_ptr<BaseInverterClass> inv, const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId)
 {
     const String topic = getTopic(inv, type, channel, fieldId);
     if (topic == "") {
         return;
     }
 
-    MqttSettings.publish(topic, inv->Statistics()->getChannelFieldValueString(type, channel, fieldId));
+    MqttSettings.publish(topic, inv->getStatistics()->getChannelFieldValueString(type, channel, fieldId));
 }
 
-String MqttHandleInverterClass::getTopic(std::shared_ptr<InverterAbstract> inv, const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId)
+String MqttHandleInverterClass::getTopic(std::shared_ptr<BaseInverterClass> inv, const ChannelType_t type, const ChannelNum_t channel, const FieldId_t fieldId)
 {
-    if (!inv->Statistics()->hasChannelFieldValue(type, channel, fieldId)) {
+    if (!inv->getStatistics()->hasChannelFieldValue(type, channel, fieldId)) {
         return "";
     }
 
@@ -135,7 +146,7 @@ String MqttHandleInverterClass::getTopic(std::shared_ptr<InverterAbstract> inv, 
     if (type == TYPE_INV && fieldId == FLD_PDC) {
         chanName = "powerdc";
     } else {
-        chanName = inv->Statistics()->getChannelFieldName(type, channel, fieldId);
+        chanName = inv->getStatistics()->getChannelFieldName(type, channel, fieldId);
         chanName.toLowerCase();
     }
 
@@ -168,7 +179,7 @@ void MqttHandleInverterClass::onMqttMessage(Topic t, const espMqttClientTypes::M
 
     const uint64_t serial = strtoull(serial_str, 0, 16);
 
-    auto inv = Hoymiles.getInverterBySerial(serial);
+    auto inv = InverterHandler.getInverterBySerial(serial);
 
     if (inv == nullptr) {
         ESP_LOGW(TAG, "Inverter not found");
@@ -238,7 +249,7 @@ void MqttHandleInverterClass::onMqttMessage(Topic t, const espMqttClientTypes::M
         // Reset RF Stats
         ESP_LOGI(TAG, "Reset RF stats");
         if (!properties.retain && payload_val == 1) {
-            inv->resetRadioStats();
+            inv.get()->resetStats();
         } else {
             ESP_LOGW(TAG, "Ignored because retained or numeric value not '1'");
         }
@@ -258,6 +269,7 @@ void MqttHandleInverterClass::subscribeTopics()
     };
 
     for (auto const& s : _subscriptions) {
+
         subscribe(s.first.data(), s.second);
     }
 }

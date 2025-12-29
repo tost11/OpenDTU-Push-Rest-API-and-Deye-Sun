@@ -6,6 +6,7 @@
 #include <TaskSchedulerDeclarations.h>
 #include <WiFi.h>
 #include <vector>
+#include <TimeoutHelper.h>
 
 enum class network_mode {
     WiFi,
@@ -88,6 +89,9 @@ private:
     std::vector<DtuNetworkEventCbList_t> _cbEventList;
     bool _lastMdnsEnabled = false;
     std::unique_ptr<W5500> _w5500;
+
+    std::unordered_map<std::string,TimeoutHelper> _clients_without_ip_kick_timer;
+    TimeoutHelper _checkZeroIpTimout;
 };
 
 extern NetworkSettingsClass NetworkSettings;

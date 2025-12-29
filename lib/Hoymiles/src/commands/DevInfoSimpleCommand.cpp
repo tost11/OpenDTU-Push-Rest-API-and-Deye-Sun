@@ -43,13 +43,13 @@ bool DevInfoSimpleCommand::handleResponse(const fragment_t fragment[], const uin
 
     // Move all fragments into target buffer
     uint8_t offs = 0;
-    _inv->DevInfo()->beginAppendFragment();
-    _inv->DevInfo()->clearBufferSimple();
+    _inv->getDevInfo()->beginAppendFragment();
+    _inv->getDevInfo()->clearBufferSimple();
     for (uint8_t i = 0; i < max_fragment_id; i++) {
-        _inv->DevInfo()->appendFragmentSimple(offs, fragment[i].fragment, fragment[i].len);
+        _inv->getDevInfo()->appendFragmentSimple(offs, fragment[i].fragment, fragment[i].len);
         offs += (fragment[i].len);
     }
-    _inv->DevInfo()->endAppendFragment();
-    _inv->DevInfo()->setLastUpdateSimple(millis());
+    _inv->getDevInfo()->endAppendFragment();
+    _inv->getDevInfo()->setLastUpdateSimple(millis());
     return true;
 }

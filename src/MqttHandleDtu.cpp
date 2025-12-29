@@ -6,8 +6,8 @@
 #include "Configuration.h"
 #include "MqttSettings.h"
 #include "NetworkSettings.h"
+#include <InverterHandler.h>
 #include <CpuTemperature.h>
-#include <Hoymiles.h>
 
 MqttHandleDtuClass MqttHandleDtu;
 
@@ -27,7 +27,7 @@ void MqttHandleDtuClass::loop()
 {
     _loopTask.setInterval(Configuration.get().Mqtt.PublishInterval * TASK_SECOND);
 
-    if (!MqttSettings.getConnected() || !Hoymiles.isAllRadioIdle()) {
+    if (!MqttSettings.getConnected() || !InverterHandler.isAllRadioIdle()) {
         _loopTask.forceNextIteration();
         return;
     }

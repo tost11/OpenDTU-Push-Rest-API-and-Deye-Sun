@@ -91,19 +91,19 @@ bool ActivePowerControlCommand::handleResponse(const fragment_t fragment[], cons
     }
 
     if ((getType() == PowerLimitControlType::RelativNonPersistent) || (getType() == PowerLimitControlType::RelativPersistent)) {
-        _inv->SystemConfigPara()->setLimitPercent(getLimit());
+        _inv->getSystemConfigParaParser()->setLimitPercent(getLimit());
     } else {
-        const uint16_t max_power = _inv->DevInfo()->getMaxPower();
+        const uint16_t max_power = _inv->getDevInfo()->getMaxPower();
         if (max_power > 0) {
-            _inv->SystemConfigPara()->setLimitPercent(static_cast<float>(getLimit()) / max_power * 100);
+            _inv->getSystemConfigParaParser()->setLimitPercent(static_cast<float>(getLimit()) / max_power * 100);
         } else {
             // TODO(tbnobody): Not implemented yet because we only can publish the percentage value
         }
     }
-    _inv->SystemConfigPara()->setLastUpdateCommand(millis());
+    _inv->getSystemConfigParaParser()->setLastUpdateCommand(millis());
     std::shared_ptr<ActivePowerControlCommand> cmd(std::shared_ptr<ActivePowerControlCommand>(), this);
     if (_inv->getRadio()->countSimilarCommands(cmd) == 1) {
-        _inv->SystemConfigPara()->setLastLimitCommandSuccess(CMD_OK);
+        _inv->getSystemConfigParaParser()->setLastLimitCommandSuccess(CMD_OK);
     }
     return true;
 }
@@ -148,5 +148,5 @@ uint32_t ActivePowerControlCommand::getControlTypeValue(ActivePowerControlDevice
 
 void ActivePowerControlCommand::gotTimeout()
 {
-    _inv->SystemConfigPara()->setLastLimitCommandSuccess(CMD_NOK);
+    _inv->getSystemConfigParaParser()->setLastLimitCommandSuccess(CMD_NOK);
 }

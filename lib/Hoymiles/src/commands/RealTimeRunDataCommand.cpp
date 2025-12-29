@@ -49,7 +49,7 @@ bool RealTimeRunDataCommand::handleResponse(const fragment_t fragment[], const u
     // In case of low power in the inverter it occours that some incomplete fragments
     // with a valid CRC are received.
     const uint8_t fragmentsSize = getTotalFragmentSize(fragment, max_fragment_id);
-    const uint8_t expectedSize = _inv->Statistics()->getExpectedByteCount();
+    const uint8_t expectedSize = _inv->getStatistics()->getExpectedByteCount();
     if (fragmentsSize < expectedSize) {
         ESP_LOGE(TAG, "ERROR in %s: Received fragment size: %" PRIu8 ", min expected size: %" PRIu8 "",
             getCommandName().c_str(), fragmentsSize, expectedSize);
@@ -59,19 +59,19 @@ bool RealTimeRunDataCommand::handleResponse(const fragment_t fragment[], const u
 
     // Move all fragments into target buffer
     uint8_t offs = 0;
-    _inv->Statistics()->beginAppendFragment();
-    _inv->Statistics()->clearBuffer();
+    _inv->getStatistics()->beginAppendFragment();
+    _inv->getStatistics()->clearBuffer();
     for (uint8_t i = 0; i < max_fragment_id; i++) {
-        _inv->Statistics()->appendFragment(offs, fragment[i].fragment, fragment[i].len);
+        _inv->getStatistics()->appendFragment(offs, fragment[i].fragment, fragment[i].len);
         offs += (fragment[i].len);
     }
-    _inv->Statistics()->endAppendFragment();
-    _inv->Statistics()->resetRxFailureCount();
-    _inv->Statistics()->setLastUpdate(millis());
+    _inv->getStatistics()->endAppendFragment();
+    _inv->getStatistics()->resetRxFailureCount();
+    _inv->getStatistics()->setLastUpdate(millis());
     return true;
 }
 
 void RealTimeRunDataCommand::gotTimeout()
 {
-    _inv->Statistics()->incrementRxFailureCount();
+    _inv->getStatistics()->incrementRxFailureCount();
 }

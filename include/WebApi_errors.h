@@ -34,6 +34,10 @@ enum WebApiError {
     InverterDeleted,
     InverterOrdered,
     InverterStatsResetted,
+    InverterType,
+    InverterHostnameLength,
+    InverterInvalidPortNumber,
+    PollTime,
 
     LimitBase = 5000,
     LimitSerialZero,
@@ -97,4 +101,23 @@ enum WebApiError {
 
     HardwareBase = 12000,
     HardwarePinMappingLength,
+
+    TostBase = 13000,
+    TostUrlLength,
+    TostSecondUrlLength,
+    TostSystemIdLength,
+    TostTokenLength,
+    TostDuration,
+
+    ServoBase = 14000,
+    ServoFrequency,
+    ServoResolution,
+    ServoPin,
+    ServoMin,
+    ServoMax,
+    ServoRange,
+    ServoSerial,
+    ServoIndex,
+    ServoPower,
+    ServoTestStarted
 };

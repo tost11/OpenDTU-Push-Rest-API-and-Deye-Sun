@@ -8,7 +8,7 @@
 MessageOutputClass MessageOutput;
 
 MessageOutputClass::MessageOutputClass()
-    : _loopTask(TASK_IMMEDIATE, TASK_FOREVER, std::bind(&MessageOutputClass::loop, this))
+        : _loopTask(TASK_IMMEDIATE, TASK_FOREVER, std::bind(&MessageOutputClass::loop, this))
 {
 }
 
@@ -76,8 +76,8 @@ int MessageOutputClass::log_vprintf_rate_limited(const char* fmt, va_list argume
         uint32_t elapsed = millis() - _last_rate_limit_warning_millis;
         if (elapsed > RATE_LIMIT_WARNING_INTERVAL_MS) {
             log_self("W (%d) logging: Rate limited %d message%s in the last %d ms\n",
-                millis(), _rate_limited_packets,
-                (_rate_limited_packets > 1 ? "s" : ""), elapsed);
+                     millis(), _rate_limited_packets,
+                     (_rate_limited_packets > 1 ? "s" : ""), elapsed);
             _rate_limited_packets = 0;
             _last_rate_limit_warning_millis = millis();
         }

@@ -5,11 +5,13 @@
         "NetworkSettings": "Network Settings",
         "NTPSettings": "NTP Settings",
         "MQTTSettings": "MQTT Settings",
+        "TostSettings": "Tost's Solar Monitoring Settings",
         "InverterSettings": "Inverter Settings",
         "SecuritySettings": "Security Settings",
         "LoggingSettings": "Logging Settings",
-        "DTUSettings": "DTU Settings",
+        "DTUSettings": "DTU/General Settings",
         "DeviceManager": "Device-Manager",
+        "ServoManager": "Servo Display",
         "ConfigManagement": "Config Management",
         "FirmwareUpgrade": "Firmware Upgrade",
         "DeviceReboot": "Device Reboot",
@@ -18,6 +20,7 @@
         "Network": "Network",
         "NTP": "NTP",
         "MQTT": "MQTT",
+        "Tost": "Tost's Solar Monitoring",
         "Console": "Console",
         "About": "About",
         "Logout": "Logout",
@@ -75,6 +78,10 @@
         "4007": "Inverter changed!",
         "4008": "Inverter deleted!",
         "4009": "Inverter order saved!",
+        "4011": "Unknown inverter Type!",
+        "4012": "Hostname must between 1 and {max} characters long!",
+        "4013": "Port must be between {min} and {max}!",
+        "4014": "Data fetch interval must be above or equal {min}!",
         "5001": "@:apiresponse.2001",
         "5002": "Limit must between 1 and {max}!",
         "5003": "Invalid type specified!",
@@ -121,7 +128,13 @@
         "10002": "Authentication successful!",
         "11001": "@:apiresponse.2001",
         "11002": "@:apiresponse.5004",
-        "12001": "Profile name must between 1 and {max} characters long!"
+        "12001": "Profile name must between 1 and {max} characters long!",
+        "13001": "Primary URL must between 1 and {max} characters long!",
+        "13002": "Secondary URL must between 1 and {max} characters long!",
+        "13003": "System Id must between 1 and {max} characters long!",
+        "13004": "System Token must between 1 and {max} characters long!",
+        "13005": "Duration must be a number between {min} and {max}!",
+        "14010": "servo test started!"
     },
     "home": {
         "LiveData": "Live Data",
@@ -166,7 +179,23 @@
         "StatsResetting": "Resetting...",
         "Rssi": "RSSI of last received packet",
         "RssiHint": "HM inverters only support RSSI values < -64 dBm and > -64 dBm. In this case, -80 dbm and -30 dbm is shown.",
-        "dBm": "{dbm} dBm"
+        "dBm": "{dbm} dBm",
+        "ConnectionStats": "Connection Statistics",
+        "SendRequests": "Requests send",
+        "ResponsesReceived": "Responses received",
+        "Disconnects": "Disconnects forced by device",
+        "Timeouts": "Disconnects by Timeout",
+        "Connects": "Connection attempts",
+        "ConnectsFailed": "Failed connection attempts",
+        "SendCommands": "Send requests",
+        "ErrorCommands": "Send requests failed (handling by inverter)",
+        "TimeoutCommands": "Send requests failed (timout)",
+        "Heathchecks": "Heath check",
+        "HeathchecksFailed": "Heath check failed",
+        "WriteRequests": "Send write commands (limit, on/off)",
+        "WriteRequestsFailed": "Send write commands failed",
+        "ReadRequests": "Send read commands (current values)",
+        "ReadRequestsFailed": "Send read commands failed"
     },
     "eventlog": {
         "Start": "Start",
@@ -292,6 +321,9 @@
         "Quality": "Quality",
         "Rssi": "RSSI"
     },
+    "wifistationDevices": {
+        "wifistationDevices": "WLAN-conncted devices (Access Point)"
+    },
     "wifiapinfo": {
         "WifiApInfo": "WiFi Information (Access Point)",
         "Status": "@:wifistationinfo.Status",
@@ -332,6 +364,25 @@
         "Day": "Day",
         "Night": "Night"
     },
+    "tostinfo": {
+        "tostInformation": "Tost's Solar Monitoring Information",
+        "ConfigurationSummary": "@:ntpinfo.ConfigurationSummary",
+        "Status": "@:ntpinfo.Status",
+        "Enabled": "Enabled",
+        "Disabled": "Disabled",
+        "Url": "Primary URL",
+        "SecondUrl": "Secondary URL",
+        "SystemId": "System Id",
+        "Duration": "Publish Interval",
+        "Seconds": "{sec} seconds",
+        "LastSuccessTimestamp": "Last Time Send Successfull",
+        "LastErrorTimestamp": "Last Time Send Failed",
+        "LastErrorCode": "Last Http Error Code",
+        "LastErrorMessage": "Last Http Error Message",
+        "never": "never",
+        "Summary": "Status Summary",
+        "Error": "Error Summary"
+    },
     "mqttinfo": {
         "MqttInformation": "MQTT Information",
         "ConfigurationSummary": "@:ntpinfo.ConfigurationSummary",
@@ -368,7 +419,8 @@
         "Download": "Download",
         "RegularExpression": "Regular Expression",
         "Lines": "{lines} Lines",
-        "LogLevel": "Log Level ({cnt})"
+        "LogLevel": "Log Level ({cnt})",
+        "DebugLogging": "Enable Debug Logging"
     },
     "inverterchannelinfo": {
         "String": "String {num}",
@@ -404,7 +456,7 @@
         "RebootHint": "<b>Note:</b> A manual reboot does not normally have to be performed. OpenDTU performs any required reboot (e.g. after a firmware update) automatically. Settings are also adopted without rebooting. If you need to reboot due to an error, please consider reporting it at <a href=\"https://github.com/tbnobody/OpenDTU/issues\" class=\"alert-link\" target=\"_blank\">https://github.com/tbnobody/OpenDTU/issues</a>."
     },
     "dtuadmin": {
-        "DtuSettings": "DTU Settings",
+        "DtuSettings": "DTU/General Settings",
         "DtuConfiguration": "DTU Configuration",
         "Serial": "Serial",
         "SerialHint": "Both the inverter and the DTU have a serial number. The DTU serial number is randomly generated at the first start and does not normally need to be changed.",
@@ -427,7 +479,11 @@
         "Min": "Minimum ({db} dBm)",
         "Low": "Low ({db} dBm)",
         "High": "High ({db} dBm)",
-        "Max": "Maximum ({db} dBm)"
+        "Max": "Maximum ({db} dBm)",
+        "DeyeConfiguration": "Deye Sun inverter settings",
+        "DeyeUnknownSerialWriteWarning": "Activate the write commands only if you are sure that the registers are the same as for the known inverter types! Switching on and off: Register 002B with the size of 2 bytes. Set limit: Register 0028 with the size of 2 bytes.",
+        "DeyeUnknownSerialWrite": "Allow write commands for unknown inverter types",
+        "DeyeUnknownSerialWriteHint": "This flag can be used to send commands to unknown inverter types. Commands include setting the limit and switching on/off."
     },
     "securityadmin": {
         "SecuritySettings": "Security Settings",
@@ -458,7 +514,10 @@
         "CurrentOpenDtuTime": "Current OpenDTU Time",
         "CurrentLocalTime": "Current Local Time",
         "SynchronizeTime": "Synchronize Time",
-        "SynchronizeTimeHint": "<b>Hint:</b> You can use the manual time synchronization to set the current time of OpenDTU if no NTP server is available. But be aware, that in case of power cycle the time gets lost. Also note that time accuracy will be skewed badly, as it can not be resynchronised regularly and the ESP32 microcontroller does not have a real time clock."
+        "SynchronizeTimeHint": "<b>Hint:</b> You can use the manual time synchronization to set the current time of OpenDTU if no NTP server is available. But be aware, that in case of power cycle the time gets lost. Also note that time accuracy will be skewed badly, as it can not be resynchronised regularly and the ESP32 microcontroller does not have a real time clock.",
+        "StartupTime": "Manual Startup Date Configuration",
+        "StartupDate": "Startup Date",
+        "StartupDateEnabled": "Manuel Date on Startup enabled"
     },
     "networkadmin": {
         "NetworkSettings": "Network Settings",
@@ -483,6 +542,22 @@
         "SyslogSettings": "Syslog Settings",
         "SyslogHostname": "Syslog Server",
         "SyslogPort": "Port"
+    },
+    "tostadmin": {
+        "TostSettings": "Tost's Solar Monitoring Settings",
+        "TostConfiguration": "Tost's Solar Monitoring Configuration",
+        "EnableTost": "Enable sending data:",
+        "TostParameters": "Client Push Parameter",
+        "Url": "Primary URL",
+        "SecondUrl": "Secondary URL",
+        "UrlHint": "Url or IP address with protocol and port(optinal)",
+        "SystemId": "System Id:",
+        "SystemIdHint": "System Id (looks like UUID)",
+        "Token": "Token:",
+        "TokenHint": "Token (looks like UUID)",
+        "Duration": "Zeit",
+        "Save": "@:base.Save",
+        "Seconds": "seconds"
     },
     "mqttadmin": {
         "MqttSettings": "MQTT Settings",
@@ -574,7 +649,27 @@
         "DeleteMsg": "Are you sure you want to delete the inverter \"{name}\" with serial number {serial}?",
         "Delete": "Delete",
         "YieldDayCorrection": "Yield Day Correction",
-        "YieldDayCorrectionHint": "Sum up daily yield even if the inverter is restarted. Value will be reset at midnight"
+        "YieldDayCorrectionHint": "Sum up daily yield even if the inverter is restarted. Value will be reset at midnight",
+        "DeyeSunOfflineYieldDayCorrection": "Deye Sun offline Yield Day Correction",
+        "DeyeSunOfflineYieldDayCorrectionHint": "Sum the daily yield, even if the inverter has no active Internet connection and the daily data is therefore not calculated correctly. The value is reset at midnight",
+        "Manufacturer": "Manufacturer",
+        "InverterHostnameOrIp": "Hostname, Ip or Mac",
+        "InverterHostnameOrIpHint": "Hostname of device in newtork,ip-adress, or mac-adress in ap-network",
+        "InverterPort": "Port",
+        "InverterPortHint": "Udp communication port of the device, default: 48899",
+        "ManufacturerSelect": "Select manufacturer of inverter to add",
+        "Seconds": "Seconds",
+        "PollTime": "Data fetch interval",
+        "PollTimeHint": "Time interval of fetching current inverter values",
+        "PollTimeWarningDeye": "'Data fetch interval' for Deye Sun inverters only means health check, not fetching data (this is only possible every 5 minutes due to device limitations).",
+        "PollTimeWarningHoymilesW": "'Data fetch interval' for Hoymiles W-Series inverters with firmware 1.*.* is 31 Seconds or above! lowering this value will result in hanging values and disconnects.",
+        "DeyeInverterType": "Inverter Communication Protocol",
+        "DeyeInverterTypeHint": "Underlying communication protocol for the the correct inverter firmware",
+        "Authentication": "Authentication",
+        "Username": "Username",
+        "UsernameHint": "Username for Deye Sun inverter authentication (default: admin)",
+        "Password": "Password",
+        "PasswordHint": "Password for Deye Sun inverter authentication (default: admin)"
     },
     "fileadmin": {
         "ConfigManagement": "Config Management",
@@ -625,6 +720,7 @@
         "AboutOpendtu": "About OpenDTU",
         "Documentation": "Documentation",
         "DocumentationBody": "The firmware and hardware documentation can be found here: <a href=\"https://www.opendtu.solar\" target=\"_blank\">https://www.opendtu.solar</a>",
+        "DocumentationBodyFork": "The firmware and hardware documentation for this fork can be found here: <a href=\"https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun\" target=\"_blank\">https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun</a></br>Some more detailed tutorials can be found here: <a href=\"https://itgrufti.de/solar\" target=\"_blank\">https://itgrufti.de/solar</a>",
         "ProjectOrigin": "Project Origin",
         "ProjectOriginBody1": "This project was started from <a href=\"https://www.mikrocontroller.net/topic/525778\" target=\"_blank\">this discussion. (Mikrocontroller.net)</a>",
         "ProjectOriginBody2": "The Hoymiles protocol was decrypted through the voluntary efforts of many participants. OpenDTU, among others, was developed based on this work. The project is licensed under an Open Source License (<a href=\"https://www.gnu.de/documents/gpl-2.0.de.html\" target=\"_blank\">GNU General Public License version 2</a>).",
@@ -632,8 +728,10 @@
         "ProjectOriginBody4": "OpenDTU is freely available. If you paid money for the software, you probably got ripped off.",
         "NewsUpdates": "News & Updates",
         "NewsUpdatesBody": "New updates can be found on Github: <a href=\"https://github.com/tbnobody/OpenDTU\" target=\"_blank\">https://github.com/tbnobody/OpenDTU</a>",
+        "NewsUpdatesBodyFork": "New updates for this fork can be found on Github <a href=\"https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/releases\" target=\"_blank\">https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/releases</a>",
         "ErrorReporting": "Error Reporting",
         "ErrorReportingBody": "Please report issues using the feature provided by <a href=\"https://github.com/tbnobody/OpenDTU/issues\" target=\"_blank\">Github</a>",
+        "ErrorReportingBodyFork": "Please report issues regarding this fork using the feature provided by <a href=\"https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/issues\" target=\"_blank\">Github</a>.",
         "Discussion": "Discussion",
         "DiscussionBody": "Discuss with us on <a href=\"https://discord.gg/46hWaXsn\" target=\"_blank\">Discord</a> or <a href=\"https://github.com/tbnobody/OpenDTU/discussions\" target=\"_blank\">Github</a>"
     },
@@ -676,7 +774,21 @@
         "fr": "French",
         "Leds": "LEDs",
         "EqualBrightness": "Equal brightness",
-        "LedBrightness": "LED {led} brightness ({brightness})"
+        "LedBrightness": "LED {led} brightness ({brightness})",
+        "servo": "Servo",
+        "servoResolution": "Resolution",
+        "servoRangeMin": "Cap Min",
+        "servoRangeMax": "Cap Max",
+        "servoSerial": "Serial",
+        "servoInputIndex": "Input Index",
+        "servoPower": "Power",
+        "servoUnitFrequency": "Hz",
+        "servoFrequency": "Frequency",
+        "servoUnitPower": "W",
+        "servoHintPower": "Value on that Servo Display is at max",
+        "servoHintSerial": "Serial of inverter to use (0 = first one found)",
+        "servoHintInputIndex": "Index of DC Input that is used for calculation (0 = all)",
+        "testServo": "test servo"
     },
     "pininfo": {
         "Category": "Category",
@@ -687,6 +799,8 @@
     },
     "inputserial": {
         "format_hoymiles": "Hoymiles serial number format",
+        "format_deye": "Deye Sun serial number format",
+        "format_hoymiles_w": "Hoymiles w-series serial number format",
         "format_converted": "Already converted serial number",
         "format_herf_valid": "E-Star HERF format (will be saved converted): {serial}",
         "format_herf_invalid": "E-Star HERF format: Invalid checksum",

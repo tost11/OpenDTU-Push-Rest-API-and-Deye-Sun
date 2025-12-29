@@ -41,21 +41,21 @@ bool HM_Abstract::sendAlarmLogRequest(const bool force)
     }
 
     if (!force) {
-        if (Statistics()->hasChannelFieldValue(TYPE_INV, CH0, FLD_EVT_LOG)) {
-            if (static_cast<uint8_t>(Statistics()->getChannelFieldValue(TYPE_INV, CH0, FLD_EVT_LOG) == _lastAlarmLogCnt)) {
+        if (getStatistics()->hasChannelFieldValue(TYPE_INV, CH0, FLD_EVT_LOG)) {
+            if (static_cast<uint8_t>(getStatistics()->getChannelFieldValue(TYPE_INV, CH0, FLD_EVT_LOG) == _lastAlarmLogCnt)) {
                 return false;
             }
         }
     }
 
-    _lastAlarmLogCnt = static_cast<uint8_t>(Statistics()->getChannelFieldValue(TYPE_INV, CH0, FLD_EVT_LOG));
+    _lastAlarmLogCnt = static_cast<uint8_t>(getStatistics()->getChannelFieldValue(TYPE_INV, CH0, FLD_EVT_LOG));
 
     time_t now;
     time(&now);
 
     auto cmd = _radio->prepareCommand<AlarmDataCommand>(this);
     cmd->setTime(now);
-    EventLog()->setLastAlarmRequestSuccess(CMD_PENDING);
+    getEventLog()->setLastAlarmRequestSuccess(CMD_PENDING);
     _radio->enqueCommand(cmd);
 
     return true;
@@ -92,7 +92,7 @@ bool HM_Abstract::sendSystemConfigParaRequest()
 
     auto cmd = _radio->prepareCommand<SystemConfigParaCommand>(this);
     cmd->setTime(now);
-    SystemConfigPara()->setLastLimitRequestSuccess(CMD_PENDING);
+    getSystemConfigParaParser()->setLastLimitRequestSuccess(CMD_PENDING);
     _radio->enqueCommand(cmd);
 
     return true;
@@ -113,7 +113,7 @@ bool HM_Abstract::sendActivePowerControlRequest(float limit, const PowerLimitCon
 
     auto cmd = _radio->prepareCommand<ActivePowerControlCommand>(this);
     cmd->setActivePowerLimit(limit, type);
-    SystemConfigPara()->setLastLimitCommandSuccess(CMD_PENDING);
+    getSystemConfigParaParser()->setLastLimitCommandSuccess(CMD_PENDING);
     _radio->enqueCommand(cmd);
 
     return true;
@@ -138,7 +138,7 @@ bool HM_Abstract::sendPowerControlRequest(const bool turnOn)
 
     auto cmd = _radio->prepareCommand<PowerControlCommand>(this);
     cmd->setPowerOn(turnOn);
-    PowerCommand()->setLastPowerCommandSuccess(CMD_PENDING);
+    getPowerCommand()->setLastPowerCommandSuccess(CMD_PENDING);
     _radio->enqueCommand(cmd);
 
     return true;
@@ -154,7 +154,7 @@ bool HM_Abstract::sendRestartControlRequest()
 
     auto cmd = _radio->prepareCommand<PowerControlCommand>(this);
     cmd->setRestart();
-    PowerCommand()->setLastPowerCommandSuccess(CMD_PENDING);
+    getPowerCommand()->setLastPowerCommandSuccess(CMD_PENDING);
     _radio->enqueCommand(cmd);
 
     return true;

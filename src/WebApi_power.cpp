@@ -6,7 +6,7 @@
 #include "WebApi.h"
 #include "WebApi_errors.h"
 #include <AsyncJson.h>
-#include <Hoymiles.h>
+#include <InverterHandler.h>
 
 void WebApiPowerClass::init(AsyncWebServer& server, Scheduler& scheduler)
 {
@@ -25,10 +25,10 @@ void WebApiPowerClass::onPowerStatus(AsyncWebServerRequest* request)
     AsyncJsonResponse* response = new AsyncJsonResponse();
     auto& root = response->getRoot();
 
-    for (uint8_t i = 0; i < Hoymiles.getNumInverters(); i++) {
-        auto inv = Hoymiles.getInverterByPos(i);
+    for (uint8_t i = 0; i < InverterHandler.getNumInverters(); i++) {
+        auto inv = InverterHandler.getInverterByPos(i);
 
-        LastCommandSuccess status = inv->PowerCommand()->getLastPowerCommandSuccess();
+        LastCommandSuccess status = inv->getPowerCommand()->getLastPowerCommandSuccess();
         String limitStatus = "Unknown";
         if (status == LastCommandSuccess::CMD_OK) {
             limitStatus = "Ok";
@@ -55,7 +55,16 @@ void WebApiPowerClass::onPowerPost(AsyncWebServerRequest* request)
         return;
     }
 
+    auto inverterType = to_inverter_type(root["manufacturer"].as<String>());
+
     auto& retMsg = response->getRoot();
+
+    if(inverterType == inverter_type::Inverter_count){
+        retMsg["message"] = "Inverter not Found";
+        retMsg["code"] = WebApiError::PowerInvalidInverter;
+        WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
+        return;
+    }
 
     if (!(root["serial"].is<String>()
             && (root["power"].is<bool>()
@@ -76,7 +85,7 @@ void WebApiPowerClass::onPowerPost(AsyncWebServerRequest* request)
         return;
     }
 
-    auto inv = Hoymiles.getInverterBySerial(serial);
+    auto inv = InverterHandler.getInverterBySerial(serial,inverterType);
     if (inv == nullptr) {
         retMsg["message"] = "Invalid inverter specified!";
         retMsg["code"] = WebApiError::PowerInvalidInverter;

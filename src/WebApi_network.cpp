@@ -9,6 +9,8 @@
 #include "WebApi_errors.h"
 #include "helper.h"
 #include <AsyncJson.h>
+#include <InverterUtils.h>
+
 
 WebApiNetworkClass::WebApiNetworkClass()
     : _applyDataTask(500 * TASK_MILLISECOND, TASK_ONCE, std::bind(&WebApiNetworkClass::applyDataTaskCb, this))
@@ -52,6 +54,18 @@ void WebApiNetworkClass::onNetworkStatus(AsyncWebServerRequest* request)
     root["ap_ip"] = WiFi.softAPIP().toString();
     root["ap_mac"] = WiFi.softAPmacAddress();
     root["ap_stationnum"] = WiFi.softAPgetStationNum();
+
+    auto ips = root["ap_station_devices"].to<JsonArray>();
+
+    auto apMacsAndIps = InverterUtils::getConnectedClients();
+
+    for(auto & it : *apMacsAndIps){
+
+        auto obj = ips.add<JsonObject>();
+
+        obj["ip"] = String(it.second.c_str());
+        obj["mac"] = String(it.first.c_str());
+    }
 
     WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
 }
@@ -156,7 +170,7 @@ void WebApiNetworkClass::onNetworkAdminPost(AsyncWebServerRequest* request)
         return;
     }
     if (NetworkSettings.NetworkMode() == network_mode::WiFi) {
-        if (root["ssid"].as<String>().length() == 0 || root["ssid"].as<String>().length() > WIFI_MAX_SSID_STRLEN) {
+        if (root["ssid"].as<String>().length() > WIFI_MAX_SSID_STRLEN) {
             retMsg["message"] = "SSID must between 1 and " STR(WIFI_MAX_SSID_STRLEN) " characters long!";
             WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
             return;

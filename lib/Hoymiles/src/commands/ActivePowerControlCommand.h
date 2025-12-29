@@ -2,15 +2,8 @@
 #pragma once
 
 #include "DevControlCommand.h"
+#include "defines.h"
 #include <array>
-
-typedef enum {
-    AbsolutNonPersistent,
-    RelativNonPersistent,
-    AbsolutPersistent,
-    RelativPersistent,
-    PowerLimitControl_Max
-} PowerLimitControlType;
 
 typedef enum {
     HmActivePowerControl,

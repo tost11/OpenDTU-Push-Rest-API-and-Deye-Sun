@@ -71,6 +71,15 @@ bool ConfigurationClass::write()
     ntp["latitude"] = config.Ntp.Latitude;
     ntp["longitude"] = config.Ntp.Longitude;
     ntp["sunsettype"] = config.Ntp.SunsetType;
+    ntp["startup_date"] = config.Ntp.StartupDate;
+
+    JsonObject tost = doc["tost"].to<JsonObject>();
+    tost["enabled"] = config.Tost.Enabled;
+    tost["url"] = config.Tost.Url;
+    tost["second_url"] = config.Tost.SecondUrl;
+    tost["system_id"] = config.Tost.SystemId;
+    tost["token"] = config.Tost.Token;
+    tost["duration"] = config.Tost.Duration;
 
     JsonObject mqtt = doc["mqtt"].to<JsonObject>();
     mqtt["enabled"] = config.Mqtt.Enabled;
@@ -112,6 +121,9 @@ bool ConfigurationClass::write()
     dtu["cmt_frequency"] = config.Dtu.Cmt.Frequency;
     dtu["cmt_country_mode"] = config.Dtu.Cmt.CountryMode;
 
+    JsonObject deye = doc["deye"].to<JsonObject>();
+    deye["unknown_inverter_write"] = config.DeyeSettings.UnknownInverterWrite;
+
     JsonObject security = doc["security"].to<JsonObject>();
     security["password"] = config.Security.Password;
     security["allow_readonly"] = config.Security.AllowReadonly;
@@ -139,16 +151,22 @@ bool ConfigurationClass::write()
         JsonObject inv = inverters.add<JsonObject>();
         inv["serial"] = config.Inverter[i].Serial;
         inv["name"] = config.Inverter[i].Name;
+        inv["hostname_or_ip"] = config.Inverter[i].HostnameOrIp;
+        inv["port"] = config.Inverter[i].Port;
+        inv["type"] = config.Inverter[i].Type;
         inv["order"] = config.Inverter[i].Order;
         inv["poll_enable"] = config.Inverter[i].Poll_Enable;
         inv["poll_enable_night"] = config.Inverter[i].Poll_Enable_Night;
         inv["command_enable"] = config.Inverter[i].Command_Enable;
         inv["command_enable_night"] = config.Inverter[i].Command_Enable_Night;
         inv["reachable_threshold"] = config.Inverter[i].ReachableThreshold;
+        inv["poll_time"] = config.Inverter[i].PollTime;
         inv["zero_runtime"] = config.Inverter[i].ZeroRuntimeDataIfUnrechable;
         inv["zero_day"] = config.Inverter[i].ZeroYieldDayOnMidnight;
         inv["clear_eventlog"] = config.Inverter[i].ClearEventlogOnMidnight;
         inv["yieldday_correction"] = config.Inverter[i].YieldDayCorrection;
+        inv["deye_sun_offline_yieldday_correction"] = config.Inverter[i].DeyeSunOfflineYieldDayCorrection;
+        inv["more_inverter_info"] = config.Inverter[i].MoreInverterInfo;
 
         JsonArray channel = inv["channel"].to<JsonArray>();
         for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
@@ -167,6 +185,15 @@ bool ConfigurationClass::write()
         module["level"] = config.Logging.Modules[i].Level;
         module["name"] = config.Logging.Modules[i].Name;
     }
+
+    JsonObject servo = doc["servo"].to<JsonObject>();
+    servo["resolution"] = config.Servo.Resolution;
+    servo["frequency"] = config.Servo.Frequency;
+    servo["range_min"] = config.Servo.RangeMin;
+    servo["range_max"] = config.Servo.RangeMax;
+    servo["serial"] = config.Servo.Serial;
+    servo["input_index"] = config.Servo.InputIndex;
+    servo["power"] = config.Servo.Power;
 
     if (!Utils::checkJsonAlloc(doc, __FUNCTION__, __LINE__)) {
         return false;
@@ -261,6 +288,15 @@ bool ConfigurationClass::read()
     config.Ntp.Latitude = ntp["latitude"] | NTP_LATITUDE;
     config.Ntp.Longitude = ntp["longitude"] | NTP_LONGITUDE;
     config.Ntp.SunsetType = ntp["sunsettype"] | NTP_SUNSETTYPE;
+    config.Ntp.StartupDate = ntp["startup_date"] | 0;
+
+    JsonObject tost = doc["tost"];
+    config.Tost.Enabled = tost["enabled"] | TOST_ENABLED;
+    strlcpy(config.Tost.Url, tost["url"] | TOST_URL, sizeof(config.Tost.Url));
+    strlcpy(config.Tost.SecondUrl, tost["second_url"] | TOST_SECOND_URL, sizeof(config.Tost.SecondUrl));
+    strlcpy(config.Tost.SystemId, tost["system_id"] | TOST_SYSTEM_ID, sizeof(config.Tost.SystemId));
+    strlcpy(config.Tost.Token, tost["token"] | TOST_TOKEN, sizeof(config.Tost.Token));
+    config.Tost.Duration = tost["duration"] | TOST_DURATION;
 
     JsonObject mqtt = doc["mqtt"];
     config.Mqtt.Enabled = mqtt["enabled"] | MQTT_ENABLED;
@@ -302,6 +338,9 @@ bool ConfigurationClass::read()
     config.Dtu.Cmt.Frequency = dtu["cmt_frequency"] | DTU_CMT_FREQUENCY;
     config.Dtu.Cmt.CountryMode = dtu["cmt_country_mode"] | DTU_CMT_COUNTRY_MODE;
 
+    JsonObject deye = doc["deye"];
+    config.DeyeSettings.UnknownInverterWrite = deye["unknown_inverter_write"] | DEYE_UNKNOWN_INVERTER_WRITE;
+
     JsonObject security = doc["security"];
     strlcpy(config.Security.Password, security["password"] | ACCESS_POINT_PASSWORD, sizeof(config.Security.Password));
     config.Security.AllowReadonly = security["allow_readonly"] | SECURITY_ALLOW_READONLY;
@@ -329,17 +368,26 @@ bool ConfigurationClass::read()
         JsonObject inv = inverters[i].as<JsonObject>();
         config.Inverter[i].Serial = inv["serial"] | 0ULL;
         strlcpy(config.Inverter[i].Name, inv["name"] | "", sizeof(config.Inverter[i].Name));
+        strlcpy(config.Inverter[i].HostnameOrIp, inv["hostname_or_ip"] | "", sizeof(config.Inverter[i].HostnameOrIp));
         config.Inverter[i].Order = inv["order"] | 0;
+        config.Inverter[i].Port = inv["port"] | 0;
+        config.Inverter[i].Type = inv["type"] | inverter_type::Inverter_Hoymiles;
+        config.Inverter[i].MoreInverterInfo = inv["more_inverter_info"] | 0;
 
+        config.Inverter[i].Poll_Enable = inv["poll_enable"] | true;
         config.Inverter[i].Poll_Enable = inv["poll_enable"] | true;
         config.Inverter[i].Poll_Enable_Night = inv["poll_enable_night"] | true;
         config.Inverter[i].Command_Enable = inv["command_enable"] | true;
         config.Inverter[i].Command_Enable_Night = inv["command_enable_night"] | true;
         config.Inverter[i].ReachableThreshold = inv["reachable_threshold"] | REACHABLE_THRESHOLD;
+        config.Inverter[i].PollTime = inv["poll_time"] | getDefaultPollTimeForInverterType(config.Inverter[i].Type);
         config.Inverter[i].ZeroRuntimeDataIfUnrechable = inv["zero_runtime"] | false;
         config.Inverter[i].ZeroYieldDayOnMidnight = inv["zero_day"] | false;
         config.Inverter[i].ClearEventlogOnMidnight = inv["clear_eventlog"] | false;
         config.Inverter[i].YieldDayCorrection = inv["yieldday_correction"] | false;
+        config.Inverter[i].DeyeSunOfflineYieldDayCorrection = inv["deye_sun_offline_yieldday_correction"] | false;
+        strlcpy(config.Inverter[i].Username, inv["username"] | (config.Inverter[i].Type == inverter_type::Inverter_DeyeSun ? "admin" : ""), sizeof(config.Inverter[i].Username));
+        strlcpy(config.Inverter[i].Password, inv["password"] | (config.Inverter[i].Type == inverter_type::Inverter_DeyeSun ? "admin" : ""), sizeof(config.Inverter[i].Password));
 
         JsonArray channel = inv["channel"];
         for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
@@ -357,6 +405,15 @@ bool ConfigurationClass::read()
         strlcpy(config.Logging.Modules[i].Name, module["name"] | "", sizeof(config.Logging.Modules[i].Name));
         config.Logging.Modules[i].Level = module["level"] | ESP_LOG_VERBOSE;
     }
+
+    JsonObject servo = doc["servo"];
+    config.Servo.Resolution = servo["resolution"] | 8;
+    config.Servo.Frequency = servo["frequency"] | 50;
+    config.Servo.RangeMin = servo["range_min"] | 32;
+    config.Servo.RangeMax = servo["range_max"] | 7;
+    config.Servo.Serial = servo["serial"] | 0ULL;
+    config.Servo.InputIndex = servo["input_index"] | 0;
+    config.Servo.Power = servo["power"] | 600;
 
     f.close();
 
@@ -511,9 +568,11 @@ void ConfigurationClass::deleteInverterById(const uint8_t id)
     config.Inverter[id].Command_Enable = true;
     config.Inverter[id].Command_Enable_Night = true;
     config.Inverter[id].ReachableThreshold = REACHABLE_THRESHOLD;
+    config.Inverter[id].PollTime = 0;
     config.Inverter[id].ZeroRuntimeDataIfUnrechable = false;
     config.Inverter[id].ZeroYieldDayOnMidnight = false;
     config.Inverter[id].YieldDayCorrection = false;
+    config.Inverter[id].DeyeSunOfflineYieldDayCorrection = false;
 
     for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
         config.Inverter[id].channel[c].MaxChannelPower = 0;

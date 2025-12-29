@@ -8,7 +8,13 @@ platformio-device-monitor*.log
 logs/device-monitor*.log
 platformio_override.ini
 .DS_Store
+tmp
 .idea
 get-platformio.py
-
+lib64
+pyvenv.cfg
+bin
+lib/python*
 test_scripts
+compile_commands.json
+CLAUDE.md

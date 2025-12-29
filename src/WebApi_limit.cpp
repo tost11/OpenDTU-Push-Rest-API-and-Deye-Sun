@@ -8,7 +8,7 @@
 #include "defaults.h"
 #include "helper.h"
 #include <AsyncJson.h>
-#include <Hoymiles.h>
+#include <InverterHandler.h>
 
 void WebApiLimitClass::init(AsyncWebServer& server, Scheduler& scheduler)
 {
@@ -27,15 +27,15 @@ void WebApiLimitClass::onLimitStatus(AsyncWebServerRequest* request)
     AsyncJsonResponse* response = new AsyncJsonResponse();
     auto& root = response->getRoot();
 
-    for (uint8_t i = 0; i < Hoymiles.getNumInverters(); i++) {
-        auto inv = Hoymiles.getInverterByPos(i);
+    for (uint8_t i = 0; i < InverterHandler.getNumInverters(); i++) {
+        auto inv = InverterHandler.getInverterByPos(i);
 
         String serial = inv->serialString();
 
-        root[serial]["limit_relative"] = inv->SystemConfigPara()->getLimitPercent();
-        root[serial]["max_power"] = inv->DevInfo()->getMaxPower();
+        root[serial]["limit_relative"] = inv->getSystemConfigParaParser()->getLimitPercent();
+        root[serial]["max_power"] = inv->getDevInfo()->getMaxPower();
 
-        LastCommandSuccess status = inv->SystemConfigPara()->getLastLimitCommandSuccess();
+        LastCommandSuccess status = inv->getSystemConfigParaParser()->getLastLimitCommandSuccess();
         String limitStatus = "Unknown";
         if (status == LastCommandSuccess::CMD_OK) {
             limitStatus = "Ok";
@@ -66,10 +66,21 @@ void WebApiLimitClass::onLimitPost(AsyncWebServerRequest* request)
 
     if (!(root["serial"].is<String>()
             && root["limit_value"].is<float>()
-            && root["limit_type"].is<uint16_t>())) {
+            && root["limit_type"].is<uint16_t>()
+            && root["manufacturer"].is<String>())) {
         retMsg["message"] = "Values are missing!";
         retMsg["code"] = WebApiError::GenericValueMissing;
         WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
+        return;
+    }
+
+    auto inverterType = to_inverter_type(root["manufacturer"].as<String>());
+
+    if(inverterType == inverter_type::Inverter_count){
+        retMsg["message"] = "Inverter not Found";
+        retMsg["code"] = WebApiError::LimitInvalidInverter;
+        response->setLength();
+        request->send(response);
         return;
     }
 
@@ -101,7 +112,7 @@ void WebApiLimitClass::onLimitPost(AsyncWebServerRequest* request)
     float limit = root["limit_value"].as<float>();
     PowerLimitControlType type = root["limit_type"].as<PowerLimitControlType>();
 
-    auto inv = Hoymiles.getInverterBySerial(serial);
+    auto inv = InverterHandler.getInverterBySerial(serial,inverterType);
     if (inv == nullptr) {
         retMsg["message"] = "Invalid inverter specified!";
         retMsg["code"] = WebApiError::LimitInvalidInverter;

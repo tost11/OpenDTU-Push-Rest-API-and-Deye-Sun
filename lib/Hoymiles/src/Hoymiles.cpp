@@ -3,7 +3,6 @@
  * Copyright (C) 2022-2025 Thomas Basler and others
  */
 #include "Hoymiles.h"
-#include "Utils.h"
 #include "inverters/HERF_1CH.h"
 #include "inverters/HERF_2CH.h"
 #include "inverters/HERF_4CH.h"
@@ -24,9 +23,12 @@ static const char* TAG = "hoymiles";
 
 HoymilesClass Hoymiles;
 
+HoymilesClass::HoymilesClass():
+_inverters(*reinterpret_cast<std::vector<std::shared_ptr<InverterAbstract>>*>(&_baseInverters)){
+}
+
 void HoymilesClass::init()
 {
-    _pollInterval = 0;
     _radioNrf.reset(new HoymilesRadio_NRF());
     _radioCmt.reset(new HoymilesRadio_CMT());
 }
@@ -63,7 +65,7 @@ void HoymilesClass::loop()
     if (iv != nullptr && iv->getRadio()->isInitialized()) {
 
         if (iv->getZeroValuesIfUnreachable() && !iv->isReachable()) {
-            iv->Statistics()->zeroRuntimeData();
+            iv->getStatistics()->zeroRuntimeData();
         }
 
         if (iv->getEnablePolling() || iv->getEnableCommands()) {
@@ -73,38 +75,38 @@ void HoymilesClass::loop()
                 iv->sendChangeChannelRequest();
             }
 
-            if (Utils::getTimeAvailable()) {
+            if (InverterUtils::getTimeAvailable()) {
                 // Fetch statistics
                 iv->sendStatsRequest();
 
                 // Fetch event log
-                const bool force = iv->EventLog()->getLastAlarmRequestSuccess() == CMD_NOK;
+                const bool force = iv->getEventLog()->getLastAlarmRequestSuccess() == CMD_NOK;
                 iv->sendAlarmLogRequest(force);
 
                 // Fetch limit
-                if (((millis() - iv->SystemConfigPara()->getLastUpdateRequest() > HOY_SYSTEM_CONFIG_PARA_POLL_INTERVAL)
-                        && (millis() - iv->SystemConfigPara()->getLastUpdateCommand() > HOY_SYSTEM_CONFIG_PARA_POLL_MIN_DURATION))) {
+                if (((millis() - iv->getSystemConfigParaParser()->getLastUpdateRequest() > HOY_SYSTEM_CONFIG_PARA_POLL_INTERVAL)
+                        && (millis() - iv->getSystemConfigParaParser()->getLastUpdateCommand() > HOY_SYSTEM_CONFIG_PARA_POLL_MIN_DURATION))) {
                     ESP_LOGI(TAG, "Request SystemConfigPara");
                     iv->sendSystemConfigParaRequest();
                 }
 
                 // Fetch grid profile
-                if (iv->Statistics()->getLastUpdate() > 0 && (iv->GridProfile()->getLastUpdate() == 0 || !iv->GridProfile()->containsValidData())) {
+                if (iv->getStatistics()->getLastUpdate() > 0 && (iv->getGridProfileParser()->getLastUpdate() == 0 || !iv->getGridProfileParser()->containsValidData())) {
                     iv->sendGridOnProFileParaRequest();
                 }
 
                 // Fetch dev info (but first fetch stats)
-                if (iv->Statistics()->getLastUpdate() > 0) {
-                    const bool invalidDevInfo = !iv->DevInfo()->containsValidData()
-                        && iv->DevInfo()->getLastUpdateAll() > 0
-                        && iv->DevInfo()->getLastUpdateSimple() > 0;
+                if (iv->getStatistics()->getLastUpdate() > 0) {
+                    const bool invalidDevInfo = !iv->getDevInfo()->containsValidData()
+                        && iv->getDevInfo()->getLastUpdateAll() > 0
+                        && iv->getDevInfo()->getLastUpdateSimple() > 0;
 
                     if (invalidDevInfo) {
                         ESP_LOGW(TAG, "DevInfo: No Valid Data");
                     }
 
-                    if ((iv->DevInfo()->getLastUpdateAll() == 0)
-                        || (iv->DevInfo()->getLastUpdateSimple() == 0)
+                    if ((iv->getDevInfo()->getLastUpdateAll() == 0)
+                        || (iv->getDevInfo()->getLastUpdateSimple() == 0)
                         || invalidDevInfo) {
                         ESP_LOGI(TAG, "Request device info");
                         iv->sendDevInfoRequest();
@@ -113,13 +115,13 @@ void HoymilesClass::loop()
             }
 
             // Set limit if required
-            if (iv->SystemConfigPara()->getLastLimitCommandSuccess() == CMD_NOK) {
+            if (iv->getSystemConfigParaParser()->getLastLimitCommandSuccess() == CMD_NOK) {
                 ESP_LOGI(TAG, "Resend ActivePowerControl");
                 iv->resendActivePowerControlRequest();
             }
 
             // Set power status if required
-            if (iv->PowerCommand()->getLastPowerCommandSuccess() == CMD_NOK) {
+            if (iv->getPowerCommand()->getLastPowerCommandSuccess() == CMD_NOK) {
                 ESP_LOGI(TAG, "Resend PowerCommand");
                 iv->resendPowerControlRequest();
             }
@@ -134,20 +136,7 @@ void HoymilesClass::loop()
     }
 
     // Perform housekeeping of all inverters on day change
-    const int8_t currentWeekDay = Utils::getWeekDay();
-    static int8_t lastWeekDay = -1;
-    if (lastWeekDay == -1) {
-        lastWeekDay = currentWeekDay;
-    } else {
-        if (currentWeekDay != lastWeekDay) {
-
-            for (auto& inv : _inverters) {
-                inv->performDailyTask();
-            }
-
-            lastWeekDay = currentWeekDay;
-        }
-    }
+        performHouseKeeping();
 }
 
 std::shared_ptr<InverterAbstract> HoymilesClass::addInverter(const char* name, const uint64_t serial)
@@ -208,6 +197,17 @@ std::shared_ptr<InverterAbstract> HoymilesClass::getInverterBySerial(const uint6
     return nullptr;
 }
 
+
+std::shared_ptr<InverterAbstract> HoymilesClass::getInverterBySerialString(const String & serial)
+{
+    for (uint8_t i = 0; i < _inverters.size(); i++) {
+        if (_inverters[i]->serialString() == serial) {
+            return _inverters[i];
+        }
+    }
+    return nullptr;
+}
+
 std::shared_ptr<InverterAbstract> HoymilesClass::getInverterByFragment(const fragment_t& fragment)
 {
     if (fragment.len <= 4) {
@@ -259,14 +259,4 @@ HoymilesRadio_CMT* HoymilesClass::getRadioCmt()
 bool HoymilesClass::isAllRadioIdle() const
 {
     return _radioNrf.get()->isIdle() && _radioCmt.get()->isIdle();
-}
-
-uint32_t HoymilesClass::PollInterval() const
-{
-    return _pollInterval;
-}
-
-void HoymilesClass::setPollInterval(const uint32_t interval)
-{
-    _pollInterval = interval;
 }

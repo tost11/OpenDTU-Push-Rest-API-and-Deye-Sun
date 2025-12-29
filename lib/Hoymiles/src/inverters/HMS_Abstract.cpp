@@ -3,6 +3,9 @@
  * Copyright (C) 2023-2025 Thomas Basler and others
  */
 #include "HMS_Abstract.h"
+
+#include <commands/ActivePowerControlCommand.h>
+
 #include "Hoymiles.h"
 #include "HoymilesRadio_CMT.h"
 #include "commands/ChannelChangeCommand.h"
@@ -42,7 +45,7 @@ bool HMS_Abstract::sendActivePowerControlRequest(float limit, const PowerLimitCo
     auto cmd = _radio->prepareCommand<ActivePowerControlCommand>(this);
     cmd->setDeviceType(ActivePowerControlDeviceType::HmsActivePowerControl);
     cmd->setActivePowerLimit(limit, type);
-    SystemConfigPara()->setLastLimitCommandSuccess(CMD_PENDING);
+    getSystemConfigParaParser()->setLastLimitCommandSuccess(CMD_PENDING);
     _radio->enqueCommand(cmd);
 
     return true;
