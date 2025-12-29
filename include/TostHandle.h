@@ -6,8 +6,6 @@
 #include "inverters/InverterAbstract.h"
 #include <TaskSchedulerDeclarations.h>
 #include <ArduinoJson.h>
-#include <future>
-#include <inverter/BaseInverter.h>
 #include <queue>
 #include "RestRequestHandler.h"
 
@@ -22,7 +20,7 @@ private:
     static const uint8_t MAX_QUEUE_SIZE = 10;  // Maximum unsent requests
 
     struct ActiveRequest {
-        std::future<RestResponse> future;
+        LightFuture<RestResponse> future;
         bool isSecondaryUrl;
     };
     std::optional<ActiveRequest> _activeRequest;  // Only 0 or 1 active request
