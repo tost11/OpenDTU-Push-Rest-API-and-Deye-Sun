@@ -7,10 +7,10 @@
 #include "Datastore.h"
 #include "MessageOutput.h"
 #include <Hoymiles.h>
-#include <HTTPClient.h>
 #include <ctime>
 #include <ArduinoJson.h>
-#include <esp_pthread.h>
+#include "RestRequestHandler.h"
+#include <chrono>
 
 TostHandleClass TostHandle;
 
@@ -71,8 +71,15 @@ void TostHandleClass::loop()
         return;
     }
 
-    //if (_lastPublish.occured()) {
+    // 1. Process active request (check if complete)
+    processActiveRequest();
 
+    // 2. If no active request, try to send next from queue
+    if (!_activeRequest.has_value() && !requestsToSend.empty() && restTimeout.occured()) {
+        sendNextRequest();
+    }
+
+    // 3. Run cleanup check (unchanged)
     if(_cleanupCheck.occured()){
         ESP_LOGD(TAG,"Run cleanup");
         _cleanupCheck.set(TIMER_CLEANUP);
@@ -96,6 +103,7 @@ void TostHandleClass::loop()
         }
     }
 
+    // 4. Collect inverter data and add to queue (existing logic)
     for (uint8_t i = 0; i < Hoymiles.getNumInverters(); i++) {
 
         auto inv = Hoymiles.getInverterByPos(i);
@@ -208,135 +216,155 @@ void TostHandleClass::loop()
         }
 
         if(isData){
-            if(requestsToSend.size() < 10 ) {
+            // Serialize and add to local queue
+            String toSend;
+            serializeJson(data, toSend);
 
-                String toSend;
-
-                serializeJson(data, toSend);
-
-                ESP_LOGD(TAG,"adding new request to queue");
-                requestsToSend.push(std::make_unique<String>(std::move(toSend)));
-            }else{
-                //todo remove first form list/queue and add this one
-                ESP_LOGD(TAG,"New request not added to list not requtests because que is full");
+            // If queue full, remove oldest
+            if(requestsToSend.size() >= MAX_QUEUE_SIZE) {
+                ESP_LOGW(TAG, "Request queue full (%d), dropping oldest", MAX_QUEUE_SIZE);
+                requestsToSend.pop();
             }
+
+            ESP_LOGD(TAG, "Adding new request to queue (size: %d)", requestsToSend.size() + 1);
+            requestsToSend.push(std::make_unique<String>(std::move(toSend)));
         }
     }
-
-
-    //check if last request ist send succesfully
-    if(_lastRequestResponse.has_value()){
-        ESP_LOGD(TAG,"http request finished");
-        _runningThread.join();
-        handleResponse();
-        _lastRequestResponse.reset();
-    }
-
-    if(!_lastRequestResponse.has_value() && _currentlySendingData == nullptr && !requestsToSend.empty() && restTimeout.occured()){
-        restTimeout.set(0);//reset if errror was before
-        //send new request
-        ESP_LOGD(TAG,"start new http request send queue size is: %d\r\n",requestsToSend.size());
-        //runNextHttpRequest(std::move(data));
-
-        _currentlySendingData = requestsToSend.front().get();
-
-        auto cfg = esp_pthread_get_default_config();
-        cfg.thread_name = "other thread"; // adjust to name your thread
-        cfg.stack_size = 8192; // adjust as needed
-        esp_pthread_set_cfg(&cfg);
-        _runningThread = std::thread(std::bind(&TostHandleClass::runNextHttpRequest,this));
-        //runningHttpRequest = std::async(&TostHandleClass::runNextHttpRequest,this,std::move(data));
-    }
 }
 
-int TostHandleClass::doRequest(String url,uint16_t timeout){
-    auto http = std::make_unique<HTTPClient>();
 
-    url+="/api/solar/data?systemId=";
-    url+=Configuration.get().Tost.SystemId;
-    ESP_LOGD(TAG,"Send reqeust to: %s:",url.c_str());
-
-    http->begin(url.c_str());
-    http->addHeader("clientToken",Configuration.get().Tost.Token);
-    http->addHeader("Content-Type", "application/json");
-    http->setTimeout(timeout);
-
-    int statusCode = http->POST(*_currentlySendingData);
-
-    ESP_LOGD(TAG,"Finished post data response: %d",statusCode);
-
-    _lastRequestResponse = std::make_pair(statusCode,std::move(http));
-
-    return statusCode;
-}
-
-void TostHandleClass::runNextHttpRequest() {
-
-    ESP_LOGD(TAG,"start reqeust thread");
-    ESP_LOGD(TAG,"sending data: %s",_currentlySendingData->c_str());
-
-    int statusCode = doRequest(Configuration.get().Tost.Url,15 * 1000);//15 sec
-
-    if((statusCode <= 0 || statusCode == 502) && strlen(Configuration.get().Tost.SecondUrl) > 0 ){
-
-        ESP_LOGW(TAG,"First post url not working try second one");
-
-        int nextStatus = doRequest(Configuration.get().Tost.SecondUrl,10 * 1000);//10 sec
-
-        if(nextStatus <= 0 || nextStatus == 502){
-            ESP_LOGE(TAG,"Second post url not working too");
-        }
-    }
-
-    ESP_LOGD(TAG,"Thread finished request");
-
-    _currentlySendingData = nullptr;
-}
-
-void TostHandleClass::handleResponse()
+void TostHandleClass::handleResponse(const RestResponse& response, bool isSecondaryUrl)
 {
-    int statusCode = _lastRequestResponse->first;
-
     unsigned long lastTimestamp = millis();
-    //MessageOutput.printf("Timestamp: %ld\n\r",lastTimestamp);
-    //MessageOutput.printf("Status code: %d\n\r",lastErrorStatusCode);
-    if(statusCode <= 0){
-        lastErrorMessage = "Connection to server not possible";
+    int statusCode = response.httpCode;
+
+    if (!response.success || statusCode <= 0) {
+        // Connection failure - try secondary URL if not already tried
+        if (!isSecondaryUrl && strlen(Configuration.get().Tost.SecondUrl) > 0) {
+            ESP_LOGW(TAG, "First URL failed, trying secondary URL");
+            queueSecondaryUrlRequest();
+            return;  // Don't update error state yet
+        }
+
+        ESP_LOGE(TAG, "Tost's Solar Monitoring Error on rest call, connection to server not possible");
+        lastErrorMessage = "Connection to server not possible: " + response.body;
         lastErrorStatusCode = statusCode;
         lastErrorTimestamp = lastTimestamp;
-    }else{
-        String payload = _lastRequestResponse->second->getString();
-        ESP_LOGD(TAG,"Full Status: %s", payload.c_str());
+    } else {
+        // Parse response body
+        ESP_LOGD(TAG, "Full Status: %s", response.body.c_str());
         if (statusCode == 200) {
             lastSuccessfullyTimestamp = lastTimestamp;
-            ESP_LOGI(TAG,"Tost's Solar Monitoring Successfully send data");
-        }else {
+            ESP_LOGI(TAG, "Tost's Solar Monitoring Successfully sent data");
+        } else {
             lastErrorStatusCode = statusCode;
             lastErrorTimestamp = lastTimestamp;
-            ESP_LOGE(TAG,"Tost's Solar Monitoring Error on rest call: %s\n\r",lastErrorMessage.c_str());
+            ESP_LOGE(TAG, "Tost's Solar Monitoring Error on rest call, Status code: %d", statusCode);
 
+            // Parse error message from response
             JsonDocument doc;
-            DeserializationError error = deserializeJson(doc, payload);
-            if (error){
-                lastErrorMessage = String("Error on serializing response from Server. Data is: ") + payload;
-            }else{
-                if(!doc["error"].is<String>()){
-                    lastErrorMessage = String("Error json response missing 'error' key Data is: ") + payload;
-                }else{
-                    const char* err = doc["error"];
-                    lastErrorMessage = err;
-                }
+            DeserializationError error = deserializeJson(doc, response.body);
+            if (error || !doc["error"].is<String>()) {
+                lastErrorMessage = String("Error response: ") + response.body;
+            } else {
+                lastErrorMessage = doc["error"].as<String>();
             }
         }
     }
 
-
-    if(statusCode > 0 && statusCode != 403 && statusCode != 401){
-        //clear if not connection error or forbidden (bad request/internal server error => ok, because of mostly data error)
-        requestsToSend.pop();
-
-    }else{
-        ESP_LOGI(TAG,"Tost's Solar Monitoring use rest send pause (1 min) because last request failed, queue is\n\r");
+    // Pop from queue only if request was successful (following original logic)
+    // Original: pop if statusCode > 0 AND statusCode != 403 AND statusCode != 401
+    if (statusCode > 0 && statusCode != 403 && statusCode != 401 && statusCode != 503) {//on thes status codes a retry can be done
+        // Check if front of queue is still the request we sent
+        if (!requestsToSend.empty() && *requestsToSend.front() == _lastRequestBody) {
+            ESP_LOGD(TAG, "Removing sent request from queue with code: %d, (succsfull nor not remove so not blocking other requests) queue remaining: %d", statusCode, requestsToSend.size() - 1);
+            requestsToSend.pop();
+        } else if (!requestsToSend.empty()) {
+            ESP_LOGW(TAG, "Queue front changed during request - already removed by queue overflow");
+        } else {
+            ESP_LOGW(TAG, "Queue is empty - request already removed");
+        }
+        // Clear timeout on successful send
+        restTimeout.set(0);
+    } else {
+        // Keep request in queue for retry, set timeout
+        ESP_LOGI(TAG, "Request failed (code=%d), keeping in queue and pausing for 60s", statusCode);
         restTimeout.set(60 * 1000);
     }
+}
+
+void TostHandleClass::processActiveRequest()
+{
+    if (!_activeRequest.has_value()) {
+        return;  // No active request
+    }
+
+    // Non-blocking check if ready
+    if (_activeRequest->future.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready) {
+        RestResponse response = _activeRequest->future.get();
+        bool isSecondary = _activeRequest->isSecondaryUrl;
+        _activeRequest.reset();  // Clear active request
+
+        handleResponse(response, isSecondary);
+    }
+}
+
+void TostHandleClass::sendNextRequest()
+{
+    if (requestsToSend.empty()) {
+        return;
+    }
+
+    // Peek at next request from queue (DON'T pop yet - only pop on success)
+    String body = *requestsToSend.front();
+
+    // Save for potential secondary URL retry and for matching later
+    _lastRequestBody = body;
+
+    // Build URL
+    String url = Configuration.get().Tost.Url;
+    url += "/api/solar/data?systemId=";
+    url += Configuration.get().Tost.SystemId;
+
+    // Prepare headers
+    std::map<String, String> headers;
+    headers["clientToken"] = Configuration.get().Tost.Token;
+
+    ESP_LOGD(TAG, "Sending request to: %s (queue size: %d)", url.c_str(), requestsToSend.size());
+
+    // Queue request to RestRequestHandler
+    auto future = RestRequestHandler.queueRequestWithHeaders(
+        url, "POST", body, "application/json",
+        headers, 0, 15000  // maxRetries=0, timeout=15s
+    );
+
+    // Store as active request
+    ActiveRequest active;
+    active.future = std::move(future);
+    active.isSecondaryUrl = false;
+    _activeRequest = std::move(active);
+}
+
+void TostHandleClass::queueSecondaryUrlRequest()
+{
+    String url = Configuration.get().Tost.SecondUrl;
+    url += "/api/solar/data?systemId=";
+    url += Configuration.get().Tost.SystemId;
+
+    std::map<String, String> headers;
+    headers["clientToken"] = Configuration.get().Tost.Token;
+
+    ESP_LOGD(TAG, "Sending request to secondary URL: %s", url.c_str());
+
+    // Reuse last JSON body
+    auto future = RestRequestHandler.queueRequestWithHeaders(
+        url, "POST", _lastRequestBody, "application/json",
+        headers, 0, 10000  // 10s timeout for secondary
+    );
+
+    // Replace active request with secondary URL attempt
+    ActiveRequest active;
+    active.future = std::move(future);
+    active.isSecondaryUrl = true;
+    _activeRequest = std::move(active);
 }
