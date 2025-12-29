@@ -37,6 +37,9 @@ The esp will connect via Network ((UDP, 48899), (TCP, 8899, Modbus) to the confi
 It will read all data every 5 minutes. Reading data more often is not possible due to the limitations of inverters.
 Health checks will be done more often. It is configurable on advanced inverter settings.
 
+The current firmware version and restart command is triggered via HTTP-Rest call. Username and password for that can be
+configured in advanced device settings.
+
 Currently, there exist three types of connections to the inverter, depending on the installed Firmware.
 
 |                       | At-Commands                | Custom Modbus                | Modbus                      |
@@ -57,7 +60,6 @@ Tested with models: SUN300G3-EU-230, SUN-M60/80/100G4-EU-Q0, Deye SUN600G3-EU-23
 #### Not working
 
 - Logs show hardware inverter errors
-- restart inverter
 
 #### Additional Features
 When the Deye sun inverter is not having a connection to the internet (remote server), the daily KWH will not reset. For fixing that on the
