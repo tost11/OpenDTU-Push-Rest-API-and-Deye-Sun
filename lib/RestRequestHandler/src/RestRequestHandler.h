@@ -4,7 +4,6 @@
 #include <HTTPClient.h>
 #include <TaskSchedulerDeclarations.h>
 #include <ThreadSafeQueue.h>
-#include <functional>
 #include <map>
 #include <vector>
 #include <thread>
