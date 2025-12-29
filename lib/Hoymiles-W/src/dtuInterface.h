@@ -4,27 +4,17 @@
 #include <mutex>
 
 #include <Arduino.h>
-#include <ArduinoJson.h>
 
 #include <WiFi.h>
 #include <AsyncTCP.h>
 
 #include <Ticker.h>
 
-#include "pb_encode.h"
-#include "pb_decode.h"
-#include "AppGetHistPower.pb.h"
-#include "RealtimeDataNew.pb.h"
-#include "GetConfig.pb.h"
+#include <CRC16.h>
 #include "CommandPB.pb.h"
-#include "CRC16.h"
-#include "dtuConst.h"
 #include "parser/HoymilesWStatisticsParser.h"
 
 #include "HoymilesWConnectionStatistics.h"
-#include <TimeoutHelper.h>
-
-#include <Config.h>
 
 #define DTU_TIME_OFFSET 28800
 

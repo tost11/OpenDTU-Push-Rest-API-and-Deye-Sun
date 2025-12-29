@@ -69,7 +69,9 @@ void InverterSettingsClass::init(Scheduler& scheduler)
                     config.Inverter[i].Serial,
                     config.Inverter[i].HostnameOrIp,
                     config.Inverter[i].Port,
-                    (deye_inverter_type)config.Inverter[i].MoreInverterInfo);
+                    (deye_inverter_type)config.Inverter[i].MoreInverterInfo,
+                    config.Inverter[i].Username,
+                    config.Inverter[i].Password);
             if (inv == nullptr) {
                 ESP_LOGW(TAG, "Adding inverter failed: Unsupported type");
                 continue;

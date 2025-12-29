@@ -19,6 +19,7 @@
 #include "NtpSettings.h"
 #include "PinMapping.h"
 #include "RestartHelper.h"
+#include "RestRequestHandler.h"
 #include "Scheduler.h"
 #include "SunPosition.h"
 #include "WebApi.h"
@@ -131,6 +132,10 @@ void setup()
     // Initialize WebApi
     ESP_LOGI(TAG, "Initializing WebApi...");
     WebApi.init(scheduler);
+
+    // Initialize REST request handler
+    ESP_LOGI(TAG, "Initializing REST request handler...");
+    RestRequestHandler.init(scheduler);
 
     // Initialize WebApi
     ESP_LOGI(TAG, "Initialize Servo... ");

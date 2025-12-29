@@ -570,7 +570,12 @@
         "InverterHostnameOrIpHint": "Hostname of device in newtork,ip-adress, or mac-adress in ap-network",
         "InverterPort": "Port",
         "InverterPortHint": "Udp communication port of the device, default: 48899",
-        "ManufacturerSelect": "Select manufacturer of inverter to add"
+        "ManufacturerSelect": "Select manufacturer of inverter to add",
+        "Authentication": "Authentification",
+        "Username": "Nom d'utilisateur",
+        "UsernameHint": "Nom d'utilisateur pour l'authentification de l'onduleur Deye Sun (par défaut: admin)",
+        "Password": "Mot de passe",
+        "PasswordHint": "Mot de passe pour l'authentification de l'onduleur Deye Sun (par défaut: admin)"
     },
     "fileadmin": {
         "ConfigManagement": "Gestion de la configuration",

@@ -1,0 +1,15 @@
+{
+  "name": "CRC",
+  "version": "1.0.0",
+  "description": "Shared CRC library for OpenDTU (CRC8, CRC16 Modbus, CRC16 NRF24)",
+  "keywords": "crc, crc8, crc16, modbus",
+  "authors": [
+    {
+      "name": "Thomas Basler and others",
+      "maintainer": true
+    }
+  ],
+  "license": "GPL-2.0-or-later",
+  "frameworks": "arduino",
+  "platforms": "espressif32"
+}

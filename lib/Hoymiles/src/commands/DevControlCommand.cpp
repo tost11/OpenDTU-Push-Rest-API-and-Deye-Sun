@@ -21,7 +21,7 @@ Command structure:
 ID   Target Addr   Source Addr   Cmd  Payload CRC16 CRC8
 */
 #include "DevControlCommand.h"
-#include "crc.h"
+#include <CRC.h>
 
 DevControlCommand::DevControlCommand(InverterAbstract* inv, const uint64_t router_address)
     : CommandAbstract(inv, router_address)

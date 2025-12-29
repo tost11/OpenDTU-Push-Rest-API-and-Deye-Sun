@@ -5,10 +5,12 @@
 #include "DeyeInverter.h"
 #include "DeyeSun.h"
 #include "DeyeUtils.h"
+#include <RestRequestHandler.h>
+#include "utils/Base64.h"
 
 DeyeInverter::DeyeInverter(uint64_t serial){
     _serial = serial;
-    _alarmLogParser.reset(new DeyeAlarmLog());
+    _alarmLogParser.reset(new DefaultAlarmLog("DeyeSun"));
     _devInfoParser.reset(new DeyeDevInfo());
     _powerCommandParser.reset(new PowerCommandParser());
     _statisticsParser.reset(new DefaultStatisticsParser());
@@ -18,6 +20,8 @@ DeyeInverter::DeyeInverter(uint64_t serial){
              static_cast<uint32_t>((serial >> 32) & 0xFFFFFFFF),
              static_cast<uint32_t>(serial & 0xFFFFFFFF));
     _serialString = serial_buff;
+
+    // TimeoutHelper initializes itself - starts at 0 (expired), so first fetch happens immediately
 }
 
 String DeyeInverter::serialToModel(uint64_t serial) {
@@ -140,8 +144,213 @@ bool DeyeInverter::resendPowerControlRequest() {
 }
 
 bool DeyeInverter::sendRestartControlRequest() {
-    //todo implement
-    return false;
+    // Check if restart already in progress
+    //rust check without to return isntantly
+    if (_restartCommandFuture.has_value()) {
+        ESP_LOGW(LogTag().c_str(), "Restart command already in progress, skipping");
+        return false;
+    }
+
+    std::lock_guard<std::mutex> lock(_restartCommandMutex);
+    //again check now we are secure no other threads run intermediate
+    if (_restartCommandFuture.has_value()) {
+        ESP_LOGW(LogTag().c_str(), "Restart command already in progress, skipping");
+        return false;
+    }
+
+    // Build REST request URL - use /up_succ.html endpoint
+    String url = "http://" + String(_oringalIpOrHostname.c_str());
+    url += "/up_succ.html";
+
+    // Prepare headers with authentication and Referer
+    std::map<String, String> headers;
+
+    // Form data body
+    String body = "HF_PROCESS_CMD=RESTART";
+
+    // Add Referer header (required by Deye protocol)
+    String referer = "http://" + String(_oringalIpOrHostname.c_str()) + "/autorestart.html";
+    headers["Referer"] = referer;
+
+    // Add Content-Length header
+    headers["Content-Length"] = String(body.length());
+
+    // Basic Auth
+    if (!addBasicAuthHeader(headers)) {
+        return false;
+    }
+
+    // Content type
+    String contentType = "application/x-www-form-urlencoded";
+
+    // Queue request
+    auto future = RestRequestHandler.queueRequestWithHeaders(
+        url,
+        "POST",
+        body,           // Form data
+        contentType,    // Content type
+        headers,        // Auth + Referer + Content-Length
+        2,              // maxRetries
+        5000            // timeout
+    );
+
+    // Store future for result tracking
+    _restartCommandFuture = std::move(future);
+
+    ESP_LOGI(LogTag().c_str(), "Restart command queued for %s", serialString().c_str());
+    return true;
+}
+
+bool DeyeInverter::addBasicAuthHeader(std::map<String, String>& headers) {
+    if (_username.isEmpty() || _password.isEmpty()) {
+        return true;  // No auth needed
+    }
+
+    String auth = _username + ":" + _password;
+    size_t olen = 0;
+    unsigned char encoded[128];
+    int ret = Base64::encode(encoded, sizeof(encoded), &olen,
+                        (const unsigned char*)auth.c_str(), auth.length());
+
+    if (ret == 0) {
+        String authHeader = "Basic " + String((char*)encoded);
+        headers["Authorization"] = authHeader;
+        return true;
+    } else {
+        ESP_LOGE(LogTag().c_str(), "Failed to encode authentication credentials");
+        return false;
+    }
+}
+
+String DeyeInverter::parseHtmlVariable(const String& htmlBody, const String& varName) {
+    // Build search pattern: "var varName = ""
+    String searchPattern = "var " + varName + " = \"";
+
+    int startIdx = htmlBody.indexOf(searchPattern);
+    if (startIdx < 0) {
+        ESP_LOGW(LogTag().c_str(), "Could not find 'var %s' in HTML", varName.c_str());
+        return "";
+    }
+
+    // Move past the search pattern
+    startIdx += searchPattern.length();
+
+    // Find closing quote
+    int endIdx = htmlBody.indexOf("\"", startIdx);
+    if (endIdx < 0) {
+        ESP_LOGW(LogTag().c_str(), "Could not find closing quote for %s", varName.c_str());
+        return "";
+    }
+
+    // Extract and return value
+    return htmlBody.substring(startIdx, endIdx);
+}
+
+void DeyeInverter::checkAndFetchFirmwareVersion() {
+    // Check if future is pending and ready
+    if (_firmwareVersionFuture.has_value()) {
+        auto& future = _firmwareVersionFuture.value();
+
+        if (future.wait_for(0) == LightFuture<RestResponse>::Status::READY) {
+            auto response = future.get();
+            bool fetchSuccess = false;
+
+            if (response.success && response.httpCode == 200) {
+                // First validate serial number matches
+                String htmlSerial = parseHtmlVariable(response.body, "cover_mid");
+                if (htmlSerial.isEmpty()) {
+                    ESP_LOGE(LogTag().c_str(), "Could not extract serial number from status.html");
+                } else if (!htmlSerial.equalsIgnoreCase(_serialString)) {
+                    // Serial mismatch
+                    ESP_LOGE(LogTag().c_str(),
+                             "Serial number mismatch! Expected: %s, Got: %s - NOT setting firmware version",
+                             _serialString.c_str(), htmlSerial.c_str());
+                } else {
+                    // Serial matches, parse firmware version
+                    String version = parseHtmlVariable(response.body, "cover_ver");
+                    if (!version.isEmpty()) {
+                        _devInfoParser->setHardwareVersion(version);
+                        _devInfoParser->setLastUpdate(millis());
+                        fetchSuccess = true;
+                        ESP_LOGI(LogTag().c_str(), "Successfully fetched firmware version: %s (serial validated)",
+                                 version.c_str());
+                    } else {
+                        ESP_LOGW(LogTag().c_str(), "Could not extract firmware version");
+                    }
+                }
+            } else {
+                ESP_LOGW(LogTag().c_str(), "Failed to fetch firmware version (code=%d): %s",
+                         response.httpCode, response.body.c_str());
+            }
+
+            _firmwareVersionFuture.reset();
+
+            // Set timer based on success/failure
+            if (fetchSuccess) {
+                _timerFirmwareVersionFetch.set(TIMER_FIRMWARE_VERSION_FETCH_SUCCESS); // 15 minutes
+                ESP_LOGD(LogTag().c_str(), "Next firmware fetch in 15 minutes");
+            } else {
+                _timerFirmwareVersionFetch.set(TIMER_FIRMWARE_VERSION_FETCH_RETRY);   // 30 seconds
+                ESP_LOGD(LogTag().c_str(), "Firmware fetch failed, retry in 30 seconds");
+            }
+        }
+
+        return; // Don't queue new request while one is pending
+    }
+
+    // Check if timer has expired (should we fetch?)
+    if (!_timerFirmwareVersionFetch.occured()) {
+        return;
+    }
+
+    // Build URL
+    String url = "http://" + String(_oringalIpOrHostname.c_str());
+    url += "/status.html";
+
+    // Prepare headers with authentication if configured
+    std::map<String, String> headers;
+    if (!addBasicAuthHeader(headers)) {
+        ESP_LOGW(LogTag().c_str(), "Failed to add auth header for firmware fetch");
+        // Don't return - continue anyway, might work without auth
+    }
+
+    // Queue request
+    auto future = RestRequestHandler.queueRequestWithHeaders(
+        url,
+        "GET",
+        "",  // No body
+        "",  // No content type
+        headers,
+        2,      // maxRetries
+        10000   // 10s timeout
+    );
+
+    _firmwareVersionFuture = std::move(future);
+
+    ESP_LOGD(LogTag().c_str(), "Queued firmware version fetch request");
+}
+
+void DeyeInverter::checkRestartCommandResult() {
+    // Check if future is pending and ready
+    if (_restartCommandFuture.has_value()) {
+        auto& future = _restartCommandFuture.value();
+
+        if (future.wait_for(0) == LightFuture<RestResponse>::Status::READY) {
+            auto response = future.get();
+
+            if (response.success && response.httpCode == 200) {
+                ESP_LOGI(LogTag().c_str(), "Restart command succeeded for %s", serialString().c_str());
+            } else {
+                ESP_LOGE(LogTag().c_str(), "Restart command failed for %s (code=%d): %s",
+                         serialString().c_str(), response.httpCode, response.body.c_str());
+
+                // Add alarm for 5 minutes
+                _alarmLogParser->addAlarm(8, 5 * 60, "Restart command failed");
+            }
+
+            _restartCommandFuture.reset();
+        }
+    }
 }
 
 void DeyeInverter::checkForNewWriteCommands() {

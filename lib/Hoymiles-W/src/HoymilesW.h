@@ -1,14 +1,12 @@
 #pragma once
 
-#include <Print.h>
 #include <memory>
 #include <vector>
 #include <mutex>
-#include <HardwareSerial.h>
 #include "BaseInverterHandler.h"
 #include "inverters/HoymilesWInverter.h"
 
-class HoymilesWClass: public BaseInverterHandler<HoymilesWInverter,HoymilesWStatisticsParser,HoymilesWDevInfo,HoymilesWAlarmLog,PowerCommandParser> {
+class HoymilesWClass: public BaseInverterHandler<HoymilesWInverter,HoymilesWStatisticsParser,HoymilesWDevInfo,DefaultAlarmLog,PowerCommandParser> {
 public:
     HoymilesWClass();
 

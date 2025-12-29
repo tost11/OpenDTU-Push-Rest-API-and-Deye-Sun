@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
+#include <defines.h>
+
 #include "../Parser.h"
 #include "../Updater.h"
 

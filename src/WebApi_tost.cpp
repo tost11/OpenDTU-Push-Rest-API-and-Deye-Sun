@@ -15,11 +15,9 @@ void WebApiTostClass::init(AsyncWebServer& server, Scheduler& scheduler)
 {
     using std::placeholders::_1;
 
-    _server = &server;
-
-    _server->on("/api/tost/status", HTTP_GET, std::bind(&WebApiTostClass::onTostStatus, this, _1));
-    _server->on("/api/tost/config", HTTP_GET, std::bind(&WebApiTostClass::onTostAdminGet, this, _1));
-    _server->on("/api/tost/config", HTTP_POST, std::bind(&WebApiTostClass::onTostAdminPost, this, _1));
+    server.on("/api/tost/status", HTTP_GET, std::bind(&WebApiTostClass::onTostStatus, this, _1));
+    server.on("/api/tost/config", HTTP_GET, std::bind(&WebApiTostClass::onTostAdminGet, this, _1));
+    server.on("/api/tost/config", HTTP_POST, std::bind(&WebApiTostClass::onTostAdminPost, this, _1));
 }
 
 void WebApiTostClass::loop()

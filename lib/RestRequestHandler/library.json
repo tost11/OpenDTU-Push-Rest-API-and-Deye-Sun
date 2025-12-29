@@ -1,0 +1,22 @@
+{
+    "name": "RestRequestHandler",
+    "version": "0.0.1",
+    "description": "Async REST request handler with threading support for ESP32",
+    "keywords": "rest, http, async, esp32, threading",
+    "authors": [
+        {
+            "name": "OpenDTU Contributors"
+        }
+    ],
+    "dependencies": [
+        {
+            "name": "HTTPClient"
+        },
+        {
+            "name": "TaskScheduler"
+        },
+        {
+            "name": "ThreadSafeQueue"
+        }
+    ]
+}

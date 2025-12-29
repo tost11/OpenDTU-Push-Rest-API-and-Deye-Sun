@@ -6,7 +6,6 @@
 #include "InverterHandler.h"
 #include "Configuration.h"
 #include <iterator>
-#include <MessageOutput.h>
 
 #undef TAG
 static const char* TAG = "Servo";

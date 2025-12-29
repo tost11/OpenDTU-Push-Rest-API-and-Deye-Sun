@@ -3,7 +3,7 @@
  * Copyright (C) 2023-2025 Thomas Basler and others
  */
 #include "HoymilesRadio.h"
-#include "crc.h"
+#include <CRC.h>
 #include "Hoymiles.h"
 #include <esp_log.h>
 

@@ -3,6 +3,9 @@
  * Copyright (C) 2023-2025 Thomas Basler and others
  */
 #include "HMS_Abstract.h"
+
+#include <commands/ActivePowerControlCommand.h>
+
 #include "Hoymiles.h"
 #include "HoymilesRadio_CMT.h"
 #include "commands/ChannelChangeCommand.h"

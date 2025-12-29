@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <cstdio>
-
 struct HoymilesWConnectionStatistics{
     // TX Request Data
     uint32_t SendRequests;

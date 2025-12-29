@@ -116,4 +116,4 @@ const byte CMD_CLOUD_COMMAND_RES_DTO[] = {0x23,0x05};
 // )
 // 
 #define MAX_POWER_LIMIT 100
-// 
+//

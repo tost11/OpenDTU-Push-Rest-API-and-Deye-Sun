@@ -4,6 +4,7 @@
 #include <parser/BaseAlarmLog.h>
 #include <array>
 #include <cstdint>
+#include <defines.h>
 
 #define ALARM_LOG_PAYLOAD_SIZE (ALARM_LOG_ENTRY_COUNT * ALARM_LOG_ENTRY_SIZE + 4)
 

@@ -29,8 +29,7 @@ Source Address: 80 12 23 04
 #include "CommandAbstract.h"
 #include <InverterUtils.h>
 #include "../inverters/InverterAbstract.h"
-#include "crc.h"
-#include "../inverters/InverterAbstract.h"
+#include <CRC.h>
 
 CommandAbstract::CommandAbstract(InverterAbstract* inv, const uint64_t router_address)
 {
