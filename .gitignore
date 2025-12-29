@@ -12,3 +12,4 @@ get-platformio.py
 .DS_Store
 tmp
 test_scripts
+CLAUDE.md
