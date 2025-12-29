@@ -4,7 +4,6 @@
 #include <WString.h>
 #include <memory>
 #include "../parser/BaseStatistics.h"
-#include "../parser/StatisticsParser.h"
 #include "../parser/BaseDevInfo.h"
 #include "../parser/SystemConfigParaParser.h"
 #include "defines.h"

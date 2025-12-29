@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 
-#include "../commands/ActivePowerControlCommand.h"
 #include "../parser/AlarmLogParser.h"
 #include "../parser/DevInfoParser.h"
 #include "../parser/PowerCommandParser.h"
@@ -9,9 +8,7 @@
 #include "HoymilesRadio.h"
 #include "types.h"
 #include <inverter/BaseInverter.h>
-#include <Arduino.h>
 #include <cstdint>
-#include <list>
 
 enum {
     FRAGMENT_ALL_MISSING_RESEND = 255,

@@ -68,6 +68,15 @@ public:
         _port = port;
         hostOrPortUpdated();
     }
+
+    void setUsernameAndPassword(const char* username, const char* password){
+        _username = String(username);
+        _password = String(password);
+    }
+
+    const String& getUsername() const { return _username; }
+    const String& getPassword() const { return _password; }
+
 protected:
     virtual String LogTag() = 0;
     virtual void hostOrPortUpdated(){};
@@ -76,6 +85,8 @@ protected:
     uint16_t _port;
     std::unique_ptr<std::string> _resolvedIpByMacAdress;
     String _oringalIpOrHostname;
+    String _username;
+    String _password;
 
     bool checkForMacResolution(bool force){
         if(_IpOrHostnameIsMac){

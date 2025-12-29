@@ -2,7 +2,6 @@
 #pragma once
 
 #include <parser/StatisticsParser.h>
-#include "RealtimeDataNew.pb.h"
 
 #pragma pack(push, 1) // exact fit - no padding
 struct BaseData
