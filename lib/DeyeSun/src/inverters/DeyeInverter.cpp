@@ -159,7 +159,11 @@ bool DeyeInverter::sendRestartControlRequest() {
     }
 
     // Build REST request URL - use /up_succ.html endpoint
-    String url = "http://" + String(_oringalIpOrHostname.c_str());
+    String host = _oringalIpOrHostname.c_str();
+    if(_resolvedIpByMacAdress != nullptr){
+        host = _resolvedIpByMacAdress->c_str();
+    }
+    String url = "http://" + host;
     url += "/up_succ.html";
 
     // Prepare headers with authentication and Referer
@@ -169,7 +173,7 @@ bool DeyeInverter::sendRestartControlRequest() {
     String body = "HF_PROCESS_CMD=RESTART";
 
     // Add Referer header (required by Deye protocol)
-    String referer = "http://" + String(_oringalIpOrHostname.c_str()) + "/autorestart.html";
+    String referer = "http://" + host + "/autorestart.html";
     headers["Referer"] = referer;
 
     // Add Content-Length header
@@ -303,8 +307,13 @@ void DeyeInverter::checkAndFetchFirmwareVersion() {
         return;
     }
 
+    String host = _oringalIpOrHostname.c_str();
+    if(_resolvedIpByMacAdress != nullptr){
+        host = _resolvedIpByMacAdress->c_str();
+    }
+
     // Build URL
-    String url = "http://" + String(_oringalIpOrHostname.c_str());
+    String url = "http://" + host;
     url += "/status.html";
 
     // Prepare headers with authentication if configured

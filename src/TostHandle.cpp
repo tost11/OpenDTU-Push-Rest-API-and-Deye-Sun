@@ -109,7 +109,7 @@ void TostHandleClass::loop()
     for (uint8_t i = 0; i < InverterHandler.getNumInverters(); i++) {
 
         auto inv = InverterHandler.getInverterByPos(i);
-        if (inv->getDevInfo()->getLastUpdate() <= 0) {
+        if (inv->getStatistics()->getLastUpdate() <= 0) {
             continue;
         }
 
