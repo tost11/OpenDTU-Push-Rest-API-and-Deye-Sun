@@ -107,7 +107,7 @@ void TostHandleClass::loop()
     for (uint8_t i = 0; i < Hoymiles.getNumInverters(); i++) {
 
         auto inv = Hoymiles.getInverterByPos(i);
-        if (inv->DevInfo()->getLastUpdate() <= 0) {
+        if (inv->Statistics()->getLastUpdate() <= 0) {
             continue;
         }
 
