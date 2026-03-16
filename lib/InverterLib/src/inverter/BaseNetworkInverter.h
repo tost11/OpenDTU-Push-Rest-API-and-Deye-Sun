@@ -7,9 +7,11 @@
 template<class StatT,class DevT,class AlarmT,class PowerT>
 class BaseNetworkInverter :public BaseInverter<StatT,DevT,AlarmT,PowerT> {
 private:
-    static const uint32_t TIMER_SUCCES_MAC_IP_RESOLUTION = 5 * 60 * 1000;
+    static const uint32_t TIMER_SUCCESS_MAC_IP_RESOLUTION = 5 * 60 * 1000;
     static const uint32_t TIMER_FAILED_MAC_IP_RESOLUTION = 30 * 1000;
+    static const uint32_t TIMER_NOT_FOUND_RESET_MAC_IP_RESOLUTION = 15 * 60 * 1000;
     TimeoutHelper _macToIpResolverTimer;
+    TimeoutHelper _macUnknownTimer;
 
     void checkIfIpOrHostnameIsMac() {
         const char* mac = _oringalIpOrHostname.c_str();
@@ -43,6 +45,8 @@ public:
     _resolvedIpByMacAdress(nullptr){
         _macToIpResolverTimer.set(TIMER_FAILED_MAC_IP_RESOLUTION);
         _macToIpResolverTimer.zero();
+        _macUnknownTimer.set(TIMER_NOT_FOUND_RESET_MAC_IP_RESOLUTION);
+        _macUnknownTimer.zero();
     }
     ~BaseNetworkInverter() = default;
 
@@ -102,10 +106,12 @@ protected:
                         ESP_LOGI(LogTag().c_str(),"Resolved Mac to ip: %s\n", found->second.c_str());
                         if(_resolvedIpByMacAdress == nullptr || found->second != *_resolvedIpByMacAdress){
                             _resolvedIpByMacAdress = std::make_unique<std::string>(found->second);
-                            _macToIpResolverTimer.set(TIMER_SUCCES_MAC_IP_RESOLUTION);
+                            _macToIpResolverTimer.set(TIMER_SUCCESS_MAC_IP_RESOLUTION);
+                            _macUnknownTimer.reset();
                             return true;
                         }
                         _macToIpResolverTimer.set(TIMER_FAILED_MAC_IP_RESOLUTION);
+                        _macUnknownTimer.reset();
                         ESP_LOGD(LogTag().c_str(),"Resolved Ip is same as before\n");
                         return false;
                     }
@@ -113,6 +119,10 @@ protected:
                 _macToIpResolverTimer.set(TIMER_FAILED_MAC_IP_RESOLUTION);
                 ESP_LOGD(LogTag().c_str(),"Failed on resolving Mac to Ip\n");
                 return false;
+            }
+            if(_resolvedIpByMacAdress != nullptr && _macUnknownTimer.occured()){
+                _resolvedIpByMacAdress = nullptr;
+                ESP_LOGW(LogTag().c_str(),"Removed ip from alreadyResolved by mac address because not seen in a while (15min)\n");
             }
         }
         return false;

@@ -9,15 +9,15 @@
 #include <SpiManager.h>
 #include <InverterHandler.h>
 
-#ifdef HOYMILES
+#if HOYMILES
 #include <Hoymiles.h>
 #endif
 
-#ifdef DEYE_SUN
+#if DEYE_SUN
 #include "DeyeSun.h"
 #endif
 
-#ifdef HOYMILES_W
+#if HOYMILES_W
 #include <HoymilesW.h>
 #endif
 
@@ -28,13 +28,13 @@ InverterSettingsClass InverterSettings;
 
 InverterSettingsClass::InverterSettingsClass()
     : _settingsTask(INVERTER_UPDATE_SETTINGS_INTERVAL, TASK_FOREVER, std::bind(&InverterSettingsClass::settingsLoop, this))
-    #ifdef HOYMILES
+    #if HOYMILES
     , _hoyTask(TASK_IMMEDIATE, TASK_FOREVER, std::bind(&InverterSettingsClass::hoyLoop, this))
     #endif
-    #ifdef DEYE_SUN
+    #if DEYE_SUN
     , _deyeTask(TASK_IMMEDIATE, TASK_FOREVER, std::bind(&InverterSettingsClass::deyeLoop, this))
     #endif
-    #ifdef HOYMILES_W
+    #if HOYMILES_W
     , _hoyWTask(TASK_IMMEDIATE, TASK_FOREVER, std::bind(&InverterSettingsClass::hoyWLoop, this))
     #endif
 {
@@ -44,7 +44,7 @@ void InverterSettingsClass::init(Scheduler& scheduler)
 {
     const CONFIG_T& config = Configuration.get();
 
-    #ifdef DEYE_SUN
+    #if DEYE_SUN
     ESP_LOGI(TAG, "Initialize Deye interface... ");
     DeyeSun.init();
 
@@ -93,7 +93,7 @@ void InverterSettingsClass::init(Scheduler& scheduler)
     ESP_LOGI(TAG,"Initialization complete");
     #endif
 
-    #ifdef HOYMILES
+    #if HOYMILES
     // Initialize inverter communication
     const PinMapping_t& pin = PinMapping.get();
 
@@ -174,7 +174,7 @@ void InverterSettingsClass::init(Scheduler& scheduler)
     ESP_LOGI(TAG, "Initialization complete");
     #endif
 
-    #ifdef HOYMILES_W
+    #if HOYMILES_W
     ESP_LOGI(TAG, "Initialize HoymilesW interface...");
     //HoymilesW.setMessageOutput(&MessageOutput);
     HoymilesW.init();
@@ -218,17 +218,17 @@ void InverterSettingsClass::init(Scheduler& scheduler)
     ESP_LOGI(TAG, "Initialization complete");
     #endif
 
-    #ifdef HOYMILES
+    #if HOYMILES
     scheduler.addTask(_hoyTask);
     _hoyTask.enable();
     #endif
 
-    #ifdef DEYE_SUN
+    #if DEYE_SUN
     scheduler.addTask(_deyeTask);
     _deyeTask.enable();
     #endif
 
-    #ifdef HOYMILES_W
+    #if HOYMILES_W
     scheduler.addTask(_hoyWTask);
     _hoyWTask.enable();
     #endif
@@ -261,21 +261,21 @@ void InverterSettingsClass::settingsLoop()
     }
 }
 
-#ifdef HOYMILES
+#if HOYMILES
 void InverterSettingsClass::hoyLoop()
 {
     Hoymiles.loop();
 }
 #endif
 
-#ifdef DEYE_SUN
+#if DEYE_SUN
 void InverterSettingsClass::deyeLoop()
 {
     DeyeSun.loop();
 }
 #endif
 
-#ifdef HOYMILES_W
+#if HOYMILES_W
 void InverterSettingsClass::hoyWLoop()
 {
     HoymilesW.loop();
