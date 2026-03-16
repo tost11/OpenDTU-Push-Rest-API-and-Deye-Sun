@@ -14,7 +14,7 @@
 #include <LittleFS.h>
 #include <ResetReason.h>
 
-#ifdef HOYMILES
+#if HOYMILES
 #include <Hoymiles.h>
 #endif
 
@@ -91,7 +91,7 @@ void WebApiSysstatusClass::onSystemStatus(AsyncWebServerRequest* request)
     root["uptime"] = esp_timer_get_time() / 1000000;
 
 
-    #ifdef HOYMILES
+    #if HOYMILES
     root["nrf_configured"] = PinMapping.isValidNrf24Config();
     root["nrf_connected"] = Hoymiles.getRadioNrf()->isConnected();
     root["nrf_pvariant"] = Hoymiles.getRadioNrf()->isPVariant();
