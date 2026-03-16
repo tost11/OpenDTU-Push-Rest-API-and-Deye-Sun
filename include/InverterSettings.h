@@ -16,17 +16,17 @@ private:
 
     Task _settingsTask;
 
-    #ifdef HOYMILES
+    #if HOYMILES
     Task _hoyTask;
     void hoyLoop();
     #endif
 
-    #ifdef DEYE_SUN
+    #if DEYE_SUN
     Task _deyeTask;
     void deyeLoop();
     #endif
 
-    #ifdef HOYMILES_W
+    #if HOYMILES_W
     Task _hoyWTask;
     void hoyWLoop();
     #endif

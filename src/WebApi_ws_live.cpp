@@ -14,15 +14,15 @@
 #undef TAG
 static const char* TAG = "webapi";
 
-#ifdef HOYMILES
+#if HOYMILES
 #include <Hoymiles.h>
 #endif
 
-#ifdef HOYMILES_W
+#if HOYMILES_W
 #include "inverters/HoymilesWInverter.h"
 #endif
 
-#ifdef DEYE_SUN
+#if DEYE_SUN
 #include "inverters/AtCommandsDeyeInverter.h"
 #include "inverters/CustomModbusDeyeInverter.h"
 #endif
@@ -149,7 +149,7 @@ void WebApiWsLiveClass::generateCommonJsonResponse(JsonVariant& root)
     JsonObject hintObj = root["hints"].to<JsonObject>();
     struct tm timeinfo;
     hintObj["time_sync"] = !getLocalTime(&timeinfo, 5);
-    #ifdef HOYMILES
+    #if HOYMILES
     hintObj["radio_problem"] = (Hoymiles.getRadioNrf()->isInitialized() && (!Hoymiles.getRadioNrf()->isConnected() || !Hoymiles.getRadioNrf()->isPVariant())) || (Hoymiles.getRadioCmt()->isInitialized() && (!Hoymiles.getRadioCmt()->isConnected()));
     #endif
     hintObj["default_password"] = strcmp(Configuration.get().Security.Password, ACCESS_POINT_PASSWORD) == 0;
@@ -179,7 +179,7 @@ void WebApiWsLiveClass::generateInverterCommonJsonResponse(JsonObject& root, std
     } else {
         root["limit_absolute"] = -1;
     }
-    #ifdef HOYMILES
+    #if HOYMILES
     if(inv->getInverterType() == inverter_type::Inverter_Hoymiles) {
         auto hoy = reinterpret_cast<InverterAbstract *>(inv.get());
         root["radio_stats"]["tx_request"] = hoy->RadioStats.TxRequestData;
@@ -192,7 +192,7 @@ void WebApiWsLiveClass::generateInverterCommonJsonResponse(JsonObject& root, std
     }
     #endif
 
-    #ifdef HOYMILES_W
+    #if HOYMILES_W
         if(inv->getInverterType() == inverter_type::Inverter_HoymilesW) {
             auto nv = reinterpret_cast<HoymilesWInverter *>(inv.get());
             root["connection_stats_hoymiles"]["send_requests"] = nv->ConnectionStatistics.SendRequests;
@@ -202,7 +202,7 @@ void WebApiWsLiveClass::generateInverterCommonJsonResponse(JsonObject& root, std
         }
     #endif
 
-    #ifdef DEYE_SUN
+    #if DEYE_SUN
         if(inv->getInverterType() == inverter_type::Inverter_DeyeSun) {
             auto nv = reinterpret_cast<DeyeInverter *>(inv.get());
             if(nv->getDeyeInverterType() == deye_inverter_type::Deye_Sun_At_Commands){

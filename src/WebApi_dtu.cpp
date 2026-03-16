@@ -47,7 +47,7 @@ void WebApiDtuClass::applyDataTaskCb()
     Hoymiles.setPollInterval(config.Dtu.PollInterval);
 #endif
 
-#ifdef DEYE_SUN
+#if DEYE_SUN
     DeyeSun.setUnknownDevicesWriteEnable(config.DeyeSettings.UnknownInverterWrite);
 #endif
 }
@@ -64,13 +64,13 @@ void WebApiDtuClass::onDtuAdminGet(AsyncWebServerRequest* request)
 
     JsonArray manufacturer = root["manufacturers"].to<JsonArray>();
 
-    #ifdef HOYMILES
+    #if HOYMILES
         manufacturer.add(from_inverter_type(inverter_type::Inverter_Hoymiles));
     #endif
-    #ifdef DEYE_SUN
+    #if DEYE_SUN
         manufacturer.add(from_inverter_type(inverter_type::Inverter_DeyeSun));
     #endif
-    #ifdef HOYMILES_W
+    #if HOYMILES_W
         manufacturer.add(from_inverter_type(inverter_type::Inverter_HoymilesW));
     #endif
 
@@ -90,7 +90,7 @@ void WebApiDtuClass::onDtuAdminGet(AsyncWebServerRequest* request)
     root["cmt_country"] = config.Dtu.Cmt.CountryMode;
     root["cmt_chan_width"] = 0;
 
-#ifdef HOYMILES
+#if HOYMILES
     root["nrf_enabled"] = Hoymiles.getRadioNrf()->isInitialized();
     root["cmt_enabled"] = Hoymiles.getRadioCmt()->isInitialized();
     root["cmt_chan_width"] = Hoymiles.getRadioCmt()->getChannelWidth();
@@ -184,7 +184,7 @@ void WebApiDtuClass::onDtuAdminPost(AsyncWebServerRequest* request)
         return;
     }
 
-#ifdef HOYMILES
+#if HOYMILES
     auto FrequencyDefinition = Hoymiles.getRadioCmt()->getCountryFrequencyList()[root["cmt_country"].as<CountryModeId_t>()].definition;
     if (root["cmt_frequency"].as<uint32_t>() < FrequencyDefinition.Freq_Min
         || root["cmt_frequency"].as<uint32_t>() > FrequencyDefinition.Freq_Max
