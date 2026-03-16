@@ -350,10 +350,20 @@ bool AtCommandsDeyeInverter::resolveHostname() {
     auto ret = WiFi.hostByName(ipToFind, remote_addr);
     if (ret == 1) {
         ESP_LOGD(TAG,"Resolved Ip is: %s", remote_addr.toString().c_str());
-        _ipAdress = std::make_unique<IPAddress>(remote_addr);
+        auto newAdr = std::make_unique<IPAddress>(remote_addr);
+        if(newAdr != _ipAdress){
+            endSocket();//end current connections new ip
+            ESP_LOGI(TAG,"Found new IpAddress reset current connection");
+        }
+        _ipAdress = std::move(newAdr);
         return true;
     }
     ESP_LOGW(TAG,"Could not resolve hostname: %s\n", ipToFind);
+    if(_IpOrHostnameIsMac && _resolvedIpByMacAdress == nullptr && _ipAdress != nullptr){
+        //only reset on mac resolution
+        ESP_LOGW(TAG,"Reset resolved ip from mac");
+        _ipAdress = nullptr;
+    }
     return false;
 }
 
