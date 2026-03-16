@@ -9,7 +9,7 @@
 #include <ctime>
 #include "inverters/InverterAbstract.h"
 
-#ifdef HOYMILES
+#if HOYMILES
 #include <inverters/InverterAbstract.h>
 #endif
 

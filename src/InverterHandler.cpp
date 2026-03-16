@@ -1,15 +1,15 @@
 
 #include "InverterHandler.h"
 
-#ifdef HOYMILES
+#if HOYMILES
 #include "Hoymiles.h"
 #endif
 
-#ifdef DEYE_SUN
+#if DEYE_SUN
 #include "DeyeSun.h"
 #endif
 
-#ifdef HOYMILES_W
+#if HOYMILES_W
 #include "HoymilesW.h"
 #endif
 
@@ -27,13 +27,13 @@ bool InverterHandlerClass::isAllRadioIdle() {
 }
 
 void InverterHandlerClass::init() {
-    #ifdef HOYMILES
+    #if HOYMILES
     _handlers.push_back(reinterpret_cast<BaseInverterHandlerClass*>(&Hoymiles));
     #endif
-    #ifdef DEYE_SUN
+    #if DEYE_SUN
     _handlers.push_back(reinterpret_cast<BaseInverterHandlerClass*>(&DeyeSun));
     #endif
-    #ifdef HOYMILES_W
+    #if HOYMILES_W
     _handlers.push_back(reinterpret_cast<BaseInverterHandlerClass*>(&HoymilesW));
     #endif
 }
@@ -91,17 +91,17 @@ std::shared_ptr<BaseInverterClass> InverterHandlerClass::getInverterBySerialStri
 }
 
 std::shared_ptr<BaseInverterClass> InverterHandlerClass::getInverterBySerial(uint64_t serial,inverter_type inverterType) {
-    #ifdef HOYMILES
+    #if HOYMILES
     if(inverterType == inverter_type::Inverter_Hoymiles){
         return std::reinterpret_pointer_cast<BaseInverterClass>(Hoymiles.getInverterBySerial(serial));
     }
     #endif
-    #ifdef DEYE_SUN
+    #if DEYE_SUN
     if(inverterType == inverter_type::Inverter_DeyeSun){
         return std::reinterpret_pointer_cast<BaseInverterClass>(DeyeSun.getInverterBySerial(serial));
     }
     #endif
-    #ifdef HOYMILES_W
+    #if HOYMILES_W
     if(inverterType == inverter_type::Inverter_HoymilesW){
         return std::reinterpret_pointer_cast<BaseInverterClass>(HoymilesW.getInverterBySerial(serial));
     }
@@ -110,17 +110,17 @@ std::shared_ptr<BaseInverterClass> InverterHandlerClass::getInverterBySerial(uin
 }
 
 void InverterHandlerClass::removeInverterBySerial(uint64_t serial,inverter_type inverterType) {
-    #ifdef HOYMILES
+    #if HOYMILES
     if(inverterType == inverter_type::Inverter_Hoymiles){
         Hoymiles.removeInverterBySerial(serial);
     }
     #endif
-    #ifdef DEYE_SUN
+    #if DEYE_SUN
     if(inverterType == Inverter_DeyeSun){
         DeyeSun.removeInverterBySerial(serial);
     }
     #endif
-    #ifdef HOYMILES_W
+    #if HOYMILES_W
     if(inverterType == Inverter_HoymilesW){
         HoymilesW.removeInverterBySerial(serial);
     }
