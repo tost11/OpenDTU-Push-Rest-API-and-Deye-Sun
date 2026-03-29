@@ -13,6 +13,7 @@ static float calcTotalYieldDay(StatisticsParser* iv, uint8_t arg0);
 static float calcChUdc(StatisticsParser* iv, uint8_t arg0);
 static float calcTotalPowerDc(StatisticsParser* iv, uint8_t arg0);
 static float calcPowerDc(StatisticsParser* iv, uint8_t arg0);
+static float calcPowerAc(StatisticsParser* iv, uint8_t arg0);
 static float calcTotalEffiency(StatisticsParser* iv, uint8_t arg0);
 static float calcChIrradiation(StatisticsParser* iv, uint8_t arg0);
 static float calcTotalCurrentAc(StatisticsParser* iv, uint8_t arg0);
@@ -33,6 +34,7 @@ const calcFunc_t calcFunctions[] = {
     { CALC_CH_IRR, &calcChIrradiation },
     { CALC_TOTAL_IAC, &calcTotalCurrentAc },
     { CALC_PDC, &calcPowerDc },
+    { CALC_PAC, &calcPowerAc },
 };
 
 const FieldId_t runtimeFields[] = {
@@ -460,6 +462,11 @@ static float calcPowerDc(StatisticsParser* iv, uint8_t arg0)
     return iv->getChannelFieldValue(TYPE_DC,(ChannelNum_t)arg0,FLD_UDC) * iv->getChannelFieldValue(TYPE_DC,(ChannelNum_t)arg0,FLD_IDC);
 }
 
+
+static float calcPowerAc(StatisticsParser* iv, uint8_t arg0)
+{
+    return iv->getChannelFieldValue(TYPE_AC,(ChannelNum_t)arg0,FLD_UDC) * iv->getChannelFieldValue(TYPE_DC,(ChannelNum_t)arg0,FLD_IDC);
+}
 
 // arg0 = channel
 static float calcTotalEffiency(StatisticsParser* iv, uint8_t arg0)

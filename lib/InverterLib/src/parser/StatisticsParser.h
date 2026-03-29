@@ -22,6 +22,7 @@ enum {
     CALC_CH_IRR,
     CALC_TOTAL_IAC,
     CALC_PDC,
+    CALC_PAC,
 };
 enum { CMD_CALC = 0xffff };
 
