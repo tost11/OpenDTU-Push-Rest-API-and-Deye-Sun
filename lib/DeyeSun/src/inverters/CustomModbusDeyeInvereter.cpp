@@ -57,6 +57,8 @@ void inline swapTwoBytes(char * buf,size_t pos){
 
 void CustomModbusDeyeInverter::update() {
 
+    getEventLog()->checkErrorsForTimeout();
+
     if(_statusPrintTimeout.occured()){
         ESP_LOGD(TAG, "Deye Custom Modbus -> Socket status: %s\n",_client.stateToString());
         _statusPrintTimeout.reset();
@@ -69,7 +71,6 @@ void CustomModbusDeyeInverter::update() {
             _reconnectTimeout.zero();
         }
     }
-    getEventLog()->checkErrorsForTimeout();
 
     // Check and fetch firmware version periodically
     checkAndFetchFirmwareVersion();
