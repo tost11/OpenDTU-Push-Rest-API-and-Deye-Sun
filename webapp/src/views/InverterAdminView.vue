@@ -394,6 +394,17 @@
                 />
 
                 <InputElement
+                    :label="$t('inverteradmin.AcYieldTotalOffset')"
+                    v-model="selectedInverterData.ac_yield_total_offset"
+                    type="number"
+                    min="0"
+                    step="0.001"
+                    :postfix="$t('inverteradmin.AcYieldTotalOffsetUnit')"
+                    :tooltip="$t('inverteradmin.AcYieldTotalOffsetHint')"
+                    wide
+                />
+
+                <InputElement
                     v-if="(selectedInverterData.manufacturer != 'Hoymiles')"
                     :label="$t('inverteradmin.PollTime')"
                     v-model="selectedInverterData.poll_time"

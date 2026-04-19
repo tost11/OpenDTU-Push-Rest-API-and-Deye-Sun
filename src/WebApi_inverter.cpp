@@ -100,6 +100,7 @@ void WebApiInverterClass::onInverterList(AsyncWebServerRequest* request)
                 chanData["max_power"] = config.Inverter[i].channel[c].MaxChannelPower;
                 chanData["yield_total_offset"] = config.Inverter[i].channel[c].YieldTotalOffset;
             }
+            obj["ac_yield_total_offset"] = config.Inverter[i].AcYieldTotalOffset;
         }
     }
 
@@ -423,6 +424,7 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
             strncpy(inverter.channel[arrayCount].Name, channel["name"] | "", sizeof(inverter.channel[arrayCount].Name));
             arrayCount++;
         }
+        inverter.AcYieldTotalOffset = root["ac_yield_total_offset"] | 0.0f;
     }
 
     WebApi.writeConfig(retMsg, WebApiError::InverterChanged, "Inverter changed!");
@@ -515,6 +517,7 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
             inv->getStatistics()->setStringMaxPower(c, inverter.channel[c].MaxChannelPower);
             inv->getStatistics()->setChannelFieldOffset(TYPE_DC, static_cast<ChannelNum_t>(c), FLD_YT, inverter.channel[c].YieldTotalOffset);
         }
+        inv->getStatistics()->setChannelFieldOffset(TYPE_AC, CH0, FLD_YT, inverter.AcYieldTotalOffset);
     }
 
     MqttHandleHass.forceUpdate();
