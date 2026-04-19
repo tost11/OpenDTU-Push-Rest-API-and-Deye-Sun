@@ -320,7 +320,6 @@
                                         type="number"
                                         class="form-control"
                                         :id="`inverter-ytoffset_${index}`"
-                                        min="0"
                                         v-model="ch.yield_total_offset"
                                         :aria-describedby="`inverter-ytoffsetDescription_${index} inverter-customizer`"
                                     />
@@ -390,6 +389,16 @@
                     v-model="selectedInverterData.deye_sun_offline_yieldday_correction"
                     type="checkbox"
                     :tooltip="$t('inverteradmin.DeyeSunOfflineYieldDayCorrectionHint')"
+                    wide
+                />
+
+                <InputElement
+                    :label="$t('inverteradmin.AcYieldTotalOffset')"
+                    v-model="selectedInverterData.ac_yield_total_offset"
+                    type="number"
+                    step="0.001"
+                    :postfix="$t('inverteradmin.AcYieldTotalOffsetUnit')"
+                    :tooltip="$t('inverteradmin.AcYieldTotalOffsetHint')"
                     wide
                 />
 

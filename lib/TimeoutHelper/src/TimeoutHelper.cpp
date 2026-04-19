@@ -27,6 +27,10 @@ void TimeoutHelper::setTimeout(const uint32_t ms)
     timeout = ms;
 }
 
+uint32_t TimeoutHelper::getTimeout(){
+    return timeout;
+}
+
 void TimeoutHelper::extend(const uint32_t ms)
 {
     timeout += ms;

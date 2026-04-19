@@ -37,14 +37,25 @@ void TostHandleClass::init(Scheduler& scheduler)
 
 bool TostHandleClass::parseKWHValues(BaseInverterClass * inv, JsonObject & doc, const ChannelType_t type, const ChannelNum_t channel) {
     bool changed = false;
+
+    // Total yield (lifetime): only send if > 0
     if(inv->getStatistics()->hasChannelFieldValue(type, channel, FLD_YT)) {
-        doc["totalKWH"] = inv->getStatistics()->getChannelFieldValue(type, channel, FLD_YT) / (inv->getStatistics()->getChannelFieldUnitId(type,channel,FLD_YT) == UNIT_WH ? 1000.f : 1.f);
-        changed = true;
+        float totalKWH = inv->getStatistics()->getChannelFieldValue(type, channel, FLD_YT) / (inv->getStatistics()->getChannelFieldUnitId(type,channel,FLD_YT) == UNIT_WH ? 1000.f : 1.f);
+        if (totalKWH > 0) {
+            doc["totalKWH"] = totalKWH;
+            changed = true;
+        }
     }
+
+    // Daily yield: only send if >= 0
     if(inv->getStatistics()->hasChannelFieldValue(type, channel, FLD_YD)) {
-        doc["dailyKWH"] = inv->getStatistics()->getChannelFieldValue(type, channel, FLD_YD)  / (inv->getStatistics()->getChannelFieldUnitId(type,channel,FLD_YD) == UNIT_WH ? 1000.f : 1.f);
-        changed = true;
+        float dailyKWH = inv->getStatistics()->getChannelFieldValue(type, channel, FLD_YD) / (inv->getStatistics()->getChannelFieldUnitId(type,channel,FLD_YD) == UNIT_WH ? 1000.f : 1.f);
+        if (dailyKWH >= 0) {
+            doc["dailyKWH"] = dailyKWH;
+            changed = true;
+        }
     }
+
     return changed;
 }
 
