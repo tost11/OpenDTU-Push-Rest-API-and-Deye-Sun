@@ -21,7 +21,7 @@ ID   Source Addr   Target Addr   Idx  ?       Limit percent   ?       ?       ? 
 #include <esp_log.h>
 
 #undef TAG
-static const char* TAG = "hoymiles";
+static const char* TAG = "Inverter";
 
 SystemConfigParaParser::SystemConfigParaParser()
 : Parser()

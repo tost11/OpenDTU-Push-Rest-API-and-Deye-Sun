@@ -77,6 +77,7 @@ struct INVERTER_CONFIG_T {
     bool YieldDayCorrection;
     bool DeyeSunOfflineYieldDayCorrection;
     CHANNEL_CONFIG_T channel[INV_MAX_CHAN_COUNT];
+    float AcYieldTotalOffset;
     int32_t MoreInverterInfo;
 };
 

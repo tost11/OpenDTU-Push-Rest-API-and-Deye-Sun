@@ -17,6 +17,7 @@ DeyeInverter(serial){
     _requestDataTimeout.zero();
     _statusPrintTimeout.set(5000);
     _statusPrintTimeout.zero();
+    _failedReadCounterReset = 0;
     _pollDataTimout.set(_pollTime * 1000);
     _pollDataTimout.zero();
 
@@ -120,8 +121,10 @@ void CustomModbusDeyeInverter::update() {
             } else {
                 ESP_LOGD(TAG,"Received bytes are: %d\n", _redBytes);
                 if (_readTimeout != nullptr) {
+                    _failedReadCounterReset = 0;
                     handleReadResponse();
                 } else if (_writeTimeout != nullptr) {
+                    _failedReadCounterReset = 0;
                     handleWriteResponse();
                 } else {
                     ESP_LOGD(TAG,"received data but no where requested...");
@@ -146,7 +149,6 @@ void CustomModbusDeyeInverter::update() {
         }
     }
 
-
     //polling is disabled (night whatever) wait for existing socket connection and command if null not active skip check
     if(!_client.connected() && !getEnablePolling()){
         return;
@@ -156,6 +158,7 @@ void CustomModbusDeyeInverter::update() {
     if(!_client.connected() && _reconnectTimeout.occured()){
         _reconnectTimeout.reset();
         const char * address = _resolvedIpByMacAdress == nullptr ? _oringalIpOrHostname.c_str() : _resolvedIpByMacAdress->c_str();
+        _client.stop();
         _client.connect(address, _port);
         ESP_LOGI(TAG,"reconnect %s %d\n",address,_port);
         ConnectionStatistics.Connects ++;
@@ -169,6 +172,7 @@ void CustomModbusDeyeInverter::update() {
             ConnectionStatistics.SuccessfulConnects++;
             _writeTimeout = nullptr;
             _readTimeout = nullptr;
+            _failedReadCounterReset = 0;
         }
 
         if(_readTimeout != nullptr && _readTimeout->occured()){
@@ -189,6 +193,13 @@ void CustomModbusDeyeInverter::update() {
             _requestDataTimeout.reset();
             _client.write(_requestDataCommand.c_str(),_requestDataCommand.length());
             ConnectionStatistics.SendReadDataRequests++;
+            _failedReadCounterReset++;
+        }
+
+        if(_failedReadCounterReset > 20){
+            ESP_LOGI(TAG,"Deye Custom Modbus -> closing connection to many failed read attempts");
+            _client.stop();
+            return;
         }
 
         if(_currentWritCommand != nullptr && _readTimeout == nullptr && _writeTimeout == nullptr){

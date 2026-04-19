@@ -27,6 +27,8 @@ private:
     TimeoutHelper _statusPrintTimeout;
     TimeoutHelper _pollDataTimout;
 
+    int _failedReadCounterReset;
+
     std::string _requestDataCommand;
     char _readBuffer[READ_BUFFER_LENGTH];//TODO check how many characters needed
     size_t _redBytes;
