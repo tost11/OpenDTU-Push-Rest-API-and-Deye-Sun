@@ -44,10 +44,11 @@ String InverterUtils::dumpArray(const uint8_t data[], const uint8_t len)
 
 std::unique_ptr<std::unordered_map<std::string,std::string>> InverterUtils::getConnectedClients(){
     auto ret = std::make_unique<std::unordered_map<std::string,std::string>>();
-    if(WiFi.softAPgetStationNum() > 0){
+    //if(WiFi.softAPgetStationNum() > 0){
         //collectmore wifi info
         wifi_sta_list_t wifi_sta_list;
         tcpip_adapter_sta_list_t adapter_sta_list;
+
 
         memset(&wifi_sta_list, 0, sizeof(wifi_sta_list));
         memset(&adapter_sta_list, 0, sizeof(adapter_sta_list));
@@ -67,10 +68,10 @@ std::unique_ptr<std::unordered_map<std::string,std::string>> InverterUtils::getC
             const tcpip_adapter_sta_info_t station = adapter_sta_list.sta[i];
 
 
-            for(int i = 0; i< 6; i++){
-                sprintf(macBuff+i*3,"%02X", station.mac[i]);
-                if(i<5){
-                    sprintf(macBuff+2+i*3,":");
+            for(int j = 0; j< 6; j++){
+                sprintf(macBuff+j*3,"%02X", station.mac[j]);
+                if(j<5){
+                    sprintf(macBuff+2+j*3,":");
                 }
             }
 
@@ -79,6 +80,6 @@ std::unique_ptr<std::unordered_map<std::string,std::string>> InverterUtils::getC
 
             ret->emplace(std::string(macBuff),std::string(ipBuff));
         }
-    }
+    //}
     return std::move(ret);
 }
