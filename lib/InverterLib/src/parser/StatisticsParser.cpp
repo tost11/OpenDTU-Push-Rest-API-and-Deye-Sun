@@ -6,13 +6,14 @@
 #include <esp_log.h>
 
 #undef TAG
-static const char* TAG = "hoymiles";
+static const char* TAG = "Inverter";
 
 static float calcTotalYieldTotal(StatisticsParser* iv, uint8_t arg0);
 static float calcTotalYieldDay(StatisticsParser* iv, uint8_t arg0);
 static float calcChUdc(StatisticsParser* iv, uint8_t arg0);
 static float calcTotalPowerDc(StatisticsParser* iv, uint8_t arg0);
 static float calcPowerDc(StatisticsParser* iv, uint8_t arg0);
+static float calcPowerAc(StatisticsParser* iv, uint8_t arg0);
 static float calcTotalEffiency(StatisticsParser* iv, uint8_t arg0);
 static float calcChIrradiation(StatisticsParser* iv, uint8_t arg0);
 static float calcTotalCurrentAc(StatisticsParser* iv, uint8_t arg0);
@@ -33,6 +34,7 @@ const calcFunc_t calcFunctions[] = {
     { CALC_CH_IRR, &calcChIrradiation },
     { CALC_TOTAL_IAC, &calcTotalCurrentAc },
     { CALC_PDC, &calcPowerDc },
+    { CALC_PAC, &calcPowerAc },
 };
 
 const FieldId_t runtimeFields[] = {
@@ -184,7 +186,20 @@ float StatisticsParser::getChannelFieldValue(const ChannelType_t type, const Cha
         result /= static_cast<float>(pos->div);
 
         if(_statisticLength > 0){
-            result += calculateOffsetByChannelField(type, channel, fieldId);
+            // Special handling for FLD_YT with negative offsets when inverter reads exactly 0
+            // This catches: nightly reset zeros, Deye inverters not fully started (invalid zero state),
+            // and prevents negative display in these cases. Using exact zero check (==) ensures that
+            // actual invalid/wrong readings (like 30 kWh with -50 offset = -20) still show negative
+            // for debugging purposes, making it visible to the user that something is misconfigured.
+            if (fieldId == FLD_YT && result == 0) {
+                float offset = calculateOffsetByChannelField(type, channel, fieldId);
+                result = result + offset;
+                if (result < 0) {
+                    result = 0;
+                }
+            } else {
+                result += calculateOffsetByChannelField(type, channel, fieldId);
+            }
         }
         return result;
     } else {
@@ -459,6 +474,11 @@ static float calcPowerDc(StatisticsParser* iv, uint8_t arg0)
     return iv->getChannelFieldValue(TYPE_DC,(ChannelNum_t)arg0,FLD_UDC) * iv->getChannelFieldValue(TYPE_DC,(ChannelNum_t)arg0,FLD_IDC);
 }
 
+
+static float calcPowerAc(StatisticsParser* iv, uint8_t arg0)
+{
+    return iv->getChannelFieldValue(TYPE_AC,(ChannelNum_t)arg0,FLD_UAC) * iv->getChannelFieldValue(TYPE_AC,(ChannelNum_t)arg0,FLD_IAC);
+}
 
 // arg0 = channel
 static float calcTotalEffiency(StatisticsParser* iv, uint8_t arg0)

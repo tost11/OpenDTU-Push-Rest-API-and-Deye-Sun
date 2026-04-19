@@ -25,6 +25,7 @@ export interface Inverter {
     yieldday_correction: boolean;
     deye_sun_offline_yieldday_correction: boolean;
     channel: Array<InverterChannel>;
+    ac_yield_total_offset: number;
     deye_type: number;
     username: string;
     password: string;

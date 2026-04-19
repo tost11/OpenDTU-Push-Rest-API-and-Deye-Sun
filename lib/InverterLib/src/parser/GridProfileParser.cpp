@@ -26,7 +26,7 @@ The number of values depends on the respective section and its version. After th
 #include <frozen/string.h>
 
 #undef TAG
-static const char* TAG = "hoymiles";
+static const char* TAG = "Inverter";
 
 const std::array<const ProfileType_t, PROFILE_TYPE_COUNT> GridProfileParser::_profileTypes = { {
     { 0x02, 0x00, "US - NA_IEEE1547_240V" },

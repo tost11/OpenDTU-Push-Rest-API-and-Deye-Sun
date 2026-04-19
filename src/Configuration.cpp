@@ -175,6 +175,7 @@ bool ConfigurationClass::write()
             chanData["max_power"] = config.Inverter[i].channel[c].MaxChannelPower;
             chanData["yield_total_offset"] = config.Inverter[i].channel[c].YieldTotalOffset;
         }
+        inv["ac_yield_total_offset"] = config.Inverter[i].AcYieldTotalOffset;
     }
 
     JsonObject logging = doc["logging"].to<JsonObject>();
@@ -395,6 +396,7 @@ bool ConfigurationClass::read()
             config.Inverter[i].channel[c].YieldTotalOffset = channel[c]["yield_total_offset"] | 0.0f;
             strlcpy(config.Inverter[i].channel[c].Name, channel[c]["name"] | "", sizeof(config.Inverter[i].channel[c].Name));
         }
+        config.Inverter[i].AcYieldTotalOffset = inv["ac_yield_total_offset"] | 0.0f;
     }
 
     JsonObject logging = doc["logging"];
@@ -579,6 +581,7 @@ void ConfigurationClass::deleteInverterById(const uint8_t id)
         config.Inverter[id].channel[c].YieldTotalOffset = 0.0f;
         strlcpy(config.Inverter[id].channel[c].Name, "", sizeof(config.Inverter[id].channel[c].Name));
     }
+    config.Inverter[id].AcYieldTotalOffset = 0.0f;
 }
 
 int8_t ConfigurationClass::getIndexForLogModule(const String& moduleName) const
