@@ -85,7 +85,9 @@ void InverterSettingsClass::init(Scheduler& scheduler)
             inv->getStatistics()->setDeyeSunOfflineYieldDayCorrection(config.Inverter[i].DeyeSunOfflineYieldDayCorrection);
             for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
                 inv->getStatistics()->setStringMaxPower(c, config.Inverter[i].channel[c].MaxChannelPower);
+                inv->getStatistics()->setChannelFieldOffset(TYPE_DC, static_cast<ChannelNum_t>(c), FLD_YT, config.Inverter[i].channel[c].YieldTotalOffset);
             }
+            inv->getStatistics()->setChannelFieldOffset(TYPE_AC, CH0, FLD_YT, config.Inverter[i].AcYieldTotalOffset);
             ESP_LOGI(TAG,"Adding complete");
         }
     }
@@ -167,6 +169,7 @@ void InverterSettingsClass::init(Scheduler& scheduler)
                 inv->getStatistics()->setStringMaxPower(c, inv_cfg.channel[c].MaxChannelPower);
                 inv->getStatistics()->setChannelFieldOffset(TYPE_DC, static_cast<ChannelNum_t>(c), FLD_YT, inv_cfg.channel[c].YieldTotalOffset);
             }
+            inv->getStatistics()->setChannelFieldOffset(TYPE_AC, CH0, FLD_YT, inv_cfg.AcYieldTotalOffset);
 
             ESP_LOGI(TAG, "Adding complete");
         }
@@ -212,6 +215,7 @@ void InverterSettingsClass::init(Scheduler& scheduler)
             for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
                 inv->getStatistics()->setStringMaxPower(c, config.Inverter[i].channel[c].MaxChannelPower);
             }
+            inv->getStatistics()->setChannelFieldOffset(TYPE_AC, CH0, FLD_YT, config.Inverter[i].AcYieldTotalOffset);
             ESP_LOGI(TAG, "Adding complete");
         }
     }
