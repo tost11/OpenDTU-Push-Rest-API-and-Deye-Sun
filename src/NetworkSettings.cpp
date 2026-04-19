@@ -235,7 +235,6 @@ String NetworkSettingsClass::getApName() const
 }
 
 extern "C" {
-#include "esp_wifi.h"
 #include "esp_log.h"
 #include "esp_private/wifi.h"  // ← Nicht offiziell dokumentiert
 }
@@ -270,10 +269,10 @@ void NetworkSettingsClass::loop()
                 ESP_LOGD(TAG, "Found client with zero ip");
 
                 macBuff[17] = '\0';
-                for (int i = 0; i < 6; i++) {
-                    sprintf(macBuff + i * 3, "%02X", station.mac[i]);
-                    if (i < 5) {
-                        sprintf(macBuff + 2 + i * 3, ":");
+                for (int j = 0; j < 6; j++) {
+                    sprintf(macBuff + j * 3, "%02X", station.mac[j]);
+                    if (j < 5) {
+                        sprintf(macBuff + 2 + j * 3, ":");
                     }
                 }
 
@@ -282,7 +281,7 @@ void NetworkSettingsClass::loop()
 
                 auto it = _clients_without_ip_kick_timer.find(mac);
                 if (it == _clients_without_ip_kick_timer.end()) {
-                    _clients_without_ip_kick_timer.emplace(mac, TimeoutHelper(1000 * 6 * 3));//three minutes
+                    _clients_without_ip_kick_timer.emplace(mac, TimeoutHelper(1000 * 60 * 3));//three minutes
                 }else {
                     ESP_LOGD(TAG, "Zero client already known");
 
@@ -302,6 +301,8 @@ void NetworkSettingsClass::loop()
                         } else {
                             ESP_LOGI(TAG, "Could not get client aid of mac");
                         }
+                    }else{
+                        ESP_LOGD(TAG, "Zero client %s with time: (%d,%d)\n", macBuff,it->second.dist(),it->second.getTimeout());
                     }
                 }
                 if(emplace){

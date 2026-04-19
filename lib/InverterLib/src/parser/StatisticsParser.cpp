@@ -465,7 +465,7 @@ static float calcPowerDc(StatisticsParser* iv, uint8_t arg0)
 
 static float calcPowerAc(StatisticsParser* iv, uint8_t arg0)
 {
-    return iv->getChannelFieldValue(TYPE_AC,(ChannelNum_t)arg0,FLD_UDC) * iv->getChannelFieldValue(TYPE_DC,(ChannelNum_t)arg0,FLD_IDC);
+    return iv->getChannelFieldValue(TYPE_AC,(ChannelNum_t)arg0,FLD_UAC) * iv->getChannelFieldValue(TYPE_AC,(ChannelNum_t)arg0,FLD_IAC);
 }
 
 // arg0 = channel
