@@ -6,7 +6,7 @@
 #include <esp_log.h>
 
 #undef TAG
-static const char* TAG = "hoymiles";
+static const char* TAG = "Inverter";
 
 static float calcTotalYieldTotal(StatisticsParser* iv, uint8_t arg0);
 static float calcTotalYieldDay(StatisticsParser* iv, uint8_t arg0);
