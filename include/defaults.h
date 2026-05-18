@@ -39,6 +39,7 @@
 #define TOST_SYSTEM_ID ""
 #define TOST_TOKEN ""
 #define TOST_DURATION 30
+#define TOST_QUEUE_SIZE 10
 
 #define MQTT_ENABLED false
 #define MQTT_HOST ""

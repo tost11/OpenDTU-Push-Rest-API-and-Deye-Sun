@@ -34,6 +34,34 @@ void TostHandleClass::init(Scheduler& scheduler)
     _loopTask.enable();
 }
 
+uint8_t TostHandleClass::getEffectiveMaxQueueSize() const {
+    uint8_t maxSize = Configuration.get().Tost.QueueSize;
+    if(maxSize == 0) {
+        return 1;
+    }
+    return maxSize;
+}
+
+void TostHandleClass::trimQueueToSize() {
+    uint8_t maxSize = getEffectiveMaxQueueSize();
+    while(requestsToSend.size() > maxSize) {
+        ESP_LOGW(TAG, "Queue exceeds max size (%d), dropping oldest", maxSize);
+        requestsToSend.pop();
+    }
+}
+
+size_t TostHandleClass::getQueueMemoryBytes() const {
+    size_t totalBytes = 0;
+    std::queue<std::unique_ptr<String>> queueCopy = requestsToSend;
+    while (!queueCopy.empty()) {
+        if (queueCopy.front()) {
+            totalBytes += queueCopy.front()->length();
+        }
+        queueCopy.pop();
+    }
+    return totalBytes;
+}
+
 bool TostHandleClass::parseKWHValues(InverterAbstract * inv, JsonObject & doc, const ChannelType_t type, const ChannelNum_t channel) {
     bool changed = false;
 
@@ -82,15 +110,18 @@ void TostHandleClass::loop()
         return;
     }
 
-    // 1. Process active request (check if complete)
+    // 1. Trim queue if config changed
+    trimQueueToSize();
+
+    // 2. Process active request (check if complete)
     processActiveRequest();
 
-    // 2. If no active request, try to send next from queue
+    // 3. If no active request, try to send next from queue
     if (!_activeRequest.has_value() && !requestsToSend.empty() && restTimeout.occured()) {
         sendNextRequest();
     }
 
-    // 3. Run cleanup check (unchanged)
+    // 4. Run cleanup check
     if(_cleanupCheck.occured()){
         ESP_LOGD(TAG,"Run cleanup");
         _cleanupCheck.set(TIMER_CLEANUP);
@@ -232,8 +263,9 @@ void TostHandleClass::loop()
             serializeJson(data, toSend);
 
             // If queue full, remove oldest
-            if(requestsToSend.size() >= MAX_QUEUE_SIZE) {
-                ESP_LOGW(TAG, "Request queue full (%d), dropping oldest", MAX_QUEUE_SIZE);
+            uint8_t maxSize = getEffectiveMaxQueueSize();
+            if(requestsToSend.size() >= maxSize) {
+                ESP_LOGW(TAG, "Request queue full (%d), dropping oldest", maxSize);
                 requestsToSend.pop();
             }
 

@@ -17,7 +17,8 @@ private:
     Task _loopTask;
     void loop();
 
-    static const uint8_t MAX_QUEUE_SIZE = 10;  // Maximum unsent requests
+    uint8_t getEffectiveMaxQueueSize() const;
+    void trimQueueToSize();
 
     struct ActiveRequest {
         LightFuture<RestResponse> future;
@@ -52,6 +53,9 @@ public:
     unsigned long getLastSuccessfullyTimestamp()const{return lastSuccessfullyTimestamp;}
     int getLastErrorStatusCode()const{return lastErrorStatusCode;}
     const String & getLastErrorMessage()const{return lastErrorMessage;}
+    size_t getQueueSize() const { return requestsToSend.size(); }
+    uint8_t getMaxQueueSize() const { return Configuration.get().Tost.QueueSize; }
+    size_t getQueueMemoryBytes() const;
 };
 
 extern TostHandleClass TostHandle;

@@ -5,4 +5,5 @@ export interface TostConfig {
     tost_system_id: string;
     tost_token: string;
     tost_duration: number;
+    tost_queue_size: number;
 }
