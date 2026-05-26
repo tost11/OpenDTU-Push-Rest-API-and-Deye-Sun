@@ -27,12 +27,39 @@ void TostHandleClass::init(Scheduler& scheduler)
     lastSuccessfullyTimestamp = 0;
     restTimeout.set(0);
     lastErrorMessage = "";
+    _queueMemoryBytes = 0;
 
     scheduler.addTask(_loopTask);
     _loopTask.setCallback(std::bind(&TostHandleClass::loop, this));
     _loopTask.setIterations(TASK_FOREVER);
     _loopTask.setInterval(1 * TASK_SECOND);
     _loopTask.enable();
+}
+
+uint8_t TostHandleClass::getEffectiveMaxQueueSize() const {
+    uint8_t maxSize = Configuration.get().Tost.QueueSize;
+    if(maxSize == 0) {
+        return 1;
+    }
+    return maxSize;
+}
+
+void TostHandleClass::trimQueueToSize() {
+    uint8_t maxSize = getEffectiveMaxQueueSize();
+    while(requestsToSend.size() > maxSize) {
+        ESP_LOGW(TAG, "Queue exceeds max size (%d), dropping oldest", maxSize);
+        if (requestsToSend.front()) {
+            size_t stringSize = requestsToSend.front()->length();
+            requestsToSend.pop();
+            _queueMemoryBytes -= stringSize;
+        } else {
+            requestsToSend.pop();
+        }
+    }
+}
+
+size_t TostHandleClass::getQueueMemoryBytes() const {
+    return _queueMemoryBytes;
 }
 
 bool TostHandleClass::parseKWHValues(BaseInverterClass * inv, JsonObject & doc, const ChannelType_t type, const ChannelNum_t channel) {
@@ -84,15 +111,18 @@ void TostHandleClass::loop()
         return;
     }
 
-    // 1. Process active request (check if complete)
+    // 1. Trim queue if config changed
+    trimQueueToSize();
+
+    // 2. Process active request (check if complete)
     processActiveRequest();
 
-    // 2. If no active request, try to send next from queue
+    // 3. If no active request, try to send next from queue
     if (!_activeRequest.has_value() && !requestsToSend.empty() && restTimeout.occured()) {
         sendNextRequest();
     }
 
-    // 3. Run cleanup check (unchanged)
+    // 4. Run cleanup check
     if(_cleanupCheck.occured()){
         ESP_LOGD(TAG,"Run cleanup");
         _cleanupCheck.set(TIMER_CLEANUP);
@@ -164,7 +194,7 @@ void TostHandleClass::loop()
         float duration = (float)diff / 1000;
 
         if(duration > Configuration.get().Tost.Duration * 1.2){
-            duration = Configuration.get().Tost.Duration * 1.2f;
+            duration = Configuration.get().Tost.Duration * 1.2;
         }
 
         data["duration"] = duration;
@@ -236,15 +266,24 @@ void TostHandleClass::loop()
             // Serialize and add to local queue
             String toSend;
             serializeJson(data, toSend);
+            size_t stringSize = toSend.length();
 
             // If queue full, remove oldest
-            if(requestsToSend.size() >= MAX_QUEUE_SIZE) {
-                ESP_LOGW(TAG, "Request queue full (%d), dropping oldest", MAX_QUEUE_SIZE);
-                requestsToSend.pop();
+            uint8_t maxSize = getEffectiveMaxQueueSize();
+            if(requestsToSend.size() >= maxSize) {
+                ESP_LOGW(TAG, "Request queue full (%d), dropping oldest", maxSize);
+                if (requestsToSend.front()) {
+                    size_t oldStringSize = requestsToSend.front()->length();
+                    requestsToSend.pop();
+                    _queueMemoryBytes -= oldStringSize;
+                } else {
+                    requestsToSend.pop();
+                }
             }
 
             ESP_LOGD(TAG, "Adding new request to queue (size: %d)", requestsToSend.size() + 1);
             requestsToSend.push(std::make_unique<String>(std::move(toSend)));
+            _queueMemoryBytes += stringSize;
         }
     }
 }
@@ -298,7 +337,13 @@ void TostHandleClass::handleResponse(const RestResponse& response, bool isSecond
         // Check if front of queue is still the request we sent
         if (!requestsToSend.empty() && *requestsToSend.front() == _lastRequestBody) {
             ESP_LOGD(TAG, "Removing sent request from queue with code: %d, (succsfull nor not remove so not blocking other requests) queue remaining: %d", statusCode, requestsToSend.size() - 1);
-            requestsToSend.pop();
+            if (requestsToSend.front()) {
+                size_t stringSize = requestsToSend.front()->length();
+                requestsToSend.pop();
+                _queueMemoryBytes -= stringSize;
+            } else {
+                requestsToSend.pop();
+            }
         } else if (!requestsToSend.empty()) {
             ESP_LOGW(TAG, "Queue front changed during request - already removed by queue overflow");
         } else {
