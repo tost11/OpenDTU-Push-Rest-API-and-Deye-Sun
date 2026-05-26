@@ -162,7 +162,7 @@ void TostHandleClass::loop()
         float duration = (float)diff / 1000;
 
         if(duration > Configuration.get().Tost.Duration * 1.2){
-            duration = Configuration.get().Tost.Duration * 1.2f;
+            duration = Configuration.get().Tost.Duration * 1.2;
         }
 
         data["duration"] = duration;
