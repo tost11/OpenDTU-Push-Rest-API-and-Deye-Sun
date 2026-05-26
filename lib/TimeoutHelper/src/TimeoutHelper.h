@@ -20,4 +20,5 @@ public:
 private:
     uint32_t startMillis;
     uint32_t timeout;
+    bool zeroStartup;
 };

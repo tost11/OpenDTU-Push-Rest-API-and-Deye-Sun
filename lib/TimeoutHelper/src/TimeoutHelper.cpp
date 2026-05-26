@@ -8,18 +8,21 @@
 TimeoutHelper::TimeoutHelper()
 {
     timeout = 0;
-    startMillis = 0;
+    startMillis = millis();
+    zeroStartup = false;
 }
 
 TimeoutHelper::TimeoutHelper(const uint32_t ms){
     timeout=ms;
     startMillis = millis();
+    zeroStartup = false;
 }
 
 void TimeoutHelper::set(const uint32_t ms)
 {
     timeout = ms;
     startMillis = millis();
+    zeroStartup = false;
 }
 
 void TimeoutHelper::setTimeout(const uint32_t ms)
@@ -39,19 +42,20 @@ void TimeoutHelper::extend(const uint32_t ms)
 void TimeoutHelper::reset()
 {
     startMillis = millis();
+    zeroStartup = false;
 }
 
 void TimeoutHelper::zero()
 {
-    startMillis = 0;
+    zeroStartup = true;
 }
 
 bool TimeoutHelper::occured() const
 {
-    if(startMillis == 0){
+    if(zeroStartup == 0){
         return true;
     }
-    return millis() - startMillis > timeout;
+    return dist() > timeout;
 }
 
 uint32_t TimeoutHelper::currentMillis() const {
@@ -59,5 +63,6 @@ uint32_t TimeoutHelper::currentMillis() const {
 }
 
 uint32_t TimeoutHelper::dist() const {
+    //rollover is handled correctly in this calculation
     return millis() - startMillis;
 }
