@@ -9,4 +9,7 @@ export interface TostStatus {
     tost_status_error_code: number;
     tost_status_error_message: string;
     tost_status_error_timestamp: number;
+    tost_queue_size: number;
+    tost_queue_max: number;
+    tost_queue_memory_bytes: number;
 }

@@ -104,4 +104,5 @@ enum WebApiError {
     TostSystemIdLength,
     TostTokenLength,
     TostDuration,
+    TostQueueSize,
 };
