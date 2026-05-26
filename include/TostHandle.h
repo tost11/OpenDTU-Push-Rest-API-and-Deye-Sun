@@ -26,6 +26,7 @@ private:
     };
     std::optional<ActiveRequest> _activeRequest;  // Only 0 or 1 active request
     std::queue<std::unique_ptr<String>> requestsToSend;  // Local buffer of unsent data
+    size_t _queueMemoryBytes = 0;
     String _lastRequestBody;
 
     //TimeoutHelper _lastPublish;
