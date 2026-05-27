@@ -52,7 +52,7 @@ void TimeoutHelper::zero()
 
 bool TimeoutHelper::occured() const
 {
-    if(zeroStartup == 0){
+    if(zeroStartup){
         return true;
     }
     return dist() > timeout;
