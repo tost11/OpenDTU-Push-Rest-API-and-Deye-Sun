@@ -46,6 +46,9 @@ void WebApiTostClass::onTostStatus(AsyncWebServerRequest* request)
     root["tost_status_error_code"] = TostHandle.getLastErrorStatusCode();
     root["tost_status_error_message"] = TostHandle.getLastErrorMessage();
     root["tost_status_error_timestamp"] = errorStamp == 0 ? errorStamp : millis() - errorStamp;
+    root["tost_queue_size"] = TostHandle.getQueueSize();
+    root["tost_queue_max"] = TostHandle.getMaxQueueSize();
+    root["tost_queue_memory_bytes"] = TostHandle.getQueueMemoryBytes();
 
     WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
 }
@@ -66,6 +69,7 @@ void WebApiTostClass::onTostAdminGet(AsyncWebServerRequest* request)
     root["tost_system_id"] = config.Tost.SystemId;
     root["tost_token"] = config.Tost.Token;
     root["tost_duration"] = config.Tost.Duration;
+    root["tost_queue_size"] = config.Tost.QueueSize;
 
     WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
 }
@@ -99,7 +103,8 @@ void WebApiTostClass::onTostAdminPost(AsyncWebServerRequest* request)
             && root["tost_second_url"].is<String>()
             && root["tost_system_id"].is<String>()
             && root["tost_token"].is<String>()
-            && root["tost_duration"].is<uint>())) {
+            && root["tost_duration"].is<uint>()
+            && root["tost_queue_size"].is<uint>())) {
         retMsg["message"] = "Values are missing!";
         retMsg["code"] = WebApiError::GenericValueMissing;
         WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
@@ -146,6 +151,15 @@ void WebApiTostClass::onTostAdminPost(AsyncWebServerRequest* request)
             WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
             return;
         }
+
+        if (root["tost_queue_size"].as<uint>() > 50) {
+            retMsg["message"] = "Queue size must be between 0 and 50!";
+            retMsg["code"] = WebApiError::TostQueueSize;
+            retMsg["param"]["min"] = 0;
+            retMsg["param"]["max"] = 50;
+            WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
+            return;
+        }
     }
 
     {
@@ -153,6 +167,7 @@ void WebApiTostClass::onTostAdminPost(AsyncWebServerRequest* request)
         auto& config = guard.getConfig();
         config.Tost.Enabled = root["tost_enabled"].as<bool>();
         config.Tost.Duration = root["tost_duration"].as<uint>();
+        config.Tost.QueueSize = root["tost_queue_size"].as<uint>();
         strlcpy(config.Tost.Url, root["tost_url"].as<String>().c_str(), sizeof(config.Tost.Url));
         strlcpy(config.Tost.SecondUrl, root["tost_second_url"].as<String>().c_str(), sizeof(config.Tost.SecondUrl));
         strlcpy(config.Tost.SystemId, root["tost_system_id"].as<String>().c_str(), sizeof(config.Tost.SystemId));

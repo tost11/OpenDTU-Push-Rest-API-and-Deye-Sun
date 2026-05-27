@@ -26,6 +26,14 @@
                           <th>{{ $t('tostinfo.Duration') }}</th>
                           <td>{{ $t('tostinfo.Seconds', { sec: tostDataList.tost_duration }) }}</td>
                         </tr>
+                        <tr>
+                            <th>{{ $t('tostinfo.QueueSize') }}</th>
+                            <td>{{ tostDataList.tost_queue_size }} / {{ tostDataList.tost_queue_max }}</td>
+                        </tr>
+                        <tr>
+                            <th>{{ $t('tostinfo.MemoryUsage') }}</th>
+                            <td>{{ formatMemory() }}</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -107,6 +115,11 @@ export default defineComponent({
           var mDisplay = m > 0 ? m + (m == 1 ? " minute, " : " minutes, ") : "";
           var sDisplay = s > 0 ? s + (s == 1 ? " second" : " seconds") : "";
           return dDisplay + hDisplay + mDisplay + sDisplay;
+        },
+        formatMemory() {
+            const bytes = this.tostDataList.tost_queue_memory_bytes;
+            const kb = (bytes / 1024).toFixed(2);
+            return `${kb} KB (${bytes} bytes)`;
         },
         gettostinfo() {
             this.dataLoading = true;
