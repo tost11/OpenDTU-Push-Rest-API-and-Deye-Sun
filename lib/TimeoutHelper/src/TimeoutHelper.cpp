@@ -8,18 +8,21 @@
 TimeoutHelper::TimeoutHelper()
 {
     timeout = 0;
-    startMillis = 0;
+    startMillis = millis();
+    zeroStartup = false;
 }
 
 TimeoutHelper::TimeoutHelper(const uint32_t ms){
     timeout=ms;
     startMillis = millis();
+    zeroStartup = false;
 }
 
 void TimeoutHelper::set(const uint32_t ms)
 {
     timeout = ms;
     startMillis = millis();
+    zeroStartup = false;
 }
 
 void TimeoutHelper::setTimeout(const uint32_t ms)
@@ -39,24 +42,20 @@ void TimeoutHelper::extend(const uint32_t ms)
 void TimeoutHelper::reset()
 {
     startMillis = millis();
+    zeroStartup = false;
 }
 
 void TimeoutHelper::zero()
 {
-    startMillis = 0;
+    zeroStartup = true;
 }
 
 bool TimeoutHelper::occured() const
 {
-    unsigned long now = millis();
-    unsigned long diff = 0;
-    if(startMillis < now){
-        //milliseconds timer overurne
-        diff = now + (std::numeric_limits<unsigned long>::max() - startMillis);
-    }else{
-        diff = now - startMillis;
+    if(zeroStartup){
+        return true;
     }
-    return diff > timeout;
+    return dist() > timeout;
 }
 
 uint32_t TimeoutHelper::currentMillis() const {
@@ -64,13 +63,6 @@ uint32_t TimeoutHelper::currentMillis() const {
 }
 
 uint32_t TimeoutHelper::dist() const {
-    unsigned long now = millis();
-    unsigned long diff = 0;
-    if(startMillis < now){
-        //milliseconds timer overturn
-        diff = now + (std::numeric_limits<unsigned long>::max() - startMillis);
-    }else{
-        diff = now - startMillis;
-    }
-    return diff;
+    //rollover is handled correctly in this calculation
+    return millis() - startMillis;
 }
