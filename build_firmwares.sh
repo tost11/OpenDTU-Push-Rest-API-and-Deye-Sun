@@ -17,7 +17,7 @@ createBuild() {
   eval $BUILD_COMMAND
   echo "Build Generic: $1_esp32dev_firmware.bin copy to: $TARGET_FOLDER"
   mkdir -p $TARGET_FOLDER/generic_esp32
-  cp .pio/build/generic_esp32/firmware.bin $TARGET_FOLDER/generic_esp32/$2_esp32dev_firmware.bin
+  cp .pio/build/generic_esp32/firmware.bin $TARGET_FOLDER/generic_esp32/$1_esp32dev_firmware.bin
 
 #  eval $BUILD_COMMAND_16
 #  echo "Build 16MB psram: $2_esp32dev_firmware.bin copy to: $TARGET_FOLDER"
