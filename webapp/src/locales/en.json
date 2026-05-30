@@ -381,7 +381,9 @@
         "LastErrorMessage": "Last Http Error Message",
         "never": "never",
         "Summary": "Status Summary",
-        "Error": "Error Summary"
+        "Error": "Error Summary",
+        "QueueSize": "Queue Status",
+        "MemoryUsage": "Estimated Memory Usage"
     },
     "mqttinfo": {
         "MqttInformation": "MQTT Information",
@@ -557,7 +559,9 @@
         "TokenHint": "Token (looks like UUID)",
         "Duration": "Zeit",
         "Save": "@:base.Save",
-        "Seconds": "seconds"
+        "Seconds": "seconds",
+        "QueueSize": "Queue Size:",
+        "QueueSizeHint": "Maximum number of samples to buffer when backend is unavailable. 0 = no buffering (send directly). Each sample uses ~0.8-1.2 KB of RAM. Be careful with high values on ESP32!"
     },
     "mqttadmin": {
         "MqttSettings": "MQTT Settings",

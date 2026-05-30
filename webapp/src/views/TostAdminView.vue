@@ -39,6 +39,11 @@
                         type="number" min="10" max="600"
                         :postfix="$t('tostadmin.Seconds')"/>
 
+          <InputElement :label="$t('tostadmin.QueueSize')"
+                        v-model="tostConfigList.tost_queue_size"
+                        type="number" min="0" max="50"
+                        :tooltip="$t('tostadmin.QueueSizeHint')"/>
+
         </CardElement>
 
         <button type="submit" class="btn btn-primary mb-3">{{ $t('tostadmin.Save') }}</button>

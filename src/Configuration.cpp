@@ -80,6 +80,7 @@ bool ConfigurationClass::write()
     tost["system_id"] = config.Tost.SystemId;
     tost["token"] = config.Tost.Token;
     tost["duration"] = config.Tost.Duration;
+    tost["queue_size"] = config.Tost.QueueSize;
 
     JsonObject mqtt = doc["mqtt"].to<JsonObject>();
     mqtt["enabled"] = config.Mqtt.Enabled;
@@ -298,6 +299,7 @@ bool ConfigurationClass::read()
     strlcpy(config.Tost.SystemId, tost["system_id"] | TOST_SYSTEM_ID, sizeof(config.Tost.SystemId));
     strlcpy(config.Tost.Token, tost["token"] | TOST_TOKEN, sizeof(config.Tost.Token));
     config.Tost.Duration = tost["duration"] | TOST_DURATION;
+    config.Tost.QueueSize = tost["queue_size"] | TOST_QUEUE_SIZE;
 
     JsonObject mqtt = doc["mqtt"];
     config.Mqtt.Enabled = mqtt["enabled"] | MQTT_ENABLED;
