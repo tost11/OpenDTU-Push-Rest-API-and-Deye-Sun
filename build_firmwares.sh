@@ -27,7 +27,7 @@ createBuild() {
 
 buildAndCheckout(){
     git checkout $1
-    createBuild $1
+    createBuild $2
 }
 
 buildAndCheckout "feature/more-manufacturers" "more_manufacturers"
