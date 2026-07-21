@@ -15,7 +15,7 @@ void HoymilesWClass::loop()
 {
     std::lock_guard<std::mutex> lock(_mutex);
     if (getNumInverters() > 0) {
-        for(size_t pos = 0; pos <= getNumInverters(); pos++){
+        for(size_t pos = 0; pos < getNumInverters(); pos++){
             auto inv = getInverterByPos(pos);
             if(inv == nullptr){
                 continue;

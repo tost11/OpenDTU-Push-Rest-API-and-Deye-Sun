@@ -16,7 +16,7 @@ void DeyeSunClass::loop()
 {
     std::lock_guard<std::mutex> lock(_mutex);
     if (getNumInverters() > 0) {
-        for(size_t pos = 0; pos <= getNumInverters(); pos++){
+        for(size_t pos = 0; pos < getNumInverters(); pos++){
             auto inv = getInverterByPos(pos);
             if(inv == nullptr){
                 continue;
@@ -94,9 +94,9 @@ std::shared_ptr<DeyeInverter> DeyeSunClass::getInverterBySerialString(const Stri
 
 void DeyeSunClass::removeInverterBySerial(uint64_t serial)
 {
+    std::lock_guard<std::mutex> lock(_mutex);
     for (uint8_t i = 0; i < _inverters.size(); i++) {
         if (_inverters[i]->serial() == serial) {
-            std::lock_guard<std::mutex> lock(_mutex);
             _inverters.erase(_inverters.begin() + i);
             return;
         }

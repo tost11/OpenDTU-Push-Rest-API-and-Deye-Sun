@@ -48,13 +48,8 @@ void TostHandleClass::trimQueueToSize() {
     uint8_t maxSize = getEffectiveMaxQueueSize();
     while(requestsToSend.size() > maxSize) {
         ESP_LOGW(TAG, "Queue exceeds max size (%d), dropping oldest", maxSize);
-        if (requestsToSend.front()) {
-            size_t stringSize = requestsToSend.front()->length();
-            requestsToSend.pop();
-            _queueMemoryBytes -= stringSize;
-        } else {
-            requestsToSend.pop();
-        }
+        _queueMemoryBytes -= requestsToSend.front().length();
+        requestsToSend.pop();
     }
 }
 
@@ -127,22 +122,24 @@ void TostHandleClass::loop()
         ESP_LOGD(TAG,"Run cleanup");
         _cleanupCheck.set(TIMER_CLEANUP);
 
-        auto toClean = _lastPublishedInverters;
-
-        for (uint8_t i = 0; i < InverterHandler.getNumInverters(); i++) {
-
-            auto inv = InverterHandler.getInverterByPos(i);
-            if (inv->getDevInfo()->getLastUpdate() <= 0) {
-                continue;
+        for (auto it = _lastPublishedInverters.begin(); it != _lastPublishedInverters.end(); ) {
+            bool found = false;
+            for (uint8_t i = 0; i < InverterHandler.getNumInverters(); i++) {
+                auto inv = InverterHandler.getInverterByPos(i);
+                if (inv->getDevInfo()->getLastUpdate() <= 0) {
+                    continue;
+                }
+                if (generateUniqueId(*inv) == it->first) {
+                    found = true;
+                    break;
+                }
             }
-
-            std::string uniqueId = generateUniqueId(*inv);
-            toClean.erase(uniqueId);
-        }
-
-        for (const auto &item: toClean){
-            ESP_LOGD(TAG,"cleaned: %s",item.first.c_str());
-            _lastPublishedInverters.erase(item.first);
+            if (!found) {
+                ESP_LOGD(TAG,"cleaned: %s", it->first.c_str());
+                it = _lastPublishedInverters.erase(it);
+            } else {
+                ++it;
+            }
         }
     }
 
@@ -175,9 +172,9 @@ void TostHandleClass::loop()
             diff = lastUpdate - cachedLastUpdate;
         }
 
-        ESP_LOGD(TAG,"last: %d ",lastUpdate);
-        ESP_LOGD(TAG,"calc: %d ",cachedLastUpdate);
-        ESP_LOGD(TAG,"diff: %d\n",diff);
+        //ESP_LOGD(TAG,"last: %d ",lastUpdate);
+        //ESP_LOGD(TAG,"calc: %d ",cachedLastUpdate);
+        //ESP_LOGD(TAG,"diff: %d\n",diff);
 
         if(cachedLastUpdate != 0 && diff < Configuration.get().Tost.Duration * 1000){
             //no update needed
@@ -189,7 +186,7 @@ void TostHandleClass::loop()
         ESP_LOGI(TAG,"New data to push for Inverter %llu\n\r", id);
         _lastPublishedInverters[uniqueID] = lastUpdate;
 
-        JsonDocument data;
+        _jsonDoc.clear();
 
         float duration = (float)diff / 1000;
 
@@ -197,21 +194,21 @@ void TostHandleClass::loop()
             duration = Configuration.get().Tost.Duration * 1.2;
         }
 
-        data["duration"] = duration;
+        _jsonDoc["duration"] = duration;
         struct tm timeinfo;
         if (getLocalTime(&timeinfo)) {
             time_t now;
             time(&now);
-            data["timeUnit"] = "SECONDS";
+            _jsonDoc["timeUnit"] = "SECONDS";
             if(NtpSettings.isTimeInSync()){
-                data["timestamp"] = time(&now);
+                _jsonDoc["timestamp"] = time(&now);
             }else{
-                data["timestamp"] = 0;
+                _jsonDoc["timestamp"] = 0;
             }
             ESP_LOGD(TAG,"Time set on new inverter info manually %lu", time(&now));
         }
 
-        JsonArray devices = data["devices"].to<JsonArray>();
+        JsonArray devices = _jsonDoc["devices"].to<JsonArray>();
         auto device = devices.add<JsonObject>();
         device["id"] = id;
 
@@ -265,25 +262,20 @@ void TostHandleClass::loop()
         if(isData){
             // Serialize and add to local queue
             String toSend;
-            serializeJson(data, toSend);
+            serializeJson(_jsonDoc, toSend);
             size_t stringSize = toSend.length();
 
             // If queue full, remove oldest
             uint8_t maxSize = getEffectiveMaxQueueSize();
             if(requestsToSend.size() >= maxSize) {
                 ESP_LOGW(TAG, "Request queue full (%d), dropping oldest", maxSize);
-                if (requestsToSend.front()) {
-                    size_t oldStringSize = requestsToSend.front()->length();
-                    requestsToSend.pop();
-                    _queueMemoryBytes -= oldStringSize;
-                } else {
-                    requestsToSend.pop();
-                }
+                _queueMemoryBytes -= requestsToSend.front().length();
+                requestsToSend.pop();
             }
 
             ESP_LOGD(TAG, "Adding new request to queue (size: %d)", requestsToSend.size() + 1);
-            requestsToSend.push(std::make_unique<String>(std::move(toSend)));
             _queueMemoryBytes += stringSize;
+            requestsToSend.push(std::move(toSend));
         }
     }
 }
@@ -335,15 +327,10 @@ void TostHandleClass::handleResponse(const RestResponse& response, bool isSecond
     // Original: pop if statusCode > 0 AND statusCode != 403 AND statusCode != 401
     if (statusCode > 0 && statusCode != 403 && statusCode != 401 && statusCode != 503) {//on thes status codes a retry can be done
         // Check if front of queue is still the request we sent
-        if (!requestsToSend.empty() && *requestsToSend.front() == _lastRequestBody) {
+        if (!requestsToSend.empty() && requestsToSend.front() == _lastRequestBody) {
             ESP_LOGD(TAG, "Removing sent request from queue with code: %d, (succsfull nor not remove so not blocking other requests) queue remaining: %d", statusCode, requestsToSend.size() - 1);
-            if (requestsToSend.front()) {
-                size_t stringSize = requestsToSend.front()->length();
-                requestsToSend.pop();
-                _queueMemoryBytes -= stringSize;
-            } else {
-                requestsToSend.pop();
-            }
+            _queueMemoryBytes -= requestsToSend.front().length();
+            requestsToSend.pop();
         } else if (!requestsToSend.empty()) {
             ESP_LOGW(TAG, "Queue front changed during request - already removed by queue overflow");
         } else {
@@ -381,13 +368,15 @@ void TostHandleClass::sendNextRequest()
     }
 
     // Peek at next request from queue (DON'T pop yet - only pop on success)
-    String body = *requestsToSend.front();
+    const String& body = requestsToSend.front();
 
     // Save for potential secondary URL retry and for matching later
     _lastRequestBody = body;
 
     // Build URL
-    String url = Configuration.get().Tost.Url;
+    String url;
+    url.reserve(strlen(Configuration.get().Tost.Url) + 25 + strlen(Configuration.get().Tost.SystemId));
+    url = Configuration.get().Tost.Url;
     url += "/api/solar/data?systemId=";
     url += Configuration.get().Tost.SystemId;
 
@@ -409,7 +398,9 @@ void TostHandleClass::sendNextRequest()
 
 void TostHandleClass::queueSecondaryUrlRequest()
 {
-    String url = Configuration.get().Tost.SecondUrl;
+    String url;
+    url.reserve(strlen(Configuration.get().Tost.SecondUrl) + 25 + strlen(Configuration.get().Tost.SystemId));
+    url = Configuration.get().Tost.SecondUrl;
     url += "/api/solar/data?systemId=";
     url += Configuration.get().Tost.SystemId;
 

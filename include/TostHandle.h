@@ -25,7 +25,7 @@ private:
         bool isSecondaryUrl;
     };
     std::optional<ActiveRequest> _activeRequest;  // Only 0 or 1 active request
-    std::queue<std::unique_ptr<String>> requestsToSend;  // Local buffer of unsent data
+    std::queue<String> requestsToSend;  // Local buffer of unsent data
     size_t _queueMemoryBytes = 0;
     String _lastRequestBody;
 
@@ -42,6 +42,8 @@ private:
     TimeoutHelper restTimeout;
 
     const long TIMER_CLEANUP = 1000 * 60 * 5;
+
+    JsonDocument _jsonDoc;  // Reusable JSON document - internal pool stabilizes after first few uses
 
     std::string generateUniqueId(const BaseInverterClass & inv);
 
