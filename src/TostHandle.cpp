@@ -101,16 +101,22 @@ void TostHandleClass::loop()
     //channel 2 -> temperature
     //9: temperature
 
+    // Log REST stats every 60s regardless of state
+    if (_statsLog.occured()) {
+        _statsLog.set(60 * 1000);
+        RestRequestHandler.printStats();
+    }
+
+    // Always process active requests regardless of radio state or enabled flag.
+    // Prevents permanent stall when radio goes busy while a response is in flight.
+    processActiveRequest();
+
     if (!Configuration.get().Tost.Enabled || !InverterHandler.isAllRadioIdle()) {
-        //MessageOutput.println("tost skip");
         return;
     }
 
     // 1. Trim queue if config changed
     trimQueueToSize();
-
-    // 2. Process active request (check if complete)
-    processActiveRequest();
 
     // 3. If no active request, try to send next from queue
     if (!_activeRequest.has_value() && !requestsToSend.empty() && restTimeout.occured()) {
@@ -120,7 +126,8 @@ void TostHandleClass::loop()
     // 4. Run cleanup check
     if(_cleanupCheck.occured()){
         ESP_LOGD(TAG,"Run cleanup");
-        _cleanupCheck.set(TIMER_CLEANUP);
+    _cleanupCheck.set(TIMER_CLEANUP);
+    _statsLog.set(60 * 1000);
 
         for (auto it = _lastPublishedInverters.begin(); it != _lastPublishedInverters.end(); ) {
             bool found = false;
@@ -326,13 +333,10 @@ void TostHandleClass::handleResponse(const RestResponse& response, bool isSecond
     // Pop from queue only if request was successful (following original logic)
     // Original: pop if statusCode > 0 AND statusCode != 403 AND statusCode != 401
     if (statusCode > 0 && statusCode != 403 && statusCode != 401 && statusCode != 503) {//on thes status codes a retry can be done
-        // Check if front of queue is still the request we sent
-        if (!requestsToSend.empty() && requestsToSend.front() == _lastRequestBody) {
-            ESP_LOGD(TAG, "Removing sent request from queue with code: %d, (succsfull nor not remove so not blocking other requests) queue remaining: %d", statusCode, requestsToSend.size() - 1);
+        if (!requestsToSend.empty()) {
+            ESP_LOGD(TAG, "Removing sent request from queue with code: %d, queue remaining: %d", statusCode, requestsToSend.size() - 1);
             _queueMemoryBytes -= requestsToSend.front().length();
             requestsToSend.pop();
-        } else if (!requestsToSend.empty()) {
-            ESP_LOGW(TAG, "Queue front changed during request - already removed by queue overflow");
         } else {
             ESP_LOGW(TAG, "Queue is empty - request already removed");
         }
@@ -370,9 +374,6 @@ void TostHandleClass::sendNextRequest()
     // Peek at next request from queue (DON'T pop yet - only pop on success)
     const String& body = requestsToSend.front();
 
-    // Save for potential secondary URL retry and for matching later
-    _lastRequestBody = body;
-
     // Build URL
     String url;
     url.reserve(strlen(Configuration.get().Tost.Url) + 25 + strlen(Configuration.get().Tost.SystemId));
@@ -409,9 +410,10 @@ void TostHandleClass::queueSecondaryUrlRequest()
 
     ESP_LOGD(TAG, "Sending request to secondary URL: %s", url.c_str());
 
-    // Reuse last JSON body
+    // Reuse body from queue front (still there, not yet popped)
+    const String& body = requestsToSend.front();
     auto future = RestRequestHandler.queueRequestWithHeaders(
-        url, "POST", _lastRequestBody, "application/json",
+        url, "POST", body, "application/json",
         headers, 0, 10000  // 10s timeout for secondary
     );
 
