@@ -22,12 +22,15 @@ void TostHandleClass::init(Scheduler& scheduler)
 {
     //_lastPublish.set(Configuration.get().Tost.Duration * 1000);
     _cleanupCheck.set(TIMER_CLEANUP);
+    _statsLog.set(60 * 1000);
     lastErrorStatusCode = 0;
     lastErrorTimestamp = 0;
     lastSuccessfullyTimestamp = 0;
     restTimeout.set(0);
     lastErrorMessage = "";
     _queueMemoryBytes = 0;
+
+    deriveEncryptionKey();
 
     scheduler.addTask(_loopTask);
     _loopTask.setCallback(std::bind(&TostHandleClass::loop, this));
@@ -291,6 +294,99 @@ std::string TostHandleClass::generateUniqueId(const BaseInverterClass &inv) {
     return (from_inverter_type(inv.getInverterType()) + inv.serialString()).c_str();
 }
 
+void TostHandleClass::deriveEncryptionKey() {
+    const char* token = Configuration.get().Tost.Token;
+    if (strlen(token) == 0) {
+        _encryptionKeyValid = false;
+        ESP_LOGW(TAG, "No clientToken configured — encryption disabled");
+        return;
+    }
+    mbedtls_sha256(
+        (const unsigned char*)token, strlen(token),
+        _encryptionKey, 0  // 0 = SHA-256 (not SHA-224)
+    );
+    _encryptionKeyValid = true;
+    ESP_LOGI(TAG, "Encryption key derived from clientToken");
+}
+
+bool TostHandleClass::encryptBody(const String& plaintext,
+                                   const char* systemId,
+                                   String& ciphertext,
+                                   char nonceHex[25]) const {
+    if (!_encryptionKeyValid) {
+        ESP_LOGE(TAG, "Encryption key not valid");
+        return false;
+    }
+
+    // 12-byte random nonce via ESP32 hardware RNG (entropy-seeded by WiFi)
+    uint8_t nonce[12];
+    esp_fill_random(nonce, sizeof(nonce));
+
+    // Encode nonce as 24 hex chars for X-Nonce header
+    for (int i = 0; i < 12; i++) {
+        snprintf(nonceHex + i * 2, 3, "%02x", nonce[i]);
+    }
+    nonceHex[24] = '\0';
+
+    // Output buffer: plaintext + 16-byte GCM auth tag
+    size_t plainLen = plaintext.length();
+    size_t cipherLen = plainLen + 16;  // 16-byte auth tag appended
+
+    uint8_t* buf = (uint8_t*)malloc(cipherLen);
+    if (!buf) {
+        ESP_LOGE(TAG, "Failed to allocate ciphertext buffer (%u bytes)", (unsigned)cipherLen);
+        return false;
+    }
+
+    // AES-256-GCM encryption with systemId as AAD
+    mbedtls_gcm_context gcm;
+    mbedtls_gcm_init(&gcm);
+
+    int rc = mbedtls_gcm_setkey(&gcm, MBEDTLS_CIPHER_ID_AES, _encryptionKey, 256);
+    if (rc != 0) {
+        ESP_LOGE(TAG, "GCM setkey failed (rc=%d)", rc);
+        mbedtls_gcm_free(&gcm);
+        free(buf);
+        return false;
+    }
+
+    // Encrypt: output = ciphertext (plainLen bytes) followed by tag (16 bytes)
+    rc = mbedtls_gcm_crypt_and_tag(
+        &gcm,
+        MBEDTLS_GCM_ENCRYPT,
+        plainLen,
+        nonce, sizeof(nonce),                          // 12-byte IV
+        (const uint8_t*)systemId, strlen(systemId),    // AAD = systemId
+        (const uint8_t*)plaintext.c_str(),             // input plaintext
+        buf,                                            // output ciphertext (same length as input)
+        16,                                             // tag length
+        buf + plainLen                                  // output tag (appended after ciphertext)
+    );
+
+    mbedtls_gcm_free(&gcm);
+
+    if (rc != 0) {
+        ESP_LOGE(TAG, "AES-GCM encryption failed (rc=%d)", rc);
+        free(buf);
+        return false;
+    }
+
+    ciphertext = String((char*)buf, (unsigned int)cipherLen);
+    free(buf);
+    return true;
+}
+
+String TostHandleClass::buildUrl(const char* host, const char* path) {
+    String url = "http://";
+    String h = host;
+    // Strip any existing scheme prefix (backwards compatibility with old config)
+    if (h.startsWith("https://")) h = h.substring(8);
+    else if (h.startsWith("http://")) h = h.substring(7);
+    url += h;
+    url += path;
+    return url;
+}
+
 void TostHandleClass::handleResponse(const RestResponse& response, bool isSecondaryUrl)
 {
     unsigned long lastTimestamp = millis();
@@ -373,23 +469,33 @@ void TostHandleClass::sendNextRequest()
 
     // Peek at next request from queue (DON'T pop yet - only pop on success)
     const String& body = requestsToSend.front();
+    const char* systemId = Configuration.get().Tost.SystemId;
 
-    // Build URL
-    String url;
-    url.reserve(strlen(Configuration.get().Tost.Url) + 25 + strlen(Configuration.get().Tost.SystemId));
-    url = Configuration.get().Tost.Url;
-    url += "/api/solar/data?systemId=";
-    url += Configuration.get().Tost.SystemId;
+    // Encrypt body with ChaCha20-Poly1305, systemId as AAD
+    String encryptedBody;
+    char nonceHex[25];
+    if (!encryptBody(body, systemId, encryptedBody, nonceHex)) {
+        ESP_LOGE(TAG, "Encryption failed — dropping request, pausing 60s");
+        _queueMemoryBytes -= body.length();
+        requestsToSend.pop();
+        restTimeout.set(60 * 1000);
+        return;
+    }
 
-    // Prepare headers
+    // Build URL: http://<host>/api/solar/data/aes-gcm?systemId=<systemId>
+    String path = "/api/solar/data/aes-gcm?systemId=";
+    path += systemId;
+    String url = buildUrl(Configuration.get().Tost.Url, path.c_str());
+
+    // X-Nonce header only — clientToken is the encryption key, never transmitted
     std::map<String, String> headers;
-    headers["clientToken"] = Configuration.get().Tost.Token;
+    headers["X-Nonce"] = nonceHex;
 
-    ESP_LOGD(TAG, "Sending request to: %s (queue size: %d)", url.c_str(), requestsToSend.size());
+    ESP_LOGD(TAG, "Sending encrypted request to: %s (queue: %d)", url.c_str(), requestsToSend.size());
 
     // Queue request to RestRequestHandler
     auto future = RestRequestHandler.queueRequestWithHeaders(
-        url, "POST", body, "application/json",
+        url, "POST", encryptedBody, "application/octet-stream",
         headers, 0, 15000  // maxRetries=0, timeout=15s
     );
 
@@ -399,21 +505,33 @@ void TostHandleClass::sendNextRequest()
 
 void TostHandleClass::queueSecondaryUrlRequest()
 {
-    String url;
-    url.reserve(strlen(Configuration.get().Tost.SecondUrl) + 25 + strlen(Configuration.get().Tost.SystemId));
-    url = Configuration.get().Tost.SecondUrl;
-    url += "/api/solar/data?systemId=";
-    url += Configuration.get().Tost.SystemId;
-
-    std::map<String, String> headers;
-    headers["clientToken"] = Configuration.get().Tost.Token;
-
-    ESP_LOGD(TAG, "Sending request to secondary URL: %s", url.c_str());
+    const char* systemId = Configuration.get().Tost.SystemId;
 
     // Reuse body from queue front (still there, not yet popped)
     const String& body = requestsToSend.front();
+
+    // Encrypt body with ChaCha20-Poly1305, systemId as AAD
+    String encryptedBody;
+    char nonceHex[25];
+    if (!encryptBody(body, systemId, encryptedBody, nonceHex)) {
+        ESP_LOGE(TAG, "Encryption failed on secondary URL — skipping");
+        restTimeout.set(60 * 1000);
+        return;
+    }
+
+    // Build URL: http://<host>/api/solar/data/aes-gcm?systemId=<systemId>
+    String path = "/api/solar/data/aes-gcm?systemId=";
+    path += systemId;
+    String url = buildUrl(Configuration.get().Tost.SecondUrl, path.c_str());
+
+    // X-Nonce header only
+    std::map<String, String> headers;
+    headers["X-Nonce"] = nonceHex;
+
+    ESP_LOGD(TAG, "Sending encrypted request to secondary URL: %s", url.c_str());
+
     auto future = RestRequestHandler.queueRequestWithHeaders(
-        url, "POST", body, "application/json",
+        url, "POST", encryptedBody, "application/octet-stream",
         headers, 0, 10000  // 10s timeout for secondary
     );
 

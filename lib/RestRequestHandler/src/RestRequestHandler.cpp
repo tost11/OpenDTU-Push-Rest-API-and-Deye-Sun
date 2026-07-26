@@ -30,7 +30,7 @@ void RestRequestHandlerClass::init(Scheduler& scheduler)
     // Configure ESP32 pthread for the worker thread
     auto cfg = esp_pthread_get_default_config();
     cfg.thread_name = "rest_worker";
-    cfg.stack_size = 16384;  // 16KB stack - required for HTTPS/TLS on ESP32
+    cfg.stack_size = 8192;  // 8KB — plain HTTP only, no TLS stack depth needed
     cfg.prio = 5;
     esp_pthread_set_cfg(&cfg);
 
@@ -115,35 +115,9 @@ void RestRequestHandlerClass::executeRequest(RestRequest request)
 
     RestResponse response;
 
-    // Track connection reuse — compare URL base (host portion)
-    // HTTPClient internally decides reuse based on host:port match
-    // We use the full URL for comparison (conservative: if URL changes, count as new)
-    if (!_lastConnectedHost.isEmpty() && request.url.startsWith(_lastConnectedHost)) {
-        _statConnectionReused++;
-        ESP_LOGD(TAG, "Reusing connection to %s", _lastConnectedHost.c_str());
-    } else {
-        if (!_lastConnectedHost.isEmpty()) {
-            ESP_LOGD(TAG, "New connection (host changed from %s)", _lastConnectedHost.c_str());
-        }
-        // Extract base URL (scheme + host + port) for future comparison
-        // Find the 3rd '/' in "https://host:port/path" to get base
-        int slashCount = 0;
-        int baseEnd = -1;
-        for (int i = 0; i < (int)request.url.length(); i++) {
-            if (request.url[i] == '/') {
-                slashCount++;
-                if (slashCount == 3) {
-                    baseEnd = i;
-                    break;
-                }
-            }
-        }
-        _lastConnectedHost = (baseEnd > 0) ? request.url.substring(0, baseEnd) : request.url;
-    }
-
-    // Configure persistent client with connection reuse
+    // Configure HTTP client with connection keep-alive (plain HTTP, no TLS)
     _httpClient.setReuse(true);
-    _httpClient.setConnectTimeout(5000);    // 5s connect timeout — separate from read timeout
+    _httpClient.setConnectTimeout(5000);    // 5s connect timeout
     _httpClient.begin(request.url);
     _httpClient.setTimeout(request.timeout);
 
@@ -171,7 +145,7 @@ void RestRequestHandlerClass::executeRequest(RestRequest request)
     response.httpCode = httpCode;
     response.success = (httpCode >= 200 && httpCode < 300);
     if (httpCode > 0) {
-        // Cap response body to 512 bytes to minimize RAM usage on ESP32 without PSRAM
+        // Cap response body to 512 bytes to minimize RAM usage
         int contentLength = _httpClient.getSize();
         int readSize = (contentLength > 0 && contentLength < 512) ? contentLength : 512;
         WiFiClient* stream = _httpClient.getStreamPtr();
@@ -187,7 +161,7 @@ void RestRequestHandlerClass::executeRequest(RestRequest request)
         response.body = _httpClient.errorToString(httpCode);
     }
 
-    // Do NOT call _httpClient.end() — keeps TCP/TLS connection alive for reuse
+    // Do NOT call _httpClient.end() — keep connection alive for HTTP keep-alive reuse
 
     _statRequestsSent++;
 
@@ -199,7 +173,7 @@ void RestRequestHandlerClass::executeRequest(RestRequest request)
     _currentPromise = nullptr;
     _currentRequestId = 0;
 
-    ESP_LOGD(TAG, "Request %d completed (code=%d)", request.id, httpCode);
+    ESP_LOGD(TAG, "Request %d completed (code=%d)", request.id, response.httpCode);
 }
 
 void RestRequestHandlerClass::ensureWorkerRunning()
@@ -215,7 +189,7 @@ void RestRequestHandlerClass::ensureWorkerRunning()
         // Reconfigure pthread before spawning
         auto cfg = esp_pthread_get_default_config();
         cfg.thread_name = "rest_worker";
-        cfg.stack_size = 16384;
+        cfg.stack_size = 8192;
         cfg.prio = 5;
         esp_pthread_set_cfg(&cfg);
 
@@ -225,7 +199,7 @@ void RestRequestHandlerClass::ensureWorkerRunning()
 
 void RestRequestHandlerClass::printStats()
 {
-    ESP_LOGD(TAG, "Stats since boot — sent: %u | exceptions: %u | restarts: %u | conn_reused: %u",
+    ESP_LOGD(TAG, "Stats since boot — sent: %u | exceptions: %u | restarts: %u | keepalive_reused: %u",
         _statRequestsSent.load(), _statExceptionCount.load(),
         _statRestartCount.load(), _statConnectionReused.load());
 }

@@ -8,6 +8,9 @@
 #include <ArduinoJson.h>
 #include <queue>
 #include "RestRequestHandler.h"
+#include <mbedtls/sha256.h>
+#include <mbedtls/gcm.h>
+#include <esp_random.h>
 
 class TostHandleClass {
 public:
@@ -51,6 +54,14 @@ private:
     void processActiveRequest();  // Check if active request is complete
     void sendNextRequest();        // Send next from queue to RestRequestHandler
     void queueSecondaryUrlRequest();
+
+    // ChaCha20-Poly1305 encryption
+    uint8_t _encryptionKey[32];
+    bool _encryptionKeyValid = false;
+    void deriveEncryptionKey();
+    bool encryptBody(const String& plaintext, const char* systemId,
+                     String& ciphertext, char nonceHex[25]) const;
+    static String buildUrl(const char* host, const char* path);
 
     static bool parseKWHValues(BaseInverterClass *inv, JsonObject &doc, const ChannelType_t type, const ChannelNum_t channel) ;
 public:
