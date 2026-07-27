@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 
+#if TOST
+
 #include <TimeoutHelper.h>
 #include "Configuration.h"
 #include "inverters/InverterAbstract.h"
@@ -81,3 +83,5 @@ public:
 };
 
 extern TostHandleClass TostHandle;
+
+#endif // TOST

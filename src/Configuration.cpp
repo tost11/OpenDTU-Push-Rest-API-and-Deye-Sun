@@ -73,6 +73,7 @@ bool ConfigurationClass::write()
     ntp["sunsettype"] = config.Ntp.SunsetType;
     ntp["startup_date"] = config.Ntp.StartupDate;
 
+#if TOST
     JsonObject tost = doc["tost"].to<JsonObject>();
     tost["enabled"] = config.Tost.Enabled;
     tost["url"] = config.Tost.Url;
@@ -81,6 +82,7 @@ bool ConfigurationClass::write()
     tost["token"] = config.Tost.Token;
     tost["duration"] = config.Tost.Duration;
     tost["queue_size"] = config.Tost.QueueSize;
+#endif
 
     JsonObject mqtt = doc["mqtt"].to<JsonObject>();
     mqtt["enabled"] = config.Mqtt.Enabled;
@@ -294,6 +296,7 @@ bool ConfigurationClass::read()
     config.Ntp.SunsetType = ntp["sunsettype"] | NTP_SUNSETTYPE;
     config.Ntp.StartupDate = ntp["startup_date"] | 0;
 
+#if TOST
     JsonObject tost = doc["tost"];
     config.Tost.Enabled = tost["enabled"] | TOST_ENABLED;
     strlcpy(config.Tost.Url, tost["url"] | TOST_URL, sizeof(config.Tost.Url));
@@ -302,6 +305,7 @@ bool ConfigurationClass::read()
     strlcpy(config.Tost.Token, tost["token"] | TOST_TOKEN, sizeof(config.Tost.Token));
     config.Tost.Duration = tost["duration"] | TOST_DURATION;
     config.Tost.QueueSize = tost["queue_size"] | TOST_QUEUE_SIZE;
+#endif
 
     JsonObject mqtt = doc["mqtt"];
     config.Mqtt.Enabled = mqtt["enabled"] | MQTT_ENABLED;

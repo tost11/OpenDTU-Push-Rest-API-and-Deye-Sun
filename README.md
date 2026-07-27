@@ -7,12 +7,23 @@
 
 ## What's this fork about ?
 
-Currently, I am working on multiple features (all split up in different branches):
+This fork extends OpenDTU with several additional features, controlled via build flags in [platformio.ini](platformio.ini). Enable or disable each feature by setting the corresponding flag to `1` or `0`.
 
-- Push data via rest to an extern application [here](https://github.com/tost11/OpenDTU-Push-Rest-API/tree/feature/push-rest-api)
-- support more inverter types (W-Series Hoymiles) and more manufacturers (Deye) [here](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/tree/feature/more-manufacturers)
-- manual start date (So opendtu works without NTP and manual setting date after boot, date and time obviously not correct) [here](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/tree/feature/default-start-date)
-- servo engine that views solar power (looks like [this](https://itgrufti.de/solar/monitoring/eine-solar-anzeige-fuer-die-kita/)) [here](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/tree/feature/servo)
+## Build Flags
+
+All feature flags are set in the `build_flags` section of [platformio.ini](platformio.ini).
+
+| Flag          | Default | Description                                                  |
+|---------------|---------|--------------------------------------------------------------|
+| `-DHOYMILES`  | `1`     | Support for original Hoymiles NRF24 inverters                |
+| `-DDEYE_SUN`  | `1`     | Support for Deye SUN inverters (network, Wi-Fi)              |
+| `-DHOYMILES_W`| `1`     | Support for Hoymiles W-Series inverters (network, Wi-Fi)     |
+| `-DSERVO`     | `0`     | Servo engine output displaying solar power                   |
+| `-DTOST`      | `0`     | REST push service sending inverter data to a monitoring server|
+
+> **Note on `-DTOST`:** Changing this flag also requires rebuilding the frontend.
+> - `TOST=1`: build normally with `npm run build` inside the `webapp/` directory.
+> - `TOST=0`: build with `VITE_TOST=0 npm run build` inside the `webapp/` directory.
 
 ## Features
 
@@ -21,15 +32,7 @@ Currently, I am working on multiple features (all split up in different branches
 With help from this fork, it is possible to read data from more inverter types besides the Hoymiles NRF24 ones.
 The additional inverter types will be fetched via Network (Wi-Fi). The esp therefore has to be in the same network as the inverter.
 
-All inverter types are separated implementations and can be en-disabled by setting define in [platformio.ini](platformio.ini).
-
-| Flag         | Meaning                                       |
-|--------------|-----------------------------------------------|
-| -DHOYMILES_W | support for Hoymiles W-Series inverters       |
-| -DDEYE_SUN   | support for Hoymiles Deye SUN inverters       |
-| -DHOYMILES   | support for original Hoymiles NRF24 inverters |
-
-The original implementation for Hoymiles inverts will work in parallel.
+All inverter types are separate implementations and can be enabled or disabled via build flags — see the [Build Flags](#build-flags) section above.
 
 ### Status Deye Sun
 
@@ -117,9 +120,12 @@ I have implemented an application that monitors solar systems on a server with g
 OpenDTU is not capable due to the esp limitations.
 
 For getting data on this application, this fork has a new feature that sends the current inverter data via rest to the application.
+Data is sent over plain HTTP — HTTPS is intentionally avoided due to the large TLS heap overhead on the ESP32 — but confidentiality is ensured through AES-256-GCM symmetric encryption applied to the payload before transmission.
 
 If you are interested in the application or the Rest definition for your own application
 check out the [project](https://github.com/tost11/solar-monitoring).
+
+> **Note:** This feature is disabled by default (`-DTOST=0`). When changing the `TOST` flag, the frontend must also be rebuilt — see the [Build Flags](#build-flags) section for details.
 
 ### Servo Engine
 

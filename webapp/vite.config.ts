@@ -20,6 +20,9 @@ try {
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  define: {
+    __TOST_ENABLED__: process.env.VITE_TOST !== '0',
+  },
   plugins: [
     vue(),
     viteCompression({ deleteOriginFile: true, threshold: 0 }),

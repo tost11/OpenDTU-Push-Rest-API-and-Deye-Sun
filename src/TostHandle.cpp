@@ -3,6 +3,9 @@
  * Copyright (C) 2023 Thomas Basler and others
  */
 #include "TostHandle.h"
+
+#if TOST
+
 #include "Configuration.h"
 #include "Datastore.h"
 #include <MessageOutput.h>
@@ -693,3 +696,5 @@ void TostHandleClass::sendToRedirectUrl(const String& locationUrl, bool isSecond
     // Keep the same isSecondaryUrl flag — redirect is part of the same attempt
     _activeRequest = ActiveRequest{std::move(future), isSecondaryUrl};
 }
+
+#endif // TOST

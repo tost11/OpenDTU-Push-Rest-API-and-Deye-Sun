@@ -23,6 +23,22 @@ import { createRouter, createWebHistory } from 'vue-router';
 import TostAdminView from "@/views/TostAdminView.vue";
 import TostInfoView from "@/views/TostInfoView.vue";
 
+const tostRoutes = __TOST_ENABLED__ ? [
+    {
+        path: '/info/tost',
+        name: 'Tost',
+        component: TostInfoView,
+    },
+    {
+        path: '/settings/tost',
+        name: 'Tost Settings',
+        component: TostAdminView,
+    },
+] : [];
+
+const tostInfoRoutes = tostRoutes.filter(r => r.path.startsWith('/info/'));
+const tostSettingsRoutes = tostRoutes.filter(r => r.path.startsWith('/settings/'));
+
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     linkActiveClass: 'active',
@@ -74,11 +90,7 @@ const router = createRouter({
             name: 'MqTT',
             component: MqttInfoView,
         },
-        {
-            path: '/info/tost',
-            name: 'Tost',
-            component: TostInfoView,
-        },
+        ...tostInfoRoutes,
         {
             path: '/info/console',
             name: 'Web Console',
@@ -99,11 +111,7 @@ const router = createRouter({
             name: 'MqTT Settings',
             component: MqttAdminView,
         },
-        {
-            path: '/settings/tost',
-            name: 'Tost Settings',
-            component: TostAdminView,
-        },
+        ...tostSettingsRoutes,
         {
             path: '/settings/inverter',
             name: 'Inverter Settings',
