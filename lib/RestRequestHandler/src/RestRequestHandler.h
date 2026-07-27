@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 
+#if DEYE_SUN || TOST
+
 #include <HTTPClient.h>
 #include <ThreadSafeQueue.h>
 #include <map>
@@ -32,6 +34,8 @@ struct RestRequest {
     uint8_t maxRetries;
     uint32_t timeout;
     uint32_t nextRetryTime;  // Internal: for retry backoff
+    bool forceNewConnection;  // If true, close existing connection before sending
+    uint32_t maxBodyBytes;    // Max response body bytes to read (default 512)
     std::shared_ptr<LightPromise<RestResponse>> promise;  // For future result
 };
 
@@ -49,7 +53,9 @@ public:
     LightFuture<RestResponse> queueRequestWithHeaders(String url, String method,
                                                      String body, String contentType,
                                                      std::map<String, String> headers,
-                                                     uint8_t maxRetries = 2, uint32_t timeout = 0);
+                                                     uint8_t maxRetries = 2, uint32_t timeout = 0,
+                                                     bool forceNewConnection = false,
+                                                     uint32_t maxBodyBytes = 512);
 
     void setDefaultTimeout(uint32_t timeoutMs);
     uint8_t getQueueSize() const;
@@ -92,3 +98,5 @@ private:
 };
 
 extern RestRequestHandlerClass RestRequestHandler;
+
+#endif // DEYE_SUN || TOST

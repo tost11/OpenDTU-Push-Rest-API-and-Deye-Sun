@@ -67,7 +67,7 @@ void AtCommandsDeyeInverter::update() {
     }
 
     // Check and fetch firmware version periodically
-    //checkAndFetchFirmwareVersion();
+    checkAndFetchFirmwareVersion();
 
     // Check restart command result
     checkRestartCommandResult();

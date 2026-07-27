@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 
+#if DEYE_SUN || TOST
+
 #include <memory>
 #include <mutex>
 #include <condition_variable>
@@ -138,3 +140,5 @@ private:
     std::shared_ptr<typename LightFuture<T>::SharedState> _state;
     bool _futureRetrieved;
 };
+
+#endif // DEYE_SUN || TOST

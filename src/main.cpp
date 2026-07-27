@@ -21,7 +21,9 @@
 #include "NtpSettings.h"
 #include "PinMapping.h"
 #include "RestartHelper.h"
+#if DEYE_SUN || TOST
 #include "RestRequestHandler.h"
+#endif
 #include "Scheduler.h"
 #include "SunPosition.h"
 #include "WebApi.h"
@@ -140,8 +142,10 @@ void setup()
     WebApi.init(scheduler);
 
     // Initialize REST request handler
+#if DEYE_SUN || TOST
     ESP_LOGI(TAG, "Initializing REST request handler...");
     RestRequestHandler.init(scheduler);
+#endif
 
     // Initialize WebApi
     ESP_LOGI(TAG, "Initialize Servo... ");

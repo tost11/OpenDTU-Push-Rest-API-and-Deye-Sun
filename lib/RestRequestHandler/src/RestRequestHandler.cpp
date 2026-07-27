@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "RestRequestHandler.h"
+
+#if DEYE_SUN || TOST
+
 #include <esp_pthread.h>
 #include <esp_log.h>
 
@@ -115,6 +118,12 @@ void RestRequestHandlerClass::executeRequest(RestRequest request)
 
     RestResponse response;
 
+    // Force fresh TCP connection if requested (avoids reusing stale/wrong sockets)
+    if (request.forceNewConnection) {
+        _httpClient.end();
+        _lastConnectedHost = "";
+    }
+
     // Configure HTTP client with connection keep-alive (plain HTTP, no TLS)
     _httpClient.setReuse(true);
     _httpClient.setConnectTimeout(5000);    // 5s connect timeout
@@ -155,15 +164,16 @@ void RestRequestHandlerClass::executeRequest(RestRequest request)
     }
 
     if (httpCode > 0) {
-        // Cap response body to 512 bytes to minimize RAM usage
+        // Read response body up to maxBodyBytes (heap-allocated to avoid stack overflow)
+        uint32_t cap = request.maxBodyBytes;
         int contentLength = _httpClient.getSize();
-        int readSize = (contentLength > 0 && contentLength < 512) ? contentLength : 512;
+        int readSize = (contentLength > 0 && (uint32_t)contentLength < cap) ? contentLength : (int)cap;
         WiFiClient* stream = _httpClient.getStreamPtr();
         if (stream && stream->available()) {
-            char buf[513];
-            int bytesRead = stream->readBytes(buf, readSize);
+            auto buf = std::unique_ptr<char[]>(new char[readSize + 1]);
+            int bytesRead = stream->readBytes(buf.get(), readSize);
             buf[bytesRead] = '\0';
-            response.body = String(buf);
+            response.body = String(buf.get());
         } else {
             response.body = "";
         }
@@ -223,7 +233,8 @@ LightFuture<RestResponse> RestRequestHandlerClass::queueRequest(String url, Stri
 
 LightFuture<RestResponse> RestRequestHandlerClass::queueRequestWithHeaders(
     String url, String method, String body, String contentType,
-    std::map<String, String> headers, uint8_t maxRetries, uint32_t timeout)
+    std::map<String, String> headers, uint8_t maxRetries, uint32_t timeout,
+    bool forceNewConnection, uint32_t maxBodyBytes)
 {
     // Check if worker is alive, restart if needed
     ensureWorkerRunning();
@@ -254,6 +265,8 @@ LightFuture<RestResponse> RestRequestHandlerClass::queueRequestWithHeaders(
     request.maxRetries = maxRetries;
     request.timeout = (timeout > 0) ? timeout : _defaultTimeout;
     request.nextRetryTime = 0;
+    request.forceNewConnection = forceNewConnection;
+    request.maxBodyBytes = maxBodyBytes;
 
     // Create promise/future pair
     request.promise = std::make_shared<LightPromise<RestResponse>>();
@@ -282,3 +295,5 @@ uint8_t RestRequestHandlerClass::getActiveRequestCount() const
 {
     return (_currentRequestId.load() != 0) ? 1 : 0;
 }
+
+#endif // DEYE_SUN || TOST
