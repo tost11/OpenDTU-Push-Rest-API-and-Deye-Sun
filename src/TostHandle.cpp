@@ -392,56 +392,166 @@ void TostHandleClass::handleResponse(const RestResponse& response, bool isSecond
     unsigned long lastTimestamp = millis();
     int statusCode = response.httpCode;
 
-    if (!response.success || statusCode <= 0) {
-        // Connection failure - try secondary URL if not already tried
+    // ===== Connection failure (statusCode <= 0) =====
+    if (statusCode <= 0) {
         if (!isSecondaryUrl && strlen(Configuration.get().Tost.SecondUrl) > 0) {
-            ESP_LOGW(TAG, "First URL failed, trying secondary URL");
+            ESP_LOGW(TAG, "Primary URL connection failed, trying secondary URL");
             queueSecondaryUrlRequest();
-            return;  // Don't update error state yet
+            return;
         }
-
-        ESP_LOGE(TAG, "Tost's Solar Monitoring Error on rest call, connection to server not possible");
+        ESP_LOGE(TAG, "Connection to server not possible (both URLs failed)");
         lastErrorMessage = "Connection to server not possible: " + response.body;
         lastErrorStatusCode = statusCode;
         lastErrorTimestamp = lastTimestamp;
-    } else {
-        // Parse response body
-        ESP_LOGD(TAG, "Full Status: %s", response.body.c_str());
-        if (statusCode == 200) {
-            lastSuccessfullyTimestamp = lastTimestamp;
-            ESP_LOGI(TAG, "Tost's Solar Monitoring Successfully sent data");
-        } else {
-            lastErrorStatusCode = statusCode;
-            lastErrorTimestamp = lastTimestamp;
-            ESP_LOGE(TAG, "Tost's Solar Monitoring Error on rest call, Status code: %d", statusCode);
-
-            // Parse error message from response
-            JsonDocument doc;
-            DeserializationError error = deserializeJson(doc, response.body);
-            if (error || !doc["error"].is<String>()) {
-                lastErrorMessage = String("Error response: ") + response.body;
-            } else {
-                lastErrorMessage = doc["error"].as<String>();
-            }
-        }
+        // Keep in queue, retry after 60s
+        restTimeout.set(60 * 1000);
+        return;
     }
 
-    // Pop from queue only if request was successful (following original logic)
-    // Original: pop if statusCode > 0 AND statusCode != 403 AND statusCode != 401
-    if (statusCode > 0 && statusCode != 403 && statusCode != 401 && statusCode != 503) {//on thes status codes a retry can be done
+    // ===== 2xx Success =====
+    if (statusCode >= 200 && statusCode < 300) {
+        lastSuccessfullyTimestamp = lastTimestamp;
+        ESP_LOGI(TAG, "Successfully sent data (code=%d)", statusCode);
+        // Pop queue and clear state
         if (!requestsToSend.empty()) {
-            ESP_LOGD(TAG, "Removing sent request from queue with code: %d, queue remaining: %d", statusCode, requestsToSend.size() - 1);
             _queueMemoryBytes -= requestsToSend.front().length();
             requestsToSend.pop();
-        } else {
-            ESP_LOGW(TAG, "Queue is empty - request already removed");
         }
-        // Clear timeout on successful send
+        _visitedRedirectUrls.clear();
         restTimeout.set(0);
-    } else {
-        // Keep request in queue for retry, set timeout
-        ESP_LOGI(TAG, "Request failed (code=%d), keeping in queue and pausing for 60s", statusCode);
+        return;
+    }
+
+    // ===== 3xx Redirect =====
+    if (statusCode >= 300 && statusCode < 400) {
+        const String& location = response.location;
+
+        if (location.length() > 0) {
+            // Only follow plain HTTP redirects — reject anything else (HTTPS, FTP, relative, etc.)
+            String locationLower = location;
+            locationLower.toLowerCase();
+            if (!locationLower.startsWith("http://")) {
+                ESP_LOGW(TAG, "Non-HTTP redirect refused (only http:// supported): %s", location.c_str());
+                if (!isSecondaryUrl && strlen(Configuration.get().Tost.SecondUrl) > 0) {
+                    ESP_LOGW(TAG, "Trying secondary URL instead");
+                    queueSecondaryUrlRequest();
+                    return;
+                }
+                // On secondary or no secondary configured — permanent failure for this request
+                lastErrorMessage = "Non-HTTP redirect refused: " + location;
+                lastErrorStatusCode = statusCode;
+                lastErrorTimestamp = lastTimestamp;
+                if (!requestsToSend.empty()) {
+                    _queueMemoryBytes -= requestsToSend.front().length();
+                    requestsToSend.pop();
+                }
+                _visitedRedirectUrls.clear();
+                restTimeout.set(0);
+                return;
+            }
+
+            // HTTP redirect — check for cycle or redirect limit
+            if (_visitedRedirectUrls.count(location) > 0 || _visitedRedirectUrls.size() >= MAX_REDIRECTS) {
+                if (_visitedRedirectUrls.count(location) > 0) {
+                    ESP_LOGW(TAG, "Redirect cycle detected: %s", location.c_str());
+                } else {
+                    ESP_LOGW(TAG, "Redirect limit (%d) reached", MAX_REDIRECTS);
+                }
+                // Try secondary URL if on primary
+                if (!isSecondaryUrl && strlen(Configuration.get().Tost.SecondUrl) > 0) {
+                    ESP_LOGW(TAG, "Trying secondary URL instead");
+                    _visitedRedirectUrls.clear();
+                    queueSecondaryUrlRequest();
+                    return;
+                }
+                // On secondary — discard request
+                lastErrorMessage = "Redirect cycle/limit exceeded";
+                lastErrorStatusCode = statusCode;
+                lastErrorTimestamp = lastTimestamp;
+                if (!requestsToSend.empty()) {
+                    _queueMemoryBytes -= requestsToSend.front().length();
+                    requestsToSend.pop();
+                }
+                _visitedRedirectUrls.clear();
+                restTimeout.set(0);
+                return;
+            }
+
+            // Follow the HTTP redirect with a fresh nonce
+            ESP_LOGI(TAG, "Following HTTP redirect (code=%d) to: %s", statusCode, location.c_str());
+            _visitedRedirectUrls.insert(location);
+            sendToRedirectUrl(location, isSecondaryUrl);
+            return;
+        }
+
+        // No Location header in 3xx — try secondary URL
+        ESP_LOGW(TAG, "3xx response (code=%d) with no Location header", statusCode);
+        if (!isSecondaryUrl && strlen(Configuration.get().Tost.SecondUrl) > 0) {
+            ESP_LOGW(TAG, "Trying secondary URL instead");
+            queueSecondaryUrlRequest();
+            return;
+        }
+        // On secondary or no secondary — discard
+        lastErrorMessage = String("Redirect with no Location header, code=") + String(statusCode);
+        lastErrorStatusCode = statusCode;
+        lastErrorTimestamp = lastTimestamp;
+        if (!requestsToSend.empty()) {
+            _queueMemoryBytes -= requestsToSend.front().length();
+            requestsToSend.pop();
+        }
+        _visitedRedirectUrls.clear();
+        restTimeout.set(0);
+        return;
+    }
+
+    // ===== 4xx Client Error =====
+    if (statusCode >= 400 && statusCode < 500) {
+        ESP_LOGE(TAG, "Client error (code=%d) — permanent failure, not retrying", statusCode);
+        lastErrorStatusCode = statusCode;
+        lastErrorTimestamp = lastTimestamp;
+
+        // Parse error message from response
+        JsonDocument doc;
+        DeserializationError error = deserializeJson(doc, response.body);
+        if (error || !doc["error"].is<String>()) {
+            lastErrorMessage = String("Client error ") + String(statusCode) + ": " + response.body;
+        } else {
+            lastErrorMessage = doc["error"].as<String>();
+        }
+
+        // Pop queue — client errors are permanent (bad request, auth failure, etc.)
+        if (!requestsToSend.empty()) {
+            _queueMemoryBytes -= requestsToSend.front().length();
+            requestsToSend.pop();
+        }
+        _visitedRedirectUrls.clear();
+        restTimeout.set(0);
+        return;
+    }
+
+    // ===== 5xx Server Error =====
+    if (statusCode >= 500) {
+        ESP_LOGE(TAG, "Server error (code=%d)", statusCode);
+        if (!isSecondaryUrl && strlen(Configuration.get().Tost.SecondUrl) > 0) {
+            ESP_LOGW(TAG, "Trying secondary URL after server error");
+            queueSecondaryUrlRequest();
+            return;
+        }
+        // On secondary or no secondary — keep in queue, retry after 60s
+        lastErrorStatusCode = statusCode;
+        lastErrorTimestamp = lastTimestamp;
+
+        JsonDocument doc;
+        DeserializationError error = deserializeJson(doc, response.body);
+        if (error || !doc["error"].is<String>()) {
+            lastErrorMessage = String("Server error ") + String(statusCode) + ": " + response.body;
+        } else {
+            lastErrorMessage = doc["error"].as<String>();
+        }
+
+        ESP_LOGI(TAG, "Keeping request in queue, retrying in 60s");
         restTimeout.set(60 * 1000);
+        return;
     }
 }
 
@@ -537,4 +647,49 @@ void TostHandleClass::queueSecondaryUrlRequest()
 
     // Replace active request with secondary URL attempt
     _activeRequest = ActiveRequest{std::move(future), true};
+}
+
+void TostHandleClass::sendToRedirectUrl(const String& locationUrl, bool isSecondaryUrl)
+{
+    if (requestsToSend.empty()) {
+        ESP_LOGW(TAG, "Queue empty during redirect follow — aborting");
+        return;
+    }
+
+    const char* systemId = Configuration.get().Tost.SystemId;
+    const String& body = requestsToSend.front();
+
+    // Re-encrypt with fresh nonce for the redirect URL
+    String encryptedBody;
+    char nonceHex[25];
+    if (!encryptBody(body, systemId, encryptedBody, nonceHex)) {
+        ESP_LOGE(TAG, "Encryption failed during redirect follow — pausing 60s");
+        restTimeout.set(60 * 1000);
+        return;
+    }
+
+    // Append systemId query parameter if not already present in redirect URL
+    String url = locationUrl;
+    if (url.indexOf("systemId=") < 0) {
+        if (url.indexOf('?') >= 0) {
+            url += "&systemId=";
+        } else {
+            url += "?systemId=";
+        }
+        url += systemId;
+    }
+
+    // X-Nonce header only
+    std::map<String, String> headers;
+    headers["X-Nonce"] = nonceHex;
+
+    ESP_LOGI(TAG, "Following redirect to: %s", url.c_str());
+
+    auto future = RestRequestHandler.queueRequestWithHeaders(
+        url, "POST", encryptedBody, "application/octet-stream",
+        headers, 0, 15000  // 15s timeout
+    );
+
+    // Keep the same isSecondaryUrl flag — redirect is part of the same attempt
+    _activeRequest = ActiveRequest{std::move(future), isSecondaryUrl};
 }

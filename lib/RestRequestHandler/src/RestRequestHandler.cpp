@@ -121,6 +121,10 @@ void RestRequestHandlerClass::executeRequest(RestRequest request)
     _httpClient.begin(request.url);
     _httpClient.setTimeout(request.timeout);
 
+    // Collect Location header for redirect handling
+    const char* headerKeys[] = {"Location"};
+    _httpClient.collectHeaders(headerKeys, 1);
+
     // Set headers
     if (!request.contentType.isEmpty()) {
         _httpClient.addHeader("Content-Type", request.contentType);
@@ -144,6 +148,12 @@ void RestRequestHandlerClass::executeRequest(RestRequest request)
     // Build response
     response.httpCode = httpCode;
     response.success = (httpCode >= 200 && httpCode < 300);
+
+    // Capture Location header on 3xx redirects
+    if (httpCode >= 300 && httpCode < 400) {
+        response.location = _httpClient.header("Location");
+    }
+
     if (httpCode > 0) {
         // Cap response body to 512 bytes to minimize RAM usage
         int contentLength = _httpClient.getSize();

@@ -19,6 +19,7 @@ struct RestResponse {
     bool success;
     int httpCode;
     String body;
+    String location;  // Populated on 3xx responses (from Location header)
 };
 
 struct RestRequest {
