@@ -139,9 +139,6 @@ void TostHandleClass::loop()
             bool found = false;
             for (uint8_t i = 0; i < InverterHandler.getNumInverters(); i++) {
                 auto inv = InverterHandler.getInverterByPos(i);
-                if (inv->getDevInfo()->getLastUpdate() <= 0) {
-                    continue;
-                }
                 if (generateUniqueId(*inv) == it->first) {
                     found = true;
                     break;
