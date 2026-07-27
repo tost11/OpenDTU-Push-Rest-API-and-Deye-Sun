@@ -30,4 +30,5 @@ export interface DeviceConfig {
     display: Display;
     led: Array<Led>;
     servo: Servo;
+    servo_enabled: boolean;
 }

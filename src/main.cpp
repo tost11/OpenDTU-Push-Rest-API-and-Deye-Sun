@@ -24,7 +24,9 @@
 #include "SunPosition.h"
 #include "WebApi.h"
 #include "defaults.h"
+#if SERVO
 #include "ServoHandle.h"
+#endif
 #include "MessageOutput.h"
 #include <Arduino.h>
 #include <LittleFS.h>
@@ -139,7 +141,9 @@ void setup()
 
     // Initialize WebApi
     ESP_LOGI(TAG, "Initialize Servo... ");
+#if SERVO
     ServoHandle.init(scheduler);
+#endif
 
     // Initialize Display
     ESP_LOGI(TAG, "Initializing Display...");

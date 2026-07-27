@@ -3,6 +3,8 @@
 //
 
 #include "ServoHandle.h"
+
+#if SERVO
 #include "InverterHandler.h"
 #include "Configuration.h"
 #include <iterator>
@@ -170,3 +172,5 @@ void ServoHandleClass::loop(){
 }
 
 ServoHandleClass ServoHandle;
+
+#endif

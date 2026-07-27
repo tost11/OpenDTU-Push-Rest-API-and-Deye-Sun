@@ -12,5 +12,7 @@ private:
     void onDeviceAdminGet(AsyncWebServerRequest* request);
     void onDeviceAdminPost(AsyncWebServerRequest* request);
 
+#if SERVO
     void onServoTest(AsyncWebServerRequest* request);
+#endif
 };

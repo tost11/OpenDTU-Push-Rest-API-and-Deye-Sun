@@ -47,6 +47,7 @@
                         {{ $t('deviceadmin.Leds') }}
                     </button>
                     <button
+                        v-if="deviceConfigList.servo_enabled"
                         class="nav-link"
                         id="nav-servo-tab"
                         data-bs-toggle="tab"
@@ -262,7 +263,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="tab-pane fade show" id="nav-servo" role="tabpanel" aria-labelledby="nav-servo-tab" tabindex="0">
+                <div v-if="deviceConfigList.servo_enabled" class="tab-pane fade show" id="nav-servo" role="tabpanel" aria-labelledby="nav-servo-tab" tabindex="0">
                     <div class="card">
                         <div class="card-body">
                           <InputElement :label="$t('deviceadmin.servoFrequency')"
@@ -311,7 +312,7 @@
             <FormFooter @reload="getDeviceConfig" />
         </form>
         <br/>
-        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+        <div v-if="deviceConfigList.servo_enabled" class="d-grid gap-2 d-md-flex justify-content-md-end">
             <button @click="startServoTest" class="btn btn-primary">{{ $t('deviceadmin.testServo') }}</button>
         </div>
         <br/>

@@ -10,7 +10,9 @@
 #include "WebApi.h"
 #include "WebApi_errors.h"
 #include "helper.h"
+#if SERVO
 #include "ServoHandle.h"
+#endif
 #include <AsyncJson.h>
 
 void WebApiDeviceClass::init(AsyncWebServer& server, Scheduler& scheduler)
@@ -19,7 +21,9 @@ void WebApiDeviceClass::init(AsyncWebServer& server, Scheduler& scheduler)
 
     server.on("/api/device/config", HTTP_GET, std::bind(&WebApiDeviceClass::onDeviceAdminGet, this, _1));
     server.on("/api/device/config", HTTP_POST, std::bind(&WebApiDeviceClass::onDeviceAdminPost, this, _1));
+#if SERVO
     server.on("/api/device/servo", HTTP_POST, std::bind(&WebApiDeviceClass::onServoTest, this, _1));
+#endif
 }
 
 void WebApiDeviceClass::onDeviceAdminGet(AsyncWebServerRequest* request)
@@ -78,8 +82,10 @@ void WebApiDeviceClass::onDeviceAdminGet(AsyncWebServerRequest* request)
     displayPinObj["cs"] = pin.display_cs;
     displayPinObj["reset"] = pin.display_reset;
 
+#if SERVO
     auto servoPinObj = curPin["servo"].to<JsonObject>();
     servoPinObj["pwm"] = pin.servo_pwm;
+#endif
 
     auto ledPinObj = curPin["led"].to<JsonObject>();
     for (uint8_t i = 0; i < PINMAPPING_LED_COUNT; i++) {
@@ -101,6 +107,8 @@ void WebApiDeviceClass::onDeviceAdminGet(AsyncWebServerRequest* request)
         led["brightness"] = config.Led_Single[i].Brightness;
     }
 
+#if SERVO
+    root["servo_enabled"] = true;
     auto servo = root["servo"].to<JsonObject>();
     servo["frequency"] = config.Servo.Frequency;
     servo["resolution"] = config.Servo.Resolution;
@@ -109,10 +117,14 @@ void WebApiDeviceClass::onDeviceAdminGet(AsyncWebServerRequest* request)
     servo["serial"] = config.Servo.Serial;
     servo["input_index"] = config.Servo.InputIndex;
     servo["power"] = config.Servo.Power;
+#else
+    root["servo_enabled"] = false;
+#endif
 
     WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
 }
 
+#if SERVO
 void WebApiDeviceClass::onServoTest(AsyncWebServerRequest* request){
     if (!WebApi.checkCredentials(request)) {
         return;
@@ -173,6 +185,7 @@ inline bool validateServoData(const JsonDocument & root,JsonVariant & retMsg){
     }
     return true;
 }
+#endif
 
 void WebApiDeviceClass::onDeviceAdminPost(AsyncWebServerRequest* request)
 {
@@ -189,8 +202,7 @@ void WebApiDeviceClass::onDeviceAdminPost(AsyncWebServerRequest* request)
     auto& retMsg = response->getRoot();
 
     if (!(root["curPin"].is<JsonObject>()
-            || root["display"].is<JsonObject>()
-            || root["servo"].is<JsonObject>())) {
+            || root["display"].is<JsonObject>())) {
         retMsg["message"] = "Values are missing!";
         retMsg["code"] = WebApiError::GenericValueMissing;
         WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
@@ -206,12 +218,14 @@ void WebApiDeviceClass::onDeviceAdminPost(AsyncWebServerRequest* request)
     }
 
     if(root["curPin"]["servo"]["pwm"].as<int>() > 0){
+#if SERVO
         //validate servo data
         if(!validateServoData(root,retMsg)){
             response->setLength();
             request->send(response);
             return;
         }
+#endif
     }
 
     bool performRestart = false;
@@ -236,6 +250,7 @@ void WebApiDeviceClass::onDeviceAdminPost(AsyncWebServerRequest* request)
             config.Led_Single[i].Brightness = min<uint8_t>(100, config.Led_Single[i].Brightness);
         }
 
+#if SERVO
         config.Servo.Frequency = root["servo"][F("frequency")].as<uint8_t>();
         config.Servo.Resolution = root["servo"][F("resolution")].as<uint8_t>();
         config.Servo.RangeMin = root["servo"][F("range_min")].as<uint8_t>();
@@ -243,6 +258,7 @@ void WebApiDeviceClass::onDeviceAdminPost(AsyncWebServerRequest* request)
         config.Servo.Serial = root["servo"][F("serial")].as<uint64_t>();
         config.Servo.InputIndex = root["servo"][F("input_index")].as<uint8_t>();
         config.Servo.Power = root["servo"][F("power")].as<uint16_t>();
+#endif
     }
 
     auto const& config = Configuration.get();

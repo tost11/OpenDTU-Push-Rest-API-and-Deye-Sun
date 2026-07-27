@@ -204,6 +204,7 @@ struct CONFIG_T {
         uint8_t Brightness;
     } Led_Single[PINMAPPING_LED_COUNT];
 
+#if SERVO
     struct {
         uint8_t Frequency;
         uint8_t Resolution;
@@ -214,6 +215,7 @@ struct CONFIG_T {
         uint8_t InputIndex;
         uint16_t Power;
     } Servo;
+#endif
 
     INVERTER_CONFIG_T Inverter[INV_MAX_COUNT];
     char Dev_PinMapping[DEV_MAX_MAPPING_NAME_STRLEN + 1];
