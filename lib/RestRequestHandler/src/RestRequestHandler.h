@@ -1,20 +1,27 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 
+#if DEYE_SUN || TOST
+
 #include <HTTPClient.h>
-#include <TaskSchedulerDeclarations.h>
 #include <ThreadSafeQueue.h>
 #include <map>
-#include <vector>
 #include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <atomic>
 #include <memory>
 #include <utils/LightFuture.h>
 #include <WString.h>
+
+// Forward declare Scheduler to keep API compatible
+class Scheduler;
 
 struct RestResponse {
     bool success;
     int httpCode;
     String body;
+    String location;  // Populated on 3xx responses (from Location header)
 };
 
 struct RestRequest {
@@ -27,6 +34,8 @@ struct RestRequest {
     uint8_t maxRetries;
     uint32_t timeout;
     uint32_t nextRetryTime;  // Internal: for retry backoff
+    bool forceNewConnection;  // If true, close existing connection before sending
+    uint32_t maxBodyBytes;    // Max response body bytes to read (default 512)
     std::shared_ptr<LightPromise<RestResponse>> promise;  // For future result
 };
 
@@ -44,39 +53,50 @@ public:
     LightFuture<RestResponse> queueRequestWithHeaders(String url, String method,
                                                      String body, String contentType,
                                                      std::map<String, String> headers,
-                                                     uint8_t maxRetries = 2, uint32_t timeout = 0);
+                                                     uint8_t maxRetries = 2, uint32_t timeout = 0,
+                                                     bool forceNewConnection = false,
+                                                     uint32_t maxBodyBytes = 512);
 
-    void setMaxParallelRequests(uint8_t max);
     void setDefaultTimeout(uint32_t timeoutMs);
     uint8_t getQueueSize() const;
     uint8_t getActiveRequestCount() const;
+    void printStats();
 
 private:
-    void loop();
-    void processQueue();
-    void processActiveRequests();
-    bool startRequestThread(const RestRequest& request);
+    void workerLoop();
     void executeRequest(RestRequest request);
-    uint32_t calculateBackoff(uint8_t retryCount);
+    void ensureWorkerRunning();
 
-    Task _loopTask;
     ThreadSafeQueue<RestRequest> _requestQueue;
-    static const uint32_t MAX_REQUEST_QUEUE_SIZE = 20;       // 30 seconds
+    static const uint32_t MAX_REQUEST_QUEUE_SIZE = 20;
 
-    struct ActiveRequest {
-        uint32_t id;
-        RestRequest request;
-        std::thread thread;
-        uint32_t startTime;
-        uint8_t retryCount;
-        bool completed;
-    };
+    // Persistent worker thread
+    std::thread _workerThread;
+    std::atomic<bool> _workerRunning;
+    std::atomic<bool> _workerAlive;
 
-    std::vector<ActiveRequest> _activeRequests;
-    uint8_t _maxParallelRequests;
+    // Worker signalling
+    std::mutex _workerMutex;
+    std::condition_variable _workerCv;
+
+    // Persistent HTTP client (owned exclusively by worker thread)
+    HTTPClient _httpClient;
+    String _lastConnectedHost;
+
+    // In-flight request tracking
+    std::atomic<uint32_t> _currentRequestId;
+    std::shared_ptr<LightPromise<RestResponse>> _currentPromise;
+
+    // Debug counters (atomic, never reset — printed every 60s at DEBUG level)
+    std::atomic<uint32_t> _statRequestsSent;
+    std::atomic<uint32_t> _statExceptionCount;
+    std::atomic<uint32_t> _statRestartCount;
+    std::atomic<uint32_t> _statConnectionReused;
+
     uint32_t _defaultTimeout;
     uint32_t _nextRequestId;
-    std::mutex _activeRequestsMutex;
 };
 
 extern RestRequestHandlerClass RestRequestHandler;
+
+#endif // DEYE_SUN || TOST

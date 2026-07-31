@@ -14,17 +14,23 @@
 #include "MqttHandleInverter.h"
 #include "MqttHandleInverterTotal.h"
 #include "MqttSettings.h"
+#if TOST
 #include "TostHandle.h"
+#endif
 #include "NetworkSettings.h"
 #include "NtpSettings.h"
 #include "PinMapping.h"
 #include "RestartHelper.h"
+#if DEYE_SUN || TOST
 #include "RestRequestHandler.h"
+#endif
 #include "Scheduler.h"
 #include "SunPosition.h"
 #include "WebApi.h"
 #include "defaults.h"
+#if SERVO
 #include "ServoHandle.h"
+#endif
 #include "MessageOutput.h"
 #include <Arduino.h>
 #include <LittleFS.h>
@@ -118,8 +124,10 @@ void setup()
     SunPosition.init(scheduler);
 
     // Initialize Tost
+#if TOST
     ESP_LOGI(TAG, "Initialize Tost's rest push service... ");
     TostHandle.init(scheduler);
+#endif
 
     // Initialize MqTT
     ESP_LOGI(TAG, "Initializing MQTT...");
@@ -134,12 +142,16 @@ void setup()
     WebApi.init(scheduler);
 
     // Initialize REST request handler
+#if DEYE_SUN || TOST
     ESP_LOGI(TAG, "Initializing REST request handler...");
     RestRequestHandler.init(scheduler);
+#endif
 
     // Initialize WebApi
     ESP_LOGI(TAG, "Initialize Servo... ");
+#if SERVO
     ServoHandle.init(scheduler);
+#endif
 
     // Initialize Display
     ESP_LOGI(TAG, "Initializing Display...");

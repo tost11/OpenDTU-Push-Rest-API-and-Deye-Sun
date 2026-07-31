@@ -31,16 +31,16 @@ DeyeInverter(serial){
 
     _requestDataCommand = createReqeustDataCommand(DeyeUtils::hex_to_bytes(businessfield) + crc);
 
-    _client.onData([&](void * arg, AsyncClient * client,void *data, size_t len){this->onDataReceived(data,len);});
-    _redBytes = 0;
+    _client.onData([this](void * arg, AsyncClient * client,void *data, size_t len){this->onDataReceived(data,len);});
+    _redBytes.store(0, std::memory_order_relaxed);
 
     _wasConnecting = false;
 }
 
 CustomModbusDeyeInverter::~CustomModbusDeyeInverter() {
+    _client.onData(nullptr);
     _client.stop();
 }
-
 
 deye_inverter_type CustomModbusDeyeInverter::getDeyeInverterType() const {
     return Deye_Sun_Custom_Modbus;
@@ -92,52 +92,53 @@ void CustomModbusDeyeInverter::update() {
         }
 
         //handle data fetching
-        if(_redBytes > 0) {
+        if(_redBytes.load(std::memory_order_acquire) > 0) {
             std::lock_guard<std::mutex> lock(_readDataLock);
-            if (_redBytes < 27) {
+            size_t redBytes = _redBytes.load(std::memory_order_relaxed);
+            if (redBytes < 27) {
                 ESP_LOGD(TAG,"not enough data");
                 //not enoth data
-                _writeTimeout = nullptr;
-                _readTimeout = nullptr;
-            } else if (_redBytes == 29) {
+                _writeTimeout.reset();
+                _readTimeout.reset();
+            } else if (redBytes == 29) {
                 //TODO handle
                 ESP_LOGD(TAG,"error response");
                 //error
-                _writeTimeout = nullptr;
-                _readTimeout = nullptr;
-            } else if (_redBytes < 29 + 4) {
+                _writeTimeout.reset();
+                _readTimeout.reset();
+            } else if (redBytes < 29 + 4) {
                 ESP_LOGD(TAG,"not enoth data for valid frame");
                 //not enoth data
-                _writeTimeout = nullptr;
-                _readTimeout = nullptr;
+                _writeTimeout.reset();
+                _readTimeout.reset();
             } else if(_readBuffer[0] != 0xA5) {
                 ESP_LOGD(TAG,"start bytes wrong");
-                _writeTimeout = nullptr;
-                _readTimeout = nullptr;
-            } else if(_readBuffer[_redBytes -1] != 0x15) {
+                _writeTimeout.reset();
+                _readTimeout.reset();
+            } else if(_readBuffer[redBytes -1] != 0x15) {
                 ESP_LOGD(TAG,"end bytes wrong");
-                _writeTimeout = nullptr;
-                _readTimeout = nullptr;
+                _writeTimeout.reset();
+                _readTimeout.reset();
             } else {
-                ESP_LOGD(TAG,"Received bytes are: %d\n", _redBytes);
-                if (_readTimeout != nullptr) {
+                ESP_LOGD(TAG,"Received bytes are: %d", redBytes);
+                if (_readTimeout.has_value()) {
                     _failedReadCounterReset = 0;
                     handleReadResponse();
-                } else if (_writeTimeout != nullptr) {
+                } else if (_writeTimeout.has_value()) {
                     _failedReadCounterReset = 0;
                     handleWriteResponse();
                 } else {
                     ESP_LOGD(TAG,"received data but no where requested...");
                 }
             }
-            _redBytes = 0;
+            _redBytes.store(0, std::memory_order_release);
         }
     }
 
     if(_client.state() != 4) {//not connected
         if(_currentWritCommand != nullptr || _limitToSet != nullptr || _powerTargetStatus){
 
-            if(_currentWritCommand->writeRegister == "0028" || _limitToSet != nullptr){
+            if((_currentWritCommand != nullptr && _currentWritCommand->writeRegister == "0028") || _limitToSet != nullptr){
                 _powerCommandParser->setLastPowerCommandSuccess(LastCommandSuccess::CMD_NOK);
             }
 
@@ -154,7 +155,6 @@ void CustomModbusDeyeInverter::update() {
         return;
     }
 
-
     if(!_client.connected() && _reconnectTimeout.occured()){
         _reconnectTimeout.reset();
         const char * address = _resolvedIpByMacAdress == nullptr ? _oringalIpOrHostname.c_str() : _resolvedIpByMacAdress->c_str();
@@ -170,24 +170,24 @@ void CustomModbusDeyeInverter::update() {
             _client.setKeepAlive(10 * 1000, 5);
             _wasConnecting = false;
             ConnectionStatistics.SuccessfulConnects++;
-            _writeTimeout = nullptr;
-            _readTimeout = nullptr;
+            _writeTimeout.reset();
+            _readTimeout.reset();
             _failedReadCounterReset = 0;
         }
 
-        if(_readTimeout != nullptr && _readTimeout->occured()){
+        if(_readTimeout.has_value() && _readTimeout->occured()){
             ESP_LOGW(TAG,"read timout hit while waiting for data");
-            _readTimeout = nullptr;
+            _readTimeout.reset();
         }
 
-        if(_writeTimeout != nullptr && _writeTimeout->occured()){
+        if(_writeTimeout.has_value() && _writeTimeout->occured()){
             ESP_LOGW(TAG,"write timout hit while waiting for data");
-            _writeTimeout = nullptr;
+            _writeTimeout.reset();
             _systemConfigParaParser->setLastLimitRequestSuccess(LastCommandSuccess::CMD_NOK);
         }
 
-        if(_requestDataTimeout.occured() && _writeTimeout == nullptr && _readTimeout == nullptr){
-            _readTimeout = std::make_unique<TimeoutHelper>(COMMEND_TIMEOUT * 1000);
+        if(_requestDataTimeout.occured() && !_writeTimeout.has_value() && !_readTimeout.has_value()){
+            _readTimeout.emplace(COMMEND_TIMEOUT * 1000);
 
             ESP_LOGD(TAG,"end new read data request");
             _requestDataTimeout.reset();
@@ -202,8 +202,8 @@ void CustomModbusDeyeInverter::update() {
             return;
         }
 
-        if(_currentWritCommand != nullptr && _readTimeout == nullptr && _writeTimeout == nullptr){
-            _writeTimeout = std::make_unique<TimeoutHelper>(COMMEND_TIMEOUT * 1000);
+        if(_currentWritCommand != nullptr && !_readTimeout.has_value() && !_writeTimeout.has_value()){
+            _writeTimeout.emplace(COMMEND_TIMEOUT * 1000);
 
             ESP_LOGD(TAG,"send new write data request");
 
@@ -227,78 +227,68 @@ void CustomModbusDeyeInverter::hostOrPortUpdated() {
 
 std::string CustomModbusDeyeInverter::createReqeustDataCommand(const std::string & modbusFrame) {
 
-    std::string start = DeyeUtils::hex_to_bytes("A5");
+    // Constants in flash - zero heap allocation
+    static constexpr char START_BYTE = '\xA5';
+    static constexpr char CONTROL_CODE[] = {'\x10', '\x45'};
+    static constexpr char SERIAL_FILL[] = {'\x00', '\x00'};
+    static constexpr char DATA_FIELD[] = {'\x02','\x00','\x00','\x00','\x00','\x00','\x00',
+                                          '\x00','\x00','\x00','\x00','\x00','\x00','\x00','\x00'};
+    static constexpr char END_CODE = '\x15';
 
-    //TODO find better way to do this
-    std::string tmpLength = DeyeUtils::lengthToHexString(13+modbusFrame.size()+2,4);
-    std::string length = DeyeUtils::hex_to_bytes(std::string()+tmpLength[2]+tmpLength[3]+tmpLength[0]+tmpLength[1]);
-    std::string controlcode = DeyeUtils::hex_to_bytes("1045");
-    std::string serialFill = DeyeUtils::hex_to_bytes("0000");
-    std::string datafield = DeyeUtils::hex_to_bytes("020000000000000000000000000000");
+    // Compute length field (little-endian 16-bit): total = 13 + modbusFrame.size() + 2
+    uint16_t frameLen = static_cast<uint16_t>(13 + modbusFrame.size() + 2);
+    char lengthBytes[2];
+    lengthBytes[0] = static_cast<char>(frameLen & 0xFF);        // low byte first (little-endian)
+    lengthBytes[1] = static_cast<char>((frameLen >> 8) & 0xFF); // high byte second
 
-    //modbus frame
-    //std::string pos_ini = DeyeUtils::lengthToHexString(start_register,4).c_str();
-    //std::string pos_fin = DeyeUtils::lengthToHexString(end_register - start_register + 1,4).c_str();
-    //std::string businessfield = "0103" + pos_ini + pos_fin;
-    //std::string crc = DeyeUtils::hex_to_bytes(DeyeUtils::modbusCRC16FromASCII(businessfield));
+    // Compute serial number bytes (4 bytes, little-endian from hex representation)
+    char hexStr[17];
+    snprintf(hexStr, sizeof(hexStr), "%08llx", std::strtoull(serialString().c_str(), nullptr, 10));
 
-    std::string checksum = DeyeUtils::hex_to_bytes("00");
-    std::string endCode = DeyeUtils::hex_to_bytes("15");
-
-    //TODO find better way to do this
-    char hexStr[9];
-    sprintf(hexStr, "%08llx", std::strtoull(serialString().c_str(),0,10));
-    //MessageOutput.printf("Hex value 1: %s\n",hexStr);
-    std::string inverter_sn2 = "        ";
-    inverter_sn2[0] = hexStr[6];
-    inverter_sn2[1] = hexStr[7];
-    inverter_sn2[2] = hexStr[4];
-    inverter_sn2[3] = hexStr[5];
-    inverter_sn2[4] = hexStr[2];
-    inverter_sn2[5] = hexStr[3];
-    inverter_sn2[6] = hexStr[0];
-    inverter_sn2[7] = hexStr[1];
-
-    std::string frame = start + length  + controlcode + serialFill + DeyeUtils::hex_to_bytes(inverter_sn2) + datafield + modbusFrame;// + checksum + endCode;
-    int32_t check = 0;
-    for(int i=1;i<frame.length();i++){
-        check += frame[i] & 255;
+    // Convert hex pairs to bytes in reversed order (little-endian)
+    char serialBytes[4];
+    for (int i = 0; i < 4; i++) {
+        char pair[3] = { hexStr[6 - i*2], hexStr[7 - i*2], '\0' };
+        serialBytes[i] = static_cast<char>(std::strtoul(pair, nullptr, 16));
     }
 
-    char c = int((check & 255));
-    frame.append(&c,1);
-    frame += endCode;
+    // Single heap allocation - reserve exact size needed
+    // 1(start) + 2(len) + 2(ctrl) + 2(serial_fill) + 4(serial) + 15(datafield) + modbusFrame + 1(checksum) + 1(end)
+    std::string frame;
+    frame.reserve(28 + modbusFrame.size());
 
-/*
-    memcpy(_requestDataCommand, frame.c_str(),lenToSend);
+    frame += START_BYTE;
+    frame.append(lengthBytes, 2);
+    frame.append(CONTROL_CODE, 2);
+    frame.append(SERIAL_FILL, 2);
+    frame.append(serialBytes, 4);
+    frame.append(DATA_FIELD, 15);
+    frame += modbusFrame;
 
-    //calculate crc and set
-    int check = 0;
-    for(int i=1;i<frame.length() - 2;i++){
-        check += _requestDataCommand[i] & 255;
+    // Compute checksum over all bytes except the start byte
+    uint8_t check = 0;
+    for (size_t i = 1; i < frame.size(); i++) {
+        check += static_cast<uint8_t>(frame[i]);
     }
-    _requestDataCommand[frame.length() - 2] = int((check & 255));
-*/
+    frame += static_cast<char>(check);
+    frame += END_CODE;
 
-/*
-    MessageOutput.println("start --------");
-    for(int i=0;i<frame.length();i++){
-        MessageOutput.println((int)frame[i]);
-    }
-    MessageOutput.println("end --------");
-*/
     return frame;
 }
 
 void CustomModbusDeyeInverter::onDataReceived(void *data, size_t len) {
+    if(_redBytes.load(std::memory_order_acquire) > 0) {
+        ESP_LOGW(TAG,"Deye Custom Modbus -> Data dropped, previous data not yet consumed (%d bytes)", len);
+        return;
+    }
     if(len > READ_BUFFER_LENGTH){
-        ESP_LOGE(TAG,"Read buffer to short not all data used!");
+        ESP_LOGE(TAG,"Read buffer too short, not all data used!");
     }
     ESP_LOGD(TAG,"Deye Custom Modbus -> Received some data: %d",len);
     std::lock_guard<std::mutex> lock(_readDataLock);
     size_t useLen = std::min(len,(size_t)READ_BUFFER_LENGTH);
     memcpy(_readBuffer,data,useLen);
-    _redBytes = useLen;
+    _redBytes.store(useLen, std::memory_order_release);
 }
 
 bool CustomModbusDeyeInverter::isReachable() {
@@ -320,52 +310,50 @@ void CustomModbusDeyeInverter::onPollTimeChanged() {
 void CustomModbusDeyeInverter::handleWriteResponse() {
     ESP_LOGD(TAG,"received wire data response");
 
-    if (_redBytes < 25 + 10) {
+    if (_redBytes.load(std::memory_order_relaxed) < 25 + 10) {
         ESP_LOGD(TAG,"write response not enough data -> skip");
         return;
     }
 
-    int i=25;
+    const uint8_t* frame = reinterpret_cast<const uint8_t*>(_readBuffer + 25);
 
-    std::string frame = std::string(_readBuffer + i,6);
-    frame = DeyeUtils::bytes_to_hex(frame);
-
-    ESP_LOGD(TAG,"frame is: %s\n",frame.c_str());
-
-    if(frame.substr(0,4) != "0110"){
-        //not a write response
+    // Check for write response function code: 0x01 0x10
+    if (frame[0] != 0x01 || frame[1] != 0x10) {
         ESP_LOGD(TAG,"write response not a valid write response -> skip");
         return;
     }
 
-    if(frame.substr(4,4) != _currentWritCommand->writeRegister.c_str()){
-        //not a write response
+    // Compare register address (bytes 2-3) against expected write register
+    // _currentWritCommand->writeRegister is a 4-char hex string like "0028"
+    char regHex[5];
+    snprintf(regHex, sizeof(regHex), "%02x%02x", frame[2], frame[3]);
+    if (strncmp(regHex, _currentWritCommand->writeRegister.c_str(), 4) != 0) {
         ESP_LOGD(TAG,"write response not same register as written -> skip");
         return;
     }
 
-    std::string isCrc = std::string(_readBuffer + i + 6,2);
-    isCrc = DeyeUtils::bytes_to_hex(isCrc);
+    // Verify CRC: compute over first 6 bytes of modbus frame, compare with bytes 6-7
+    uint16_t computedCrc = crc16(frame, 6);
+    uint16_t receivedCrc = static_cast<uint16_t>(frame[6]) | (static_cast<uint16_t>(frame[7]) << 8);
 
-    std::string calcCrc = DeyeUtils::modbusCRC16FromASCII(frame);
-    ESP_LOGD(TAG,"compare crcs: %s -> %s\n", isCrc.c_str(),calcCrc.c_str());
+    ESP_LOGD(TAG,"compare crcs: %04x -> %04x", receivedCrc, computedCrc);
 
-    if(isCrc != calcCrc){
+    if (computedCrc != receivedCrc) {
         ESP_LOGI(TAG,"write crc not correct, failed");
 
         _systemConfigParaParser->setLastLimitRequestSuccess(LastCommandSuccess::CMD_NOK);
         //no return still reset data with error
-    }else{
-        if(frame.substr(4,4) == "0028"){
+    } else {
+        if (frame[2] == 0x00 && frame[3] == 0x28) {
             char * p;
-            float val = (float)std::strtoul( _currentWritCommand->valueToWrite.c_str(), & p, 16 );
+            float val = (float)std::strtoul(_currentWritCommand->valueToWrite.c_str(), &p, 16);
             _systemConfigParaParser->setLimitPercent(val);
-            ESP_LOGI(TAG,"successfully set new limit %f\n",val);
-        }else if(frame.substr(4,4) == "002B"){
+            ESP_LOGI(TAG,"successfully set new limit %f", val);
+        } else if (frame[2] == 0x00 && frame[3] == 0x2B) {
             char * p;
-            uint32_t val = std::strtoul( _currentWritCommand->valueToWrite.c_str(), & p, 16 );
-            ESP_LOGI(TAG, "successfully set on/off flag %d\n",val);
-        }else{
+            uint32_t val = std::strtoul(_currentWritCommand->valueToWrite.c_str(), &p, 16);
+            ESP_LOGI(TAG, "successfully set on/off flag %d", val);
+        } else {
             ESP_LOGI(TAG, "received write response to unknown register");
         }
 
@@ -374,41 +362,39 @@ void CustomModbusDeyeInverter::handleWriteResponse() {
         _systemConfigParaParser->setLastLimitRequestSuccess(LastCommandSuccess::CMD_OK);
     }
 
-    _writeTimeout = nullptr;
+    _writeTimeout.reset();
     _currentWritCommand = nullptr;
 }
 
 void CustomModbusDeyeInverter::handleReadResponse() {
-    _readTimeout = nullptr;
-    if (_redBytes < 25 + 156 + 4) {
-        ESP_LOGD(TAG, "skip response not enough data: %d\n", _redBytes);
+    _readTimeout.reset();
+    size_t redBytes = _redBytes.load(std::memory_order_relaxed);
+    if (redBytes < 25 + 156 + 4) {
+        ESP_LOGD(TAG, "skip response not enough data: %d", redBytes);
         return;
     }
 
-    int i=25;
+    const int headerOffset = 25;
+    const uint8_t* frame = reinterpret_cast<const uint8_t*>(_readBuffer + headerOffset);
+    size_t frameLen = redBytes - headerOffset - 4; // exclude wrapper: 25 header + 2 crc + 1 checksum + 1 end
 
-    std::string frame = std::string(_readBuffer + i,_redBytes - i - 4);
-    frame = DeyeUtils::bytes_to_hex(frame);
-
-    ESP_LOGD(TAG, "frame is: %s\n",frame.c_str());
-
-    if(frame.substr(0,4) != "0103"){
-        //not a write response
-        ESP_LOGD(TAG, "write response not a valid write response -> skip");
+    // Check for read response function code: 0x01 0x03
+    if (frame[0] != 0x01 || frame[1] != 0x03) {
+        ESP_LOGD(TAG, "read response not a valid read response -> skip");
         return;
     }
 
-    std::string isCrc = std::string(_readBuffer + (_redBytes - 4) , 2);
-    isCrc = DeyeUtils::bytes_to_hex(isCrc);
+    // Verify CRC: computed over frame bytes, compared with 2 bytes after frame
+    const uint8_t* crcBytes = reinterpret_cast<const uint8_t*>(_readBuffer + headerOffset + frameLen);
+    uint16_t computedCrc = crc16(frame, static_cast<uint8_t>(frameLen));
+    uint16_t receivedCrc = static_cast<uint16_t>(crcBytes[0]) | (static_cast<uint16_t>(crcBytes[1]) << 8);
 
-    std::string calcCrc = DeyeUtils::modbusCRC16FromASCII(frame);
-    ESP_LOGD(TAG, "compare crcs: %s -> %s\n", isCrc.c_str(),calcCrc.c_str());
+    ESP_LOGD(TAG, "compare crcs: %04x -> %04x", receivedCrc, computedCrc);
 
-    if(isCrc != calcCrc){
+    if (computedCrc != receivedCrc) {
         ESP_LOGI(TAG, "read crc not correct, failed");
-    }else {
-
-        i = i + 1;
+    } else {
+        int i = headerOffset + 1;
 
         //swap low and height from 4 byte numbers
         swapTwoBytes(_readBuffer, i + 40 + 20);
@@ -434,7 +420,7 @@ void CustomModbusDeyeInverter::handleReadResponse() {
         ESP_LOGD(TAG, "handled new valid read data");
     }
 
-    _readTimeout = nullptr;
+    _readTimeout.reset();
 }
 
 String CustomModbusDeyeInverter::LogTag() {

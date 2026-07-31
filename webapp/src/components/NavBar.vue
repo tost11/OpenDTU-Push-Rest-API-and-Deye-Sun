@@ -58,7 +58,7 @@
                                     >{{ $t('menu.InverterSettings') }}
                                 </router-link>
                             </li>
-                            <li>
+                            <li v-if="__TOST_ENABLED__">
                                 <router-link @click="onClick" class="dropdown-item" to="/settings/tost"
                                     >{{ $t('menu.TostSettings') }}
                                 </router-link>
@@ -135,7 +135,7 @@
                                     $t('menu.MQTT')
                                 }}</router-link>
                             </li>
-                            <li>
+                            <li v-if="__TOST_ENABLED__">
                                 <router-link @click="onClick" class="dropdown-item" to="/info/tost">{{
                                     $t('menu.Tost')
                                 }}</router-link>
@@ -189,6 +189,7 @@ export default defineComponent({
         return {
             isLogged: isLoggedIn(),
             now: {} as Date,
+            __TOST_ENABLED__: __TOST_ENABLED__,
         };
     },
     created() {

@@ -328,10 +328,15 @@ void WebApiWsLiveClass::onLivedataStatus(AsyncWebServerRequest* request)
         auto& root = response->getRoot();
         auto invArray = root["inverters"].to<JsonArray>();
         auto serial = WebApi.parseSerialFromRequest(request);
-        auto type = root["manufacturer"].as<String>();
+        const String * type = nullptr;
+        if(request->hasParam("manufacturer")){
+            type = &request->getParam("manufacturer")->value();
+        }
 
         if (serial > 0) {
-            auto inv = InverterHandler.getInverterBySerial(serial, to_inverter_type(type));
+            auto inv = type == nullptr ?
+                    InverterHandler.getInverterBySerial(serial) :
+                    InverterHandler.getInverterBySerial(serial, to_inverter_type(*type));
             if (inv != nullptr) {
                 JsonObject invObject = invArray.add<JsonObject>();
                 generateInverterCommonJsonResponse(invObject, inv);

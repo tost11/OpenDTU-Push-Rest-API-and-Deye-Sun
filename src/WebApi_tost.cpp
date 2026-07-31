@@ -3,6 +3,9 @@
  * Copyright (C) 2022 Thomas Basler and others
  */
 #include "WebApi_tost.h"
+
+#if TOST
+
 #include "Configuration.h"
 #include "WebApi.h"
 #include "WebApi_errors.h"
@@ -175,8 +178,13 @@ void WebApiTostClass::onTostAdminPost(AsyncWebServerRequest* request)
         Configuration.write();
     }
 
+    // Re-derive AES-256 encryption key from updated token immediately
+    TostHandle.deriveEncryptionKey();
+
     retMsg["type"] = "success";
     retMsg["message"] = "Settings saved!";
     retMsg["code"] = WebApiError::GenericSuccess;
     WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
 }
+
+#endif // TOST

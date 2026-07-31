@@ -195,7 +195,8 @@ bool DeyeInverter::sendRestartControlRequest() {
         contentType,    // Content type
         headers,        // Auth + Referer + Content-Length
         2,              // maxRetries
-        5000            // timeout
+        5000,           // timeout
+        true            // forceNewConnection — avoid reusing Modbus socket
     );
 
     // Store future for result tracking
@@ -331,7 +332,9 @@ void DeyeInverter::checkAndFetchFirmwareVersion() {
         "",  // No content type
         headers,
         2,      // maxRetries
-        10000   // 10s timeout
+        10000,  // 10s timeout
+        true,   // forceNewConnection — avoid reusing Modbus socket
+        5000    // maxBodyBytes — all JS vars end by byte ~4150 of status.html
     );
 
     _firmwareVersionFuture = std::move(future);

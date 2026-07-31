@@ -7,6 +7,8 @@
 #include "DeyeInverter.h"
 #include <AsyncTCP.h>
 #include <mutex>
+#include <atomic>
+#include <optional>
 
 class CustomModbusDeyeInverter : public DeyeInverter {
 
@@ -18,8 +20,8 @@ class CustomModbusDeyeInverter : public DeyeInverter {
 private:
     AsyncClient _client;
 
-    std::unique_ptr<TimeoutHelper> _readTimeout;
-    std::unique_ptr<TimeoutHelper> _writeTimeout;
+    std::optional<TimeoutHelper> _readTimeout;
+    std::optional<TimeoutHelper> _writeTimeout;
 
     //TODO implement long timer after some tries
     TimeoutHelper _reconnectTimeout;
@@ -30,8 +32,8 @@ private:
     int _failedReadCounterReset;
 
     std::string _requestDataCommand;
-    char _readBuffer[READ_BUFFER_LENGTH];//TODO check how many characters needed
-    size_t _redBytes;
+    char _readBuffer[READ_BUFFER_LENGTH];
+    std::atomic<size_t> _redBytes;
     std::mutex _readDataLock;
 
     bool _wasConnecting;

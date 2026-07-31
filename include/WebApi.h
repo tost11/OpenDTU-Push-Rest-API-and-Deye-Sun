@@ -15,7 +15,9 @@
 #include "WebApi_logging.h"
 #include "WebApi_maintenance.h"
 #include "WebApi_mqtt.h"
+#if TOST
 #include "WebApi_tost.h"
+#endif
 #include "WebApi_network.h"
 #include "WebApi_ntp.h"
 #include "WebApi_power.h"
@@ -62,7 +64,9 @@ private:
     WebApiLoggingClass _webApiLogging;
     WebApiMaintenanceClass _webApiMaintenance;
     WebApiMqttClass _webApiMqtt;
+#if TOST
     WebApiTostClass _webApiTost;
+#endif
     WebApiNetworkClass _webApiNetwork;
     WebApiNtpClass _webApiNtp;
     WebApiPowerClass _webApiPower;

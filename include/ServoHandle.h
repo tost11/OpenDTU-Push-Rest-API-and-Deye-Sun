@@ -1,5 +1,7 @@
 #pragma once
 
+#if SERVO
+
 #include <TaskSchedulerDeclarations.h>
 #include <TimeoutHelper.h>
 
@@ -30,3 +32,5 @@ private:
 };
 
 extern ServoHandleClass ServoHandle;
+
+#endif

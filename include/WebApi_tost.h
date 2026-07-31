@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 
+#if TOST
+
 #include <ESPAsyncWebServer.h>
 #include <TaskSchedulerDeclarations.h>
 
@@ -14,3 +16,5 @@ private:
     void onTostAdminGet(AsyncWebServerRequest* request);
     void onTostAdminPost(AsyncWebServerRequest* request);
 };
+
+#endif // TOST
