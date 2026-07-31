@@ -5,20 +5,26 @@ TARGET_FOLDER=$(realpath ~/Schreibtisch/opendtu)
 PIO=~/.platformio/penv/bin/platformio
 #ENVS="generic_esp32 generic_esp32s3 generic_esp32s3_usb"
 ENVS="generic_esp32"
+FW_VERSION="1-1-0"
 
 echo "Target folder is: $TARGET_FOLDER"
 echo "Building for environments: $ENVS"
 echo ""
+
+# Clean up leftovers from any previous (aborted) run
+rm -rf webapp_dist_tost webapp_dist_notost
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Step 1: Build both frontend variants once
 # ─────────────────────────────────────────────────────────────────────────────
 echo "=== Building frontend (TOST enabled) ==="
 yarn --cwd webapp run build
+rm -rf webapp_dist_tost
 cp -r webapp_dist webapp_dist_tost
 
 echo "=== Building frontend (TOST disabled) ==="
 VITE_TOST=0 yarn --cwd webapp run build
+rm -rf webapp_dist_notost
 cp -r webapp_dist webapp_dist_notost
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -58,8 +64,8 @@ build_image() {
 
     mkdir -p "$TARGET_FOLDER/$env"
     cp ".pio/build/$env/firmware.bin" \
-       "$TARGET_FOLDER/$env/${name}_firmware.bin"
-    echo "  ✓ Copied: $TARGET_FOLDER/$env/${name}_firmware.bin"
+       "$TARGET_FOLDER/$env/${name}_firmware_${FW_VERSION}.bin"
+    echo "  ✓ Copied: $TARGET_FOLDER/$env/${name}_firmware_${FW_VERSION}.bin"
   done
 }
 
@@ -71,14 +77,16 @@ build_image "all_inverters"                1  1   1  0  0
 build_image "no_nrf"                       0  1   1  0  0
 build_image "all_inverters_rest"           1  1   1  1  0
 build_image "no_nrf_rest"                  0  1   1  1  0
-#build_image "all_combined"                 1  1   1  1  1
 build_image "all_combined_no_nrf"          0  1   1  1  1
+#this build is not possible due to 2MB limit
+#build_image "all_combined"                 1  1   1  1  1
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Step 4: Cleanup
 # ─────────────────────────────────────────────────────────────────────────────
 git checkout platformio.ini
-rm -rf webapp_dist && cp -r webapp_dist_tost webapp_dist
+rm -rf webapp_dist
+cp -r webapp_dist_tost webapp_dist
 rm -rf webapp_dist_tost webapp_dist_notost
 
 echo ""
