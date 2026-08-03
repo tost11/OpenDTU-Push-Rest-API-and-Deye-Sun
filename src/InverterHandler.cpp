@@ -13,6 +13,10 @@
 #include "HoymilesW.h"
 #endif
 
+#if HIFLOW_BLE
+#include "HiFlowBLE.h"
+#endif
+
 InverterHandlerClass InverterHandler;
 
 bool InverterHandlerClass::isAllRadioIdle() {
@@ -35,6 +39,9 @@ void InverterHandlerClass::init() {
     #endif
     #if HOYMILES_W
     _handlers.push_back(reinterpret_cast<BaseInverterHandlerClass*>(&HoymilesW));
+    #endif
+    #if HIFLOW_BLE
+    _handlers.push_back(reinterpret_cast<BaseInverterHandlerClass*>(&HiFlowBle));
     #endif
 }
 
@@ -106,6 +113,11 @@ std::shared_ptr<BaseInverterClass> InverterHandlerClass::getInverterBySerial(uin
         return std::reinterpret_pointer_cast<BaseInverterClass>(HoymilesW.getInverterBySerial(serial));
     }
     #endif
+    #if HIFLOW_BLE
+    if(inverterType == inverter_type::Inverter_HiFlowBLE){
+        return std::reinterpret_pointer_cast<BaseInverterClass>(HiFlowBle.getInverterBySerial(serial));
+    }
+    #endif
     return nullptr;
 }
 
@@ -123,6 +135,11 @@ void InverterHandlerClass::removeInverterBySerial(uint64_t serial,inverter_type 
     #if HOYMILES_W
     if(inverterType == Inverter_HoymilesW){
         HoymilesW.removeInverterBySerial(serial);
+    }
+    #endif
+    #if HIFLOW_BLE
+    if(inverterType == Inverter_HiFlowBLE){
+        HiFlowBle.removeInverterBySerial(serial);
     }
     #endif
 }

@@ -105,6 +105,14 @@ export default defineComponent({
                 this.formatHint = this.$t('inputserial.format_unknown');
                 this.formatShow = 'danger';
               }
+            }else if(this.type === 'HiFlowBLE'){
+              // HiFlow BLE serial: 12-char hex (e.g. 1610xxxxxxxx or 1164xxxxxxxx)
+              if (/^[\dA-F]{12}$/.test(serial)) {
+                this.formatHint = this.$t('inputserial.format_hiflow_ble');
+              }else {
+                this.formatHint = this.$t('inputserial.format_unknown');
+                this.formatShow = 'danger';
+              }
             }
             this.model = serial;
         }

@@ -19,6 +19,7 @@
                     <InputSerial v-if="newInverterData.manufacturer === 'DeyeSun'" type="DeyeSun" v-model="newInverterData.serial" inputClass="ml-sm-2 mr-sm-4 my-2" required />
                     <InputSerial v-if="newInverterData.manufacturer === 'Hoymiles'" type="Hoymiles" v-model="newInverterData.serial" inputClass="ml-sm-2 mr-sm-4 my-2" required />
                     <InputSerial v-if="newInverterData.manufacturer === 'HoymilesW'" type="HoymilesW" v-model="newInverterData.serial" inputClass="ml-sm-2 mr-sm-4 my-2" required />
+                    <InputSerial v-if="newInverterData.manufacturer === 'HiFlowBLE'" type="HiFlowBLE" v-model="newInverterData.serial" inputClass="ml-sm-2 mr-sm-4 my-2" required />
                 </div>
                 <div class="form-group">
                     <label>{{ $t('inverteradmin.Name') }}</label>
@@ -40,7 +41,7 @@
                           </option>
                       </select>
                   </div>
-                <div v-if="newInverterData.manufacturer == 'DeyeSun' || newInverterData.manufacturer == 'HoymilesW'" class="form-group">
+                <div v-if="newInverterData.manufacturer == 'DeyeSun' || newInverterData.manufacturer == 'HoymilesW' || newInverterData.manufacturer == 'HiFlowBLE'" class="form-group">
                   <label>{{ $t('inverteradmin.InverterHostnameOrIp') }} <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterHostnameOrIpHint')" /></label>
                   <input v-model="newInverterData.hostname_or_ip" type="text" class="form-control ml-sm-2 mr-sm-4 my-2"
                          maxlength="31" required />
@@ -191,6 +192,7 @@
                     <InputSerial v-if="selectedInverterData.manufacturer === 'DeyeSun'" type="DeyeSun" v-model="selectedInverterData.serial" id="inverter-serial"/>
                     <InputSerial v-if="selectedInverterData.manufacturer === 'Hoymiles'" type="Hoymiles" v-model="selectedInverterData.serial" id="inverter-serial"/>
                     <InputSerial v-if="selectedInverterData.manufacturer === 'HoymilesW'" type="Hoymiles" v-model="selectedInverterData.serial" id="inverter-serial"/>
+                    <InputSerial v-if="selectedInverterData.manufacturer === 'HiFlowBLE'" type="HiFlowBLE" v-model="selectedInverterData.serial" id="inverter-serial"/>
                     <label for="inverter-name" class="col-form-label"
                         >{{ $t('inverteradmin.InverterName') }}
                         <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterNameHint')" />
@@ -202,7 +204,7 @@
                         class="form-control"
                         maxlength="31"
                     />
-                    <span v-if="selectedInverterData.manufacturer=='DeyeSun' || selectedInverterData.manufacturer=='HoymilesW'">
+                    <span v-if="selectedInverterData.manufacturer=='DeyeSun' || selectedInverterData.manufacturer=='HoymilesW' || selectedInverterData.manufacturer=='HiFlowBLE'">
                         <span  v-if="selectedInverterData.manufacturer == 'DeyeSun'">
                             <label>{{ $t('inverteradmin.DeyeInverterType') }}
                                <BIconInfoCircle v-tooltip :title="$t('inverteradmin.DeyeInverterTypeHint')" />
@@ -267,7 +269,7 @@
                 tabindex="0"
             >
                 <div v-for="(ch, index) in selectedInverterData.channel" :key="`${index}`">
-                <span v-if="(selectedInverterData.manufacturer != 'DeyeSun' && selectedInverterData.manufacturer != 'HoymilesW') || index <2">
+                <span v-if="(selectedInverterData.manufacturer != 'DeyeSun' && selectedInverterData.manufacturer != 'HoymilesW' && selectedInverterData.manufacturer != 'HiFlowBLE') || index <2">
                     <div class="row g-2">
                         <div class="col-md">
                             <label :for="`inverter-name_${index}`" class="col-form-label">

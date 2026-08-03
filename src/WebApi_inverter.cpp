@@ -26,6 +26,10 @@
 #include <HoymilesW.h>
 #endif
 
+#if HIFLOW_BLE
+#include <HiFlowBLE.h>
+#endif
+
 void WebApiInverterClass::init(AsyncWebServer& server, Scheduler& scheduler)
 {
     using std::placeholders::_1;
@@ -115,6 +119,9 @@ void WebApiInverterClass::onInverterList(AsyncWebServerRequest* request)
     #if HOYMILES_W
     manufacturer.add(from_inverter_type(inverter_type::Inverter_HoymilesW));
     #endif
+    #if HIFLOW_BLE
+    manufacturer.add(from_inverter_type(inverter_type::Inverter_HiFlowBLE));
+    #endif
 
     WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
 }
@@ -163,7 +170,8 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
 
     if (root["manufacturer"].as<String>() != from_inverter_type(inverter_type::Inverter_Hoymiles)
       && root["manufacturer"].as<String>() != from_inverter_type(inverter_type::Inverter_DeyeSun)
-      && root["manufacturer"].as<String>() != from_inverter_type(inverter_type::Inverter_HoymilesW)) {
+      && root["manufacturer"].as<String>() != from_inverter_type(inverter_type::Inverter_HoymilesW)
+      && root["manufacturer"].as<String>() != from_inverter_type(inverter_type::Inverter_HiFlowBLE)) {
         retMsg["message"] = "Unknown Inverter Type: " + root["manufacturer"].as<String>();
         retMsg["code"] = WebApiError::InverterType;
         retMsg["param"]["max"] = INV_MAX_NAME_STRLEN;
@@ -171,8 +179,8 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
         return;
     }
 
-    if(root["manufacturer"].as<String>() == "DeyeSun" || root["manufacturer"].as<String>() == "HoymilesW"){
-        //validate Deye Sun or HoymilesW Data
+    if(root["manufacturer"].as<String>() == "DeyeSun" || root["manufacturer"].as<String>() == "HoymilesW" || root["manufacturer"].as<String>() == "HiFlowBLE"){
+        //validate Deye Sun or HoymilesW or HiFlowBLE Data
         if (!root["hostname_or_ip"].is<String>()
                 || root["hostname_or_ip"].as<String>().length() == 0
                 || root["hostname_or_ip"].as<String>().length() > INV_MAX_HOSTNAME_STRLEN) {
@@ -183,15 +191,17 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
             return;
         }
 
-        if (!root["port"].is<uint16_t>()
-                || root["port"].as<int>() <= 0
-                || root["port"].as<int>() > 65535) {
-            retMsg["message"] = "Post must between 1 and 65535!";
-            retMsg["code"] = WebApiError::InverterInvalidPortNumber;
-            retMsg["param"]["max"] = 65535;
-            retMsg["param"]["min"] = 1;
-            WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
-            return;
+        if (root["manufacturer"].as<String>() != "HiFlowBLE") {
+            if (!root["port"].is<uint16_t>()
+                    || root["port"].as<int>() <= 0
+                    || root["port"].as<int>() > 65535) {
+                retMsg["message"] = "Post must between 1 and 65535!";
+                retMsg["code"] = WebApiError::InverterInvalidPortNumber;
+                retMsg["param"]["max"] = 65535;
+                retMsg["param"]["min"] = 1;
+                WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
+                return;
+            }
         }
     }
 
@@ -222,6 +232,10 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
         strncpy(inverter->HostnameOrIp, root["hostname_or_ip"].as<String>().c_str(), INV_MAX_HOSTNAME_STRLEN);
         inverter->Port = root["port"].as<uint16_t>();
         inverter->Type = inverter_type::Inverter_HoymilesW;
+    }else if(root["manufacturer"].as<String>() == from_inverter_type(inverter_type::Inverter_HiFlowBLE)){
+        strncpy(inverter->HostnameOrIp, root["hostname_or_ip"].as<String>().c_str(), INV_MAX_HOSTNAME_STRLEN);
+        inverter->Port = 0;
+        inverter->Type = inverter_type::Inverter_HiFlowBLE;
     }
     inverter->PollTime = getDefaultPollTimeForInverterType(inverter->Type);
     inverter->MoreInverterInfo = root["deye_type"].as<uint16_t>() | 0;
@@ -259,6 +273,11 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
     #if HOYMILES_W
     if(root["manufacturer"].as<String>() == from_inverter_type(inverter_type::Inverter_HoymilesW)){
         inv = std::reinterpret_pointer_cast<BaseInverterClass>(HoymilesW.addInverter(inverter->Name, inverter->Serial,inverter->HostnameOrIp,inverter->Port));
+    }
+    #endif
+    #if HIFLOW_BLE
+    if(root["manufacturer"].as<String>() == from_inverter_type(inverter_type::Inverter_HiFlowBLE)){
+        inv = std::reinterpret_pointer_cast<BaseInverterClass>(HiFlowBle.addInverter(inverter->Name, inverter->Serial, inverter->HostnameOrIp));
     }
     #endif
 
@@ -323,14 +342,15 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
 
     if (root["manufacturer"].as<String>() != "Hoymiles"
         && root["manufacturer"].as<String>() != "DeyeSun"
-        && root["manufacturer"].as<String>() != "HoymilesW" ) {
+        && root["manufacturer"].as<String>() != "HoymilesW"
+        && root["manufacturer"].as<String>() != "HiFlowBLE" ) {
         retMsg["message"] = "Unknown Inverter Type: " + root["manufacturer"].as<String>();
         retMsg["code"] = WebApiError::InverterType;
         WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
         return;
     }
 
-    if(root["manufacturer"].as<String>() == "DeyeSun" || root["manufacturer"].as<String>() == "HoymilesW"){
+    if(root["manufacturer"].as<String>() == "DeyeSun" || root["manufacturer"].as<String>() == "HoymilesW" || root["manufacturer"].as<String>() == "HiFlowBLE"){
         //validate Deye Sun Data
         if (!root["hostname_or_ip"].is<String>()
                 || root["hostname_or_ip"].as<String>().length() == 0
@@ -343,15 +363,17 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
             return;
         }
 
-        if (!root["port"].is<uint16_t>()
-                || root["port"].as<int>() <= 0
-                || root["port"].as<int>() > 65535) {
-            retMsg["message"] = "Post must between 1 and 65535!";
-            retMsg["code"] = WebApiError::InverterInvalidPortNumber;
-            retMsg["param"]["max"] = 65535;
-            retMsg["param"]["min"] = 1;
-            WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
-            return;
+        if (root["manufacturer"].as<String>() != "HiFlowBLE") {
+            if (!root["port"].is<uint16_t>()
+                    || root["port"].as<int>() <= 0
+                    || root["port"].as<int>() > 65535) {
+                retMsg["message"] = "Post must between 1 and 65535!";
+                retMsg["code"] = WebApiError::InverterInvalidPortNumber;
+                retMsg["param"]["max"] = 65535;
+                retMsg["param"]["min"] = 1;
+                WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
+                return;
+            }
         }
     }
 
@@ -392,9 +414,11 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
         inverter.Serial = new_serial;
         strncpy(inverter.Name, root["name"].as<String>().c_str(), INV_MAX_NAME_STRLEN);
 
-        if(inverter.Type == inverter_type::Inverter_DeyeSun || inverter.Type == inverter_type::Inverter_HoymilesW){
+        if(inverter.Type == inverter_type::Inverter_DeyeSun || inverter.Type == inverter_type::Inverter_HoymilesW || inverter.Type == inverter_type::Inverter_HiFlowBLE){
             strncpy(inverter.HostnameOrIp, root["hostname_or_ip"].as<String>().c_str(), INV_MAX_HOSTNAME_STRLEN);
-            inverter.Port = root["port"].as<uint16_t>();
+            if(inverter.Type != inverter_type::Inverter_HiFlowBLE){
+                inverter.Port = root["port"].as<uint16_t>();
+            }
         }
 
         if(inverter.Type == inverter_type::Inverter_DeyeSun){
@@ -460,6 +484,11 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
             inv = std::reinterpret_pointer_cast<BaseInverterClass>(HoymilesW.addInverter(inverter.Name, inverter.Serial,inverter.HostnameOrIp,inverter.Port));
         }
         #endif
+        #if HIFLOW_BLE
+        if(inverter.Type == inverter_type::Inverter_HiFlowBLE){
+            inv = std::reinterpret_pointer_cast<BaseInverterClass>(HiFlowBle.addInverter(inverter.Name, inverter.Serial, inverter.HostnameOrIp));
+        }
+        #endif
     } else if (inv != nullptr && new_serial == old_serial) {
         // Valid inverter exists and serial stays the same --> update name
         inv->setName(inverter.Name);
@@ -498,6 +527,11 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
         #if HOYMILES_W
         if(inverter.Type == inverter_type::Inverter_HoymilesW){
             inv = std::reinterpret_pointer_cast<BaseInverterClass>(HoymilesW.addInverter(inverter.Name, inverter.Serial,inverter.HostnameOrIp,inverter.Port));
+        }
+        #endif
+        #if HIFLOW_BLE
+        if(inverter.Type == inverter_type::Inverter_HiFlowBLE){
+            inv = std::reinterpret_pointer_cast<BaseInverterClass>(HiFlowBle.addInverter(inverter.Name, inverter.Serial, inverter.HostnameOrIp));
         }
         #endif
     }

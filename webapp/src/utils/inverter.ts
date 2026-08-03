@@ -8,5 +8,8 @@ export function getInverterPortByManufacturer(manufacturer:string,deyeProtocol: 
         }
         return 48899
     }
+    if(manufacturer === "HiFlowBLE"){
+        return 0
+    }
     return 0;
 }

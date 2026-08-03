@@ -30,6 +30,11 @@ private:
     Task _hoyWTask;
     void hoyWLoop();
     #endif
+
+    #if HIFLOW_BLE
+    Task _hiflowTask;
+    void hiflowLoop();
+    #endif
 };
 
 extern InverterSettingsClass InverterSettings;

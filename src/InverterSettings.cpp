@@ -21,6 +21,10 @@
 #include <HoymilesW.h>
 #endif
 
+#if HIFLOW_BLE
+#include <HiFlowBLE.h>
+#endif
+
 #undef TAG
 static const char* TAG = "invertersetup";
 
@@ -36,6 +40,9 @@ InverterSettingsClass::InverterSettingsClass()
     #endif
     #if HOYMILES_W
     , _hoyWTask(TASK_IMMEDIATE, TASK_FOREVER, std::bind(&InverterSettingsClass::hoyWLoop, this))
+    #endif
+    #if HIFLOW_BLE
+    , _hiflowTask(TASK_IMMEDIATE, TASK_FOREVER, std::bind(&InverterSettingsClass::hiflowLoop, this))
     #endif
 {
 }
@@ -222,6 +229,47 @@ void InverterSettingsClass::init(Scheduler& scheduler)
     ESP_LOGI(TAG, "Initialization complete");
     #endif
 
+    #if HIFLOW_BLE
+    ESP_LOGI(TAG, "Initialize HiFlowBLE interface...");
+    HiFlowBle.init();
+    ESP_LOGI(TAG, "Setting HiFlowBLE poll interval...");
+    HiFlowBle.setPollInterval(config.Dtu.PollInterval);
+
+    for (uint8_t i = 0; i < INV_MAX_COUNT; i++) {
+        if (config.Inverter[i].Type == inverter_type::Inverter_HiFlowBLE && config.Inverter[i].Serial > 0) {
+            const auto& inv_cfg = config.Inverter[i];
+            if (inv_cfg.Serial == 0) {
+                continue;
+            }
+
+            ESP_LOGI(TAG, "Adding HiFlow BLE inverter: %0" PRIx32 "%08" PRIx32 " - %s",
+                     static_cast<uint32_t>((inv_cfg.Serial >> 32) & 0xFFFFFFFF),
+                     static_cast<uint32_t>(inv_cfg.Serial & 0xFFFFFFFF),
+                     inv_cfg.Name);
+
+            auto inv = HiFlowBle.addInverter(
+                    inv_cfg.Name,
+                    inv_cfg.Serial,
+                    inv_cfg.HostnameOrIp); // BLE MAC address
+            if (inv == nullptr) {
+                ESP_LOGW(TAG, "Adding HiFlow BLE inverter failed");
+                continue;
+            }
+
+            inv->setPollTime(inv_cfg.PollTime);
+            inv->setReachableThreshold(inv_cfg.ReachableThreshold);
+            inv->setZeroValuesIfUnreachable(inv_cfg.ZeroRuntimeDataIfUnrechable);
+            inv->setZeroYieldDayOnMidnight(inv_cfg.ZeroYieldDayOnMidnight);
+            inv->getStatistics()->setYieldDayCorrection(inv_cfg.YieldDayCorrection);
+            for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
+                inv->getStatistics()->setStringMaxPower(c, inv_cfg.channel[c].MaxChannelPower);
+            }
+            ESP_LOGI(TAG, "Adding complete");
+        }
+    }
+    ESP_LOGI(TAG, "HiFlowBLE initialization complete");
+    #endif
+
     #if HOYMILES
     scheduler.addTask(_hoyTask);
     _hoyTask.enable();
@@ -235,6 +283,11 @@ void InverterSettingsClass::init(Scheduler& scheduler)
     #if HOYMILES_W
     scheduler.addTask(_hoyWTask);
     _hoyWTask.enable();
+    #endif
+
+    #if HIFLOW_BLE
+    scheduler.addTask(_hiflowTask);
+    _hiflowTask.enable();
     #endif
 
     scheduler.addTask(_settingsTask);
@@ -283,5 +336,12 @@ void InverterSettingsClass::deyeLoop()
 void InverterSettingsClass::hoyWLoop()
 {
     HoymilesW.loop();
+}
+#endif
+
+#if HIFLOW_BLE
+void InverterSettingsClass::hiflowLoop()
+{
+    HiFlowBle.loop();
 }
 #endif

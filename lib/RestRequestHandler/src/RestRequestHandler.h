@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 
-#if DEYE_SUN || TOST
-
 #include <HTTPClient.h>
 #include <ThreadSafeQueue.h>
 #include <map>
@@ -98,5 +96,3 @@ private:
 };
 
 extern RestRequestHandlerClass RestRequestHandler;
-
-#endif // DEYE_SUN || TOST

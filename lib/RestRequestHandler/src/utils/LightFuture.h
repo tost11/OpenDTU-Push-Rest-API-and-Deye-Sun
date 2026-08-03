@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 
-#if DEYE_SUN || TOST
-
 #include <memory>
 #include <mutex>
 #include <condition_variable>
@@ -141,4 +139,3 @@ private:
     bool _futureRetrieved;
 };
 
-#endif // DEYE_SUN || TOST

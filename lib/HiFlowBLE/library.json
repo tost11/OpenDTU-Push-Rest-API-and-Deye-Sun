@@ -1,0 +1,13 @@
+{
+    "name": "HiFlowBLE",
+    "keywords": "solar, inverter, ble, bluetooth, hoymiles, hiflow",
+    "description": "BLE communication with Hoymiles HiFlow Pro (HMS-*-WB) microinverters",
+    "authors": {
+        "name": "OpenDTU Contributors"
+    },
+    "version": "0.0.1",
+    "frameworks": "arduino",
+    "platforms": [
+        "espressif32"
+    ]
+}
