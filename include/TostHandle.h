@@ -5,7 +5,6 @@
 
 #include <TimeoutHelper.h>
 #include "Configuration.h"
-#include "inverters/InverterAbstract.h"
 #include <TaskSchedulerDeclarations.h>
 #include <ArduinoJson.h>
 #include <queue>
