@@ -170,6 +170,8 @@ bool ConfigurationClass::write()
         inv["yieldday_correction"] = config.Inverter[i].YieldDayCorrection;
         inv["deye_sun_offline_yieldday_correction"] = config.Inverter[i].DeyeSunOfflineYieldDayCorrection;
         inv["more_inverter_info"] = config.Inverter[i].MoreInverterInfo;
+        inv["username"] = config.Inverter[i].Username;
+        inv["password"] = config.Inverter[i].Password;
 
         JsonArray channel = inv["channel"].to<JsonArray>();
         for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {
@@ -396,7 +398,10 @@ bool ConfigurationClass::read()
         config.Inverter[i].YieldDayCorrection = inv["yieldday_correction"] | false;
         config.Inverter[i].DeyeSunOfflineYieldDayCorrection = inv["deye_sun_offline_yieldday_correction"] | false;
         strlcpy(config.Inverter[i].Username, inv["username"] | (config.Inverter[i].Type == inverter_type::Inverter_DeyeSun ? "admin" : ""), sizeof(config.Inverter[i].Username));
-        strlcpy(config.Inverter[i].Password, inv["password"] | (config.Inverter[i].Type == inverter_type::Inverter_DeyeSun ? "admin" : ""), sizeof(config.Inverter[i].Password));
+        const char* defaultPw = "";
+        if (config.Inverter[i].Type == inverter_type::Inverter_DeyeSun) defaultPw = "admin";
+        else if (config.Inverter[i].Type == inverter_type::Inverter_HiFlowBLE) defaultPw = "123456";
+        strlcpy(config.Inverter[i].Password, inv["password"] | defaultPw, sizeof(config.Inverter[i].Password));
 
         JsonArray channel = inv["channel"];
         for (uint8_t c = 0; c < INV_MAX_CHAN_COUNT; c++) {

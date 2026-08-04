@@ -25,21 +25,14 @@ HiFlowInverter::HiFlowInverter(uint64_t serial)
     _pollTimer.zero();
 }
 
-void HiFlowInverter::setBleAddress(const char* mac)
+void HiFlowInverter::setupBle(const char* pin)
 {
-    // Derive SN from the serial number (hex representation used for V0 pairing)
+    // Derive SN from the serial number (hex representation used for BLE name matching and V0 pairing)
     char snHex[13] = {};
     snprintf(snHex, sizeof(snHex), "%04X%08X",
              (uint32_t)((_serial >> 32) & 0xFFFF),
              (uint32_t)(_serial & 0xFFFFFFFF));
-    _bleInterface.setup(mac, snHex, "12345678");
-}
-
-void HiFlowInverter::setSerialNumber(const char* sn)
-{
-    // The serial number is needed for V0 pairing — pass it through to the BLE interface
-    // setup is called with the full configuration by setBleAddress, this is a supplementary setter
-    (void)sn; // SN is passed via setBleAddress setup call
+    _bleInterface.setup(snHex, pin);
 }
 
 void HiFlowInverter::setEncRand(const uint8_t encRand[16])

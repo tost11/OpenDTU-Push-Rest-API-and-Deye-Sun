@@ -1,6 +1,7 @@
 #include "HiFlowBLE.h"
 #include "inverters/HiFlowInverter.h"
 #include "inverters/HF_2CH.h"
+#include "inverters/HF_4CH.h"
 
 HiFlowBLEClass HiFlowBle;
 
@@ -37,29 +38,22 @@ void HiFlowBLEClass::loop()
     performHouseKeeping();
 }
 
-std::shared_ptr<HiFlowInverter> HiFlowBLEClass::addInverter(const char* name, uint64_t serial, const char* bleMac)
+std::shared_ptr<HiFlowInverter> HiFlowBLEClass::addInverter(const char* name, uint64_t serial, const char* pin)
 {
     std::shared_ptr<HiFlowInverter> inv;
 
     if (HF_2CH::isValidSerial(serial)) {
         inv = std::make_shared<HF_2CH>(serial);
+    } else if (HF_4CH::isValidSerial(serial)) {
+        inv = std::make_shared<HF_4CH>(serial);
     } else {
-        // Default to 2-channel for unknown serials
-        inv = std::make_shared<HF_2CH>(serial);
+        // Default to 4-channel for unknown serials (shows all fields, empty if unused)
+        inv = std::make_shared<HF_4CH>(serial);
         inv->getDevInfo()->setHardwareModel("HiFlow (Unknown)");
     }
 
     inv->setName(name);
-
-    // The BLE MAC is stored in bleMac (format "AA:BB:CC:DD:EE:FF")
-    // The serial number for V0 pairing is derived from the BLE name (after "RMI-")
-    // For now, we use the hex serial as the SN for pairing
-    char snHex[13] = {};
-    snprintf(snHex, sizeof(snHex), "%04X%08X",
-             (uint32_t)((serial >> 32) & 0xFFFF),
-             (uint32_t)(serial & 0xFFFFFFFF));
-
-    inv->setBleAddress(bleMac);
+    inv->setupBle(pin);
 
     _inverters.push_back(inv);
     inv->startConnection();

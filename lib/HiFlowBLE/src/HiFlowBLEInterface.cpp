@@ -26,13 +26,17 @@ HiFlowBLEInterface::~HiFlowBLEInterface()
     doDisconnect();
 }
 
-void HiFlowBLEInterface::setup(const char* bleMac, const char* sn, const char* pin)
+void HiFlowBLEInterface::setup(const char* sn, const char* pin)
 {
-    strncpy(_bleMac, bleMac, sizeof(_bleMac) - 1);
+    // Disconnect any existing connection before reconfiguring
+    doDisconnect();
+
     strncpy(_sn, sn, sizeof(_sn) - 1);
     strncpy(_pin, pin, sizeof(_pin) - 1);
     _state = HiFlowBLEState::Idle;
     _reconnectAttempts = 0;
+    _lastActionTime = millis();
+    _reconnectDelay = 2000;
 }
 
 void HiFlowBLEInterface::setEncRand(const uint8_t encRand[16])
@@ -91,7 +95,7 @@ void HiFlowBLEInterface::loop()
             _reconnectAttempts = 0;
             _reconnectDelay = 2000;
             _lastActionTime = now;
-            ESP_LOGI(TAG, "BLE connected to %s", _bleMac);
+            ESP_LOGI(TAG, "BLE connected to RMI-%s", _sn);
         } else {
             _reconnectAttempts++;
             if (_reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
@@ -273,8 +277,8 @@ bool HiFlowBLEInterface::doConnect()
         NimBLEDevice::setMTU(512);
     }
 
-    // Scan for the device first to discover the correct address type
-    ESP_LOGI(TAG, "Scanning for BLE device %s ...", _bleMac);
+    // Scan for the device by matching BLE advertisement name "RMI-{sn}"
+    ESP_LOGI(TAG, "Scanning for BLE device RMI-%s ...", _sn);
     NimBLEScan* scan = NimBLEDevice::getScan();
     scan->setActiveScan(true);
     scan->setInterval(100);
@@ -283,36 +287,24 @@ bool HiFlowBLEInterface::doConnect()
     // Scan for up to 15 seconds
     NimBLEScanResults results = scan->getResults(15000, false);
 
-    // Search for our target device by MAC
-    std::string targetMacLower(_bleMac);
-    for (auto& c : targetMacLower) c = tolower(c);
+    // Search for our target device by BLE name (RMI-{serial})
+    std::string targetName = std::string("RMI-") + std::string(_sn);
 
     const NimBLEAdvertisedDevice* foundDevice = nullptr;
     for (int i = 0; i < results.getCount(); i++) {
         const NimBLEAdvertisedDevice* dev = results.getDevice(i);
-        std::string devMac = dev->getAddress().toString();
-        if (devMac == targetMacLower) {
+        if (dev->haveName() && dev->getName() == targetName) {
             foundDevice = dev;
-            ESP_LOGI(TAG, "Found device: %s name=%s type=%d", devMac.c_str(),
-                     dev->haveName() ? dev->getName().c_str() : "(none)",
+            ESP_LOGI(TAG, "Found device: %s (%s) type=%d",
+                     dev->getName().c_str(),
+                     dev->getAddress().toString().c_str(),
                      dev->getAddress().getType());
-
-            // Extract SN from advertisement name (RMI-XXXXXXXXXXXX)
-            if (dev->haveName()) {
-                std::string name = dev->getName();
-                if (name.rfind("RMI-", 0) == 0 && name.length() >= 16) {
-                    std::string sn = name.substr(4, 12);
-                    strncpy(_sn, sn.c_str(), sizeof(_sn) - 1);
-                    _sn[12] = '\0';
-                    ESP_LOGI(TAG, "Extracted SN from BLE name: %s", _sn);
-                }
-            }
             break;
         }
     }
 
     if (!foundDevice) {
-        ESP_LOGW(TAG, "Device %s not found in scan (%d devices seen)", _bleMac, results.getCount());
+        ESP_LOGW(TAG, "Device RMI-%s not found in scan (%d devices seen)", _sn, results.getCount());
         scan->clearResults();
         return false;
     }
@@ -329,7 +321,7 @@ bool HiFlowBLEInterface::doConnect()
 
     // Connect using the discovered device (carries correct address type)
     if (!_client->connect(foundDevice)) {
-        ESP_LOGW(TAG, "BLE connect to %s failed", _bleMac);
+        ESP_LOGW(TAG, "BLE connect to RMI-%s failed", _sn);
         NimBLEDevice::deleteClient(_client);
         _client = nullptr;
         scan->clearResults();

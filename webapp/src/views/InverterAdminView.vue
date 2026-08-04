@@ -41,7 +41,7 @@
                           </option>
                       </select>
                   </div>
-                <div v-if="newInverterData.manufacturer == 'DeyeSun' || newInverterData.manufacturer == 'HoymilesW' || newInverterData.manufacturer == 'HiFlowBLE'" class="form-group">
+                <div v-if="newInverterData.manufacturer == 'DeyeSun' || newInverterData.manufacturer == 'HoymilesW'" class="form-group">
                   <label>{{ $t('inverteradmin.InverterHostnameOrIp') }} <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterHostnameOrIpHint')" /></label>
                   <input v-model="newInverterData.hostname_or_ip" type="text" class="form-control ml-sm-2 mr-sm-4 my-2"
                          maxlength="31" required />
@@ -50,6 +50,11 @@
                   <label>{{ $t('inverteradmin.InverterPort') }} <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterPortHint')" /></label>
                   <input v-model="newInverterData.port" type="number" class="form-control ml-sm-2 mr-sm-4 my-2" maxlength="5"
                          required />
+                </div>
+                <div v-if="newInverterData.manufacturer == 'HiFlowBLE'" class="form-group">
+                  <label>{{ $t('inverteradmin.BlePin') }} <BIconInfoCircle v-tooltip :title="$t('inverteradmin.BlePinHint')" /></label>
+                  <input v-model="newInverterData.password" type="text" class="form-control ml-sm-2 mr-sm-4 my-2"
+                         maxlength="8" />
                 </div>
                 <div class="d-flex my-3">
                     <button type="submit" class="btn btn-primary ms-auto">
@@ -204,7 +209,7 @@
                         class="form-control"
                         maxlength="31"
                     />
-                    <span v-if="selectedInverterData.manufacturer=='DeyeSun' || selectedInverterData.manufacturer=='HoymilesW' || selectedInverterData.manufacturer=='HiFlowBLE'">
+                    <span v-if="selectedInverterData.manufacturer=='DeyeSun' || selectedInverterData.manufacturer=='HoymilesW'">
                         <span  v-if="selectedInverterData.manufacturer == 'DeyeSun'">
                             <label>{{ $t('inverteradmin.DeyeInverterType') }}
                                <BIconInfoCircle v-tooltip :title="$t('inverteradmin.DeyeInverterTypeHint')" />
@@ -225,6 +230,14 @@
                         </label>
                         <input v-model="selectedInverterData.port" type="number" id="inverter-port" maxlength="5"
                                class="form-control" />
+                    </span>
+
+                    <span v-if="selectedInverterData.manufacturer=='HiFlowBLE'">
+                        <label for="inverter-ble-pin" class="col-form-label">{{ $t('inverteradmin.BlePin') }}
+                           <BIconInfoCircle v-tooltip :title="$t('inverteradmin.BlePinHint')" />
+                        </label>
+                        <input v-model="selectedInverterData.password" type="text" id="inverter-ble-pin"
+                               class="form-control" maxlength="8" />
                     </span>
 
                     <CardElement :text="$t('inverteradmin.InverterStatus')" addSpace>
@@ -525,7 +538,7 @@ export default defineComponent({
         return {
             modal: {} as bootstrap.Modal,
             modalDelete: {} as bootstrap.Modal,
-            newInverterData: {serial: "",manufacturer:"Hoymiles",port:0,hostname_or_ip:"",deye_type:0,username:"admin",password:"admin"} as Inverter,//deye 48899
+            newInverterData: {serial: "",manufacturer:"Hoymiles",port:0,hostname_or_ip:"",deye_type:0,username:"admin",password:"123456"} as Inverter,//deye 48899
             selectedInverterData: { serial: '' } as Inverter,
             inverters: [] as Inverter[],
             manufacturers: [] as string[],
@@ -550,6 +563,11 @@ export default defineComponent({
         inverterTypeChanged(){
             let newData = {...this.newInverterData} as Inverter
             newData.port = getInverterPortByManufacturer(newData.manufacturer,newData.deye_type)
+            if (newData.manufacturer === 'HiFlowBLE') {
+                newData.password = '123456'
+            } else if (newData.manufacturer === 'DeyeSun') {
+                newData.password = 'admin'
+            }
             this.newInverterData = newData
         },
         deyeInverterTypeChanged(){

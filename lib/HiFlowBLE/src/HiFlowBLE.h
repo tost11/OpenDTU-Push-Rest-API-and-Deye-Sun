@@ -12,7 +12,7 @@ public:
 
     void loop();
 
-    std::shared_ptr<HiFlowInverter> addInverter(const char* name, uint64_t serial, const char* bleMac);
+    std::shared_ptr<HiFlowInverter> addInverter(const char* name, uint64_t serial, const char* pin);
     std::shared_ptr<HiFlowInverter> getInverterByPos(uint8_t pos) override;
     std::shared_ptr<HiFlowInverter> getInverterBySerial(uint64_t serial) override;
     std::shared_ptr<HiFlowInverter> getInverterBySerialString(const String& serial) override;

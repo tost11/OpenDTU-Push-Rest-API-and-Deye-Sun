@@ -250,7 +250,7 @@ void InverterSettingsClass::init(Scheduler& scheduler)
             auto inv = HiFlowBle.addInverter(
                     inv_cfg.Name,
                     inv_cfg.Serial,
-                    inv_cfg.HostnameOrIp); // BLE MAC address
+                    inv_cfg.Password); // BLE PIN
             if (inv == nullptr) {
                 ESP_LOGW(TAG, "Adding HiFlow BLE inverter failed");
                 continue;

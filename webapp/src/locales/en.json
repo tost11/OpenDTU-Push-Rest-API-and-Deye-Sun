@@ -664,6 +664,8 @@
         "InverterHostnameOrIpHint": "Hostname of device in newtork,ip-adress, or mac-adress in ap-network",
         "InverterPort": "Port",
         "InverterPortHint": "Udp communication port of the device, default: 48899",
+        "BlePin": "BLE PIN",
+        "BlePinHint": "PIN configured in S-Miles app (default: 123456)",
         "ManufacturerSelect": "Select manufacturer of inverter to add",
         "Seconds": "Seconds",
         "PollTime": "Data fetch interval",

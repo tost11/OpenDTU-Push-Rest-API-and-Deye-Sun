@@ -7,7 +7,6 @@
 #include "MqttSettings.h"
 #include "InverterHandler.h"
 #include <ctime>
-#include "inverters/InverterAbstract.h"
 
 #if HOYMILES
 #include <inverters/InverterAbstract.h>
@@ -52,6 +51,7 @@ void MqttHandleInverterClass::loop()
         // Name
         MqttSettings.publish(subtopic + "/name", inv->name());
 
+#if HOYMILES
         if(inv->getInverterType() == inverter_type::Inverter_Hoymiles) {
             auto hoy = (InverterAbstract*)inv.get();
             // Radio Statistics
@@ -63,6 +63,7 @@ void MqttHandleInverterClass::loop()
             MqttSettings.publish(subtopic + "/radio/rx_fail_corrupt", String(hoy->RadioStats.RxFailCorruptData));
             MqttSettings.publish(subtopic + "/radio/rssi", String(hoy->getLastRssi()));
         }
+#endif
 
         if (inv->getDevInfo()->getLastUpdate() > 0) {
             // Bootloader Version

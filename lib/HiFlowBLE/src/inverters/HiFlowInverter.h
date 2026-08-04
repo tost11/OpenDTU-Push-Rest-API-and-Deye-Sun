@@ -28,8 +28,7 @@ public:
 
     // BLE-specific
     void update();
-    void setBleAddress(const char* mac);
-    void setSerialNumber(const char* sn);
+    void setupBle(const char* pin);
     void setEncRand(const uint8_t encRand[16]);
     const uint8_t* getEncRand() const;
     bool hasEncRand() const;

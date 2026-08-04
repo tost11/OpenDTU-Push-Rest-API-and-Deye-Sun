@@ -66,12 +66,12 @@ public:
     ~HiFlowBLEInterface();
 
     /**
-     * Configure the interface with BLE MAC address and serial.
-     * @param bleMac BLE MAC address "AA:BB:CC:DD:EE:FF"
-     * @param sn 12-char serial tail (after "RMI-")
-     * @param pin BLE PIN for first-time pairing
+     * Configure the interface with serial number and PIN.
+     * The BLE MAC is discovered automatically by scanning for "RMI-{sn}".
+     * @param sn 12-char serial tail (the part after "RMI-" in the BLE advertisement name)
+     * @param pin BLE PIN for first-time pairing (default "123456")
      */
-    void setup(const char* bleMac, const char* sn, const char* pin = "12345678");
+    void setup(const char* sn, const char* pin = "123456");
 
     /**
      * Set stored encRand (from previous pairing session).
@@ -131,7 +131,6 @@ private:
     NimBLERemoteCharacteristic* _rxChar = nullptr; // Notify characteristic
 
     // Configuration
-    char _bleMac[18] = {};
     char _sn[13] = {};
     char _pin[16] = {};
     char _bleId[20] = {};

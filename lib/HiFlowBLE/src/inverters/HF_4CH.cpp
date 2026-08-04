@@ -1,9 +1,9 @@
-#include "HF_2CH.h"
+#include "HF_4CH.h"
 #include "../parser/HiFlowStatisticsParser.h"
 
-// byteAssign_t table for 2-channel HiFlow Pro (HMS-800-2WB)
+// byteAssign_t table for 4-channel HiFlow Pro (HMS-1600-4WB)
 // Maps fields from HiFlowData packed struct to the statistics system.
-static const byteAssign_t byteAssignment_HF_2CH[] = {
+static const byteAssign_t byteAssignment_HF_4CH[] = {
     // DC Channel 0 (PV port 0)
     { TYPE_DC, CH0, FLD_UDC, UNIT_V,   HF_OFF_PV_BASE + 0 * HF_PV_SIZE + HF_OFF_PV_VOLTAGE, 2, 10, false, false, 1 },
     { TYPE_DC, CH0, FLD_IDC, UNIT_A,   HF_OFF_PV_BASE + 0 * HF_PV_SIZE + HF_OFF_PV_CURRENT, 2, 100, false, false, 2 },
@@ -19,6 +19,22 @@ static const byteAssign_t byteAssignment_HF_2CH[] = {
     { TYPE_DC, CH1, FLD_YD,  UNIT_WH,  HF_OFF_PV_BASE + 1 * HF_PV_SIZE + HF_OFF_PV_ENERGY_DAY, 4, 1, false, false, 0 },
     { TYPE_DC, CH1, FLD_YT,  UNIT_KWH, HF_OFF_PV_BASE + 1 * HF_PV_SIZE + HF_OFF_PV_ENERGY_TOT, 4, 1000, false, false, 3 },
     { TYPE_DC, CH1, FLD_IRR, UNIT_PCT, CALC_CH_IRR, CH1, CMD_CALC, false, false, 3 },
+
+    // DC Channel 2 (PV port 2)
+    { TYPE_DC, CH2, FLD_UDC, UNIT_V,   HF_OFF_PV_BASE + 2 * HF_PV_SIZE + HF_OFF_PV_VOLTAGE, 2, 10, false, false, 1 },
+    { TYPE_DC, CH2, FLD_IDC, UNIT_A,   HF_OFF_PV_BASE + 2 * HF_PV_SIZE + HF_OFF_PV_CURRENT, 2, 100, false, false, 2 },
+    { TYPE_DC, CH2, FLD_PDC, UNIT_W,   HF_OFF_PV_BASE + 2 * HF_PV_SIZE + HF_OFF_PV_POWER,   2, 10, false, false, 1 },
+    { TYPE_DC, CH2, FLD_YD,  UNIT_WH,  HF_OFF_PV_BASE + 2 * HF_PV_SIZE + HF_OFF_PV_ENERGY_DAY, 4, 1, false, false, 0 },
+    { TYPE_DC, CH2, FLD_YT,  UNIT_KWH, HF_OFF_PV_BASE + 2 * HF_PV_SIZE + HF_OFF_PV_ENERGY_TOT, 4, 1000, false, false, 3 },
+    { TYPE_DC, CH2, FLD_IRR, UNIT_PCT, CALC_CH_IRR, CH2, CMD_CALC, false, false, 3 },
+
+    // DC Channel 3 (PV port 3)
+    { TYPE_DC, CH3, FLD_UDC, UNIT_V,   HF_OFF_PV_BASE + 3 * HF_PV_SIZE + HF_OFF_PV_VOLTAGE, 2, 10, false, false, 1 },
+    { TYPE_DC, CH3, FLD_IDC, UNIT_A,   HF_OFF_PV_BASE + 3 * HF_PV_SIZE + HF_OFF_PV_CURRENT, 2, 100, false, false, 2 },
+    { TYPE_DC, CH3, FLD_PDC, UNIT_W,   HF_OFF_PV_BASE + 3 * HF_PV_SIZE + HF_OFF_PV_POWER,   2, 10, false, false, 1 },
+    { TYPE_DC, CH3, FLD_YD,  UNIT_WH,  HF_OFF_PV_BASE + 3 * HF_PV_SIZE + HF_OFF_PV_ENERGY_DAY, 4, 1, false, false, 0 },
+    { TYPE_DC, CH3, FLD_YT,  UNIT_KWH, HF_OFF_PV_BASE + 3 * HF_PV_SIZE + HF_OFF_PV_ENERGY_TOT, 4, 1000, false, false, 3 },
+    { TYPE_DC, CH3, FLD_IRR, UNIT_PCT, CALC_CH_IRR, CH3, CMD_CALC, false, false, 3 },
 
     // AC Channel
     { TYPE_AC, CH0, FLD_UAC, UNIT_V,   HF_OFF_AC_VOLTAGE, 2, 10, false, false, 1 },
@@ -38,23 +54,22 @@ static const byteAssign_t byteAssignment_HF_2CH[] = {
     { TYPE_INV, CH0, FLD_EFF, UNIT_PCT, CALC_TOTAL_EFF, 0, CMD_CALC, false, false, 3 },
 };
 
-HF_2CH::HF_2CH(uint64_t serial)
+HF_4CH::HF_4CH(uint64_t serial)
     : HiFlowInverter(serial)
 {
-    _devInfoParser->setHardwareModel("HMS-800-2WB");
-    _devInfoParser->setMaxPower(800);
-    _statisticsParser->setByteAssignment(byteAssignment_HF_2CH,
-                                         sizeof(byteAssignment_HF_2CH) / sizeof(byteAssignment_HF_2CH[0]));
+    _devInfoParser->setHardwareModel("HMS-1600-4WB");
+    _devInfoParser->setMaxPower(1600);
+    _statisticsParser->setByteAssignment(byteAssignment_HF_4CH,
+                                         sizeof(byteAssignment_HF_4CH) / sizeof(byteAssignment_HF_4CH[0]));
 }
 
-bool HF_2CH::isValidSerial(uint64_t serial)
+bool HF_4CH::isValidSerial(uint64_t serial)
 {
-    // HMS-800-2WB serial prefixes: 0x1610, 0x4161
     uint16_t preSerial = (serial >> 32) & 0xFFFF;
-    return preSerial == 0x1610 || preSerial == 0x4161;
+    return preSerial == 0x1164;
 }
 
-String HF_2CH::typeName() const
+String HF_4CH::typeName() const
 {
-    return "HiFlow Pro";
+    return "HMS-1600-4WB";
 }
