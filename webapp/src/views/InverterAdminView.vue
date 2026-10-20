@@ -196,7 +196,7 @@
                     </label>
                     <InputSerial v-if="selectedInverterData.manufacturer === 'DeyeSun'" type="DeyeSun" v-model="selectedInverterData.serial" id="inverter-serial"/>
                     <InputSerial v-if="selectedInverterData.manufacturer === 'Hoymiles'" type="Hoymiles" v-model="selectedInverterData.serial" id="inverter-serial"/>
-                    <InputSerial v-if="selectedInverterData.manufacturer === 'HoymilesW'" type="Hoymiles" v-model="selectedInverterData.serial" id="inverter-serial"/>
+                    <InputSerial v-if="selectedInverterData.manufacturer === 'HoymilesW'" type="HoymilesW" v-model="selectedInverterData.serial" id="inverter-serial"/>
                     <InputSerial v-if="selectedInverterData.manufacturer === 'HiFlowBLE'" type="HiFlowBLE" v-model="selectedInverterData.serial" id="inverter-serial"/>
                     <label for="inverter-name" class="col-form-label"
                         >{{ $t('inverteradmin.InverterName') }}

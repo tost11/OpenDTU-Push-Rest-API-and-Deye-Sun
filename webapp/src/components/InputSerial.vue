@@ -97,17 +97,16 @@ export default defineComponent({
                 this.formatShow = 'danger';
               }
             }else if(this.type === 'HoymilesW'){
-              //TODO understand serialnumber check from above hoymiles and add new numbers
-              // Contains only numbers
-              if (/^1412[0-9]{8}$/.test(serial)) {
+              // Mirrors the C++ isValidSerial prefixes (HMS_W_1T/2T/4T): 4-hex prefix + 8-hex = 12 hex chars
+              if (/^(1125|1124|1123|1122|1403|1412|1410|2821|1144|1142|1141|1014|1164|1162|1151|1222)[0-9A-F]{8}$/.test(serial)) {
                 this.formatHint = this.$t('inputserial.format_hoymiles_w');
               }else {
                 this.formatHint = this.$t('inputserial.format_unknown');
                 this.formatShow = 'danger';
               }
             }else if(this.type === 'HiFlowBLE'){
-              // HiFlow BLE serial: 12-char hex (e.g. 1610xxxxxxxx or 1164xxxxxxxx)
-              if (/^[\dA-F]{12}$/.test(serial)) {
+              // HiFlow BLE serial: known 4-hex prefix + 8-hex (1610/4161 = 2CH, 1164 = 4CH, 1650 = HF-800-WB)
+              if (/^(1610|4161|1164|1650)[0-9A-F]{8}$/.test(serial)) {
                 this.formatHint = this.$t('inputserial.format_hiflow_ble');
               }else {
                 this.formatHint = this.$t('inputserial.format_unknown');

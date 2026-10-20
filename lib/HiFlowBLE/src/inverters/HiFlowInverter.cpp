@@ -201,6 +201,8 @@ void HiFlowInverter::processNewData(const HiFlowRealData& data)
     hfData.acEnergyDaily = totalDaily;
     hfData.acEnergyTotal = totalTotal;
 
+    adjustPvData(hfData);
+
     // Push to statistics parser
     _statisticsParser->beginAppendFragment();
     _statisticsParser->clearBuffer();

@@ -55,5 +55,5 @@ bool HF_2CH::isValidSerial(uint64_t serial)
 
 String HF_2CH::typeName() const
 {
-    return "HiFlow Pro";
+    return "HMS-800-2WB";
 }

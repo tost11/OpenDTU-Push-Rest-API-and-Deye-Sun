@@ -3,6 +3,7 @@
 #include "inverters/HF_1CH.h"
 #include "inverters/HF_2CH.h"
 #include "inverters/HF_4CH.h"
+#include "inverters/HF_800_WB.h"
 
 HiFlowBLEClass HiFlowBle;
 
@@ -57,6 +58,8 @@ std::shared_ptr<HiFlowInverter> HiFlowBLEClass::addInverter(const char* name, ui
         inv = std::make_shared<HF_2CH>(serial);
     } else if (HF_4CH::isValidSerial(serial)) {
         inv = std::make_shared<HF_4CH>(serial);
+    } else if (HF_800_WB::isValidSerial(serial)) {
+        inv = std::make_shared<HF_800_WB>(serial);
     } else {
         // Default to 4-channel for unknown serials (shows all fields, empty if unused)
         inv = std::make_shared<HF_4CH>(serial);

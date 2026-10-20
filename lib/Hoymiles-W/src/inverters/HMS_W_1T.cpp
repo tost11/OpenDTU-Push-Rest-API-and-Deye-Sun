@@ -12,9 +12,9 @@ static const byteAssign_t byteAssignment[] = {
         { TYPE_AC, CH0, FLD_UAC, UNIT_V, 2, 2, 10, false,false, 1 },
         { TYPE_AC, CH0, FLD_IAC, UNIT_A, 0, 2, 100, false,false, 2 },
         { TYPE_AC, CH0, FLD_PAC, UNIT_W, 4, 2, 10, false,false, 1 },
-        { TYPE_AC, CH0, FLD_Q, UNIT_VAR, 76, 2, 1000, true,false, 1 },
+        { TYPE_AC, CH0, FLD_Q, UNIT_VAR, 76, 2, 10, true,false, 1 },
         { TYPE_AC, CH0, FLD_F, UNIT_HZ, 70, 2, 100, false,false, 2 },
-        { TYPE_AC, CH0, FLD_PF, UNIT_NONE, 74, 2, 1, true,false, 3 },
+        { TYPE_AC, CH0, FLD_PF, UNIT_NONE, 74, 2, 1000, true,false, 3 },
         { TYPE_AC, CH0, FLD_YD, UNIT_WH, 6, 2, 1, false,false, 0 },
         { TYPE_AC, CH0, FLD_YT, UNIT_KWH, 10, 4, 1000, false,false, 3 },
 

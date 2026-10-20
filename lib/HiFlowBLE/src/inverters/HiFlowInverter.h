@@ -41,6 +41,10 @@ public:
 protected:
     void onPollTimeChanged() override;
 
+    // Hook for subclasses to transform the filled PV data before it is committed
+    // to the statistics parser (e.g. merge multiple reported ports into one).
+    virtual void adjustPvData(HiFlowData &hfData) {}
+
 private:
     uint64_t _serial;
     HiFlowBLEInterface _bleInterface;
