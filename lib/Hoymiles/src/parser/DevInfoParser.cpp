@@ -211,7 +211,7 @@ String DevInfoParser::getHwVersion() const
     return buf;
 }
 
-uint16_t DevInfoParser::getMaxPower() const
+uint16_t DevInfoParser::getMaxPowerDevice() const
 {
     const uint8_t idx = getDevIdx();
     if (idx == 0xff) {

@@ -42,7 +42,7 @@ String DeyeDevInfo::getHwVersion() const {
     return _hardwareVersion;
 }
 
-uint16_t DeyeDevInfo::getMaxPower() const {
+uint16_t DeyeDevInfo::getMaxPowerDevice() const {
     if(_devInfoLength >= 2){
         return DeyeUtils::defaultParseUInt(0,_payloadDevInfo,_maxPowerDevider);
     }

@@ -42,7 +42,6 @@ HF_2CH::HF_2CH(uint64_t serial)
     : HiFlowInverter(serial)
 {
     _devInfoParser->setHardwareModel("HMS-800-2WB");
-    _devInfoParser->setMaxPower(800);
     _statisticsParser->setByteAssignment(byteAssignment_HF_2CH,
                                          sizeof(byteAssignment_HF_2CH) / sizeof(byteAssignment_HF_2CH[0]));
 }

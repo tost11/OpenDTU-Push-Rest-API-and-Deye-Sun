@@ -19,6 +19,7 @@ export interface Inverter {
     command_enable_night: boolean;
     reachable_threshold: number;
     poll_time: number;
+    max_power: number;
     zero_runtime: boolean;
     zero_day: boolean;
     clear_eventlog: boolean;

@@ -37,9 +37,6 @@ HMS_W_2T::HMS_W_2T(uint64_t serial) :
 HoymilesWInverter(serial) {
     _devInfoParser->setHardwareModel(typeName());
     _statisticsParser->setByteAssignment(byteAssignment,sizeof(byteAssignment) / sizeof(byteAssignment[0]));
-    if(isValidSerial(serial)){
-        _devInfoParser->setMaxPower(800);//TODO find other serials
-    }
 }
 
 bool HMS_W_2T::isValidSerial(const uint64_t serial)

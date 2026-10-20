@@ -44,7 +44,7 @@ String HoymilesWDevInfo::getHwVersion() const {
     return _hardwareVersion;
 }
 
-uint16_t HoymilesWDevInfo::getMaxPower() const {
+uint16_t HoymilesWDevInfo::getMaxPowerDevice() const {
     return _maxPower;
 }
 

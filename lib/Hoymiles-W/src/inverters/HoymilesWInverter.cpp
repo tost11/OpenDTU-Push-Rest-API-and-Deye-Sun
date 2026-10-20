@@ -150,6 +150,9 @@ bool HoymilesWInverter::sendActivePowerControlRequest(float limit, PowerLimitCon
             return false;
         }
         realLimit = (uint16_t)(limit / (float)maxPower * 100);
+        if(limit > 0 && realLimit == 0){
+            realLimit = 1; // a positive watt value must not become "no limit" (0%)
+        }
     }
     if(realLimit > 100){
         realLimit = 100;

@@ -54,6 +54,16 @@ static constexpr uint8_t ACTION_LOGIN     = 64;
 static constexpr uint8_t ACTION_PIN       = 82;
 static constexpr uint8_t ACTION_TIME_SYNC = 104;
 
+// 0xA305 control command actions
+static constexpr uint8_t ACTION_DTU_REBOOT  = 1;
+static constexpr uint8_t ACTION_MI_REBOOT   = 3;
+static constexpr uint8_t ACTION_MI_START    = 6;
+static constexpr uint8_t ACTION_MI_SHUTDOWN = 7;
+static constexpr uint8_t ACTION_LIMIT_POWER = 8;
+
+// dev_kind (CommandResDTO field 3) - required for inverter targeted commands (mi_to_sn)
+static constexpr uint8_t DEV_KIND_DTU = 1;
+
 /**
  * CRC16-Modbus calculation.
  * Polynomial: 0xA001 (reflected 0x8005)

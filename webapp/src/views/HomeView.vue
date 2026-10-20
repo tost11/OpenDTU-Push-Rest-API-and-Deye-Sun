@@ -716,6 +716,16 @@
                     <span class="input-group-text" id="currentLimitTypeAbsolute">W</span>
                 </div>
             </div>
+            <div class="col-sm-4" v-else>
+                <div class="input-group">
+                    <input type="text" class="form-control" disabled value="—" />
+                    <span class="input-group-text">W</span>
+                </div>
+                <small class="text-warning d-flex align-items-center mt-1">
+                    <BIconInfoCircle v-tooltip :title="$t('home.MaxPowerNotSetHint')" class="me-1 flex-shrink-0" />
+                    <span>{{ $t('home.MaxPowerNotSet') }}</span>
+                </small>
+            </div>
         </div>
 
         <div class="row mb-3 align-items-center">
@@ -763,7 +773,12 @@
                             <a class="dropdown-item" @click="onSelectType(true)" href="#">{{ $t('home.Relative') }}</a>
                         </li>
                         <li>
-                            <a class="dropdown-item" @click="onSelectType(false)" href="#">{{ $t('home.Absolute') }}</a>
+                            <a
+                                class="dropdown-item"
+                                :class="{ disabled: !(currentLimitList.max_power > 0) }"
+                                @click="onSelectType(false)"
+                                href="#"
+                            >{{ $t('home.Absolute') }}</a>
                         </li>
                     </ul>
                 </div>
@@ -781,7 +796,7 @@
                 {{ $t('home.SetPersistent') }}
             </button>
 
-            <button v-if="targetLimitList.manufacturer!='DeyeSun' && targetLimitList.manufacturer!='HoymilesW'" type="button" class="btn btn-danger" @click="onSetLimitSettings(false)">
+            <button v-if="targetLimitList.manufacturer!='DeyeSun' && targetLimitList.manufacturer!='HoymilesW' && targetLimitList.manufacturer!='HiFlowBLE'" type="button" class="btn btn-danger" @click="onSetLimitSettings(false)">
                 {{ $t('home.SetNonPersistent') }}
             </button>
         </template>
@@ -818,6 +833,14 @@
             </button>
             <button type="button" class="btn btn-warning" @click="onSetPowerSettings(true, true)">
                 <BIconArrowCounterclockwise class="fs-4" />&nbsp;{{ $t('home.Restart') }}
+            </button>
+            <button
+                v-if="powerManufacturer === 'HiFlowBLE'"
+                type="button"
+                class="btn btn-secondary"
+                @click="onRestartDtu"
+            >
+                <BIconArrowCounterclockwise class="fs-4" />&nbsp;{{ $t('home.RestartDtu') }}
             </button>
         </div>
     </ModalDialog>
@@ -1210,6 +1233,9 @@ export default defineComponent({
                 });
         },
         onSelectType(isRelative: boolean) {
+            if (!isRelative && !(this.currentLimitList.max_power > 0)) {
+                return; // absolute limit requires a known max power
+            }
             if (isRelative) {
                 this.targetLimitTypeText = this.$t('home.Relative');
                 this.targetLimitMin = 0;
@@ -1217,7 +1243,7 @@ export default defineComponent({
             } else {
                 this.targetLimitTypeText = this.$t('home.Absolute');
                 this.targetLimitMin = 0;
-                this.targetLimitMax = this.currentLimitList.max_power > 0 ? this.currentLimitList.max_power : 2250;
+                this.targetLimitMax = this.currentLimitList.max_power;
             }
             this.targetLimitRelative = isRelative;
         },
@@ -1257,6 +1283,32 @@ export default defineComponent({
             formData.append('data', JSON.stringify(data));
 
             console.log(data);
+
+            fetch('/api/power/config', {
+                method: 'POST',
+                headers: authHeader(),
+                body: formData,
+            })
+                .then((response) => handleResponse(response, this.$emitter, this.$router))
+                .then((response) => {
+                    if (response.type == 'success') {
+                        this.powerSettingView.hide();
+                    } else {
+                        this.alertMessagePower = this.$t('apiresponse.' + response.code, response.param);
+                        this.alertTypePower = response.type;
+                        this.showAlertPower = true;
+                    }
+                });
+        },
+        onRestartDtu() {
+            const data = {
+                serial: this.powerSettingSerial,
+                manufacturer: this.powerManufacturer,
+                restart_dtu: true,
+            };
+
+            const formData = new FormData();
+            formData.append('data', JSON.stringify(data));
 
             fetch('/api/power/config', {
                 method: 'POST',

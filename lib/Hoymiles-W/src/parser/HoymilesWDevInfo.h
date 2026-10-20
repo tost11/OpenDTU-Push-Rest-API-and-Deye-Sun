@@ -31,7 +31,7 @@ public:
 
     String getHwVersion() const override;
 
-    uint16_t getMaxPower() const override;
+    uint16_t getMaxPowerDevice() const override;
 
     String getHwModelName() const override;
 
@@ -47,5 +47,5 @@ private:
     uint8_t _maxPowerDevider;
     String _hardwareVersion;
     String _hardwareModel;
-    uint16_t _maxPower;
+    uint16_t _maxPower = 0; // 0 = unknown; set via user override (Advanced > Max power)
 };

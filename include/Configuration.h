@@ -73,6 +73,7 @@ struct INVERTER_CONFIG_T {
     bool Command_Enable_Night;
     uint8_t ReachableThreshold;
     uint16_t PollTime;
+    uint16_t MaxPower;
     bool ZeroRuntimeDataIfUnrechable;
     bool ZeroYieldDayOnMidnight;
     bool ClearEventlogOnMidnight;

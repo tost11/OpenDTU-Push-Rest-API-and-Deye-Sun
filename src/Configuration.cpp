@@ -164,6 +164,7 @@ bool ConfigurationClass::write()
         inv["command_enable_night"] = config.Inverter[i].Command_Enable_Night;
         inv["reachable_threshold"] = config.Inverter[i].ReachableThreshold;
         inv["poll_time"] = config.Inverter[i].PollTime;
+        inv["max_power"] = config.Inverter[i].MaxPower;
         inv["zero_runtime"] = config.Inverter[i].ZeroRuntimeDataIfUnrechable;
         inv["zero_day"] = config.Inverter[i].ZeroYieldDayOnMidnight;
         inv["clear_eventlog"] = config.Inverter[i].ClearEventlogOnMidnight;
@@ -392,6 +393,7 @@ bool ConfigurationClass::read()
         config.Inverter[i].Command_Enable_Night = inv["command_enable_night"] | true;
         config.Inverter[i].ReachableThreshold = inv["reachable_threshold"] | REACHABLE_THRESHOLD;
         config.Inverter[i].PollTime = inv["poll_time"] | getDefaultPollTimeForInverterType(config.Inverter[i].Type);
+        config.Inverter[i].MaxPower = inv["max_power"] | 0;
         config.Inverter[i].ZeroRuntimeDataIfUnrechable = inv["zero_runtime"] | false;
         config.Inverter[i].ZeroYieldDayOnMidnight = inv["zero_day"] | false;
         config.Inverter[i].ClearEventlogOnMidnight = inv["clear_eventlog"] | false;
@@ -586,6 +588,7 @@ void ConfigurationClass::deleteInverterById(const uint8_t id)
     config.Inverter[id].Command_Enable_Night = true;
     config.Inverter[id].ReachableThreshold = REACHABLE_THRESHOLD;
     config.Inverter[id].PollTime = 0;
+    config.Inverter[id].MaxPower = 0;
     config.Inverter[id].ZeroRuntimeDataIfUnrechable = false;
     config.Inverter[id].ZeroYieldDayOnMidnight = false;
     config.Inverter[id].YieldDayCorrection = false;

@@ -62,7 +62,7 @@ String HiFlowDevInfo::getHwVersion() const
     return "1.0";
 }
 
-uint16_t HiFlowDevInfo::getMaxPower() const
+uint16_t HiFlowDevInfo::getMaxPowerDevice() const
 {
     return _maxPower;
 }

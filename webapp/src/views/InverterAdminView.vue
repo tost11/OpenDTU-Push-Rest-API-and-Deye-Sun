@@ -418,6 +418,17 @@
                 />
 
                 <InputElement
+                    v-if="(selectedInverterData.manufacturer == 'HoymilesW' || selectedInverterData.manufacturer == 'HiFlowBLE')"
+                    :label="$t('inverteradmin.MaxPower')"
+                    v-model="selectedInverterData.max_power"
+                    type="number"
+                    min="0"
+                    :postfix="$t('inverteradmin.Watt')"
+                    :tooltip="$t('inverteradmin.MaxPowerHint')"
+                    wide
+                />
+
+                <InputElement
                     v-if="(selectedInverterData.manufacturer != 'Hoymiles')"
                     :label="$t('inverteradmin.PollTime')"
                     v-model="selectedInverterData.poll_time"

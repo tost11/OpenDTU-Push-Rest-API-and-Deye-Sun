@@ -1,5 +1,6 @@
 #include "HiFlowBLE.h"
 #include "inverters/HiFlowInverter.h"
+#include "inverters/HF_1CH.h"
 #include "inverters/HF_2CH.h"
 #include "inverters/HF_4CH.h"
 
@@ -32,6 +33,14 @@ void HiFlowBLEClass::loop()
             if (inv->getEnablePolling() || inv->getEnableCommands()) {
                 inv->update();
             }
+
+            // Resend failed commands
+            if (inv->getSystemConfigParaParser()->getLastLimitCommandSuccess() == CMD_NOK) {
+                inv->resendLimitCommand();
+            }
+            if (inv->getPowerCommand()->getLastPowerCommandSuccess() == CMD_NOK) {
+                inv->resendPowerControlRequest();
+            }
         }
     }
 
@@ -42,7 +51,9 @@ std::shared_ptr<HiFlowInverter> HiFlowBLEClass::addInverter(const char* name, ui
 {
     std::shared_ptr<HiFlowInverter> inv;
 
-    if (HF_2CH::isValidSerial(serial)) {
+    if (HF_1CH::isValidSerial(serial)) {
+        inv = std::make_shared<HF_1CH>(serial);
+    } else if (HF_2CH::isValidSerial(serial)) {
         inv = std::make_shared<HF_2CH>(serial);
     } else if (HF_4CH::isValidSerial(serial)) {
         inv = std::make_shared<HF_4CH>(serial);

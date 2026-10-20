@@ -24,7 +24,8 @@
             </tr>
             <tr>
                 <td>{{ $t('devinfo.DetectedMaxPower') }}</td>
-                <td>{{ $n(devInfoList.max_power, 'decimal') }} W</td>
+                <td v-if="devInfoList.max_power > 0">{{ $n(devInfoList.max_power, 'decimal') }} W</td>
+                <td v-else>{{ $t('devinfo.MaxPowerNotSet') }}</td>
             </tr>
             <tr v-if="devInfoList.manufacturer=='Hoymiles'">
                 <td>{{ $t('devinfo.BootloaderVersion') }}</td>

@@ -29,7 +29,7 @@ public:
     uint32_t getHwPartNumber() const override;
     String getHwVersion() const override;
 
-    uint16_t getMaxPower() const override;
+    uint16_t getMaxPowerDevice() const override;
     String getHwModelName() const override;
 
     bool containsValidData() const;

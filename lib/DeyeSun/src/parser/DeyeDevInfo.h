@@ -32,7 +32,7 @@ public:
 
     String getHwVersion() const override;
 
-    uint16_t getMaxPower() const override;
+    uint16_t getMaxPowerDevice() const override;
 
     String getHwModelName() const override;
 

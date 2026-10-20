@@ -68,7 +68,8 @@ void WebApiPowerClass::onPowerPost(AsyncWebServerRequest* request)
 
     if (!(root["serial"].is<String>()
             && (root["power"].is<bool>()
-                || root["restart"].is<bool>()))) {
+                || root["restart"].is<bool>()
+                || root["restart_dtu"].is<bool>()))) {
         retMsg["message"] = "Values are missing!";
         retMsg["code"] = WebApiError::GenericValueMissing;
         WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
@@ -93,7 +94,9 @@ void WebApiPowerClass::onPowerPost(AsyncWebServerRequest* request)
         return;
     }
 
-    if (root["power"].is<bool>()) {
+    if (root["restart_dtu"].is<bool>() && root["restart_dtu"].as<bool>()) {
+        inv->sendDtuRestartRequest();
+    } else if (root["power"].is<bool>()) {
         bool power = root["power"].as<bool>();
         inv->sendPowerControlRequest(power);
     } else {

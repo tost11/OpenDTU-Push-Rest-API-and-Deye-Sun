@@ -169,6 +169,9 @@ void HiFlowBLEInterface::loop()
         // Check if connection was lost during handshake
         if (!_client || !_client->isConnected()) {
             ESP_LOGW(TAG, "Connection lost during handshake, will retry...");
+            if (handshakeFailed()) {
+                _hasEncRand = false;
+            }
             doDisconnect();
             _state = HiFlowBLEState::Idle;
             _lastActionTime = millis();
@@ -177,10 +180,14 @@ void HiFlowBLEInterface::loop()
         }
         if (doHandshake()) {
             ESP_LOGI(TAG, "CommCmd handshake complete");
+            _handshakeFailCount = 0;
             _state = HiFlowBLEState::Ready;
             _lastActionTime = millis();
         } else if (millis() - _lastActionTime > HANDSHAKE_TIMEOUT) {
             ESP_LOGE(TAG, "Handshake timeout");
+            if (handshakeFailed()) {
+                _hasEncRand = false;
+            }
             _state = HiFlowBLEState::Error;
             _lastActionTime = millis();
         }
@@ -202,6 +209,15 @@ void HiFlowBLEInterface::loop()
         // Check if connection was lost while waiting for response
         if (!_client || !_client->isConnected()) {
             ESP_LOGW(TAG, "BLE connection lost (requesting), will reconnect...");
+            if (_pendingRequest == PendingRequest::ControlCmd) {
+                _pendingRequest = PendingRequest::None;
+                _commandResultValid = true;
+                _commandSuccess = false;
+            } else if (_pendingRequest == PendingRequest::GetConfig) {
+                _pendingRequest = PendingRequest::None;
+                _configResultValid = true;
+                _configSuccess = false;
+            }
             doDisconnect();
             _state = HiFlowBLEState::Idle;
             _lastActionTime = millis();
@@ -213,7 +229,16 @@ void HiFlowBLEInterface::loop()
             processReceivedFrame();
             _frameComplete = false;
         } else if (now - _lastActionTime > REQUEST_TIMEOUT) {
-            ESP_LOGW(TAG, "Data request timeout");
+            ESP_LOGW(TAG, "Request timeout");
+            if (_pendingRequest == PendingRequest::ControlCmd) {
+                _pendingRequest = PendingRequest::None;
+                _commandResultValid = true;
+                _commandSuccess = false;
+            } else if (_pendingRequest == PendingRequest::GetConfig) {
+                _pendingRequest = PendingRequest::None;
+                _configResultValid = true;
+                _configSuccess = false;
+            }
             _state = HiFlowBLEState::Ready; // Go back to ready for retry
             _lastActionTime = now;
         }
@@ -259,6 +284,85 @@ HiFlowRealData HiFlowBLEInterface::getLatestData()
 {
     _newDataAvailable = false;
     return _latestData;
+}
+
+bool HiFlowBLEInterface::sendControlCommand(uint8_t action, const char* data, uint64_t miSn, uint8_t devKind)
+{
+    if (_state != HiFlowBLEState::Ready) {
+        return false;
+    }
+
+    uint8_t reqBuf[64];
+    size_t reqLen = buildControlCommand(reqBuf, action, data, miSn, devKind);
+
+    uint16_t tid = nextTid();
+    std::vector<uint8_t> frame;
+    if (!HiFlowProtocol::buildFrameV1(_encRand, HiFlowProtocol::CMD_COMMAND_RES_DTO, tid, reqBuf, reqLen, frame)) {
+        return false;
+    }
+
+    _rxBuffer.clear();
+    _frameComplete = false;
+    _expectedRxSize = 0;
+
+    if (!sendFrame(frame)) {
+        return false;
+    }
+
+    _pendingRequest = PendingRequest::ControlCmd;
+    _state = HiFlowBLEState::Requesting;
+    _lastActionTime = millis();
+    ESP_LOGI(TAG, "Control command sent (action %u)", action);
+    return true;
+}
+
+bool HiFlowBLEInterface::getCommandResult(bool& success)
+{
+    if (!_commandResultValid) {
+        return false;
+    }
+    success = _commandSuccess;
+    _commandResultValid = false;
+    return true;
+}
+
+bool HiFlowBLEInterface::requestGetConfig()
+{
+    if (_state != HiFlowBLEState::Ready) {
+        return false;
+    }
+
+    uint8_t reqBuf[32];
+    size_t reqLen = buildGetConfigRequest(reqBuf);
+
+    uint16_t tid = nextTid();
+    std::vector<uint8_t> frame;
+    if (!HiFlowProtocol::buildFrameV1(_encRand, HiFlowProtocol::CMD_GET_CONFIG, tid, reqBuf, reqLen, frame)) {
+        return false;
+    }
+
+    _rxBuffer.clear();
+    _frameComplete = false;
+    _expectedRxSize = 0;
+
+    if (!sendFrame(frame)) {
+        return false;
+    }
+
+    _pendingRequest = PendingRequest::GetConfig;
+    _state = HiFlowBLEState::Requesting;
+    _lastActionTime = millis();
+    return true;
+}
+
+bool HiFlowBLEInterface::getConfigResult(int16_t& limitLevel)
+{
+    if (!_configResultValid) {
+        return false;
+    }
+    limitLevel = _configSuccess ? _configLimitLevel : 0;
+    _configResultValid = false;
+    return true;
 }
 
 void HiFlowBLEInterface::disconnect()
@@ -423,6 +527,18 @@ bool HiFlowBLEInterface::sendFrame(const std::vector<uint8_t>& frame)
 
     // Write with response (true) — device requires acknowledged writes for encrypted frames
     return _txChar->writeValue(frame.data(), frame.size(), true);
+}
+
+bool HiFlowBLEInterface::handshakeFailed()
+{
+    // After repeated handshake failures (device drops the V1 login), the cached
+    // encRand is likely stale (e.g. after a DTU/BLE module reboot) -> re-pair.
+    if (++_handshakeFailCount >= 2) {
+        _handshakeFailCount = 0;
+        ESP_LOGW(TAG, "Handshake failed repeatedly, dropping encRand and re-pairing (V0)");
+        return true;
+    }
+    return false;
 }
 
 // ── V0 Pairing ───────────────────────────────────────────────────────────────
@@ -961,14 +1077,92 @@ bool HiFlowBLEInterface::doRequestRealData(uint8_t page)
     return sendFrame(frame);
 }
 
+size_t HiFlowBLEInterface::buildControlCommand(uint8_t* buf, uint8_t action, const char* data, uint64_t miSn, uint8_t devKind)
+{
+    // CommandResDTO:
+    // field 1 (varint): time (unix timestamp)
+    // field 2 (varint): action
+    // field 3 (varint): dev_kind (optional, DEV_KIND_DTU for inverter targeted commands)
+    // field 4 (varint): package_nub = 1
+    // field 6 (varint): tid (unix timestamp)
+    // field 7 (string): data (optional)
+    // field 9 (varint): mi_to_sn (optional, inverter serial)
+
+    time_t now = time(nullptr);
+
+    size_t pos = 0;
+    pos += HiFlowProtocol::pbEncodeVarintField(buf + pos, 1, (uint64_t)now);
+    pos += HiFlowProtocol::pbEncodeVarintField(buf + pos, 2, action);
+    if (devKind != 0) {
+        pos += HiFlowProtocol::pbEncodeVarintField(buf + pos, 3, devKind);
+    }
+    pos += HiFlowProtocol::pbEncodeVarintField(buf + pos, 4, 1);
+    pos += HiFlowProtocol::pbEncodeVarintField(buf + pos, 6, (uint64_t)now);
+    if (data != nullptr && data[0] != '\0') {
+        pos += HiFlowProtocol::pbEncodeBytesField(buf + pos, 7, (const uint8_t*)data, strlen(data));
+    }
+    if (miSn != 0) {
+        pos += HiFlowProtocol::pbEncodeVarintField(buf + pos, 9, miSn);
+    }
+    return pos;
+}
+
+bool HiFlowBLEInterface::parseCommandAck(const uint8_t* data, size_t len)
+{
+    // CommandReqDTO:
+    // field 5 (varint): err_code (0 = ok, omitted on wire when 0)
+    uint64_t errCode = 0;
+    if (HiFlowProtocol::pbFindVarintField(data, len, 5, errCode)) {
+        return errCode == 0;
+    }
+    return true;
+}
+
+size_t HiFlowBLEInterface::buildGetConfigRequest(uint8_t* buf)
+{
+    // GetConfigResDTO:
+    // field 1 (varint): offset (local timezone offset in seconds)
+    // field 2 (varint): time (unix timestamp)
+
+    time_t now = time(nullptr);
+    struct tm utc;
+    gmtime_r(&now, &utc);
+    long gmtoff = (long)(now - mktime(&utc)); // local timezone offset in seconds
+
+    size_t pos = 0;
+    pos += HiFlowProtocol::pbEncodeVarintField(buf + pos, 1, (uint64_t)(int64_t)gmtoff);
+    pos += HiFlowProtocol::pbEncodeVarintField(buf + pos, 2, (uint64_t)(now - 60));
+    return pos;
+}
+
+bool HiFlowBLEInterface::parseGetConfigResponse(const uint8_t* data, size_t len)
+{
+    // GetConfigReqDTO:
+    // field 5 (varint): limit_power_mypower (% * 10, 0 = no limit)
+    uint64_t val = 0;
+    if (HiFlowProtocol::pbFindVarintField(data, len, 5, val)) {
+        _configLimitLevel = (int16_t)val;
+    }
+    return true;
+}
+
 void HiFlowBLEInterface::processReceivedFrame()
 {
     uint16_t respCmd, respTid;
     std::vector<uint8_t> plaintext;
 
     if (!HiFlowProtocol::parseFrameV1(_encRand, _rxBuffer.data(), _rxBuffer.size(), respCmd, respTid, plaintext)) {
-        ESP_LOGW(TAG, "Failed to decrypt data response (encRand stale?)");
+        ESP_LOGW(TAG, "Failed to decrypt response (encRand stale?)");
         _rxBuffer.clear();
+        if (_pendingRequest == PendingRequest::ControlCmd) {
+            _pendingRequest = PendingRequest::None;
+            _commandResultValid = true;
+            _commandSuccess = false;
+        } else if (_pendingRequest == PendingRequest::GetConfig) {
+            _pendingRequest = PendingRequest::None;
+            _configResultValid = true;
+            _configSuccess = false;
+        }
         _state = HiFlowBLEState::Error;
         _hasEncRand = false; // Force re-pairing
         return;
@@ -976,7 +1170,43 @@ void HiFlowBLEInterface::processReceivedFrame()
 
     _rxBuffer.clear();
 
-    // Expected response cmd = request cmd - 0x0100
+    // Response cmd = request cmd - 0x0100
+    if (_pendingRequest == PendingRequest::ControlCmd) {
+        uint16_t expectedCmd = HiFlowProtocol::CMD_COMMAND_RES_DTO - HiFlowProtocol::CMD_RESPONSE_OFFSET;
+        if (respCmd != expectedCmd) {
+            ESP_LOGW(TAG, "Unexpected response cmd: 0x%04X (expected 0x%04X)", respCmd, expectedCmd);
+            _pendingRequest = PendingRequest::None;
+            _commandResultValid = true;
+            _commandSuccess = false;
+            _state = HiFlowBLEState::Ready;
+            return;
+        }
+        _commandSuccess = parseCommandAck(plaintext.data(), plaintext.size());
+        _pendingRequest = PendingRequest::None;
+        _commandResultValid = true;
+        _state = HiFlowBLEState::Ready;
+        ESP_LOGI(TAG, "Control command %s", _commandSuccess ? "ACK ok" : "ACK error");
+        return;
+    }
+
+    if (_pendingRequest == PendingRequest::GetConfig) {
+        uint16_t expectedCmd = HiFlowProtocol::CMD_GET_CONFIG - HiFlowProtocol::CMD_RESPONSE_OFFSET;
+        if (respCmd != expectedCmd) {
+            ESP_LOGW(TAG, "Unexpected response cmd: 0x%04X (expected 0x%04X)", respCmd, expectedCmd);
+            _pendingRequest = PendingRequest::None;
+            _configResultValid = true;
+            _configSuccess = false;
+            _state = HiFlowBLEState::Ready;
+            return;
+        }
+        _configSuccess = parseGetConfigResponse(plaintext.data(), plaintext.size());
+        _pendingRequest = PendingRequest::None;
+        _configResultValid = true;
+        _state = HiFlowBLEState::Ready;
+        ESP_LOGI(TAG, "GetConfig received: power limit %d (%%x10)", _configLimitLevel);
+        return;
+    }
+
     uint16_t expectedCmd = HiFlowProtocol::CMD_REAL_RES_DTO - HiFlowProtocol::CMD_RESPONSE_OFFSET;
     if (respCmd != expectedCmd) {
         ESP_LOGW(TAG, "Unexpected response cmd: 0x%04X (expected 0x%04X)", respCmd, expectedCmd);
@@ -1062,6 +1292,12 @@ bool HiFlowBLEInterface::parseRealDataNewResponse(const uint8_t* data, size_t le
                     _latestData.acPowerFactor = (int16_t)val;
                 if (HiFlowProtocol::pbFindVarintField(sgs, sgsLen, 9, val))
                     _latestData.temperature = (int16_t)val;
+                if (HiFlowProtocol::pbFindVarintField(sgs, sgsLen, 10, val))
+                    _latestData.warningNumber = (int32_t)val;
+                if (HiFlowProtocol::pbFindVarintField(sgs, sgsLen, 12, val))
+                    _latestData.linkStatus = (int32_t)val;
+                if (HiFlowProtocol::pbFindVarintField(sgs, sgsLen, 1, val))
+                    _latestData.inverterSerial = val;
             } else if (fieldNum == 11 && (pos + fieldLen) <= len) {
                 // PvMO sub-message
                 const uint8_t* pv = data + pos;

@@ -22,6 +22,8 @@ public:
     bool resendPowerControlRequest() override;
     bool sendRestartControlRequest() override;
     bool sendPowerControlRequest(bool turnOn) override;
+    bool sendDtuRestartRequest() override;
+    bool resendLimitCommand();
     inverter_type getInverterType() const override;
     void resetStats() override;
     bool supportsPowerDistributionLogic() override;
@@ -43,6 +45,25 @@ private:
     uint64_t _serial;
     HiFlowBLEInterface _bleInterface;
     TimeoutHelper _pollTimer;
+
+    // Queued control command (one slot, mirrors the single in-flight BLE request)
+    enum class PendingCmd : uint8_t { None, Limit, Power, Restart, DtuRestart };
+    PendingCmd _pendingCmd = PendingCmd::None;    // last requested command type
+    PendingCmd _cmdInFlightType = PendingCmd::None; // type of the command waiting for ACK
+    uint16_t _limitLevel = 0;                     // for Limit: percent * 10 (20..1000)
+    bool _powerCmdTurnOn = false;                 // for Power: true = on
+    bool _cmdQueued = false;                      // waiting to be sent
+    bool _cmdInFlight = false;                    // sent, waiting for ACK
+    uint32_t _lastCmdTime = 0;                    // pacing for resends
+    static constexpr uint32_t CMD_RETRY_INTERVAL_MS = 10000;
+
+    // Power limit read (via GetConfig after each poll)
+    bool _needGetConfig = false;
+    bool _configRequestInFlight = false;
+
+    // Inverter serial as reported by RealDataNew (SGSMO) - required for mi_to_sn,
+    // differs from the BLE name serial stored in the config
+    uint64_t _inverterSerial = 0;
 
     void processNewData(const HiFlowRealData& data);
 };

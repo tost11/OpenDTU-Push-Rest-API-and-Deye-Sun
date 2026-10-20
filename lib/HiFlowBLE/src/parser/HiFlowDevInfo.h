@@ -19,7 +19,7 @@ public:
     String getFwBuildDateTimeStr() const override;
     uint32_t getHwPartNumber() const override;
     String getHwVersion() const override;
-    uint16_t getMaxPower() const override;
+    uint16_t getMaxPowerDevice() const override;
     String getHwModelName() const override;
 
     void setHardwareModel(const String& model);
@@ -28,6 +28,6 @@ public:
 
 private:
     String _hardwareModel = "HiFlow Pro";
-    uint16_t _maxPower = 800; // Default for HMS-800-2WB
+    uint16_t _maxPower = 0; // 0 = unknown; set via user override (Advanced > Max power)
     uint32_t _lastUpdate = 0;
 };

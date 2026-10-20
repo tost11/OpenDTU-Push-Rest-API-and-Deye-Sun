@@ -58,7 +58,6 @@ HF_4CH::HF_4CH(uint64_t serial)
     : HiFlowInverter(serial)
 {
     _devInfoParser->setHardwareModel("HMS-1600-4WB");
-    _devInfoParser->setMaxPower(1600);
     _statisticsParser->setByteAssignment(byteAssignment_HF_4CH,
                                          sizeof(byteAssignment_HF_4CH) / sizeof(byteAssignment_HF_4CH[0]));
 }

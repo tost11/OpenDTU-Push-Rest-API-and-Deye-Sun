@@ -98,6 +98,8 @@ void WebApiInverterClass::onInverterList(AsyncWebServerRequest* request)
                 max_channels = inv->getStatistics()->getChannelsByType(TYPE_DC).size();
             }
 
+            obj["max_power"] = (inv != nullptr) ? inv->getDevInfo()->getMaxPower() : config.Inverter[i].MaxPower;
+
             JsonArray channel = obj["channel"].to<JsonArray>();
             for (uint8_t c = 0; c < max_channels; c++) {
                 JsonObject chanData = channel.add<JsonObject>();
@@ -239,6 +241,7 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
         inverter->Type = inverter_type::Inverter_HiFlowBLE;
     }
     inverter->PollTime = getDefaultPollTimeForInverterType(inverter->Type);
+    inverter->MaxPower = 0;
     inverter->MoreInverterInfo = root["deye_type"].as<uint16_t>() | 0;
 
     WebApi.writeConfig(retMsg, WebApiError::InverterAdded, "Inverter created!");
@@ -436,6 +439,7 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
         inverter.Command_Enable_Night = root["command_enable_night"] | true;
         inverter.ReachableThreshold = root["reachable_threshold"] | REACHABLE_THRESHOLD;
         inverter.PollTime = root["poll_time"] | getDefaultPollTimeForInverterType(inverter.Type);
+        inverter.MaxPower = root["max_power"] | 0;
         inverter.ZeroRuntimeDataIfUnrechable = root["zero_runtime"] | false;
         inverter.ZeroYieldDayOnMidnight = root["zero_day"] | false;
         inverter.ClearEventlogOnMidnight = root["clear_eventlog"] | false;
@@ -548,6 +552,7 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
         inv->setEnableCommands(inverter.Command_Enable);
         inv->setReachableThreshold(inverter.ReachableThreshold);
         inv->setPollTime(inverter.PollTime);
+        inv->getDevInfo()->setMaxPowerOverride(inverter.MaxPower);
         inv->setZeroValuesIfUnreachable(inverter.ZeroRuntimeDataIfUnrechable);
         inv->setZeroYieldDayOnMidnight(inverter.ZeroYieldDayOnMidnight);
         inv->setClearEventlogOnMidnight(inverter.ClearEventlogOnMidnight);

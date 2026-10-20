@@ -85,6 +85,7 @@ void InverterSettingsClass::init(Scheduler& scheduler)
             }
 
             inv->setPollTime(config.Inverter[i].PollTime);
+            inv->getDevInfo()->setMaxPowerOverride(config.Inverter[i].MaxPower);
             inv->setReachableThreshold(config.Inverter[i].ReachableThreshold);
             inv->setZeroValuesIfUnreachable(config.Inverter[i].ZeroRuntimeDataIfUnrechable);
             inv->setZeroYieldDayOnMidnight(config.Inverter[i].ZeroYieldDayOnMidnight);
@@ -168,6 +169,7 @@ void InverterSettingsClass::init(Scheduler& scheduler)
             }
 
             inv->setReachableThreshold(inv_cfg.ReachableThreshold);
+            inv->getDevInfo()->setMaxPowerOverride(inv_cfg.MaxPower);
             inv->setZeroValuesIfUnreachable(inv_cfg.ZeroRuntimeDataIfUnrechable);
             inv->setZeroYieldDayOnMidnight(inv_cfg.ZeroYieldDayOnMidnight);
             inv->setClearEventlogOnMidnight(inv_cfg.ClearEventlogOnMidnight);
@@ -214,6 +216,7 @@ void InverterSettingsClass::init(Scheduler& scheduler)
             }
 
             inv->setPollTime(config.Inverter[i].PollTime);
+            inv->getDevInfo()->setMaxPowerOverride(config.Inverter[i].MaxPower);
             inv->setReachableThreshold(config.Inverter[i].ReachableThreshold);
             inv->setZeroValuesIfUnreachable(config.Inverter[i].ZeroRuntimeDataIfUnrechable);
             inv->setZeroYieldDayOnMidnight(config.Inverter[i].ZeroYieldDayOnMidnight);
@@ -257,6 +260,7 @@ void InverterSettingsClass::init(Scheduler& scheduler)
             }
 
             inv->setPollTime(inv_cfg.PollTime);
+            inv->getDevInfo()->setMaxPowerOverride(inv_cfg.MaxPower);
             inv->setReachableThreshold(inv_cfg.ReachableThreshold);
             inv->setZeroValuesIfUnreachable(inv_cfg.ZeroRuntimeDataIfUnrechable);
             inv->setZeroYieldDayOnMidnight(inv_cfg.ZeroYieldDayOnMidnight);

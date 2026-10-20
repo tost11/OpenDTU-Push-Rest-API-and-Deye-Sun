@@ -43,6 +43,8 @@ public:
     virtual bool resendPowerControlRequest() = 0;
     virtual bool sendRestartControlRequest() = 0;
     virtual bool sendPowerControlRequest(const bool turnOn) = 0;
+    // Restart of the communication module (DTU) - not supported by all inverter types
+    virtual bool sendDtuRestartRequest() { return false; }
     virtual inverter_type getInverterType() const = 0;
     virtual void resetStats() = 0;
 protected:

@@ -44,6 +44,8 @@ struct HiFlowRealData {
     uint16_t acCurrent = 0;       // A * 100
     int16_t  acPowerFactor = 0;   // * 1000
     int16_t  temperature = 0;     // C * 10
+    int32_t  warningNumber = 0;   // warning/alarm code (0 = none)
+    int32_t  linkStatus = 0;      // inverter state indicator
 
     // DC side (from PvMO, up to 4 ports)
     struct PvPort {
@@ -55,7 +57,7 @@ struct HiFlowRealData {
     } pv[4];
     uint8_t pvCount = 0;
 
-    uint64_t inverterSerial = 0;
+    uint64_t inverterSerial = 0; // inverter serial from SGSMO (differs from BLE name serial)
     uint32_t timestamp = 0;
     bool valid = false;
 };
@@ -108,6 +110,37 @@ public:
     HiFlowRealData getLatestData();
 
     /**
+     * Send a control command (0xA305).
+     * @param action action code (HiFlowProtocol::ACTION_*)
+     * @param data data string (CommandResDTO field 7, may be empty)
+     * @param miSn inverter serial for mi_to_sn (field 9, 0 = omit)
+     * @param devKind dev_kind (field 3, 0 = omit; DEV_KIND_DTU for inverter targeted commands)
+     * Returns true if the command frame was sent.
+     * The interface transitions to Requesting; result via getCommandResult().
+     */
+    bool sendControlCommand(uint8_t action, const char* data, uint64_t miSn, uint8_t devKind = 0);
+
+    /**
+     * Get the result of the last command and clear the result flag.
+     * @param success set to true on ACK with err_code 0, false on error/timeout
+     * Returns true if a result was pending.
+     */
+    bool getCommandResult(bool& success);
+
+    /**
+     * Request inverter config (0xA309 GetConfig).
+     * The interface transitions to Requesting; result via getConfigResult().
+     */
+    bool requestGetConfig();
+
+    /**
+     * Get the result of the last GetConfig request and clear the result flag.
+     * @param limitLevel set to power limit in % * 10 (0 = no limit)
+     * Returns true if a result was pending.
+     */
+    bool getConfigResult(int16_t& limitLevel);
+
+    /**
      * Connection state.
      */
     HiFlowBLEState getState() const { return _state; }
@@ -151,6 +184,7 @@ private:
 
     // Handshake state
     uint8_t _handshakeStep = 0;
+    uint8_t _handshakeFailCount = 0; // consecutive failures; after 2 -> force V0 re-pairing (stale encRand)
     uint8_t _pollCount = 0;
 
     // Data
@@ -158,6 +192,19 @@ private:
     bool _newDataAvailable = false;
     uint8_t _currentPage = 0;
     uint8_t _totalPages = 0;
+
+    // Outbound request tracking (only one request in flight at a time)
+    enum class PendingRequest : uint8_t { None, ControlCmd, GetConfig };
+    PendingRequest _pendingRequest = PendingRequest::None;
+
+    // Command (power limit) result
+    bool _commandResultValid = false;
+    bool _commandSuccess = false;
+
+    // GetConfig result
+    bool _configResultValid = false;
+    bool _configSuccess = false;
+    int16_t _configLimitLevel = 0; // % * 10 (0 = no limit)
 
     // Timing
     uint32_t _lastActionTime = 0;
@@ -173,6 +220,8 @@ private:
     bool doConnect();
     void doDisconnect();
     bool doSendPairingRequest();
+    // Returns true if the cached encRand should be dropped (V0 re-pairing needed)
+    bool handshakeFailed();
     bool processPairingResponse();
     bool doHandshake();
     bool doRequestRealData(uint8_t page);
@@ -198,4 +247,12 @@ private:
     size_t buildAppInfoRequest(uint8_t* buf);
     // RealDataNew request building
     size_t buildRealDataNewRequest(uint8_t* buf, uint8_t page);
+
+    // Control command building (CommandResDTO)
+    size_t buildControlCommand(uint8_t* buf, uint8_t action, const char* data, uint64_t miSn, uint8_t devKind);
+    bool parseCommandAck(const uint8_t* data, size_t len);
+
+    // GetConfig request building (GetConfigResDTO) and response parsing
+    size_t buildGetConfigRequest(uint8_t* buf);
+    bool parseGetConfigResponse(const uint8_t* data, size_t len);
 };

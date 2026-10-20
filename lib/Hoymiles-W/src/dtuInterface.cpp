@@ -963,9 +963,9 @@ boolean DTUInterface::writeReqCommand(uint8_t setPercent)
     { // reducing to 2 % -> 100%
         limitLevel = 1000;
     }
-    if (limitLevel < 20)
+    if (limitLevel < 10)
     {
-        limitLevel = 20;
+        limitLevel = 10;
     }
 
     // request message
