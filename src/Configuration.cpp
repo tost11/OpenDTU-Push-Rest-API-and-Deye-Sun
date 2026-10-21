@@ -171,6 +171,7 @@ bool ConfigurationClass::write()
         inv["yieldday_correction"] = config.Inverter[i].YieldDayCorrection;
         inv["deye_sun_offline_yieldday_correction"] = config.Inverter[i].DeyeSunOfflineYieldDayCorrection;
         inv["more_inverter_info"] = config.Inverter[i].MoreInverterInfo;
+        inv["inverter_model"] = config.Inverter[i].InverterModel;
         inv["username"] = config.Inverter[i].Username;
         inv["password"] = config.Inverter[i].Password;
 
@@ -385,6 +386,7 @@ bool ConfigurationClass::read()
         config.Inverter[i].Port = inv["port"] | 0;
         config.Inverter[i].Type = inv["type"] | inverter_type::Inverter_Hoymiles;
         config.Inverter[i].MoreInverterInfo = inv["more_inverter_info"] | 0;
+        config.Inverter[i].InverterModel = inv["inverter_model"] | 0;
 
         config.Inverter[i].Poll_Enable = inv["poll_enable"] | true;
         config.Inverter[i].Poll_Enable = inv["poll_enable"] | true;

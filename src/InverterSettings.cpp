@@ -78,7 +78,8 @@ void InverterSettingsClass::init(Scheduler& scheduler)
                     config.Inverter[i].Port,
                     (deye_inverter_type)config.Inverter[i].MoreInverterInfo,
                     config.Inverter[i].Username,
-                    config.Inverter[i].Password);
+                    config.Inverter[i].Password,
+                    config.Inverter[i].InverterModel);
             if (inv == nullptr) {
                 ESP_LOGW(TAG, "Adding inverter failed: Unsupported type");
                 continue;
@@ -209,7 +210,8 @@ void InverterSettingsClass::init(Scheduler& scheduler)
                     config.Inverter[i].Name,
                     config.Inverter[i].Serial,
                     config.Inverter[i].HostnameOrIp,
-                    config.Inverter[i].Port);
+                    config.Inverter[i].Port,
+                    config.Inverter[i].InverterModel);
             if (inv == nullptr) {
                 ESP_LOGW(TAG, "Adding inverter failed: Unsupported type");
                 continue;
@@ -253,7 +255,8 @@ void InverterSettingsClass::init(Scheduler& scheduler)
             auto inv = HiFlowBle.addInverter(
                     inv_cfg.Name,
                     inv_cfg.Serial,
-                    inv_cfg.Password); // BLE PIN
+                    inv_cfg.Password, // BLE PIN
+                    inv_cfg.InverterModel);
             if (inv == nullptr) {
                 ESP_LOGW(TAG, "Adding HiFlow BLE inverter failed");
                 continue;

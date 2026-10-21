@@ -357,6 +357,18 @@
                 aria-labelledby="nav-advanced-tab"
                 tabindex="0"
             >
+                <div v-if="inverterModels[selectedInverterData.manufacturer]" class="mb-3">
+                    <label>{{ $t('inverteradmin.InverterModel') }}
+                        <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterModelHint')" />
+                    </label>
+                    <select class="form-select" v-model="selectedInverterData.inverter_model">
+                        <option :value="0">{{ $t('inverteradmin.Auto') }}</option>
+                        <option v-for="model in inverterModels[selectedInverterData.manufacturer]" :key="model.value" :value="model.value">
+                            {{ model.text }}
+                        </option>
+                    </select>
+                </div>
+
                 <InputElement
                     :label="$t('inverteradmin.ReachableThreshold')"
                     v-model="selectedInverterData.reachable_threshold"
@@ -549,7 +561,7 @@ export default defineComponent({
         return {
             modal: {} as bootstrap.Modal,
             modalDelete: {} as bootstrap.Modal,
-            newInverterData: {serial: "",manufacturer:"Hoymiles",port:0,hostname_or_ip:"",deye_type:0,username:"admin",password:"123456"} as Inverter,//deye 48899
+            newInverterData: {serial: "",manufacturer:"Hoymiles",port:0,hostname_or_ip:"",deye_type:0,inverter_model:0,username:"admin",password:"123456"} as Inverter,//deye 48899
             selectedInverterData: { serial: '' } as Inverter,
             inverters: [] as Inverter[],
             manufacturers: [] as string[],
@@ -560,7 +572,24 @@ export default defineComponent({
               { text: 'AT-Commands', value: 0 },
               { text: 'Modbus Custom Implementation', value: 1 },
               //{ text: 'Modbus', value: '2' }
-            ]
+            ],
+            inverterModels: {
+              HoymilesW: [
+                { text: '1T', value: 1 },
+                { text: '2T', value: 2 },
+                { text: '4T', value: 3 },
+              ],
+              HiFlowBLE: [
+                { text: 'HMS-800-1WB', value: 1 },
+                { text: 'HF-800-WB', value: 2 },
+                { text: 'HMS-800-2WB', value: 3 },
+                { text: 'HMS-1600-4WB', value: 4 },
+              ],
+              DeyeSun: [
+                { text: '1CH', value: 1 },
+                { text: '2CH', value: 2 },
+              ],
+            } as { [manufacturer: string]: { text: string; value: number }[] }
         };
     },
     mounted() {

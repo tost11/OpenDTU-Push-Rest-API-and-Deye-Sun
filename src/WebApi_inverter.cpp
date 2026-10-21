@@ -65,6 +65,7 @@ void WebApiInverterClass::onInverterList(AsyncWebServerRequest* request)
             if(config.Inverter[i].Type == inverter_type::Inverter_DeyeSun){
                 obj["deye_type"] = config.Inverter[i].MoreInverterInfo;
             }
+            obj["inverter_model"] = config.Inverter[i].InverterModel;
 
             // Inverter Serial is read as HEX
             char buffer[sizeof(uint64_t) * 8 + 1];
@@ -243,6 +244,7 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
     inverter->PollTime = getDefaultPollTimeForInverterType(inverter->Type);
     inverter->MaxPower = 0;
     inverter->MoreInverterInfo = root["deye_type"].as<uint16_t>() | 0;
+    inverter->InverterModel = root["inverter_model"] | 0;
 
     WebApi.writeConfig(retMsg, WebApiError::InverterAdded, "Inverter created!");
 
@@ -271,17 +273,18 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
             inverter->Port,
             (deye_inverter_type)inverter->MoreInverterInfo,
             inverter->Username,
-            inverter->Password));
+            inverter->Password,
+            inverter->InverterModel));
     }
     #endif
     #if HOYMILES_W
     if(root["manufacturer"].as<String>() == from_inverter_type(inverter_type::Inverter_HoymilesW)){
-        inv = std::reinterpret_pointer_cast<BaseInverterClass>(HoymilesW.addInverter(inverter->Name, inverter->Serial,inverter->HostnameOrIp,inverter->Port));
+        inv = std::reinterpret_pointer_cast<BaseInverterClass>(HoymilesW.addInverter(inverter->Name, inverter->Serial,inverter->HostnameOrIp,inverter->Port,inverter->InverterModel));
     }
     #endif
     #if HIFLOW_BLE
     if(root["manufacturer"].as<String>() == from_inverter_type(inverter_type::Inverter_HiFlowBLE)){
-        inv = std::reinterpret_pointer_cast<BaseInverterClass>(HiFlowBle.addInverter(inverter->Name, inverter->Serial, inverter->Password));
+        inv = std::reinterpret_pointer_cast<BaseInverterClass>(HiFlowBle.addInverter(inverter->Name, inverter->Serial, inverter->Password, inverter->InverterModel));
     }
     #endif
 
@@ -389,6 +392,7 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
 
     uint64_t old_serial = 0;
     int32_t old_more_inverter_info = -1;
+    int32_t old_inverter_model = -1;
 
     {
         auto guard = Configuration.getWriteGuard();
@@ -413,6 +417,7 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
 
         old_serial = inverter.Serial;
         old_more_inverter_info = inverter.MoreInverterInfo;
+        old_inverter_model = inverter.InverterModel;
         inverter.Serial = new_serial;
         strncpy(inverter.Name, root["name"].as<String>().c_str(), INV_MAX_NAME_STRLEN);
 
@@ -454,6 +459,7 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
             arrayCount++;
         }
         inverter.AcYieldTotalOffset = root["ac_yield_total_offset"] | 0.0f;
+        inverter.InverterModel = root["inverter_model"] | 0;
     }
 
     WebApi.writeConfig(retMsg, WebApiError::InverterChanged, "Inverter changed!");
@@ -463,7 +469,7 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
     INVERTER_CONFIG_T const& inverter = Configuration.get().Inverter[root["id"].as<uint8_t>()];
     std::shared_ptr<BaseInverterClass> inv = InverterHandler.getInverterBySerial(old_serial,inverter.Type);
 
-    if (inv != nullptr && ( new_serial != old_serial || (inverter.Type == inverter_type::Inverter_DeyeSun && old_more_inverter_info != inverter.MoreInverterInfo))) {
+    if (inv != nullptr && ( new_serial != old_serial || old_inverter_model != inverter.InverterModel || (inverter.Type == inverter_type::Inverter_DeyeSun && old_more_inverter_info != inverter.MoreInverterInfo))) {
         // Valid inverter exists but serial changed --> remove it and insert new one
         // or inverter is deye sun and DeyeInverterType Changed
         InverterHandler.removeInverterBySerial(old_serial,inverter.Type);
@@ -481,17 +487,18 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
                 inverter.Port,
                 (deye_inverter_type)inverter.MoreInverterInfo,
                 inverter.Username,
-                inverter.Password));
+                inverter.Password,
+                inverter.InverterModel));
         }
         #endif
         #if HOYMILES_W
         if(inverter.Type == inverter_type::Inverter_HoymilesW){
-            inv = std::reinterpret_pointer_cast<BaseInverterClass>(HoymilesW.addInverter(inverter.Name, inverter.Serial,inverter.HostnameOrIp,inverter.Port));
+            inv = std::reinterpret_pointer_cast<BaseInverterClass>(HoymilesW.addInverter(inverter.Name, inverter.Serial,inverter.HostnameOrIp,inverter.Port,inverter.InverterModel));
         }
         #endif
         #if HIFLOW_BLE
         if(inverter.Type == inverter_type::Inverter_HiFlowBLE){
-            inv = std::reinterpret_pointer_cast<BaseInverterClass>(HiFlowBle.addInverter(inverter.Name, inverter.Serial, inverter.Password));
+            inv = std::reinterpret_pointer_cast<BaseInverterClass>(HiFlowBle.addInverter(inverter.Name, inverter.Serial, inverter.Password, inverter.InverterModel));
         }
         #endif
     } else if (inv != nullptr && new_serial == old_serial) {
@@ -532,17 +539,18 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
                 inverter.Port,
                 (deye_inverter_type)inverter.MoreInverterInfo,
                 inverter.Username,
-                inverter.Password));
+                inverter.Password,
+                inverter.InverterModel));
         }
         #endif
         #if HOYMILES_W
         if(inverter.Type == inverter_type::Inverter_HoymilesW){
-            inv = std::reinterpret_pointer_cast<BaseInverterClass>(HoymilesW.addInverter(inverter.Name, inverter.Serial,inverter.HostnameOrIp,inverter.Port));
+            inv = std::reinterpret_pointer_cast<BaseInverterClass>(HoymilesW.addInverter(inverter.Name, inverter.Serial,inverter.HostnameOrIp,inverter.Port,inverter.InverterModel));
         }
         #endif
         #if HIFLOW_BLE
         if(inverter.Type == inverter_type::Inverter_HiFlowBLE){
-            inv = std::reinterpret_pointer_cast<BaseInverterClass>(HiFlowBle.addInverter(inverter.Name, inverter.Serial, inverter.Password));
+            inv = std::reinterpret_pointer_cast<BaseInverterClass>(HiFlowBle.addInverter(inverter.Name, inverter.Serial, inverter.Password, inverter.InverterModel));
         }
         #endif
     }

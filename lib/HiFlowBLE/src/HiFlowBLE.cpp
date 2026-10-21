@@ -48,22 +48,38 @@ void HiFlowBLEClass::loop()
     performHouseKeeping();
 }
 
-std::shared_ptr<HiFlowInverter> HiFlowBLEClass::addInverter(const char* name, uint64_t serial, const char* pin)
+std::shared_ptr<HiFlowInverter> HiFlowBLEClass::addInverter(const char* name, uint64_t serial, const char* pin, int32_t model)
 {
     std::shared_ptr<HiFlowInverter> inv;
 
-    if (HF_1CH::isValidSerial(serial)) {
-        inv = std::make_shared<HF_1CH>(serial);
-    } else if (HF_2CH::isValidSerial(serial)) {
-        inv = std::make_shared<HF_2CH>(serial);
-    } else if (HF_4CH::isValidSerial(serial)) {
-        inv = std::make_shared<HF_4CH>(serial);
-    } else if (HF_800_WB::isValidSerial(serial)) {
-        inv = std::make_shared<HF_800_WB>(serial);
-    } else {
-        // Default to 4-channel for unknown serials (shows all fields, empty if unused)
-        inv = std::make_shared<HF_4CH>(serial);
-        inv->getDevInfo()->setHardwareModel("HiFlow (Unknown)");
+    switch (model) {
+        case 1:
+            inv = std::make_shared<HF_1CH>(serial);
+            break;
+        case 2:
+            inv = std::make_shared<HF_800_WB>(serial);
+            break;
+        case 3:
+            inv = std::make_shared<HF_2CH>(serial);
+            break;
+        case 4:
+            inv = std::make_shared<HF_4CH>(serial);
+            break;
+        default:
+            if (HF_1CH::isValidSerial(serial)) {
+                inv = std::make_shared<HF_1CH>(serial);
+            } else if (HF_2CH::isValidSerial(serial)) {
+                inv = std::make_shared<HF_2CH>(serial);
+            } else if (HF_4CH::isValidSerial(serial)) {
+                inv = std::make_shared<HF_4CH>(serial);
+            } else if (HF_800_WB::isValidSerial(serial)) {
+                inv = std::make_shared<HF_800_WB>(serial);
+            } else {
+                // Default to 4-channel for unknown serials (shows all fields, empty if unused)
+                inv = std::make_shared<HF_4CH>(serial);
+                inv->getDevInfo()->setHardwareModel("HiFlow (Unknown)");
+            }
+            break;
     }
 
     inv->setName(name);

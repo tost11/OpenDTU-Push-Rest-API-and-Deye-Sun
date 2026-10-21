@@ -585,7 +585,10 @@
         "Username": "Nom d'utilisateur",
         "UsernameHint": "Nom d'utilisateur pour l'authentification de l'onduleur Deye Sun (par défaut: admin)",
         "Password": "Mot de passe",
-        "PasswordHint": "Mot de passe pour l'authentification de l'onduleur Deye Sun (par défaut: admin)"
+        "PasswordHint": "Mot de passe pour l'authentification de l'onduleur Deye Sun (par défaut: admin)",
+        "InverterModel": "Modèle d'onduleur",
+        "InverterModelHint": "Force le modèle d'onduleur si la détection par numéro de série ne fonctionne pas. Auto : détection par numéro de série, bascule sur le modèle le plus grand.",
+        "Auto": "Auto (détecter par numéro de série)"
     },
     "fileadmin": {
         "ConfigManagement": "Gestion de la configuration",

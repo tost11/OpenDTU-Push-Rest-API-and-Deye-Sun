@@ -28,6 +28,7 @@ export interface Inverter {
     channel: Array<InverterChannel>;
     ac_yield_total_offset: number;
     deye_type: number;
+    inverter_model: number;
     username: string;
     password: string;
 }

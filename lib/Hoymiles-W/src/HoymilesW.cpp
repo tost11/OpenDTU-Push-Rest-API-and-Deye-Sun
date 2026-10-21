@@ -35,18 +35,31 @@ void HoymilesWClass::loop()
     performHouseKeeping();
 }
 
-std::shared_ptr<HoymilesWInverter> HoymilesWClass::addInverter(const char* name, uint64_t serial,const char* hostnameOrIp,uint16_t port)
+std::shared_ptr<HoymilesWInverter> HoymilesWClass::addInverter(const char* name, uint64_t serial,const char* hostnameOrIp,uint16_t port,int32_t model)
 {
     std::shared_ptr<HoymilesWInverter> i;
-    if (HMS_W_1T::isValidSerial(serial)) {
-        i = std::make_shared<HMS_W_1T>(serial);
-    }else if (HMS_W_2T::isValidSerial(serial)) {
-        i = std::make_shared<HMS_W_2T>(serial);
-    }else if (HMS_W_4T::isValidSerial(serial)) {
-        i = std::make_shared<HMS_W_4T>(serial);
-    }else{
-        i = std::make_shared<HMS_W_4T>(serial);
-        i->getDevInfo()->setHardwareModel("Unknown");
+    switch (model) {
+        case 1:
+            i = std::make_shared<HMS_W_1T>(serial);
+            break;
+        case 2:
+            i = std::make_shared<HMS_W_2T>(serial);
+            break;
+        case 3:
+            i = std::make_shared<HMS_W_4T>(serial);
+            break;
+        default:
+            if (HMS_W_1T::isValidSerial(serial)) {
+                i = std::make_shared<HMS_W_1T>(serial);
+            }else if (HMS_W_2T::isValidSerial(serial)) {
+                i = std::make_shared<HMS_W_2T>(serial);
+            }else if (HMS_W_4T::isValidSerial(serial)) {
+                i = std::make_shared<HMS_W_4T>(serial);
+            }else{
+                i = std::make_shared<HMS_W_4T>(serial);
+                i->getDevInfo()->setHardwareModel("Unknown");
+            }
+            break;
     }
 
     i->setName(name);
