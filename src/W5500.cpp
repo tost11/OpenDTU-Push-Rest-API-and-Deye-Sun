@@ -3,6 +3,7 @@
  * Copyright (C) 2024-2025 Thomas Basler and others
  */
 
+#if W5500
 #include "W5500.h"
 
 #include <SpiManager.h>
@@ -149,3 +150,4 @@ bool W5500::connection_check_interrupt(gpio_num_t pin_int)
     // Interrupt line must be high
     return level == 1;
 }
+#endif

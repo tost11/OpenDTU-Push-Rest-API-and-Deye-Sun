@@ -45,6 +45,7 @@ build_image() {
   sed -i "s/-DDEYE_SUN=[^ ]*/-DDEYE_SUN=$deye/" platformio.ini
   sed -i "s/-DTOST=[^ ]*/-DTOST=$tost/" platformio.ini
   sed -i "s/-DSERVO=[^ ]*/-DSERVO=$servo/" platformio.ini
+  sed -i "s/-DMQTT=[^ ]*/-DMQTT=1/" platformio.ini
 
   # Swap in the correct frontend
   rm -rf webapp_dist

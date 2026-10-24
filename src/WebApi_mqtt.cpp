@@ -2,6 +2,7 @@
 /*
  * Copyright (C) 2022-2024 Thomas Basler and others
  */
+#if MQTT
 #include "WebApi_mqtt.h"
 #include "Configuration.h"
 #include "MqttHandleHass.h"
@@ -342,3 +343,4 @@ String WebApiMqttClass::getTlsCertInfo(const char* cert)
 
     return tlsCertInfo;
 }
+#endif

@@ -39,6 +39,7 @@ void NetworkSettingsClass::init(Scheduler& scheduler)
 
     WiFi.onEvent(std::bind(&NetworkSettingsClass::NetworkEvent, this, _1, _2));
 
+#if W5500
     if (PinMapping.isValidW5500Config()) {
         const PinMapping_t& pin = PinMapping.get();
         _w5500 = W5500::setup(pin.w5500_mosi, pin.w5500_miso, pin.w5500_sclk, pin.w5500_cs, pin.w5500_int, pin.w5500_rst);
@@ -47,8 +48,9 @@ void NetworkSettingsClass::init(Scheduler& scheduler)
         else
             ESP_LOGE(TAG, "W5500: Connection error!!");
     }
+#endif
 #if CONFIG_ETH_USE_ESP32_EMAC
-    else if (PinMapping.isValidEthConfig()) {
+    if (PinMapping.isValidEthConfig()) {
         const PinMapping_t& pin = PinMapping.get();
 #if ESP_ARDUINO_VERSION_MAJOR < 3
         ETH.begin(pin.eth_phy_addr, pin.eth_power, pin.eth_mdc, pin.eth_mdio, pin.eth_type, pin.eth_clk_mode);
@@ -566,9 +568,11 @@ String NetworkSettingsClass::macAddress() const
 {
     switch (_networkMode) {
     case network_mode::Ethernet:
+#if W5500
         if (_w5500) {
             return _w5500->macAddress();
         }
+#endif
         return ETH.macAddress();
         break;
     case network_mode::WiFi:

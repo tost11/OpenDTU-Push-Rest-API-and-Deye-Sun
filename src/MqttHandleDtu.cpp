@@ -2,6 +2,7 @@
 /*
  * Copyright (C) 2022-2025 Thomas Basler and others
  */
+#if MQTT
 #include "MqttHandleDtu.h"
 #include "Configuration.h"
 #include "MqttSettings.h"
@@ -49,3 +50,4 @@ void MqttHandleDtuClass::loop()
         MqttSettings.publish("dtu/temperature", String(temperature));
     }
 }
+#endif

@@ -5,7 +5,9 @@
 #include "Led_Single.h"
 #include "Configuration.h"
 #include "Datastore.h"
+#if MQTT
 #include "MqttSettings.h"
+#endif
 #include "NetworkSettings.h"
 #include "PinMapping.h"
 #include <InverterHandler.h>
@@ -84,9 +86,15 @@ void LedSingleClass::setLoop()
         }
 
         struct tm timeinfo;
+#if MQTT
         if (getLocalTime(&timeinfo, 5) && (!config.Mqtt.Enabled || (config.Mqtt.Enabled && MqttSettings.getConnected()))) {
             _ledMode[0] = LedState_t::On;
         }
+#else
+        if (getLocalTime(&timeinfo, 5)) {
+            _ledMode[0] = LedState_t::On;
+        }
+#endif
 
         // Update inverter status
         _ledMode[1] = LedState_t::Off;

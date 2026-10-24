@@ -9,11 +9,13 @@
 #include "InverterSettings.h"
 #include "Led_Single.h"
 #include "Logging.h"
+#if MQTT
 #include "MqttHandleDtu.h"
 #include "MqttHandleHass.h"
 #include "MqttHandleInverter.h"
 #include "MqttHandleInverterTotal.h"
 #include "MqttSettings.h"
+#endif
 #if TOST
 #include "TostHandle.h"
 #endif
@@ -129,6 +131,7 @@ void setup()
     TostHandle.init(scheduler);
 #endif
 
+#if MQTT
     // Initialize MqTT
     ESP_LOGI(TAG, "Initializing MQTT...");
     MqttSettings.init();
@@ -136,6 +139,7 @@ void setup()
     MqttHandleInverter.init(scheduler);
     MqttHandleInverterTotal.init(scheduler);
     MqttHandleHass.init(scheduler);
+#endif
 
     // Initialize WebApi
     ESP_LOGI(TAG, "Initializing WebApi...");

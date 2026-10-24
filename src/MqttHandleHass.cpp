@@ -2,6 +2,7 @@
 /*
  * Copyright (C) 2022-2025 Thomas Basler and others
  */
+#if MQTT
 #include "MqttHandleHass.h"
 #include "MqttHandleInverter.h"
 #include "MqttSettings.h"
@@ -434,3 +435,4 @@ void MqttHandleHassClass::publishInverterSensor(
     createInverterInfo(root, inv);
     publishSensor(root, "dtu_" + serial, serial, name, serial + "/" + state_topic, unit_of_measure, icon, device_class, state_class, category);
 }
+#endif

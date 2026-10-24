@@ -36,8 +36,23 @@ const tostRoutes = __TOST_ENABLED__ ? [
     },
 ] : [];
 
+const mqttRoutes = __MQTT_ENABLED__ ? [
+    {
+        path: '/info/mqtt',
+        name: 'MqTT',
+        component: MqttInfoView,
+    },
+    {
+        path: '/settings/mqtt',
+        name: 'MqTT Settings',
+        component: MqttAdminView,
+    },
+] : [];
+
 const tostInfoRoutes = tostRoutes.filter(r => r.path.startsWith('/info/'));
 const tostSettingsRoutes = tostRoutes.filter(r => r.path.startsWith('/settings/'));
+const mqttInfoRoutes = mqttRoutes.filter(r => r.path.startsWith('/info/'));
+const mqttSettingsRoutes = mqttRoutes.filter(r => r.path.startsWith('/settings/'));
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -85,11 +100,7 @@ const router = createRouter({
             name: 'NTP',
             component: NtpInfoView,
         },
-        {
-            path: '/info/mqtt',
-            name: 'MqTT',
-            component: MqttInfoView,
-        },
+        ...mqttInfoRoutes,
         ...tostInfoRoutes,
         {
             path: '/info/console',
@@ -106,11 +117,7 @@ const router = createRouter({
             name: 'NTP Settings',
             component: NtpAdminView,
         },
-        {
-            path: '/settings/mqtt',
-            name: 'MqTT Settings',
-            component: MqttAdminView,
-        },
+        ...mqttSettingsRoutes,
         ...tostSettingsRoutes,
         {
             path: '/settings/inverter',

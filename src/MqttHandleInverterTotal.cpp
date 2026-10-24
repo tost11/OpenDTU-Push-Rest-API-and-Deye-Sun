@@ -2,6 +2,7 @@
 /*
  * Copyright (C) 2023-2024 Thomas Basler and others
  */
+#if MQTT
 #include "MqttHandleInverterTotal.h"
 #include "Configuration.h"
 #include "Datastore.h"
@@ -40,3 +41,4 @@ void MqttHandleInverterTotalClass::loop()
     MqttSettings.publish("dc/irradiation", String(Datastore.getTotalDcIrradiation(), 3));
     MqttSettings.publish("dc/is_valid", String(Datastore.getIsAllEnabledReachable()));
 }
+#endif

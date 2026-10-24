@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 
+#if W5500
 #include "W5500.h"
+#endif
 #include <DNSServer.h>
 #include <TaskSchedulerDeclarations.h>
 #include <WiFi.h>
@@ -88,7 +90,9 @@ private:
     bool _ethConnected = false;
     std::vector<DtuNetworkEventCbList_t> _cbEventList;
     bool _lastMdnsEnabled = false;
+#if W5500
     std::unique_ptr<W5500> _w5500;
+#endif
 
     std::unordered_map<std::string,TimeoutHelper> _clients_without_ip_kick_timer;
     TimeoutHelper _checkZeroIpTimout;

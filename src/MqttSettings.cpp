@@ -2,6 +2,7 @@
 /*
  * Copyright (C) 2022-2025 Thomas Basler and others
  */
+#if MQTT
 #include "MqttSettings.h"
 #include "Configuration.h"
 #include <MessageOutput.h>
@@ -252,3 +253,4 @@ void MqttSettingsClass::createMqttClientObject()
 }
 
 MqttSettingsClass MqttSettings;
+#endif

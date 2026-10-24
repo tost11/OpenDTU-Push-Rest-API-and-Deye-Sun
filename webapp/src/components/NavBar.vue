@@ -48,7 +48,7 @@
                                     $t('menu.NTPSettings')
                                 }}</router-link>
                             </li>
-                            <li>
+                            <li v-if="__MQTT_ENABLED__">
                                 <router-link @click="onClick" class="dropdown-item" to="/settings/mqtt">{{
                                     $t('menu.MQTTSettings')
                                 }}</router-link>
@@ -130,7 +130,7 @@
                                     $t('menu.NTP')
                                 }}</router-link>
                             </li>
-                            <li>
+                            <li v-if="__MQTT_ENABLED__">
                                 <router-link @click="onClick" class="dropdown-item" to="/info/mqtt">{{
                                     $t('menu.MQTT')
                                 }}</router-link>
@@ -190,6 +190,7 @@ export default defineComponent({
             isLogged: isLoggedIn(),
             now: {} as Date,
             __TOST_ENABLED__: __TOST_ENABLED__,
+            __MQTT_ENABLED__: __MQTT_ENABLED__,
         };
     },
     created() {

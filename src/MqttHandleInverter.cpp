@@ -2,6 +2,7 @@
 /*
  * Copyright (C) 2022-2025 Thomas Basler and others
  */
+#if MQTT
 #include "MqttHandleInverter.h"
 #include <MessageOutput.h>
 #include "MqttSettings.h"
@@ -282,3 +283,4 @@ void MqttHandleInverterClass::unsubscribeTopics()
         MqttSettings.unsubscribe(prefix + s.first.data());
     }
 }
+#endif

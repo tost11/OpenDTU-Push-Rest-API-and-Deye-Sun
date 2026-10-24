@@ -12,10 +12,16 @@ static const char* TAG = "logging";
 
 LoggingClass::LoggingClass()
 {
+#if MQTT
     _configurableModules.reserve(5);
+#else
+    _configurableModules.reserve(4);
+#endif
     _configurableModules.push_back("CORE");
     _configurableModules.push_back("hoymiles");
+#if MQTT
     _configurableModules.push_back("mqtt");
+#endif
     _configurableModules.push_back("network");
     _configurableModules.push_back("webapi");
 }

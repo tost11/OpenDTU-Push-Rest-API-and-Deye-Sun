@@ -4,7 +4,9 @@
  */
 #include "WebApi_inverter.h"
 #include "Configuration.h"
+#if MQTT
 #include "MqttHandleHass.h"
+#endif
 #include "WebApi.h"
 #include "WebApi_errors.h"
 #include "defaults.h"
@@ -294,7 +296,9 @@ void WebApiInverterClass::onInverterAdd(AsyncWebServerRequest* request)
         }
     }
 
+#if MQTT
     MqttHandleHass.forceUpdate();
+#endif
 }
 
 void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
@@ -574,7 +578,9 @@ void WebApiInverterClass::onInverterEdit(AsyncWebServerRequest* request)
         inv->getStatistics()->setChannelFieldOffset(TYPE_AC, CH0, FLD_YT, inverter.AcYieldTotalOffset);
     }
 
+#if MQTT
     MqttHandleHass.forceUpdate();
+#endif
 }
 
 void WebApiInverterClass::onInverterDelete(AsyncWebServerRequest* request)
@@ -617,7 +623,9 @@ void WebApiInverterClass::onInverterDelete(AsyncWebServerRequest* request)
 
     WebApi.sendJsonResponse(request, response, __FUNCTION__, __LINE__);
 
+#if MQTT
     MqttHandleHass.forceUpdate();
+#endif
 }
 
 void WebApiInverterClass::onInverterOrder(AsyncWebServerRequest* request)

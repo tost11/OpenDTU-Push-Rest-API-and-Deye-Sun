@@ -30,7 +30,9 @@ void WebApiClass::init(Scheduler& scheduler)
     _webApiLimit.init(_server, scheduler);
     _webApiLogging.init(_server, scheduler);
     _webApiMaintenance.init(_server, scheduler);
+#if MQTT
     _webApiMqtt.init(_server, scheduler);
+#endif
 #if TOST
     _webApiTost.init(_server, scheduler);
 #endif
