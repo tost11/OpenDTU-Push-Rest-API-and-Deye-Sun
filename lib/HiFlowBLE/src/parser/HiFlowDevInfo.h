@@ -15,6 +15,7 @@ public:
 
     uint16_t getFwBootloaderVersion() const override;
     uint16_t getFwBuildVersion() const override;
+    uint16_t getDtuFwVersion() const override;
     time_t getFwBuildDateTime() const override;
     String getFwBuildDateTimeStr() const override;
     uint32_t getHwPartNumber() const override;
@@ -24,10 +25,12 @@ public:
 
     void setHardwareModel(const String& model);
     void setMaxPower(uint16_t maxPower);
-    void setLastUpdate(uint32_t lastUpdate);
+    void setFwBuildVersion(uint16_t version);
+    void setDtuFwVersion(uint16_t version);
 
 private:
     String _hardwareModel = "HiFlow Pro";
     uint16_t _maxPower = 0; // 0 = unknown; set via user override (Advanced > Max power)
-    uint32_t _lastUpdate = 0;
+    uint16_t _fwBuildVersion = 0; // major*10000+minor*100+patch, from APPInfoData at pairing
+    uint16_t _dtuFwVersion = 0;  // major*10000+minor*100+patch, from APPInfoData at pairing
 };

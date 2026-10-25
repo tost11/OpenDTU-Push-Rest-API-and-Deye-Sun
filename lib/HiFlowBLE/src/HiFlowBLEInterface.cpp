@@ -608,7 +608,11 @@ bool HiFlowBLEInterface::processPairingResponse()
     _frameComplete = false;
 
     // Extract encRand from APPInfoDataReqDTO
-    return extractEncRandFromAppInfo(plaintext.data(), plaintext.size());
+    bool ok = extractEncRandFromAppInfo(plaintext.data(), plaintext.size());
+    if (ok) {
+        extractFwVersionsFromAppInfo(plaintext.data(), plaintext.size());
+    }
+    return ok;
 }
 
 bool HiFlowBLEInterface::extractEncRandFromAppInfo(const uint8_t* data, size_t len)
@@ -640,6 +644,47 @@ bool HiFlowBLEInterface::extractEncRandFromAppInfo(const uint8_t* data, size_t l
     _hasEncRand = true;
 
     ESP_LOGI(TAG, "encRand extracted successfully");
+    return true;
+}
+
+bool HiFlowBLEInterface::extractFwVersionsFromAppInfo(const uint8_t* data, size_t len)
+{
+    // Non-fatal: missing version fields just leave the corresponding value at 0.
+    uint64_t raw = 0;
+
+    // APPInfoDataReqDTO -> field 8 (APPDtuInfoMO) -> field 2 (dtu_sw_version)
+    const uint8_t* dtuInfo = nullptr;
+    size_t dtuInfoLen = 0;
+    if (HiFlowProtocol::pbFindBytesField(data, len, 8, dtuInfo, dtuInfoLen) &&
+        HiFlowProtocol::pbFindVarintField(dtuInfo, dtuInfoLen, 2, raw)) {
+        // bitfield: major = v/4096, minor = (v/256)%16, patch = v%256
+        uint32_t major = uint32_t(raw / 4096);
+        uint32_t minor = uint32_t((raw / 256) % 16);
+        uint32_t patch = uint32_t(raw % 256);
+        _appInfoDtuFw = major * 10000 + minor * 100 + patch;
+    }
+
+    // APPInfoDataReqDTO -> field 11 (APPPvInfoMO, first entry) -> field 4 (pv_sw_version)
+    const uint8_t* pvInfo = nullptr;
+    size_t pvInfoLen = 0;
+    if (HiFlowProtocol::pbFindBytesField(data, len, 11, pvInfo, pvInfoLen) &&
+        HiFlowProtocol::pbFindVarintField(pvInfo, pvInfoLen, 4, raw)) {
+        _appInfoInvFw = uint32_t(raw);
+    }
+
+    _appInfoFwValid = true;
+    ESP_LOGI(TAG, "AppInfoData - dtu fw: %lu, inverter fw: %lu",
+             (unsigned long)_appInfoDtuFw, (unsigned long)_appInfoInvFw);
+    return true;
+}
+
+bool HiFlowBLEInterface::getAppInfoFwVersions(uint32_t& invFw, uint32_t& dtuFw) const
+{
+    if (!_appInfoFwValid) {
+        return false;
+    }
+    invFw = _appInfoInvFw;
+    dtuFw = _appInfoDtuFw;
     return true;
 }
 

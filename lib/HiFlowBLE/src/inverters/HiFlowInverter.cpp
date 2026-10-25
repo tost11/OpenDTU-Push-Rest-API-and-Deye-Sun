@@ -97,6 +97,17 @@ void HiFlowInverter::update()
         _needGetConfig = false;
     }
 
+    // Consume firmware versions from the V0 pairing APPInfoData response
+    uint32_t invFw = 0, dtuFw = 0;
+    if (_bleInterface.getAppInfoFwVersions(invFw, dtuFw)) {
+        if (invFw != 0) {
+            _devInfoParser->setFwBuildVersion(uint16_t(invFw));
+        }
+        if (dtuFw != 0) {
+            _devInfoParser->setDtuFwVersion(uint16_t(dtuFw));
+        }
+    }
+
     // Send queued control command
     if (_cmdQueued && !_cmdInFlight && _bleInterface.isReady()) {
         bool paced = (_lastCmdTime != 0 && millis() - _lastCmdTime < CMD_RETRY_INTERVAL_MS);

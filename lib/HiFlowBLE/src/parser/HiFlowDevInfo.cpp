@@ -14,22 +14,22 @@ void HiFlowDevInfo::appendFragment(uint8_t offset, uint8_t* payload, uint8_t len
 
 uint32_t HiFlowDevInfo::getLastUpdateAll() const
 {
-    return _lastUpdate;
+    return getLastUpdate();
 }
 
 void HiFlowDevInfo::setLastUpdateAll(uint32_t lastUpdate)
 {
-    _lastUpdate = lastUpdate;
+    setLastUpdate(lastUpdate);
 }
 
 uint32_t HiFlowDevInfo::getLastUpdateSimple() const
 {
-    return _lastUpdate;
+    return getLastUpdate();
 }
 
 void HiFlowDevInfo::setLastUpdateSimple(uint32_t lastUpdate)
 {
-    _lastUpdate = lastUpdate;
+    setLastUpdate(lastUpdate);
 }
 
 uint16_t HiFlowDevInfo::getFwBootloaderVersion() const
@@ -39,7 +39,12 @@ uint16_t HiFlowDevInfo::getFwBootloaderVersion() const
 
 uint16_t HiFlowDevInfo::getFwBuildVersion() const
 {
-    return 0;
+    return _fwBuildVersion;
+}
+
+uint16_t HiFlowDevInfo::getDtuFwVersion() const
+{
+    return _dtuFwVersion;
 }
 
 time_t HiFlowDevInfo::getFwBuildDateTime() const
@@ -82,7 +87,12 @@ void HiFlowDevInfo::setMaxPower(uint16_t maxPower)
     _maxPower = maxPower;
 }
 
-void HiFlowDevInfo::setLastUpdate(uint32_t lastUpdate)
+void HiFlowDevInfo::setFwBuildVersion(uint16_t version)
 {
-    _lastUpdate = lastUpdate;
+    _fwBuildVersion = version;
+}
+
+void HiFlowDevInfo::setDtuFwVersion(uint16_t version)
+{
+    _dtuFwVersion = version;
 }

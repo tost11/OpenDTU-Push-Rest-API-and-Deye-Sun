@@ -141,6 +141,14 @@ public:
     bool getConfigResult(int16_t& limitLevel);
 
     /**
+     * Get firmware versions parsed from the V0 pairing APPInfoData response.
+     * @param invFw inverter firmware as major*10000+minor*100+patch
+     * @param dtuFw DTU firmware as major*10000+minor*100+patch
+     * Returns true if versions were parsed during a pairing in this session.
+     */
+    bool getAppInfoFwVersions(uint32_t& invFw, uint32_t& dtuFw) const;
+
+    /**
      * Connection state.
      */
     HiFlowBLEState getState() const { return _state; }
@@ -206,6 +214,11 @@ private:
     bool _configSuccess = false;
     int16_t _configLimitLevel = 0; // % * 10 (0 = no limit)
 
+    // Firmware versions from the V0 pairing APPInfoData response (major*10000+minor*100+patch)
+    uint32_t _appInfoInvFw = 0;
+    uint32_t _appInfoDtuFw = 0;
+    bool _appInfoFwValid = false;
+
     // Timing
     uint32_t _lastActionTime = 0;
     uint32_t _reconnectDelay = 2000;
@@ -235,6 +248,7 @@ private:
     // Protobuf parsing
     bool parseRealDataNewResponse(const uint8_t* data, size_t len);
     bool extractEncRandFromAppInfo(const uint8_t* data, size_t len);
+    bool extractFwVersionsFromAppInfo(const uint8_t* data, size_t len);
 
     // CommCmd protobuf building
     size_t buildCommCmdRequest(uint8_t* buf, uint8_t action, const char* data);

@@ -868,7 +868,6 @@ bool HoymilesWInverter::writeReqCommand(uint8_t setPercent){
 
     uint16_t limitLevel = setPercent * 10;
     if(limitLevel > 1000) limitLevel = 1000;
-    if(limitLevel < 20) limitLevel = 20;
 
     uint8_t buffer[200];
     pb_ostream_t stream = pb_ostream_from_buffer(buffer, sizeof(buffer));

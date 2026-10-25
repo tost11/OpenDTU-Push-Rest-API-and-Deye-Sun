@@ -31,11 +31,11 @@
                 <td>{{ $t('devinfo.BootloaderVersion') }}</td>
                 <td>{{ formatVersion(devInfoList.fw_bootloader_version) }}</td>
             </tr>
-            <tr v-if="devInfoList.manufacturer=='Hoymiles' || devInfoList.manufacturer=='HoymilesW'">
+            <tr v-if="devInfoList.manufacturer=='Hoymiles' || devInfoList.manufacturer=='HoymilesW' || devInfoList.manufacturer=='HiFlowBLE'">
                 <td>{{ $t('devinfo.FirmwareVersion') }}</td>
                 <td>{{ formatVersion(devInfoList.fw_build_version) }}</td>
             </tr>
-            <tr v-if="devInfoList.manufacturer=='HoymilesW'">
+            <tr v-if="devInfoList.manufacturer=='HoymilesW' || devInfoList.manufacturer=='HiFlowBLE'">
                 <td>{{ $t('devinfo.DtuFirmware') }}</td>
                 <td>{{ formatVersion(devInfoList.dtu_fw_version) }}</td>
             </tr>
@@ -47,7 +47,7 @@
                 <td>{{ $t('devinfo.HardwarePartNumber') }}</td>
                 <td>{{ devInfoList.hw_part_number }}</td>
             </tr>
-            <tr v-if="devInfoList.manufacturer!='HoymilesW'">
+            <tr v-if="devInfoList.manufacturer=='Hoymiles' || devInfoList.manufacturer=='DeyeSun'">
                 <td v-if="devInfoList.manufacturer=='Hoymiles'">{{ $t('devinfo.HardwareVersion') }}</td>
                 <td v-else>{{ $t('devinfo.FirmwareVersion') }}</td>
                 <td>{{ devInfoList.hw_version }}</td>

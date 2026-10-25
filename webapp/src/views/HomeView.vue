@@ -141,7 +141,7 @@
                                     </button>
                                 </div>
 
-                                <div class="btn-group me-2" role="group" v-if="inverter.manufacturer != 'HoymilesW'">
+                                <div class="btn-group me-2" role="group" v-if="inverter.manufacturer != 'HoymilesW' && inverter.manufacturer != 'HiFlowBLE'">
                                     <button
                                         type="button"
                                         class="btn btn-sm btn-info"
