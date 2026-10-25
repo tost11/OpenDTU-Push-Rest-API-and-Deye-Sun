@@ -18,10 +18,11 @@ public:
     virtual String getFwBuildDateTimeStr() const = 0;
     virtual uint32_t getHwPartNumber() const = 0;
     virtual String getHwVersion() const = 0;
-    virtual uint16_t getMaxPowerDevice() const = 0;
+    virtual     uint16_t getMaxPowerDevice() const = 0;
     uint16_t getMaxPower() const { return _maxPowerOverride != 0 ? _maxPowerOverride : getMaxPowerDevice(); }
     void setMaxPowerOverride(uint16_t watts) { _maxPowerOverride = watts; }
     virtual String getHwModelName() const = 0;
+    virtual uint16_t getDtuFwVersion() const { return 0; }
 private:
     uint16_t _maxPowerOverride = 0;
 };

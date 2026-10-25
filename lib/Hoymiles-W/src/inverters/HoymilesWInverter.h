@@ -54,7 +54,7 @@ protected:
 private:
     enum class ConnState { Offline, Connecting, Connected, Error };
 
-    enum PendingResponse { NONE, REALDATA, HISTPOWER, GETCONFIG, COMMAND, RESTARTDEVICE, RESTARTINVERTER, POWER };
+    enum PendingResponse { NONE, REALDATA, HISTPOWER, GETCONFIG, APPINFO, COMMAND, RESTARTDEVICE, RESTARTINVERTER, POWER };
 
     uint64_t _serial;
 
@@ -72,6 +72,8 @@ private:
     bool _updateReceived;
     bool _updateFailed;
     bool _statisticsInitialized;
+    bool _appInfoReceived;
+    bool _appInfoFailed;
     uint64_t _dtuSerial;
 
     TimeoutHelper _reconnectTimer;
@@ -113,6 +115,8 @@ private:
     void readRespAppGetHistPower(pb_istream_t istream);
     void writeReqGetConfig();
     void readRespGetConfig(pb_istream_t istream);
+    void writeReqAppInfoData();
+    void readRespAppInfoData(pb_istream_t istream);
     bool writeReqCommand(uint8_t setPercent);
     bool readRespCommand(pb_istream_t istream);
     bool writeCommandRestartDevice();

@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+import "nanopb.proto";
+
+// Subset of the hoymiles-wifi reference APPInfomationData.proto - only the fields we use.
+// dtu_sw_version is a bitfield: major = v/4096, minor = (v/256)%16, patch = v%256 (e.g. 4103 = 1.00.07)
+// pv_sw_version is major*10000 + minor*100 + patch (e.g. 10309 = 1.03.09)
+
+message APPDtuInfoMO {
+  int32 dtu_sw_version = 2;      // DTU software version
+}
+
+message APPPvInfoMO {
+  int64 pv_serial_number = 2;    // Inverter serial number
+  int32 pv_sw_version = 4;       // Inverter software version
+}
+
+message APPInfoDataReqDTO {
+  int32 timestamp = 2;           // Timestamp
+  APPDtuInfoMO dtu_info = 8;     // DTU information
+  repeated APPPvInfoMO pv_info = 11 [(nanopb).max_count = 4]; // Inverter information
+}
+
+message APPInfoDataResDTO {
+  bytes time_ymd_hms = 1 [(nanopb).max_size = 19]; // Date and time "YYYY-MM-DD HH:MM:SS"
+  int32 offset = 2;              // Offset value
+  uint32 time = 5;               // Timestamp
+}

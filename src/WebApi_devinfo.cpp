@@ -47,6 +47,7 @@ void WebApiDevInfoClass::onDevInfoStatus(AsyncWebServerRequest* request)
         root["valid_data"] = inv->getDevInfo()->getLastUpdate() > 0;
         root["fw_bootloader_version"] = inv->getDevInfo()->getFwBootloaderVersion();
         root["fw_build_version"] = inv->getDevInfo()->getFwBuildVersion();
+        root["dtu_fw_version"] = inv->getDevInfo()->getDtuFwVersion();
         root["hw_part_number"] = inv->getDevInfo()->getHwPartNumber();
         root["hw_version"] = inv->getDevInfo()->getHwVersion();
         root["hw_model_name"] = inv->getDevInfo()->getHwModelName();

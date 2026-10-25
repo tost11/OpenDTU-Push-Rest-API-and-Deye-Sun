@@ -40,6 +40,9 @@ public:
     void setHardwareVersion(const String & version);
     void setHardwareModel(const String & model);
     void setMaxPower(const uint16_t maxPower);
+    void setFwBuildVersion(const uint16_t version);
+    uint16_t getDtuFwVersion() const override;
+    void setDtuFwVersion(const uint16_t version);
 private:
     uint8_t _payloadDevInfo[DEV_INFO_SIZE_HOYMILES_W] = {};
     uint8_t _devInfoLength = 0;
@@ -48,4 +51,6 @@ private:
     String _hardwareVersion;
     String _hardwareModel;
     uint16_t _maxPower = 0; // 0 = unknown; set via user override (Advanced > Max power)
+    uint16_t _fwBuildVersion = 0;
+    uint16_t _dtuFwVersion = 0;
 };

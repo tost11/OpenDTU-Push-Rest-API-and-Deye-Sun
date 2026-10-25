@@ -3,6 +3,7 @@ export interface DevInfoStatus {
     valid_data: boolean;
     fw_bootloader_version: number;
     fw_build_version: number;
+    dtu_fw_version: number;
     fw_build_datetime: Date;
     hw_part_number: number;
     hw_version: number;

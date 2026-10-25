@@ -216,6 +216,7 @@
         "MaxPowerNotSet": "Nicht gesetzt",
         "BootloaderVersion": "Bootloader-Version",
         "FirmwareVersion": "Firmware-Version",
+        "DtuFirmware": "DTU-Firmware-Version",
         "FirmwareBuildDate": "Firmware-Erstellungsdatum",
         "HardwarePartNumber": "Hardware-Teilenummer",
         "HardwareVersion": "Hardware-Version",

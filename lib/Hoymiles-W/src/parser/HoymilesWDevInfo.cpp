@@ -25,7 +25,7 @@ uint16_t HoymilesWDevInfo::getFwBootloaderVersion() const {
 }
 
 uint16_t HoymilesWDevInfo::getFwBuildVersion() const {
-    return 0;
+    return _fwBuildVersion;
 }
 
 time_t HoymilesWDevInfo::getFwBuildDateTime() const {
@@ -80,4 +80,16 @@ void HoymilesWDevInfo::setHardwareModel(const String &model) {
 
 void HoymilesWDevInfo::setMaxPower(const uint16_t maxPower){
     _maxPower = maxPower;
+}
+
+void HoymilesWDevInfo::setFwBuildVersion(const uint16_t version) {
+    _fwBuildVersion = version;
+}
+
+uint16_t HoymilesWDevInfo::getDtuFwVersion() const {
+    return _dtuFwVersion;
+}
+
+void HoymilesWDevInfo::setDtuFwVersion(const uint16_t version) {
+    _dtuFwVersion = version;
 }

@@ -8,6 +8,7 @@
 #include "RealtimeDataNew.pb.h"
 #include "GetConfig.pb.h"
 #include "CommandPB.pb.h"
+#include "APPInfomationData.pb.h"
 
 #undef TAG
 static const char* TAG = "HoymilesW";
@@ -24,6 +25,8 @@ _pendingResponse(NONE),
 _updateReceived(false),
 _updateFailed(false),
 _statisticsInitialized(false),
+_appInfoReceived(false),
+_appInfoFailed(false),
     _dtuSerial(0),
     _changeCheckedClearOnDisconnect(false){
 
@@ -115,6 +118,7 @@ void HoymilesWInverter::disconnect(){
     _lastSeen = 0;
     _statisticsInitialized = false;
     _updateReceived = false;
+    _appInfoFailed = false;
     _rxBuffer.clear();
     _reconnectTimer.reset();
 }
@@ -136,6 +140,7 @@ void HoymilesWInverter::onDisconnect(){
     _lastSeen = 0;
     _statisticsInitialized = false;
     _updateReceived = false;
+    _appInfoFailed = false;
     _rxBuffer.clear();
     _reconnectTimer.reset();
 }
@@ -217,6 +222,10 @@ void HoymilesWInverter::processRxFrames(){
                 break;
             case GETCONFIG:
                 readRespGetConfig(istream);
+                if(isConnected() && !_appInfoReceived && !_appInfoFailed) writeReqAppInfoData();
+                break;
+            case APPINFO:
+                readRespAppInfoData(istream);
                 break;
             case COMMAND:
                 readRespCommand(istream);
@@ -295,6 +304,9 @@ void HoymilesWInverter::update(){
         ESP_LOGW(TAG, "Response timeout for pending request");
         if(_pendingResponse == RESTARTDEVICE || _pendingResponse == RESTARTINVERTER || _pendingResponse == POWER){
             getPowerCommand()->setLastPowerCommandSuccess(CMD_NOK);
+        }
+        if(_pendingResponse == APPINFO){
+            _appInfoFailed = true;
         }
         _pendingResponse = NONE;
         _responseTimer.zero();
@@ -651,6 +663,8 @@ void HoymilesWInverter::readRespRealDataNew(pb_istream_t istream){
         gridData = realdatanewreqdto.sgs_data[0];
         _dtuSerial = static_cast<uint64_t>(gridData.serial_number);
 
+        _devInfoParser->setLastUpdate(millis());
+
         _inverterData.grid.current = static_cast<uint16_t>(gridData.current);
         _inverterData.grid.voltage = static_cast<uint16_t>(gridData.voltage);
         _inverterData.grid.power = static_cast<uint16_t>(gridData.active_power);
@@ -775,6 +789,78 @@ void HoymilesWInverter::readRespGetConfig(pb_istream_t istream){
     if(_inverterData.powerLimit > 100) _inverterData.powerLimit = 100;
 
     _updateReceived = true;
+}
+
+void HoymilesWInverter::writeReqAppInfoData(){
+    if(!_client || !_client->connected()) return;
+
+    time_t now = time(nullptr);
+    struct tm tmInfo;
+    gmtime_r(&now, &tmInfo);
+    char timeStr[20];
+    snprintf(timeStr, sizeof(timeStr), "%04d-%02d-%02d %02d:%02d:%02d",
+             tmInfo.tm_year + 1900, tmInfo.tm_mon + 1, tmInfo.tm_mday,
+             tmInfo.tm_hour, tmInfo.tm_min, tmInfo.tm_sec);
+
+    uint8_t buffer[200];
+    pb_ostream_t stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
+
+    APPInfoDataResDTO appinforesdto = APPInfoDataResDTO_init_default;
+    appinforesdto.time_ymd_hms.size = 19;
+    memcpy(appinforesdto.time_ymd_hms.bytes, timeStr, 19);
+    appinforesdto.offset = DTU_TIME_OFFSET;
+    appinforesdto.time = uint32_t(now);
+    if(!pb_encode(&stream, APPInfoDataResDTO_fields, &appinforesdto)){
+        ESP_LOGI(TAG, "writeReqAppInfoData - failed to encode");
+        return;
+    }
+
+    for(unsigned int i = 0; i < stream.bytes_written; i++) _crc.add(buffer[i]);
+
+    uint8_t header[10];
+    header[0] = 0x48; header[1] = 0x4d; header[2] = 0xa3; header[3] = 0x01;
+    header[4] = 0x00; header[5] = 0x01;
+    header[6] = (_crc.calc() >> 8) & 0xFF; header[7] = (_crc.calc()) & 0xFF;
+    header[8] = ((stream.bytes_written + 10) >> 8) & 0xFF; header[9] = (stream.bytes_written + 10) & 0xFF;
+    _crc.restart();
+
+    uint8_t message[10 + stream.bytes_written];
+    memcpy(message, header, 10);
+    memcpy(message + 10, buffer, stream.bytes_written);
+
+    ESP_LOGI(TAG, "Sending AppInfoData request to DTU");
+    _pendingResponse = APPINFO;
+    _responseTimer.reset();
+    _client->write((const char*)message, 10 + stream.bytes_written);
+    ConnectionStatistics.SendRequests++;
+}
+
+void HoymilesWInverter::readRespAppInfoData(pb_istream_t istream){
+    ConnectionStatistics.SuccessfulRequests++;
+    _pendingResponse = NONE;
+    _appInfoReceived = true;
+    APPInfoDataReqDTO appinforeqdto = APPInfoDataReqDTO_init_default;
+    pb_decode(&istream, &APPInfoDataReqDTO_msg, &appinforeqdto);
+
+    int32_t invVersion = (appinforeqdto.pv_info_count > 0) ? appinforeqdto.pv_info[0].pv_sw_version : 0;
+    int32_t dtuVersion = appinforeqdto.dtu_info.dtu_sw_version;
+
+    if(invVersion != 0){
+        _devInfoParser->setFwBuildVersion(uint16_t(invVersion));
+    }
+
+    if(dtuVersion != 0){
+        // bitfield: major = v/4096, minor = (v/256)%16, patch = v%256
+        uint32_t major = uint32_t(dtuVersion / 4096);
+        uint32_t minor = uint32_t((dtuVersion / 256) % 16);
+        uint32_t patch = uint32_t(dtuVersion % 256);
+        uint32_t packed = major * 10000 + minor * 100 + patch;
+        if(packed <= 0xFFFF){
+            _devInfoParser->setDtuFwVersion(uint16_t(packed));
+        }
+    }
+
+    ESP_LOGI(TAG, "AppInfoData - dtu sw raw: %d, inverter sw raw: %d", dtuVersion, invVersion);
 }
 
 bool HoymilesWInverter::writeReqCommand(uint8_t setPercent){
