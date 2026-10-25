@@ -9,6 +9,16 @@
 
 This fork extends OpenDTU with several additional features, controlled via build flags in [platformio.ini](platformio.ini). Enable or disable each feature by setting the corresponding flag to `1` or `0`.
 
+### Feature Overview
+
+- **Hoymiles nRF24/CMT2300** — Original Hoymiles inverter support via RF radio
+- **Deye SUN** — Deye SUN micro inverters via Wi-Fi/network (UDP, TCP, Modbus)
+- **Hoymiles W-Series** — HMS-*W-2T inverters via Wi-Fi/network (TCP, Protobuf)
+- **HiFlow BLE (Beta/Testing)** — Hoymiles HiFlow (HMS-*-WB / HF-*-WB) inverters via Bluetooth Low Energy (unfinished)
+- **REST Push Service** — Push inverter data to an external monitoring server
+- **Servo Engine** — Physical servo output displaying solar power
+- **Start Time** — Operate without internet by setting a fallback start time
+
 ## Build Flags
 
 All feature flags are set in the `build_flags` section of [platformio.ini](platformio.ini).
@@ -18,6 +28,7 @@ All feature flags are set in the `build_flags` section of [platformio.ini](platf
 | `-DHOYMILES`  | `1`     | Support for original Hoymiles NRF24 inverters                |
 | `-DDEYE_SUN`  | `1`     | Support for Deye SUN inverters (network, Wi-Fi)              |
 | `-DHOYMILES_W`| `1`     | Support for Hoymiles W-Series inverters (network, Wi-Fi)     |
+| `-DHIFLOW_BLE`| `0`     | Beta/Testing: Hoymiles HiFlow BLE inverters (ESP32-S3, unfinished) |
 | `-DSERVO`     | `0`     | Servo engine output displaying solar power                   |
 | `-DTOST`      | `0`     | REST push service sending inverter data to a monitoring server|
 
@@ -105,6 +116,44 @@ can be used for connection. The DTU will resolve them to the correct IP address.
 
 To get rid of the unknown devices, recognized by the device serial prefix, it would be helpful to know more for them so they can be mapped correctly.
 For doing so, feel free to leave a comment with device type and prefix on this [issue](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/issues/6) so they can be added.
+
+### Beta: HiFlow BLE (HMS-\*-WB / HF-\*-WB Series)
+
+> **Status: Beta / Testing / Unfinished** — This feature is under active development on the `feature/hoymiles-hiflow-bluetooth` branch. It is not considered stable or complete.
+
+The ESP32-S3 connects via Bluetooth Low Energy (BLE) to Hoymiles HiFlow inverters (HMS-\*-WB, HF-\*-WB series). No additional radio hardware (nRF24/CMT2300) is required — only the ESP32-S3's built-in BLE radio.
+
+The BLE protocol implementation is based on the reverse engineering work from [hiflow-ble](https://github.com/TheTiEr/hiflow-ble/blob/main/README.md).
+
+#### Build Configuration
+
+Enable HiFlow BLE support with the build flag `-DHIFLOW_BLE=1` in `platformio.ini`.
+
+For a **BLE-only build** (no Hoymiles nRF24/CMT2300 RF support), use the dedicated PlatformIO environment which excludes unused RF libraries to save flash and RAM:
+
+```
+platformio run -e generic_esp32s3_hiflow
+```
+
+If you want **both Hoymiles nRF24 RF and HiFlow BLE** in the same firmware, you have two options:
+- Use an ESP32-S3 board with larger flash (8MB/16MB) and the corresponding partition table (e.g. `partitions_custom_16mb.csv`)
+- Or use the single-partition config without OTA update support (`partitions_custom_4mb one_partition.csv`) on a standard 4MB board
+
+#### Working
+
+- Reading real-time data (AC power, PV port voltages/currents/power)
+- BLE pairing (V0) and session handshake (V1) with AES encryption
+- Automatic reconnect on connection loss
+- Configurable poll interval via UI
+- PIN configuration via frontend (default: `123456`)
+
+#### Not Working / Limitations
+
+- **Write commands are not implemented** — only reading data is supported (no limit setting, no power on/off)
+- **Not all inverter serial prefixes are mapped** — unknown serials fall back to 4-channel mode. Known prefixes: `0x1610`, `0x4161` (2-channel 800W), `0x1164` (4-channel 1600W). If your device shows as unknown or has wrong channel count, please report your serial prefix and model.
+- **Data accuracy not fully verified** — values appear correct but have not been cross-checked against the official app for all fields
+- Requires ESP32-S3 (BLE 5.0 capable)
+- Requires NTP time sync before connection (inverter rejects stale timestamps)
 
 ### Start Time
 
