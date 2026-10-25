@@ -6,7 +6,9 @@
 #include "Configuration.h"
 #include "NetworkSettings.h"
 #include "defaults.h"
+#if ENABLE_MDNS
 #include <ESPmDNS.h>
+#endif
 #include <HardwareSerial.h>
 
 #undef TAG
@@ -107,9 +109,11 @@ void SyslogLogger::enable()
 
 bool SyslogLogger::resolveAndStart()
 {
+#if ENABLE_MDNS
     if (Configuration.get().Mdns.Enabled) {
         _address = MDNS.queryHost(_syslog_hostname); // INADDR_NONE if failed
     }
+#endif
     if (_address != INADDR_NONE) {
         if (!_udp.beginPacket(_address, _port)) {
             return false;

@@ -10,7 +10,9 @@
 #include "Utils.h"
 #include "__compiled_constants.h"
 #include "defaults.h"
+#if ENABLE_MDNS
 #include <ESPmDNS.h>
+#endif
 #include <ETH.h>
 #include <unordered_set>
 #include "esp_wifi.h"
@@ -152,6 +154,7 @@ void NetworkSettingsClass::raiseEvent(const network_event event)
     }
 }
 
+#if ENABLE_MDNS
 void NetworkSettingsClass::handleMDNS()
 {
     const bool mdnsEnabled = Configuration.get().Mdns.Enabled;
@@ -182,6 +185,7 @@ void NetworkSettingsClass::handleMDNS()
 
     ESP_LOGI(TAG, "MDNS started");
 }
+#endif
 
 void NetworkSettingsClass::setupMode()
 {
@@ -401,7 +405,9 @@ void NetworkSettingsClass::loop()
         _dnsServer->processNextRequest();
     }
 
+#if ENABLE_MDNS
     handleMDNS();
+#endif
 }
 
 void NetworkSettingsClass::applyConfig()

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 
-#include <HTTPClient.h>
+#include "http/HTTPClient.h"
 #include <ThreadSafeQueue.h>
 #include <map>
 #include <thread>

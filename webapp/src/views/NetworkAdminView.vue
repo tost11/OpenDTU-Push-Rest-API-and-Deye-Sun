@@ -83,7 +83,7 @@
                 />
             </CardElement>
 
-            <CardElement :text="$t('networkadmin.MdnsSettings')" textVariant="text-bg-primary" add-space>
+            <CardElement v-if="__MDNS_ENABLED__" :text="$t('networkadmin.MdnsSettings')" textVariant="text-bg-primary" add-space>
                 <InputElement
                     :label="$t('networkadmin.EnableMdns')"
                     v-model="networkConfigList.mdnsenabled"
@@ -156,6 +156,7 @@ export default defineComponent({
             dataLoading: true,
             networkConfigList: {} as NetworkConfig,
             alert: {} as AlertResponse,
+            __MDNS_ENABLED__: __MDNS_ENABLED__,
         };
     },
     created() {

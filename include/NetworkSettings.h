@@ -64,7 +64,9 @@ private:
     void loop();
     void setHostname();
     void setStaticIp();
+#if ENABLE_MDNS
     void handleMDNS();
+#endif
     void setupMode();
     void NetworkEvent(const WiFiEvent_t event, WiFiEventInfo_t info);
     void disableAdminMode();
@@ -89,8 +91,10 @@ private:
     network_mode _networkMode = network_mode::Undefined;
     bool _ethConnected = false;
     std::vector<DtuNetworkEventCbList_t> _cbEventList;
+#if ENABLE_MDNS
     bool _lastMdnsEnabled = false;
-#if W5500
+#endif
+    #if W5500
     std::unique_ptr<W5500> _w5500;
 #endif
 

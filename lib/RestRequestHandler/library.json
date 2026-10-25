@@ -10,9 +10,6 @@
     ],
     "dependencies": [
         {
-            "name": "HTTPClient"
-        },
-        {
             "name": "TaskScheduler"
         },
         {
