@@ -12,11 +12,7 @@ static const char* TAG = "logging";
 
 LoggingClass::LoggingClass()
 {
-#if MQTT
-    _configurableModules.reserve(5);
-#else
-    _configurableModules.reserve(4);
-#endif
+    _configurableModules.reserve(16);
     _configurableModules.push_back("CORE");
     _configurableModules.push_back("hoymiles");
 #if MQTT
@@ -24,6 +20,25 @@ LoggingClass::LoggingClass()
 #endif
     _configurableModules.push_back("network");
     _configurableModules.push_back("webapi");
+#if HOYMILES_W
+    _configurableModules.push_back("HoymilesW");
+#endif
+#if HIFLOW_BLE
+    _configurableModules.push_back("HiFlowBLE");
+#endif
+#if DEYE_SUN
+    _configurableModules.push_back("DeyeSun(AT)");
+    _configurableModules.push_back("DeyeSun(CM)");
+#endif
+#if TOST
+    _configurableModules.push_back("rest-push");
+#endif
+#if DEYE_SUN || TOST
+    _configurableModules.push_back("Tost");
+#endif
+#if SERVO
+    _configurableModules.push_back("Servo");
+#endif
 }
 
 const std::vector<String>& LoggingClass::getConfigurableModules() const

@@ -7,7 +7,7 @@
 #include <esp_log.h>
 
 #undef TAG
-static const char* TAG = "REST";
+static const char* TAG = "Tost";
 
 RestRequestHandlerClass RestRequestHandler;
 

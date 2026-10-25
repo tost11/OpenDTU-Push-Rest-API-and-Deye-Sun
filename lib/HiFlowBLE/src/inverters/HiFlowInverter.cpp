@@ -4,7 +4,7 @@
 #include <esp_log.h>
 
 #undef TAG
-static const char* TAG = "HiFlowInv";
+static const char* TAG = "HiFlowBLE";
 
 HiFlowInverter::HiFlowInverter(uint64_t serial)
 {
