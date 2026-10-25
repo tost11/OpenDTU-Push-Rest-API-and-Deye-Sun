@@ -35,6 +35,7 @@ public:
     bool resendPowerControlRequest() override;
     bool sendRestartControlRequest() override;
     bool sendPowerControlRequest(bool turnOn) override;
+    bool sendDtuRestartRequest() override;
 
     void update();
 
@@ -53,7 +54,7 @@ protected:
 private:
     enum class ConnState { Offline, Connecting, Connected, Error };
 
-    enum PendingResponse { NONE, REALDATA, HISTPOWER, GETCONFIG, COMMAND, RESTARTDEVICE };
+    enum PendingResponse { NONE, REALDATA, HISTPOWER, GETCONFIG, COMMAND, RESTARTDEVICE, RESTARTINVERTER, POWER };
 
     uint64_t _serial;
 
@@ -116,6 +117,14 @@ private:
     bool readRespCommand(pb_istream_t istream);
     bool writeCommandRestartDevice();
     bool readRespCommandRestartDevice(pb_istream_t istream);
+    bool writeCommandRestartInverter();
+    bool readRespCommandRestartInverter(pb_istream_t istream);
+    bool writeCommandPower(bool turnOn);
+    bool readRespCommandPower(pb_istream_t istream);
+    static bool encodeMiToSn(pb_ostream_t *stream, const pb_field_t *field, void * const *arg);
+
+    void requestRestartInverter();
+    void requestPowerControl(bool turnOn);
 
     static float calcValue(int32_t value, int32_t divider = 10);
 };

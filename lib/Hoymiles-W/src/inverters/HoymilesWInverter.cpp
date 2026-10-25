@@ -24,8 +24,8 @@ _pendingResponse(NONE),
 _updateReceived(false),
 _updateFailed(false),
 _statisticsInitialized(false),
-_dtuSerial(0),
-_changeCheckedClearOnDisconnect(false){
+    _dtuSerial(0),
+    _changeCheckedClearOnDisconnect(false){
 
     _serial = serial;
 
@@ -106,6 +106,9 @@ void HoymilesWInverter::disconnect(){
     if (_client){
         _client->stop();
     }
+    if(_pendingResponse == RESTARTDEVICE || _pendingResponse == RESTARTINVERTER || _pendingResponse == POWER){
+        getPowerCommand()->setLastPowerCommandSuccess(CMD_NOK);
+    }
     _connState = ConnState::Offline;
     _pendingResponse = NONE;
     _dtuSerial = 0;
@@ -124,6 +127,9 @@ void HoymilesWInverter::onConnect(){
 
 void HoymilesWInverter::onDisconnect(){
     ESP_LOGI(TAG, "Disconnected from DTU");
+    if(_pendingResponse == RESTARTDEVICE || _pendingResponse == RESTARTINVERTER || _pendingResponse == POWER){
+        getPowerCommand()->setLastPowerCommandSuccess(CMD_NOK);
+    }
     _connState = ConnState::Offline;
     _pendingResponse = NONE;
     _dtuSerial = 0;
@@ -219,6 +225,12 @@ void HoymilesWInverter::processRxFrames(){
             case RESTARTDEVICE:
                 readRespCommandRestartDevice(istream);
                 break;
+            case RESTARTINVERTER:
+                readRespCommandRestartInverter(istream);
+                break;
+            case POWER:
+                readRespCommandPower(istream);
+                break;
             default:
                 ESP_LOGW(TAG, "RX frame with no pending response");
                 break;
@@ -281,6 +293,9 @@ void HoymilesWInverter::update(){
     // Response timeout
     if(_pendingResponse != NONE && _responseTimer.occured()){
         ESP_LOGW(TAG, "Response timeout for pending request");
+        if(_pendingResponse == RESTARTDEVICE || _pendingResponse == RESTARTINVERTER || _pendingResponse == POWER){
+            getPowerCommand()->setLastPowerCommandSuccess(CMD_NOK);
+        }
         _pendingResponse = NONE;
         _responseTimer.zero();
         _updateFailed = true;
@@ -397,12 +412,22 @@ bool HoymilesWInverter::sendRestartControlRequest(){
         _alarmLogParser->addAlarm(6,10*60,"command not send (restart) because serials not matching (correct serial and ip?)");
         return false;
     }
-    requestRestartDevice();
+    requestRestartInverter();
     return true;
 }
 
 bool HoymilesWInverter::sendPowerControlRequest(bool turnOn){
-    return false;
+    if(!isSerialValid(_serial)){
+        _alarmLogParser->addAlarm(6,10*60,"command not send (power on/off) because serials not matching (correct serial and ip?)");
+        return false;
+    }
+    requestPowerControl(turnOn);
+    return true;
+}
+
+bool HoymilesWInverter::sendDtuRestartRequest(){
+    requestRestartDevice();
+    return true;
 }
 
 inverter_type HoymilesWInverter::getInverterType() const{
@@ -472,11 +497,35 @@ void HoymilesWInverter::setPowerLimit(int limit){
 }
 
 void HoymilesWInverter::requestRestartDevice(){
-    if(_client && _client->connected()){
+    if(_client && _client->connected() && _pendingResponse == NONE){
         ESP_LOGI(TAG, "Requesting DTU restart");
+        getPowerCommand()->setLastPowerCommandSuccess(CMD_PENDING);
         writeCommandRestartDevice();
     }else{
-        ESP_LOGI(TAG, "Cannot restart device - client not connected");
+        ESP_LOGI(TAG, "Cannot restart DTU - client not connected or command in flight");
+        getPowerCommand()->setLastPowerCommandSuccess(CMD_NOK);
+    }
+}
+
+void HoymilesWInverter::requestRestartInverter(){
+    if(_client && _client->connected() && _pendingResponse == NONE){
+        ESP_LOGI(TAG, "Requesting inverter restart");
+        getPowerCommand()->setLastPowerCommandSuccess(CMD_PENDING);
+        writeCommandRestartInverter();
+    }else{
+        ESP_LOGI(TAG, "Cannot restart inverter - client not connected or command in flight");
+        getPowerCommand()->setLastPowerCommandSuccess(CMD_NOK);
+    }
+}
+
+void HoymilesWInverter::requestPowerControl(bool turnOn){
+    if(_client && _client->connected() && _pendingResponse == NONE){
+        ESP_LOGI(TAG, "Requesting inverter %s", turnOn ? "on" : "off");
+        getPowerCommand()->setLastPowerCommandSuccess(CMD_PENDING);
+        writeCommandPower(turnOn);
+    }else{
+        ESP_LOGI(TAG, "Cannot set inverter power on/off - client not connected or command in flight");
+        getPowerCommand()->setLastPowerCommandSuccess(CMD_NOK);
     }
 }
 
@@ -786,6 +835,8 @@ bool HoymilesWInverter::writeCommandRestartDevice(){
         return false;
     }
 
+    // Implemented per hoymiles-wifi reference (CMD_CLOUD_COMMAND_RES_DTO, action CMD_ACTION_DTU_REBOOT).
+    // Never successfully tested on a real device - no reboot observed on our DTU.
     uint8_t buffer[200];
     pb_ostream_t stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
 
@@ -825,6 +876,127 @@ bool HoymilesWInverter::readRespCommandRestartDevice(pb_istream_t istream){
     _pendingResponse = NONE;
     CommandReqDTO commandreqdto = CommandReqDTO_init_default;
     pb_decode(&istream, &CommandReqDTO_msg, &commandreqdto);
-    ESP_LOGI(TAG, "Restart response - action: %i, err: %i", commandreqdto.action, commandreqdto.err_code);
+    ESP_LOGI(TAG, "DTU restart response - action: %i, err: %i", commandreqdto.action, commandreqdto.err_code);
+    getPowerCommand()->setLastPowerCommandSuccess(commandreqdto.err_code == 0 ? CMD_OK : CMD_NOK);
+    return true;
+}
+
+bool HoymilesWInverter::encodeMiToSn(pb_ostream_t *stream, const pb_field_t *field, void * const *arg){
+    const int64_t serial = *(const int64_t*)*arg;
+    if(!pb_encode_tag_for_field(stream, field)){
+        return false;
+    }
+    return pb_encode_varint(stream, (uint64_t)serial);
+}
+
+bool HoymilesWInverter::writeCommandRestartInverter(){
+    if(!_client || !_client->connected()){
+        ESP_LOGI(TAG, "writeCommandRestartInverter - not connected");
+        return false;
+    }
+
+    // Implemented per hoymiles-wifi reference (CMD_CLOUD_COMMAND_RES_DTO, action CMD_ACTION_INV_REBOOT,
+    // dev_kind DEV_DTU, mi_to_sn). Never successfully tested on a real device.
+    uint8_t buffer[200];
+    pb_ostream_t stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
+
+    CommandResDTO commandresdto = CommandResDTO_init_default;
+    commandresdto.action = CMD_ACTION_INV_REBOOT;
+    commandresdto.dev_kind = DEV_DTU;
+    commandresdto.package_nub = 1;
+    commandresdto.tid = int32_t(time(nullptr));
+    int64_t miSn = (int64_t)_serial;
+    commandresdto.mi_to_sn.arg = &miSn;
+    commandresdto.mi_to_sn.funcs.encode = HoymilesWInverter::encodeMiToSn;
+
+    if(!pb_encode(&stream, CommandResDTO_fields, &commandresdto)){
+        ESP_LOGI(TAG, "writeCommandRestartInverter - failed to encode");
+        return false;
+    }
+
+    for(unsigned int i = 0; i < stream.bytes_written; i++) _crc.add(buffer[i]);
+
+    uint8_t header[10];
+    header[0] = 0x48; header[1] = 0x4d; header[2] = 0x23; header[3] = 0x05;
+    header[4] = 0x00; header[5] = 0x01;
+    header[6] = (_crc.calc() >> 8) & 0xFF; header[7] = _crc.calc() & 0xFF;
+    header[8] = ((stream.bytes_written + 10) >> 8) & 0xFF; header[9] = (stream.bytes_written + 10) & 0xFF;
+    _crc.restart();
+
+    uint8_t message[10 + stream.bytes_written];
+    memcpy(message, header, 10);
+    memcpy(message + 10, buffer, stream.bytes_written);
+
+    ESP_LOGI(TAG, "Sending inverter restart command");
+    _pendingResponse = RESTARTINVERTER;
+    _responseTimer.reset();
+    _client->write((const char*)message, 10 + stream.bytes_written);
+    ConnectionStatistics.SendRequests++;
+    return true;
+}
+
+bool HoymilesWInverter::readRespCommandRestartInverter(pb_istream_t istream){
+    ConnectionStatistics.SuccessfulRequests++;
+    _pendingResponse = NONE;
+    CommandReqDTO commandreqdto = CommandReqDTO_init_default;
+    pb_decode(&istream, &CommandReqDTO_msg, &commandreqdto);
+    ESP_LOGI(TAG, "Inverter restart response - action: %i, err: %i", commandreqdto.action, commandreqdto.err_code);
+    getPowerCommand()->setLastPowerCommandSuccess(commandreqdto.err_code == 0 ? CMD_OK : CMD_NOK);
+    return true;
+}
+
+bool HoymilesWInverter::writeCommandPower(bool turnOn){
+    if(!_client || !_client->connected()){
+        ESP_LOGI(TAG, "writeCommandPower - not connected");
+        return false;
+    }
+
+    // CMD_COMMAND_RES_DTO variant - tested and working on a real device.
+    uint8_t buffer[200];
+    pb_ostream_t stream = pb_ostream_from_buffer(buffer, sizeof(buffer));
+
+    CommandResDTO commandresdto = CommandResDTO_init_default;
+    commandresdto.time = int32_t(time(nullptr));
+    commandresdto.action = turnOn ? CMD_ACTION_MI_START : CMD_ACTION_MI_SHUTDOWN;
+    commandresdto.package_nub = 1;
+    commandresdto.package_now = 0;
+    commandresdto.tid = int32_t(time(nullptr));
+    int64_t miSn = (int64_t)_serial;
+    commandresdto.mi_to_sn.arg = &miSn;
+    commandresdto.mi_to_sn.funcs.encode = HoymilesWInverter::encodeMiToSn;
+
+    if(!pb_encode(&stream, CommandResDTO_fields, &commandresdto)){
+        ESP_LOGI(TAG, "writeCommandPower - failed to encode");
+        return false;
+    }
+
+    for(unsigned int i = 0; i < stream.bytes_written; i++) _crc.add(buffer[i]);
+
+    uint8_t header[10];
+    header[0] = 0x48; header[1] = 0x4d; header[2] = 0xa3; header[3] = 0x05;
+    header[4] = 0x00; header[5] = 0x01;
+    header[6] = (_crc.calc() >> 8) & 0xFF; header[7] = _crc.calc() & 0xFF;
+    header[8] = ((stream.bytes_written + 10) >> 8) & 0xFF; header[9] = (stream.bytes_written + 10) & 0xFF;
+    _crc.restart();
+
+    uint8_t message[10 + stream.bytes_written];
+    memcpy(message, header, 10);
+    memcpy(message + 10, buffer, stream.bytes_written);
+
+    ESP_LOGI(TAG, "Sending inverter %s command", turnOn ? "on" : "off");
+    _pendingResponse = POWER;
+    _responseTimer.reset();
+    _client->write((const char*)message, 10 + stream.bytes_written);
+    ConnectionStatistics.SendRequests++;
+    return true;
+}
+
+bool HoymilesWInverter::readRespCommandPower(pb_istream_t istream){
+    ConnectionStatistics.SuccessfulRequests++;
+    _pendingResponse = NONE;
+    CommandReqDTO commandreqdto = CommandReqDTO_init_default;
+    pb_decode(&istream, &CommandReqDTO_msg, &commandreqdto);
+    ESP_LOGI(TAG, "Power on/off response - action: %i, err: %i", commandreqdto.action, commandreqdto.err_code);
+    getPowerCommand()->setLastPowerCommandSuccess(commandreqdto.err_code == 0 ? CMD_OK : CMD_NOK);
     return true;
 }

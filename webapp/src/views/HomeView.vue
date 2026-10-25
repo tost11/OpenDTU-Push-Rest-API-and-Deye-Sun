@@ -835,7 +835,7 @@
                 <BIconArrowCounterclockwise class="fs-4" />&nbsp;{{ $t('home.Restart') }}
             </button>
             <button
-                v-if="powerManufacturer === 'HiFlowBLE'"
+                v-if="powerManufacturer === 'HiFlowBLE' || powerManufacturer === 'HoymilesW'"
                 type="button"
                 class="btn btn-secondary"
                 @click="onRestartDtu"
