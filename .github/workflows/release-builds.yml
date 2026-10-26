@@ -108,7 +108,7 @@ jobs:
 
       - name: Build canary firmware
         env:
-          RELEASE_WEBAPP_DIR: wa/webapp_dist-${{ steps.row.outputs.wa }}
+          RELEASE_WEBAPP_DIR: wa/webapp_dist_${{ steps.row.outputs.wa }}
           RELEASE_NAME_PREFIX: ${{ startsWith(github.ref, 'refs/tags/') && format('opendtu-{0}-', github.ref_name) || '' }}
         run: bash scripts/release_builds.sh "${{ steps.row.outputs.name }}"
 
@@ -166,7 +166,7 @@ jobs:
 
       - name: Build firmware ${{ matrix.firmware.name }}
         env:
-          RELEASE_WEBAPP_DIR: wa/webapp_dist-${{ matrix.firmware.wa }}
+          RELEASE_WEBAPP_DIR: wa/webapp_dist_${{ matrix.firmware.wa }}
           RELEASE_NAME_PREFIX: ${{ startsWith(github.ref, 'refs/tags/') && format('opendtu-{0}-', github.ref_name) || '' }}
         run: bash scripts/release_builds.sh "${{ matrix.firmware.name }}"
 
