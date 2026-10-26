@@ -152,6 +152,7 @@ table - flashing the wrong size to a board bricks it.
 | `opendtu-hoymiles-tost` | `rel_hoymiles_tost` | H | TOST SERVO MDNS W5500 MQTT | 5 | 1,879,264 | 86,816 |
 | `opendtu-hoymiles-w-tost` | `rel_hoymiles_w_tost` | W | TOST SERVO MDNS W5500 MQTT | 5 | 1,852,688 | 113,392 |
 | `opendtu-hiflow-bt-tost-no-mqtt` | `rel_hiflow_bt_tost_no_mqtt` | BLE | TOST SERVO MDNS W5500 | 5 | 1,885,248 | 80,832 |
+| `opendtu-hiflow-bt-mqtt` | `rel_hiflow_bt_mqtt` | BLE | MQTT | 4 | 1,939,744 | 26,336 |
 | `opendtu-deye-tost` | `rel_deye_tost` | D | TOST SERVO MDNS W5500 MQTT | 5 | 1,867,376 | 98,704 |
 | `opendtu-hoymiles-hoymiles-w-deye-tost-no-mqtt` | `rel_hoymiles_hoymiles_w_deye_tost_no_mqtt` | H + D + W | TOST SERVO MDNS W5500 | 5 | 1,770,624 | 195,456 |
 | `opendtu-hoymiles-w-deye-hiflow-bt-tost-no-mqtt` | `rel_hoymiles_w_deye_hiflow_bt_tost_no_mqtt` | D + W + BLE | TOST SERVO MDNS (no W5500 - does not fit even at log 4) | 5 | 1,944,656 | 21,424 |

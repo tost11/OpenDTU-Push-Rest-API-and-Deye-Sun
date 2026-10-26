@@ -16,15 +16,15 @@ section at the bottom of `platformio.ini`; common flags live in the
 `[relcommon]` section there. `platformio.ini` is never modified at runtime.
 
 The build matrix (one row per variant: `name | env | VITE_TOST VITE_MQTT
-VITE_MDNS | firmware.bin size limit`) is the `MATRIX` array in
-`scripts/release_builds.sh` - read it from there, do not copy it here. The
-same script exists for **unattended build-only runs** (CI / no device);
+VITE_MDNS | firmware.bin size limit`, tab-separated) is in
+`scripts/release_matrix.tsv` - read it from there, do not copy it here. The
+build script `scripts/release_builds.sh` exists for **unattended build-only runs** (CI / no device);
 see `docs/ReleaseBuilds.md`. Do not run it in this interactive flow.
 
 ## Preflight (check before starting)
 
-1. `webapp/node_modules` present; run `npm --prefix webapp ci` if a webapp
-   build fails on missing modules.
+1. `webapp/node_modules` present; run `yarn --cwd webapp install
+   --frozen-lockfile` if a webapp build fails on missing modules.
 2. USB device present: `ls /dev/ttyUSB*`. If missing: **stop and ask the user
    to plug in the test device** - do not continue build-only unless they say so.
 3. Test device reachable: `ping -c1 -W2 192.168.66.109` (default IP). If not
@@ -39,7 +39,7 @@ For each row `name | env | VITE_TOST VITE_MQTT VITE_MDNS | limit`:
 
 1. **Webapp** - only if the row's VITE variant differs from the variant of
    the last built row:
-   `VITE_TOST=<t> VITE_MQTT=<m> VITE_MDNS=<d> npm --prefix webapp run build`
+    `VITE_TOST=<t> VITE_MQTT=<m> VITE_MDNS=<d> yarn --cwd webapp build`
    (VITE flags must match the firmware flags - take them from the row, do not
    override manually).
 2. **Firmware** - `platformio run -e <env>` (bash timeout ~10 min; first build
@@ -90,7 +90,7 @@ continue with the remaining builds.
 
 | Symptom | Meaning / fix |
 |---|---|
-| `firmware binary too large` / `BUILD-FAILED` | The combo no longer fits the app slot (code grew). Known lever: `LOG_LOCAL_LEVEL`/`CORE_DEBUG_LEVEL` 5 -> 4 in that env (saves ~13.5 KB on the all-4 build). Common flags affect all 13 envs - they live in `[relcommon]`, feature flags per env. Adjust in the RELEASE BUILDS section of `platformio.ini`, rebuild that env, continue. |
+| `firmware binary too large` / `BUILD-FAILED` | The combo no longer fits the app slot (code grew). Known lever: `LOG_LOCAL_LEVEL`/`CORE_DEBUG_LEVEL` 5 -> 4 in that env (saves ~13.5 KB on the all-4 build). Common flags affect all 14 envs - they live in `[relcommon]`, feature flags per env. Adjust in the RELEASE BUILDS section of `platformio.ini`, rebuild that env, continue. |
 | `SIZE-EXCEEDED` | Build succeeded but `firmware.bin` > limit on a 4 MB env. Same fix. |
 | `upload attempt N failed` (x3) | Transient esptool sync / baud-MHz / USB issue. Check `ls /dev/ttyUSB*` - the port can re-enumerate `ttyUSB0` -> `ttyUSB1` after resets; if so, update the user-local `platformio_override.ini` to the new port and re-run. Otherwise re-plug the device. |
 | `VERIFY FAILED: no ping answer` after upload | Device did not boot. Common cause: an oversized `firmware.bin` flashed earlier (bootloader SW-reset loop). Re-flash the known-good `release/opendtu-all-no-eth-mqtt-mdns.factory.bin`. |
@@ -106,5 +106,5 @@ continue with the remaining builds.
   also affects `generic_esp32_16mb_psram`. Do not remove these two files.
 - The script and the flow never commit anything and never touch
   `platformio.ini`.
-- A full run takes ~30-60 min (13 firmware builds + up to 5 webapp builds +
-  9 flash/verify cycles; a fresh env compiles from scratch).
+- A full run takes ~30-60 min (14 firmware builds + up to 6 webapp builds +
+  10 flash/verify cycles; a fresh env compiles from scratch).

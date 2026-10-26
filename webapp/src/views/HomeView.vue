@@ -144,7 +144,11 @@
                                 <div
                                     class="btn-group me-2"
                                     role="group"
-                                    v-if="inverter.manufacturer != 'HoymilesW' && inverter.manufacturer != 'HiFlowBLE'"
+                                    v-if="
+                                        inverter.manufacturer != 'HoymilesW' &&
+                                        inverter.manufacturer != 'HiFlowBLE' &&
+                                        inverter.manufacturer != 'DeyeSun'
+                                    "
                                 >
                                     <button
                                         type="button"

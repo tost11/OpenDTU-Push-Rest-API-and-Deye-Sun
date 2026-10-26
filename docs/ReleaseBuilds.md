@@ -4,7 +4,7 @@ How `scripts/release_builds.sh` produces the release firmware matrix.
 
 ## What it does
 
-Builds all 13 release firmware variants (9x 4 MB, 2x 8 MB, 2x 16 MB) and
+Builds all 14 release firmware variants (10x 4 MB, 2x 8 MB, 2x 16 MB) and
 stages the artifacts in `release/` for upload to a GitHub release.
 
 ## Where the build matrix lives
@@ -57,7 +57,7 @@ unattended/in CI.
 ## Usage
 
 ```bash
-scripts/release_builds.sh            # all 13 variants, ~30-60 min cold
+scripts/release_builds.sh            # all 14 variants, ~30-60 min cold
 scripts/release_builds.sh <name>     # only one matrix row (name as in the TSV)
 ```
 

@@ -3,6 +3,7 @@ all-no-eth-mqtt-mdns	rel_all_no_eth_mqtt_mdns	0	0	0	1966080
 hoymiles-tost	rel_hoymiles_tost	1	1	1	1966080
 hoymiles-w-tost	rel_hoymiles_w_tost	1	1	1	1966080
 hiflow-bt-tost-no-mqtt	rel_hiflow_bt_tost_no_mqtt	1	0	1	1966080
+hiflow-bt-mqtt	rel_hiflow_bt_mqtt	0	1	0	1966080
 deye-tost	rel_deye_tost	1	1	1	1966080
 hoymiles-hoymiles-w-deye-tost-no-mqtt	rel_hoymiles_hoymiles_w_deye_tost_no_mqtt	1	0	1	1966080
 hoymiles-w-deye-hiflow-bt-tost-no-mqtt	rel_hoymiles_w_deye_hiflow_bt_tost_no_mqtt	1	0	1	1966080

@@ -1,49 +1,74 @@
 # OpenDTU
 
-[![OpenDTU Build](https://github.com/tbnobody/OpenDTU/actions/workflows/build.yml/badge.svg)](https://github.com/tbnobody/OpenDTU/actions/workflows/build.yml)
-[![cpplint](https://github.com/tbnobody/OpenDTU/actions/workflows/cpplint.yml/badge.svg)](https://github.com/tbnobody/OpenDTU/actions/workflows/cpplint.yml)
-[![Yarn Linting](https://github.com/tbnobody/OpenDTU/actions/workflows/yarnlint.yml/badge.svg)](https://github.com/tbnobody/OpenDTU/actions/workflows/yarnlint.yml)
-[![Yarn Prettier](https://github.com/tbnobody/OpenDTU/actions/workflows/yarnprettier.yml/badge.svg)](https://github.com/tbnobody/OpenDTU/actions/workflows/yarnprettier.yml)
+[![cpplint](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/actions/workflows/cpplint.yml/badge.svg)](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/actions/workflows/cpplint.yml)
+[![Yarn Linting](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/actions/workflows/yarnlint.yml/badge.svg)](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/actions/workflows/yarnlint.yml)
+[![Yarn Prettier](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/actions/workflows/yarnprettier.yml/badge.svg)](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/actions/workflows/yarnprettier.yml)
 
 ## What's this fork about ?
 
-This fork extends OpenDTU with several additional features, controlled via build flags in [platformio.ini](platformio.ini). Enable or disable each feature by setting the corresponding flag to `1` or `0`.
+This fork of OpenDTU supports Deye Sun (Wi-Fi), Hoymiles W-Series (Wi-Fi) and Hoymiles WB-Series (Bluetooth) inverters in addition to the original Hoymiles nRF24 inverters.
+It extends OpenDTU with several additional features, controlled via build flags in [platformio.ini](platformio.ini). Enable or disable each feature by setting the corresponding flag to `1` or `0`.
 
-### Feature Overview
+### New Features
 
-- **Hoymiles nRF24/CMT2300** — Original Hoymiles inverter support via RF radio
 - **Deye SUN** — Deye SUN micro inverters via Wi-Fi/network (UDP, TCP, Modbus)
-- **Hoymiles W-Series** — HMS-*W-2T inverters via Wi-Fi/network (TCP, Protobuf)
-- **HiFlow BLE (Beta/Testing)** — Hoymiles HiFlow (HMS-*-WB / HF-*-WB) inverters via Bluetooth Low Energy (unfinished)
+- **Hoymiles W-Series** — HMS-*W inverters (1T / 2T / 4T) via Wi-Fi/network (TCP, Protobuf)
+- **HiFlow BLE** — Hoymiles HiFlow (HMS-\*-WB / HF-\*-WB) inverters via Bluetooth Low Energy (ESP32-S3)
 - **REST Push Service** — Push inverter data to an external monitoring server
 - **Servo Engine** — Physical servo output displaying solar power
 - **Start Time** — Operate without internet by setting a fallback start time
 
+### Preexisting Features (made optional to disable)
+
+- **Hoymiles nRF24/CMT2300** — Original Hoymiles inverter support via RF radio
+- **MQTT** — Publish inverter data to an MQTT broker
+- **Ethernet (W5500)** — Wired network support for DTU boxes with a W5500 chip
+- **mDNS** — LAN name resolution for inverter hostnames
+
+Every feature is controlled by a build flag. Being able to leave unused features
+out is what keeps the all-features firmware inside the ~2 MB app slot
+(1,966,080 B) of the 4 MB dual-slot partition table that the web-based OTA
+update feature requires.
+
 ## Build Flags
 
+Not all features fit into the 2 MB OTA firmware, so they are controlled by build flags — enabling only what you need keeps the firmware small enough for web-based OTA updates.
 All feature flags are set in the `build_flags` section of [platformio.ini](platformio.ini).
 
-| Flag          | Default | Description                                                  |
-|---------------|---------|--------------------------------------------------------------|
-| `-DHOYMILES`  | `1`     | Support for original Hoymiles NRF24 inverters                |
-| `-DDEYE_SUN`  | `1`     | Support for Deye SUN inverters (network, Wi-Fi)              |
-| `-DHOYMILES_W`| `1`     | Support for Hoymiles W-Series inverters (network, Wi-Fi)     |
-| `-DHIFLOW_BLE`| `0`     | Beta/Testing: Hoymiles HiFlow BLE inverters (ESP32-S3, unfinished) |
-| `-DSERVO`     | `0`     | Servo engine output displaying solar power                   |
-| `-DTOST`      | `0`     | REST push service sending inverter data to a monitoring server|
+| Flag             | Default | Description                                                  |
+|------------------|---------|--------------------------------------------------------------|
+| `-DHOYMILES`     | `1`     | Support for original Hoymiles NRF24 inverters                |
+| `-DDEYE_SUN`     | `1`     | Support for Deye SUN inverters (network, Wi-Fi)              |
+| `-DHOYMILES_W`   | `1`     | Support for Hoymiles W-Series inverters (network, Wi-Fi)     |
+| `-DHIFLOW_BLE`   | `1`     | Support for Hoymiles HiFlow BLE inverters (ESP32-S3)         |
+| `-DSERVO`        | `0`     | Servo engine output displaying solar power                   |
+| `-DTOST`         | `0`     | REST push service sending inverter data to a monitoring server|
+| `-DMQTT`         | `0`     | Publish inverter data to an MQTT broker                      |
+| `-DENABLE_W5500` | `0`     | Wired Ethernet via the W5500 chip                            |
+| `-DENABLE_MDNS`  | `0`     | mDNS LAN name resolution                                     |
 
-> **Note on `-DTOST`:** Changing this flag also requires rebuilding the frontend.
-> - `TOST=1`: build normally with `npm run build` inside the `webapp/` directory.
-> - `TOST=0`: build with `VITE_TOST=0 npm run build` inside the `webapp/` directory.
+> **Note on the frontend build flags:** The frontend is compiled with the Vite
+> flags `VITE_TOST`, `VITE_MQTT` and `VITE_MDNS`, which must match the firmware
+> flags `-DTOST`, `-DMQTT` and `-DENABLE_MDNS`. The webapp is built with
+> `yarn build` inside the `webapp/` directory
+> (e.g. `VITE_TOST=1 VITE_MQTT=1 VITE_MDNS=1 yarn build`).
 
 ## Features
 
 ### More manufacturers
 
 With help from this fork, it is possible to read data from more inverter types besides the Hoymiles NRF24 ones.
-The additional inverter types will be fetched via Network (Wi-Fi). The esp therefore has to be in the same network as the inverter.
+The additional inverter types will be fetched via Network (Wi-Fi) or Bluetooth. For the Wi-Fi inverters the esp has to be in the same network as the inverter.
 
 All inverter types are separate implementations and can be enabled or disabled via build flags — see the [Build Flags](#build-flags) section above.
+
+> **Note on device models:** Not all inverters are mapped to the correct model by their
+> serial number yet. Devices with an unknown serial are shown as unknown (or fall back to
+> a default model), but the model can be overridden manually in the inverter settings.
+> If your device is unknown or mapped incorrectly, it would be nice to add its serial and
+> model on [issue #6](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/issues/6).
+> The serial numbers mapped in the code are listed in
+> [docs/known_inverter_serials.md](docs/known_inverter_serials.md).
 
 ### Status Deye Sun
 
@@ -59,17 +84,17 @@ Currently, there exist three types of connections to the inverter, depending on 
 |                       | At-Commands                | Custom Modbus                | Modbus                      |
 |-----------------------|----------------------------|------------------------------|-----------------------------|
 | Firmware              | Old Firmwares (1.0 - 2.32) | new firmware e.g. 1.0B, 5.0C | not seen on micro inverters |
-| Status of development | reding data and writing    | reding data and writing      | not implemented             |
+| Status of development | reading data and writing   | reading data and writing     | not implemented             |
 
 Tested with models: SUN300G3-EU-230, SUN-M60/80/100G4-EU-Q0, Deye SUN600G3-EU-230
 
 #### Working
 
 - Reading data
-- Configuring via UI
-- Tun on and off (also "resetting" if led permanent red, for unknown devices it has to be enabled on the DTU/General-Settings page).
+- Reading inverter firmware version
+- Turn on and off (also "resetting" if led permanent red, for unknown devices it has to be enabled on the DTU/General-Settings page).
 - Setting limit (for unknown devices, it has to be enabled on the DTU/General-Settings page)
-- Showing logs
+- Restart inverter
 
 #### Not working
 
@@ -84,26 +109,32 @@ tracked and calculated by OpenDTU itself.
 
 The esp will connect via Network (TCP, Protobuf) to the configured IP/hostname/MAC (when connected to AP of the esp) and port of the Inverter.
 
-The DTU-Connection code is mostly based on the code of [DTU-Gateway](https://github.com/ohAnd/dtuGateway). I just mapped it to OpenDTU project. So all problems described there with setting limits also exist here.
+The DTU-Connection is based on the command set of the [hoymiles-wifi](https://github.com/suaveolent/hoymiles-wifi) project
+(constants and commands ported from its Python implementation).
+
+> **New inverter firmware is not supported yet:** Inverter/DTU firmware v1.01.01 and above does not work at the moment —
+> see [issue #12](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/issues/12).
+> The new firmware uses a new protocol with encryption, which is not implemented yet (planned for a later release).
 
 Tested with model: HMS-800W-2T
 
 It is possible to configure the distance between the data fetches on advanced inverter settings. This is needed because on the first firmware
-versions of the device (like 1.\*.\*) it was only possible every 31 seconds (also mentioned on [DTU-Gateway](https://github.com/ohAnd/dtuGateway)). Therefore the
+versions of the device (like 1.\*.\*) it was only possible every 31 seconds. Therefore the
 Default value is 31 seconds. With the new firmware (2.\*.\* and above), it is possible more often. 20 seconds seem to be a good value (find out for yourself).
 
 #### Working
 
 - Reading data
-- Configuring via UI
+- Reading inverter and DTU firmware version
 - Setting limit
-- restart inverter
+- Power on/off
+- Restart inverter
+- Restart DTU
 
 #### Not working
 
 - Logs show hardware inverter errors
-- Read Firmware information of inverter
-- Support for 6T invertes not done yet.
+- Support for 6T inverters not done yet.
 
 ####  Network setup as gateway
 
@@ -112,18 +143,13 @@ It is possible to set OpenDTU in continuous AP mode by setting time on the netwo
 Please change the password therefor to something more complex. Then on the network settings for the inverters, the MAC address
 can be used for connection. The DTU will resolve them to the correct IP address. The connected device can be found on the network Info page of the DTU.
 
-#### more serial numbers
-
-To get rid of the unknown devices, recognized by the device serial prefix, it would be helpful to know more for them so they can be mapped correctly.
-For doing so, feel free to leave a comment with device type and prefix on this [issue](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/issues/6) so they can be added.
-
-### Beta: HiFlow BLE (HMS-\*-WB / HF-\*-WB Series)
-
-> **Status: Beta / Testing / Unfinished** — This feature is under active development on the `feature/hoymiles-hiflow-bluetooth` branch. It is not considered stable or complete.
+### HiFlow BLE (HMS-\*-WB / HF-\*-WB Series)
 
 The ESP32-S3 connects via Bluetooth Low Energy (BLE) to Hoymiles HiFlow inverters (HMS-\*-WB, HF-\*-WB series). No additional radio hardware (nRF24/CMT2300) is required — only the ESP32-S3's built-in BLE radio.
 
 The BLE protocol implementation is based on the reverse engineering work from [hiflow-ble](https://github.com/TheTiEr/hiflow-ble/blob/main/README.md).
+
+Tested with models: HMS-800-2WB (serial prefix 0x1610, 0x4161), HF-800-WB (serial prefix 0x1650)
 
 #### Build Configuration
 
@@ -142,16 +168,17 @@ If you want **both Hoymiles nRF24 RF and HiFlow BLE** in the same firmware, you 
 #### Working
 
 - Reading real-time data (AC power, PV port voltages/currents/power)
+- Reading inverter and DTU firmware version (from the V0 pairing response)
+- Setting limit
+- Power on/off
+- Restart inverter
+- Restart DTU
 - BLE pairing (V0) and session handshake (V1) with AES encryption
-- Automatic reconnect on connection loss
-- Configurable poll interval via UI
 - PIN configuration via frontend (default: `123456`)
 
 #### Not Working / Limitations
 
-- **Write commands are not implemented** — only reading data is supported (no limit setting, no power on/off)
-- **Not all inverter serial prefixes are mapped** — unknown serials fall back to 4-channel mode. Known prefixes: `0x1610`, `0x4161` (2-channel 800W), `0x1164` (4-channel 1600W). If your device shows as unknown or has wrong channel count, please report your serial prefix and model.
-- **Data accuracy not fully verified** — values appear correct but have not been cross-checked against the official app for all fields
+- Logs show hardware inverter errors
 - Requires ESP32-S3 (BLE 5.0 capable)
 - Requires NTP time sync before connection (inverter rejects stale timestamps)
 
@@ -180,13 +207,27 @@ check out the [project](https://github.com/tost11/solar-monitoring).
 With this feature, it is possible to add a servo engine to the esp. It can be configured by pin mapping and hardware settings.
 Using input 0 zero will result in using the full load of the invertery every other number selects the index of the inputs.
 
+An example project (solar power display for a kindergarten, in German) can be found in this [blog post](https://itgrufti.de/solar/monitoring/eine-solar-anzeige-fuer-die-kita/).
+
 ## Builds
 
-Check out precompiled builds for dev32 board [here](builds)
+Precompiled firmware builds for all supported feature combinations are provided
+as [GitHub releases](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/releases)
+(see also [builds](builds)). There are 14 variants: 10 for 4 MB boards (dual slot,
+web OTA update), 2 for 8 MB boards and 2 for 16 MB boards.
 
-## Further docuementation
+- Complete matrix with features, add-ons, log level and measured sizes:
+  [docs/FeatureSizes.md](docs/FeatureSizes.md) (section "Release build matrix")
+- How the builds are produced and how the CI workflow works:
+  [docs/ReleaseBuilds.md](docs/ReleaseBuilds.md)
 
-Fore some more detailed Documentation in German check out this [page](https://itgrufti.de/solar/).
+> **Caveat:** The 8 MB and 16 MB builds are not tested on hardware yet (no test
+> device available). The 16 MB builds additionally rely on the IRAM region
+> override in `ld/memory_16mb_override.ld`.
+
+## Further documentation
+
+For some more detailed Documentation in German check out this [page](https://itgrufti.de/solar/).
 
 # OpenDTU original README
 
