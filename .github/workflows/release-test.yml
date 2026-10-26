@@ -1,0 +1,10 @@
+name: Release Test
+
+on:
+  push:
+    branches:
+      - release
+
+jobs:
+  build:
+    uses: ./.github/workflows/release-builds.yml

@@ -1,0 +1,172 @@
+name: Release Builds
+
+on:
+  workflow_call:
+
+jobs:
+  webapp:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: webapp/package-lock.json
+
+      - name: Install webapp dependencies
+        run: npm --prefix webapp ci
+
+      - name: Build all webapp variants
+        run: |
+          set -e
+          variants=$(tail -n +2 scripts/release_matrix.tsv \
+              | awk -F'\t' '{print $3"_"$4"_"$5}' | sort -u)
+          for v in $variants; do
+            IFS=_ read -r t m d <<<"$v"
+            VITE_TOST=$t VITE_MQTT=$m VITE_MDNS=$d npm --prefix webapp run build
+            cp -r webapp_dist "webapp_dist_$v"
+          done
+
+      - name: Upload webapp artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: webapp-dist
+          path: webapp_dist_*/
+
+  canary:
+    runs-on: ubuntu-latest
+    needs: webapp
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Identify canary row (first matrix row)
+        id: row
+        run: |
+          line=$(tail -n +2 scripts/release_matrix.tsv | head -n 1)
+          {
+            echo "name=$(cut -f1 <<<"$line")"
+            echo "wa=$(awk -F'\t' '{print $3"_"$4"_"$5}' <<<"$line")"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Compute matrix for the remaining rows
+        id: rest
+        run: |
+          rest=$(jq -R -s '
+            split("\n") | map(select(length > 0)) | .[2:] |
+            map(split("\t") | {name: .[0], wa: (.[2] + "_" + .[3] + "_" + .[4])})
+          ' scripts/release_matrix.tsv)
+          {
+            echo "rest<<RESTEOF"
+            echo "$rest"
+            echo "RESTEOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Cache pip
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-opendtu
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Cache PlatformIO
+        uses: actions/cache@v6
+        with:
+          path: ~/.platformio
+          key: ${{ runner.os }}-pio-${{ hashFiles('platformio.ini') }}
+          restore-keys: |
+            ${{ runner.os }}-pio-
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Install PlatformIO
+        run: |
+          python -m pip install --upgrade pip
+          pip install --upgrade platformio setuptools intelhex
+
+      - name: Download webapp artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: webapp-dist
+          path: wa
+
+      - name: Build canary firmware
+        env:
+          RELEASE_WEBAPP_DIR: wa/webapp_dist-${{ steps.row.outputs.wa }}
+          RELEASE_NAME_PREFIX: ${{ startsWith(github.ref, 'refs/tags/') && format('opendtu-{0}-', github.ref_name) || '' }}
+        run: bash scripts/release_builds.sh "${{ steps.row.outputs.name }}"
+
+      - name: Upload firmware artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: fw-${{ steps.row.outputs.name }}
+          path: release/
+
+  firmware:
+    runs-on: ubuntu-latest
+    needs: [webapp, canary]
+    strategy:
+      fail-fast: false
+      matrix:
+        firmware: ${{ fromJSON(needs.canary.outputs.rest) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Cache pip
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-opendtu
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Cache PlatformIO
+        uses: actions/cache@v6
+        with:
+          path: ~/.platformio
+          key: ${{ runner.os }}-pio-${{ hashFiles('platformio.ini') }}
+          restore-keys: |
+            ${{ runner.os }}-pio-
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Install PlatformIO
+        run: |
+          python -m pip install --upgrade pip
+          pip install --upgrade platformio setuptools intelhex
+
+      - name: Download webapp artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: webapp-dist
+          path: wa
+
+      - name: Build firmware ${{ matrix.firmware.name }}
+        env:
+          RELEASE_WEBAPP_DIR: wa/webapp_dist-${{ matrix.firmware.wa }}
+          RELEASE_NAME_PREFIX: ${{ startsWith(github.ref, 'refs/tags/') && format('opendtu-{0}-', github.ref_name) || '' }}
+        run: bash scripts/release_builds.sh "${{ matrix.firmware.name }}"
+
+      - name: Upload firmware artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: fw-${{ matrix.firmware.name }}
+          path: release/

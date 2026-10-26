@@ -1,0 +1,14 @@
+name	env	vite_tost	vite_mqtt	vite_mdns	limit
+all-no-eth-mqtt-mdns	rel_all_no_eth_mqtt_mdns	0	0	0	1966080
+hoymiles-tost	rel_hoymiles_tost	1	1	1	1966080
+hoymiles-w-tost	rel_hoymiles_w_tost	1	1	1	1966080
+hiflow-bt-tost-no-mqtt	rel_hiflow_bt_tost_no_mqtt	1	0	1	1966080
+deye-tost	rel_deye_tost	1	1	1	1966080
+hoymiles-hoymiles-w-deye-tost-no-mqtt	rel_hoymiles_hoymiles_w_deye_tost_no_mqtt	1	0	1	1966080
+hoymiles-w-deye-hiflow-bt-tost-no-mqtt	rel_hoymiles_w_deye_hiflow_bt_tost_no_mqtt	1	0	1	1966080
+no-nrf	rel_no_nrf	0	0	1	1966080
+no-nrf-bt	rel_no_nrf_bt	0	1	1	1966080
+all-8mb	rel_all_8mb	1	1	1	0
+all-no-nrf-8mb	rel_all_no_nrf_8mb	1	1	1	0
+all-16mb	rel_all_16mb	1	1	1	0
+all-no-nrf-16mb	rel_all_no_nrf_16mb	1	1	1	0

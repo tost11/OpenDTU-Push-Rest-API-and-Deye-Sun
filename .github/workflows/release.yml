@@ -1,0 +1,80 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    uses: ./.github/workflows/release-builds.yml
+
+  create-release:
+    needs: build
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Download firmware artifacts
+        uses: actions/download-artifact@v8
+        continue-on-error: true
+        with:
+          pattern: fw-*
+          path: fw
+          merge-multiple: false
+
+      - name: Collect artifacts
+        id: collect
+        run: |
+          set -u
+          prefix="opendtu-${GITHUB_REF_NAME}-"
+          mkdir -p artifacts
+          for d in fw/*/; do
+            [ -d "$d" ] && cp "$d"/*.bin artifacts/ 2>/dev/null || true
+          done
+          got=$(ls artifacts/*.bin 2>/dev/null | wc -l)
+          : > missing.txt
+          while IFS=$'\t' read -r name _; do
+            if [ ! -f "artifacts/${prefix}${name}.bin" ] \
+               || [ ! -f "artifacts/${prefix}${name}.factory.bin" ]; then
+              echo "$name" >> missing.txt
+            fi
+          done < <(tail -n +2 scripts/release_matrix.tsv)
+          body="Firmware ${GITHUB_REF_NAME}"
+          if [ -s missing.txt ]; then
+            body+=$'\n\n**INCOMPLETE RELEASE** - missing builds (re-run the failed jobs, then re-run this workflow to refresh the draft):'
+            while read -r n; do body+=$'\n- '"$n"; done < missing.txt
+          fi
+          {
+            echo "got=$got"
+            echo "body<<BODYEOF"
+            echo "$body"
+            echo "BODYEOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: No successful builds, no release created
+        if: steps.collect.outputs.got == '0'
+        run: |
+          echo "No firmware builds succeeded - not creating a release."
+          exit 1
+
+      - name: Generate SHA256 checksums
+        if: steps.collect.outputs.got > 0
+        run: |
+          cd artifacts && sha256sum *.bin > ../opendtu-${GITHUB_REF_NAME}.sha256
+
+      - name: Create draft GitHub Release
+        if: steps.collect.outputs.got > 0
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Version ${{ github.ref_name }}
+          draft: true
+          body: ${{ steps.collect.outputs.body }}
+          files: |
+            artifacts/*.bin
+            opendtu-${{ github.ref_name }}.sha256
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
