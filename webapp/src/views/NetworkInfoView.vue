@@ -12,7 +12,7 @@
         <InterfaceNetworkInfo :networkStatus="networkDataList" />
         <div class="mt-5"></div>
         <InterfaceApInfo :networkStatus="networkDataList" />
-        <div class="mt-5"></div>        
+        <div class="mt-5"></div>
         <WifiStationDevices :networkStatus="networkDataList" />
         <div class="mt-5"></div>
     </BasePage>
@@ -36,7 +36,7 @@ export default defineComponent({
         InterfaceNetworkInfo,
         WifiApInfo,
         WifiStationInfo,
-        WifiStationDevices
+        WifiStationDevices,
     },
     data() {
         return {

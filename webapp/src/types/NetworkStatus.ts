@@ -23,7 +23,7 @@ export interface NetworkStatus {
     ap_station_devices: AP_Device[];
 }
 
-export interface AP_Device{
+export interface AP_Device {
     ip: string;
     mac: string;
 }

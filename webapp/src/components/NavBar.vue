@@ -48,7 +48,7 @@
                                     $t('menu.NTPSettings')
                                 }}</router-link>
                             </li>
-                            <li v-if="__MQTT_ENABLED__">
+                            <li v-if="MQTT_ENABLED">
                                 <router-link @click="onClick" class="dropdown-item" to="/settings/mqtt">{{
                                     $t('menu.MQTTSettings')
                                 }}</router-link>
@@ -58,7 +58,7 @@
                                     >{{ $t('menu.InverterSettings') }}
                                 </router-link>
                             </li>
-                            <li v-if="__TOST_ENABLED__">
+                            <li v-if="TOST_ENABLED">
                                 <router-link @click="onClick" class="dropdown-item" to="/settings/tost"
                                     >{{ $t('menu.TostSettings') }}
                                 </router-link>
@@ -130,12 +130,12 @@
                                     $t('menu.NTP')
                                 }}</router-link>
                             </li>
-                            <li v-if="__MQTT_ENABLED__">
+                            <li v-if="MQTT_ENABLED">
                                 <router-link @click="onClick" class="dropdown-item" to="/info/mqtt">{{
                                     $t('menu.MQTT')
                                 }}</router-link>
                             </li>
-                            <li v-if="__TOST_ENABLED__">
+                            <li v-if="TOST_ENABLED">
                                 <router-link @click="onClick" class="dropdown-item" to="/info/tost">{{
                                     $t('menu.Tost')
                                 }}</router-link>
@@ -189,8 +189,8 @@ export default defineComponent({
         return {
             isLogged: isLoggedIn(),
             now: {} as Date,
-            __TOST_ENABLED__: __TOST_ENABLED__,
-            __MQTT_ENABLED__: __MQTT_ENABLED__,
+            TOST_ENABLED: __TOST_ENABLED__,
+            MQTT_ENABLED: __MQTT_ENABLED__,
         };
     },
     created() {

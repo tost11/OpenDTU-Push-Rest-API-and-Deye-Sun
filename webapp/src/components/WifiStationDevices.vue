@@ -26,12 +26,11 @@ import { defineComponent, type PropType } from 'vue';
 
 export default defineComponent({
     components: {
-        CardElement
+        CardElement,
     },
     props: {
         networkStatus: { type: Object as PropType<NetworkStatus>, required: true },
     },
-    methods: {
-    },
+    methods: {},
 });
 </script>

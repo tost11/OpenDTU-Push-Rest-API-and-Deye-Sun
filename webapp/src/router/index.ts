@@ -20,39 +20,43 @@ import SecurityAdminView from '@/views/SecurityAdminView.vue';
 import SystemInfoView from '@/views/SystemInfoView.vue';
 import WaitRestartView from '@/views/WaitRestartView.vue';
 import { createRouter, createWebHistory } from 'vue-router';
-import TostAdminView from "@/views/TostAdminView.vue";
-import TostInfoView from "@/views/TostInfoView.vue";
+import TostAdminView from '@/views/TostAdminView.vue';
+import TostInfoView from '@/views/TostInfoView.vue';
 
-const tostRoutes = __TOST_ENABLED__ ? [
-    {
-        path: '/info/tost',
-        name: 'Tost',
-        component: TostInfoView,
-    },
-    {
-        path: '/settings/tost',
-        name: 'Tost Settings',
-        component: TostAdminView,
-    },
-] : [];
+const tostRoutes = __TOST_ENABLED__
+    ? [
+          {
+              path: '/info/tost',
+              name: 'Tost',
+              component: TostInfoView,
+          },
+          {
+              path: '/settings/tost',
+              name: 'Tost Settings',
+              component: TostAdminView,
+          },
+      ]
+    : [];
 
-const mqttRoutes = __MQTT_ENABLED__ ? [
-    {
-        path: '/info/mqtt',
-        name: 'MqTT',
-        component: MqttInfoView,
-    },
-    {
-        path: '/settings/mqtt',
-        name: 'MqTT Settings',
-        component: MqttAdminView,
-    },
-] : [];
+const mqttRoutes = __MQTT_ENABLED__
+    ? [
+          {
+              path: '/info/mqtt',
+              name: 'MqTT',
+              component: MqttInfoView,
+          },
+          {
+              path: '/settings/mqtt',
+              name: 'MqTT Settings',
+              component: MqttAdminView,
+          },
+      ]
+    : [];
 
-const tostInfoRoutes = tostRoutes.filter(r => r.path.startsWith('/info/'));
-const tostSettingsRoutes = tostRoutes.filter(r => r.path.startsWith('/settings/'));
-const mqttInfoRoutes = mqttRoutes.filter(r => r.path.startsWith('/info/'));
-const mqttSettingsRoutes = mqttRoutes.filter(r => r.path.startsWith('/settings/'));
+const tostInfoRoutes = tostRoutes.filter((r) => r.path.startsWith('/info/'));
+const tostSettingsRoutes = tostRoutes.filter((r) => r.path.startsWith('/settings/'));
+const mqttInfoRoutes = mqttRoutes.filter((r) => r.path.startsWith('/info/'));
+const mqttSettingsRoutes = mqttRoutes.filter((r) => r.path.startsWith('/settings/'));
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),

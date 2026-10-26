@@ -263,59 +263,85 @@
                         </div>
                     </div>
                 </div>
-                <div v-if="deviceConfigList.servo_enabled" class="tab-pane fade show" id="nav-servo" role="tabpanel" aria-labelledby="nav-servo-tab" tabindex="0">
+                <div
+                    v-if="deviceConfigList.servo_enabled"
+                    class="tab-pane fade show"
+                    id="nav-servo"
+                    role="tabpanel"
+                    aria-labelledby="nav-servo-tab"
+                    tabindex="0"
+                >
                     <div class="card">
                         <div class="card-body">
-                          <InputElement :label="$t('deviceadmin.servoFrequency')"
-                                        v-model="deviceConfigList.servo.frequency"
-                                        type="number" min="1" max="255"
-                                        :postfix="$t('deviceadmin.servoUnitFrequency')"
-                          />
+                            <InputElement
+                                :label="$t('deviceadmin.servoFrequency')"
+                                v-model="deviceConfigList.servo.frequency"
+                                type="number"
+                                min="1"
+                                max="255"
+                                :postfix="$t('deviceadmin.servoUnitFrequency')"
+                            />
 
-                          <InputElement :label="$t('deviceadmin.servoResolution')"
-                                        v-model="deviceConfigList.servo.resolution"
-                                        type="number" min="1" max="255"
-                          />
+                            <InputElement
+                                :label="$t('deviceadmin.servoResolution')"
+                                v-model="deviceConfigList.servo.resolution"
+                                type="number"
+                                min="1"
+                                max="255"
+                            />
 
-                          <InputElement :label="$t('deviceadmin.servoRangeMin')"
-                                        v-model="deviceConfigList.servo.range_min"
-                                        type="number" min="1" max="255"
-                          />
+                            <InputElement
+                                :label="$t('deviceadmin.servoRangeMin')"
+                                v-model="deviceConfigList.servo.range_min"
+                                type="number"
+                                min="1"
+                                max="255"
+                            />
 
-                          <InputElement :label="$t('deviceadmin.servoRangeMax')"
-                                        v-model="deviceConfigList.servo.range_max"
-                                        type="number" min="1" max="255"
-                          />
+                            <InputElement
+                                :label="$t('deviceadmin.servoRangeMax')"
+                                v-model="deviceConfigList.servo.range_max"
+                                type="number"
+                                min="1"
+                                max="255"
+                            />
 
-                          <InputElement :label="$t('deviceadmin.servoSerial')"
-                                        v-model="deviceConfigList.servo.serial"
-                                        type="number" min="0"
-                                        :tooltip="$t('deviceadmin.servoHintSerial')"
-                          />
+                            <InputElement
+                                :label="$t('deviceadmin.servoSerial')"
+                                v-model="deviceConfigList.servo.serial"
+                                type="number"
+                                min="0"
+                                :tooltip="$t('deviceadmin.servoHintSerial')"
+                            />
 
-                          <InputElement :label="$t('deviceadmin.servoInputIndex')"
-                                        v-model="deviceConfigList.servo.input_index"
-                                        type="number" min="0"
-                                        :tooltip="$t('deviceadmin.servoHintInputIndex')"
-                          />
+                            <InputElement
+                                :label="$t('deviceadmin.servoInputIndex')"
+                                v-model="deviceConfigList.servo.input_index"
+                                type="number"
+                                min="0"
+                                :tooltip="$t('deviceadmin.servoHintInputIndex')"
+                            />
 
-                          <InputElement :label="$t('deviceadmin.servoPower')"
-                                        v-model="deviceConfigList.servo.power"
-                                        type="number" min="1" max="65534"
-                                        :postfix="$t('deviceadmin.servoUnitPower')"
-                                        :tooltip="$t('deviceadmin.servoHintPower')"
-                          />
+                            <InputElement
+                                :label="$t('deviceadmin.servoPower')"
+                                v-model="deviceConfigList.servo.power"
+                                type="number"
+                                min="1"
+                                max="65534"
+                                :postfix="$t('deviceadmin.servoUnitPower')"
+                                :tooltip="$t('deviceadmin.servoHintPower')"
+                            />
                         </div>
                     </div>
                 </div>
             </div>
             <FormFooter @reload="getDeviceConfig" />
         </form>
-        <br/>
+        <br />
         <div v-if="deviceConfigList.servo_enabled" class="d-grid gap-2 d-md-flex justify-content-md-end">
             <button @click="startServoTest" class="btn btn-primary">{{ $t('deviceadmin.testServo') }}</button>
         </div>
-        <br/>
+        <br />
     </BasePage>
 </template>
 
@@ -451,17 +477,17 @@ export default defineComponent({
                     this.alert.show = true;
                 });
         },
-        startServoTest(){
+        startServoTest() {
             fetch('/api/device/servo', {
                 method: 'POST',
-                headers: authHeader()
+                headers: authHeader(),
             })
-            .then((response) => handleResponse(response, this.$emitter, this.$router))
-            .then((response) => {
-                this.alert.message = this.$t('apiresponse.' + response.code, response.param);
-                this.alert.type = response.type;
-                this.alert.show = true;
-            });
+                .then((response) => handleResponse(response, this.$emitter, this.$router))
+                .then((response) => {
+                    this.alert.message = this.$t('apiresponse.' + response.code, response.param);
+                    this.alert.type = response.type;
+                    this.alert.show = true;
+                });
         },
         getLedIdFromNumber(ledNo: number): string {
             return 'inputLED' + ledNo + 'Brightness';

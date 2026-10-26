@@ -26,7 +26,7 @@
                         <p class="fw-normal" v-html="$t('about.DocumentationBody')"></p>
                     </div>
                     <div class="accordion-body">
-                      <p class="fw-normal" v-html="$t('about.DocumentationBodyFork')"></p>
+                        <p class="fw-normal" v-html="$t('about.DocumentationBodyFork')"></p>
                     </div>
                 </div>
             </div>

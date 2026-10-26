@@ -6,20 +6,44 @@
 
         <label>{{ $t('inverteradmin.ManufacturerSelect') }}</label>
         <select class="form-select" v-model="newInverterData.manufacturer" @change="inverterTypeChanged()">
-            <option v-for="manufacturer in manufacturers" :value="manufacturer">
-                {{manufacturer}}
+            <option v-for="manufacturer in manufacturers" :key="manufacturer" :value="manufacturer">
+                {{ manufacturer }}
             </option>
         </select>
-        <br/>
+        <br />
 
         <CardElement :text="$t('inverteradmin.AddInverter')" textVariant="text-bg-primary">
             <form class="form-inline" v-on:submit.prevent="onSubmit">
                 <div class="form-group">
                     <label>{{ $t('inverteradmin.Serial') }}</label>
-                    <InputSerial v-if="newInverterData.manufacturer === 'DeyeSun'" type="DeyeSun" v-model="newInverterData.serial" inputClass="ml-sm-2 mr-sm-4 my-2" required />
-                    <InputSerial v-if="newInverterData.manufacturer === 'Hoymiles'" type="Hoymiles" v-model="newInverterData.serial" inputClass="ml-sm-2 mr-sm-4 my-2" required />
-                    <InputSerial v-if="newInverterData.manufacturer === 'HoymilesW'" type="HoymilesW" v-model="newInverterData.serial" inputClass="ml-sm-2 mr-sm-4 my-2" required />
-                    <InputSerial v-if="newInverterData.manufacturer === 'HiFlowBLE'" type="HiFlowBLE" v-model="newInverterData.serial" inputClass="ml-sm-2 mr-sm-4 my-2" required />
+                    <InputSerial
+                        v-if="newInverterData.manufacturer === 'DeyeSun'"
+                        type="DeyeSun"
+                        v-model="newInverterData.serial"
+                        inputClass="ml-sm-2 mr-sm-4 my-2"
+                        required
+                    />
+                    <InputSerial
+                        v-if="newInverterData.manufacturer === 'Hoymiles'"
+                        type="Hoymiles"
+                        v-model="newInverterData.serial"
+                        inputClass="ml-sm-2 mr-sm-4 my-2"
+                        required
+                    />
+                    <InputSerial
+                        v-if="newInverterData.manufacturer === 'HoymilesW'"
+                        type="HoymilesW"
+                        v-model="newInverterData.serial"
+                        inputClass="ml-sm-2 mr-sm-4 my-2"
+                        required
+                    />
+                    <InputSerial
+                        v-if="newInverterData.manufacturer === 'HiFlowBLE'"
+                        type="HiFlowBLE"
+                        v-model="newInverterData.serial"
+                        inputClass="ml-sm-2 mr-sm-4 my-2"
+                        required
+                    />
                 </div>
                 <div class="form-group">
                     <label>{{ $t('inverteradmin.Name') }}</label>
@@ -32,29 +56,59 @@
                     />
                 </div>
                 <div v-if="newInverterData.manufacturer == 'DeyeSun'" class="form-group">
-                    <label>{{ $t('inverteradmin.DeyeInverterType') }}
-                       <BIconInfoCircle v-tooltip :title="$t('inverteradmin.DeyeInverterTypeHint')" />
+                    <label
+                        >{{ $t('inverteradmin.DeyeInverterType') }}
+                        <BIconInfoCircle v-tooltip :title="$t('inverteradmin.DeyeInverterTypeHint')" />
                     </label>
-                      <select class="form-select" v-model="newInverterData.deye_type" @change="deyeInverterTypeChanged()">
-                          <option v-for="deyeType in deyeInveterTypes" :value="deyeType.value">
-                              {{deyeType.text}}
-                          </option>
-                      </select>
-                  </div>
-                <div v-if="newInverterData.manufacturer == 'DeyeSun' || newInverterData.manufacturer == 'HoymilesW'" class="form-group">
-                  <label>{{ $t('inverteradmin.InverterHostnameOrIp') }} <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterHostnameOrIpHint')" /></label>
-                  <input v-model="newInverterData.hostname_or_ip" type="text" class="form-control ml-sm-2 mr-sm-4 my-2"
-                         maxlength="31" required />
+                    <select class="form-select" v-model="newInverterData.deye_type" @change="deyeInverterTypeChanged()">
+                        <option v-for="deyeType in deyeInveterTypes" :key="deyeType.value" :value="deyeType.value">
+                            {{ deyeType.text }}
+                        </option>
+                    </select>
                 </div>
-                <div v-if="newInverterData.manufacturer == 'DeyeSun' || newInverterData.manufacturer == 'HoymilesW'" class="form-group">
-                  <label>{{ $t('inverteradmin.InverterPort') }} <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterPortHint')" /></label>
-                  <input v-model="newInverterData.port" type="number" class="form-control ml-sm-2 mr-sm-4 my-2" maxlength="5"
-                         required />
+                <div
+                    v-if="newInverterData.manufacturer == 'DeyeSun' || newInverterData.manufacturer == 'HoymilesW'"
+                    class="form-group"
+                >
+                    <label
+                        >{{ $t('inverteradmin.InverterHostnameOrIp') }}
+                        <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterHostnameOrIpHint')"
+                    /></label>
+                    <input
+                        v-model="newInverterData.hostname_or_ip"
+                        type="text"
+                        class="form-control ml-sm-2 mr-sm-4 my-2"
+                        maxlength="31"
+                        required
+                    />
+                </div>
+                <div
+                    v-if="newInverterData.manufacturer == 'DeyeSun' || newInverterData.manufacturer == 'HoymilesW'"
+                    class="form-group"
+                >
+                    <label
+                        >{{ $t('inverteradmin.InverterPort') }}
+                        <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterPortHint')"
+                    /></label>
+                    <input
+                        v-model="newInverterData.port"
+                        type="number"
+                        class="form-control ml-sm-2 mr-sm-4 my-2"
+                        maxlength="5"
+                        required
+                    />
                 </div>
                 <div v-if="newInverterData.manufacturer == 'HiFlowBLE'" class="form-group">
-                  <label>{{ $t('inverteradmin.BlePin') }} <BIconInfoCircle v-tooltip :title="$t('inverteradmin.BlePinHint')" /></label>
-                  <input v-model="newInverterData.password" type="text" class="form-control ml-sm-2 mr-sm-4 my-2"
-                         maxlength="8" />
+                    <label
+                        >{{ $t('inverteradmin.BlePin') }}
+                        <BIconInfoCircle v-tooltip :title="$t('inverteradmin.BlePinHint')"
+                    /></label>
+                    <input
+                        v-model="newInverterData.password"
+                        type="text"
+                        class="form-control ml-sm-2 mr-sm-4 my-2"
+                        maxlength="8"
+                    />
                 </div>
                 <div class="d-flex my-3">
                     <button type="submit" class="btn btn-primary ms-auto">
@@ -194,10 +248,30 @@
                     <label for="inverter-serial" class="col-form-label">
                         {{ $t('inverteradmin.InverterSerial') }}
                     </label>
-                    <InputSerial v-if="selectedInverterData.manufacturer === 'DeyeSun'" type="DeyeSun" v-model="selectedInverterData.serial" id="inverter-serial"/>
-                    <InputSerial v-if="selectedInverterData.manufacturer === 'Hoymiles'" type="Hoymiles" v-model="selectedInverterData.serial" id="inverter-serial"/>
-                    <InputSerial v-if="selectedInverterData.manufacturer === 'HoymilesW'" type="HoymilesW" v-model="selectedInverterData.serial" id="inverter-serial"/>
-                    <InputSerial v-if="selectedInverterData.manufacturer === 'HiFlowBLE'" type="HiFlowBLE" v-model="selectedInverterData.serial" id="inverter-serial"/>
+                    <InputSerial
+                        v-if="selectedInverterData.manufacturer === 'DeyeSun'"
+                        type="DeyeSun"
+                        v-model="selectedInverterData.serial"
+                        id="inverter-serial"
+                    />
+                    <InputSerial
+                        v-if="selectedInverterData.manufacturer === 'Hoymiles'"
+                        type="Hoymiles"
+                        v-model="selectedInverterData.serial"
+                        id="inverter-serial"
+                    />
+                    <InputSerial
+                        v-if="selectedInverterData.manufacturer === 'HoymilesW'"
+                        type="HoymilesW"
+                        v-model="selectedInverterData.serial"
+                        id="inverter-serial"
+                    />
+                    <InputSerial
+                        v-if="selectedInverterData.manufacturer === 'HiFlowBLE'"
+                        type="HiFlowBLE"
+                        v-model="selectedInverterData.serial"
+                        id="inverter-serial"
+                    />
                     <label for="inverter-name" class="col-form-label"
                         >{{ $t('inverteradmin.InverterName') }}
                         <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterNameHint')" />
@@ -209,35 +283,67 @@
                         class="form-control"
                         maxlength="31"
                     />
-                    <span v-if="selectedInverterData.manufacturer=='DeyeSun' || selectedInverterData.manufacturer=='HoymilesW'">
-                        <span  v-if="selectedInverterData.manufacturer == 'DeyeSun'">
-                            <label>{{ $t('inverteradmin.DeyeInverterType') }}
-                               <BIconInfoCircle v-tooltip :title="$t('inverteradmin.DeyeInverterTypeHint')" />
+                    <span
+                        v-if="
+                            selectedInverterData.manufacturer == 'DeyeSun' ||
+                            selectedInverterData.manufacturer == 'HoymilesW'
+                        "
+                    >
+                        <span v-if="selectedInverterData.manufacturer == 'DeyeSun'">
+                            <label
+                                >{{ $t('inverteradmin.DeyeInverterType') }}
+                                <BIconInfoCircle v-tooltip :title="$t('inverteradmin.DeyeInverterTypeHint')" />
                             </label>
-                                <select class="form-select" v-model="selectedInverterData.deye_type" @change="selectedDeyeInverterTypeChanged()">
-                                    <option v-for="deyeType in deyeInveterTypes" :value="deyeType.value">
-                                        {{deyeType.text}}
-                                    </option>
-                              </select>
+                            <select
+                                class="form-select"
+                                v-model="selectedInverterData.deye_type"
+                                @change="selectedDeyeInverterTypeChanged()"
+                            >
+                                <option
+                                    v-for="deyeType in deyeInveterTypes"
+                                    :key="deyeType.value"
+                                    :value="deyeType.value"
+                                >
+                                    {{ deyeType.text }}
+                                </option>
+                            </select>
                         </span>
-                        <label for="inverter-hostname" class="col-form-label">{{ $t('inverteradmin.InverterHostnameOrIp') }}
-                          <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterHostnameOrIpHint')" />
+                        <label for="inverter-hostname" class="col-form-label"
+                            >{{ $t('inverteradmin.InverterHostnameOrIp') }}
+                            <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterHostnameOrIpHint')" />
                         </label>
-                        <input v-model="selectedInverterData.hostname_or_ip" type="text" id="inverter-hostname-or-ip"
-                               class="form-control" maxlength="31" />
-                        <label for="inverter-port" class="col-form-label">{{ $t('inverteradmin.InverterPort') }}
-                           <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterPortHint')" />
+                        <input
+                            v-model="selectedInverterData.hostname_or_ip"
+                            type="text"
+                            id="inverter-hostname-or-ip"
+                            class="form-control"
+                            maxlength="31"
+                        />
+                        <label for="inverter-port" class="col-form-label"
+                            >{{ $t('inverteradmin.InverterPort') }}
+                            <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterPortHint')" />
                         </label>
-                        <input v-model="selectedInverterData.port" type="number" id="inverter-port" maxlength="5"
-                               class="form-control" />
+                        <input
+                            v-model="selectedInverterData.port"
+                            type="number"
+                            id="inverter-port"
+                            maxlength="5"
+                            class="form-control"
+                        />
                     </span>
 
-                    <span v-if="selectedInverterData.manufacturer=='HiFlowBLE'">
-                        <label for="inverter-ble-pin" class="col-form-label">{{ $t('inverteradmin.BlePin') }}
-                           <BIconInfoCircle v-tooltip :title="$t('inverteradmin.BlePinHint')" />
+                    <span v-if="selectedInverterData.manufacturer == 'HiFlowBLE'">
+                        <label for="inverter-ble-pin" class="col-form-label"
+                            >{{ $t('inverteradmin.BlePin') }}
+                            <BIconInfoCircle v-tooltip :title="$t('inverteradmin.BlePinHint')" />
                         </label>
-                        <input v-model="selectedInverterData.password" type="text" id="inverter-ble-pin"
-                               class="form-control" maxlength="8" />
+                        <input
+                            v-model="selectedInverterData.password"
+                            type="text"
+                            id="inverter-ble-pin"
+                            class="form-control"
+                            maxlength="8"
+                        />
                     </span>
 
                     <CardElement :text="$t('inverteradmin.InverterStatus')" addSpace>
@@ -282,70 +388,77 @@
                 tabindex="0"
             >
                 <div v-for="(ch, index) in selectedInverterData.channel" :key="`${index}`">
-                <span v-if="(selectedInverterData.manufacturer != 'DeyeSun' && selectedInverterData.manufacturer != 'HoymilesW' && selectedInverterData.manufacturer != 'HiFlowBLE') || index <2">
-                    <div class="row g-2">
-                        <div class="col-md">
-                            <label :for="`inverter-name_${index}`" class="col-form-label">
-                                {{ $t('inverteradmin.StringName', { num: index + 1 }) }}
-                                <BIconInfoCircle v-tooltip :title="$t('inverteradmin.StringNameHint')" />
-                            </label>
-                            <div class="d-flex mb-2">
-                                <div class="input-group">
-                                    <input
-                                        type="text"
-                                        class="form-control"
-                                        :id="`inverter-name_${index}`"
-                                        maxlength="31"
-                                        v-model="ch.name"
-                                    />
+                    <span
+                        v-if="
+                            (selectedInverterData.manufacturer != 'DeyeSun' &&
+                                selectedInverterData.manufacturer != 'HoymilesW' &&
+                                selectedInverterData.manufacturer != 'HiFlowBLE') ||
+                            index < 2
+                        "
+                    >
+                        <div class="row g-2">
+                            <div class="col-md">
+                                <label :for="`inverter-name_${index}`" class="col-form-label">
+                                    {{ $t('inverteradmin.StringName', { num: index + 1 }) }}
+                                    <BIconInfoCircle v-tooltip :title="$t('inverteradmin.StringNameHint')" />
+                                </label>
+                                <div class="d-flex mb-2">
+                                    <div class="input-group">
+                                        <input
+                                            type="text"
+                                            class="form-control"
+                                            :id="`inverter-name_${index}`"
+                                            maxlength="31"
+                                            v-model="ch.name"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="row g-2">
-                        <div class="col">
-                            <label :for="`inverter-max_${index}`" class="col-form-label">
-                                {{ $t('inverteradmin.StringMaxPower', { num: index + 1 }) }}
-                                <BIconInfoCircle v-tooltip :title="$t('inverteradmin.StringMaxPowerHint')" />
-                            </label>
-                            <div class="d-flex mb-2">
-                                <div class="input-group">
-                                    <input
-                                        type="number"
-                                        class="form-control"
-                                        :id="`inverter-max_${index}`"
-                                        min="0"
-                                        v-model="ch.max_power"
-                                        :aria-describedby="`inverter-maxDescription_${index} inverter-customizer`"
-                                    />
-                                    <span class="input-group-text" :id="`inverter-maxDescription_${index}`"
-                                        >W<sub>p</sub><sup>*</sup></span
-                                    >
+                        <div class="row g-2">
+                            <div class="col">
+                                <label :for="`inverter-max_${index}`" class="col-form-label">
+                                    {{ $t('inverteradmin.StringMaxPower', { num: index + 1 }) }}
+                                    <BIconInfoCircle v-tooltip :title="$t('inverteradmin.StringMaxPowerHint')" />
+                                </label>
+                                <div class="d-flex mb-2">
+                                    <div class="input-group">
+                                        <input
+                                            type="number"
+                                            class="form-control"
+                                            :id="`inverter-max_${index}`"
+                                            min="0"
+                                            v-model="ch.max_power"
+                                            :aria-describedby="`inverter-maxDescription_${index} inverter-customizer`"
+                                        />
+                                        <span class="input-group-text" :id="`inverter-maxDescription_${index}`"
+                                            >W<sub>p</sub><sup>*</sup></span
+                                        >
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <label :for="`inverter-ytoffset_${index}`" class="col-form-label">
+                                    {{ $t('inverteradmin.StringYtOffset', { num: index + 1 }) }}
+                                    <BIconInfoCircle v-tooltip :title="$t('inverteradmin.StringYtOffsetHint')" />
+                                </label>
+                                <div class="d-flex mb-2">
+                                    <div class="input-group">
+                                        <input
+                                            type="number"
+                                            class="form-control"
+                                            :id="`inverter-ytoffset_${index}`"
+                                            v-model="ch.yield_total_offset"
+                                            :aria-describedby="`inverter-ytoffsetDescription_${index} inverter-customizer`"
+                                        />
+                                        <span class="input-group-text" :id="`inverter-ytoffsetDescription_${index}`"
+                                            >kWh</span
+                                        >
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col">
-                            <label :for="`inverter-ytoffset_${index}`" class="col-form-label">
-                                {{ $t('inverteradmin.StringYtOffset', { num: index + 1 }) }}
-                                <BIconInfoCircle v-tooltip :title="$t('inverteradmin.StringYtOffsetHint')" />
-                            </label>
-                            <div class="d-flex mb-2">
-                                <div class="input-group">
-                                    <input
-                                        type="number"
-                                        class="form-control"
-                                        :id="`inverter-ytoffset_${index}`"
-                                        v-model="ch.yield_total_offset"
-                                        :aria-describedby="`inverter-ytoffsetDescription_${index} inverter-customizer`"
-                                    />
-                                    <span class="input-group-text" :id="`inverter-ytoffsetDescription_${index}`"
-                                        >kWh</span
-                                    >
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </span>
+                    </span>
                 </div>
                 <div :id="`inverter-customizer`" class="form-text" v-html="$t('inverteradmin.InverterHint')"></div>
             </div>
@@ -358,12 +471,17 @@
                 tabindex="0"
             >
                 <div v-if="inverterModels[selectedInverterData.manufacturer]" class="mb-3">
-                    <label>{{ $t('inverteradmin.InverterModel') }}
+                    <label
+                        >{{ $t('inverteradmin.InverterModel') }}
                         <BIconInfoCircle v-tooltip :title="$t('inverteradmin.InverterModelHint')" />
                     </label>
                     <select class="form-select" v-model="selectedInverterData.inverter_model">
                         <option :value="0">{{ $t('inverteradmin.Auto') }}</option>
-                        <option v-for="model in inverterModels[selectedInverterData.manufacturer]" :key="model.value" :value="model.value">
+                        <option
+                            v-for="model in inverterModels[selectedInverterData.manufacturer]"
+                            :key="model.value"
+                            :value="model.value"
+                        >
                             {{ model.text }}
                         </option>
                     </select>
@@ -430,7 +548,10 @@
                 />
 
                 <InputElement
-                    v-if="(selectedInverterData.manufacturer == 'HoymilesW' || selectedInverterData.manufacturer == 'HiFlowBLE')"
+                    v-if="
+                        selectedInverterData.manufacturer == 'HoymilesW' ||
+                        selectedInverterData.manufacturer == 'HiFlowBLE'
+                    "
                     :label="$t('inverteradmin.MaxPower')"
                     v-model="selectedInverterData.max_power"
                     type="number"
@@ -441,7 +562,7 @@
                 />
 
                 <InputElement
-                    v-if="(selectedInverterData.manufacturer != 'Hoymiles')"
+                    v-if="selectedInverterData.manufacturer != 'Hoymiles'"
                     :label="$t('inverteradmin.PollTime')"
                     v-model="selectedInverterData.poll_time"
                     type="number"
@@ -451,18 +572,17 @@
                     wide
                 />
 
-              <div v-if="(selectedInverterData.manufacturer == 'HoymilesW')" class="row mb-3">
-                <label :class="['col-sm-12','warning-color']">
-                  {{ $t('inverteradmin.PollTimeWarningHoymilesW') }}
-                </label>
-              </div>
+                <div v-if="selectedInverterData.manufacturer == 'HoymilesW'" class="row mb-3">
+                    <label :class="['col-sm-12', 'warning-color']">
+                        {{ $t('inverteradmin.PollTimeWarningHoymilesW') }}
+                    </label>
+                </div>
 
-              <div v-if="(selectedInverterData.manufacturer == 'DeyeSun')" class="row mb-3">
-                <label :class="['col-sm-12','warning-color']">
-                  {{ $t('inverteradmin.PollTimeWarningDeye') }}
-                </label>
-              </div>
-
+                <div v-if="selectedInverterData.manufacturer == 'DeyeSun'" class="row mb-3">
+                    <label :class="['col-sm-12', 'warning-color']">
+                        {{ $t('inverteradmin.PollTimeWarningDeye') }}
+                    </label>
+                </div>
             </div>
 
             <div
@@ -561,7 +681,16 @@ export default defineComponent({
         return {
             modal: {} as bootstrap.Modal,
             modalDelete: {} as bootstrap.Modal,
-            newInverterData: {serial: "",manufacturer:"Hoymiles",port:0,hostname_or_ip:"",deye_type:0,inverter_model:0,username:"admin",password:"123456"} as Inverter,//deye 48899
+            newInverterData: {
+                serial: '',
+                manufacturer: 'Hoymiles',
+                port: 0,
+                hostname_or_ip: '',
+                deye_type: 0,
+                inverter_model: 0,
+                username: 'admin',
+                password: '123456',
+            } as Inverter, //deye 48899
             selectedInverterData: { serial: '' } as Inverter,
             inverters: [] as Inverter[],
             manufacturers: [] as string[],
@@ -569,27 +698,27 @@ export default defineComponent({
             alert: {} as AlertResponse,
             sortable: {} as Sortable,
             deyeInveterTypes: [
-              { text: 'AT-Commands', value: 0 },
-              { text: 'Modbus Custom Implementation', value: 1 },
-              //{ text: 'Modbus', value: '2' }
+                { text: 'AT-Commands', value: 0 },
+                { text: 'Modbus Custom Implementation', value: 1 },
+                //{ text: 'Modbus', value: '2' }
             ],
             inverterModels: {
-              HoymilesW: [
-                { text: '1T', value: 1 },
-                { text: '2T', value: 2 },
-                { text: '4T', value: 3 },
-              ],
-              HiFlowBLE: [
-                { text: 'HMS-800-1WB', value: 1 },
-                { text: 'HF-800-WB', value: 2 },
-                { text: 'HMS-800-2WB', value: 3 },
-                { text: 'HMS-1600-4WB', value: 4 },
-              ],
-              DeyeSun: [
-                { text: '1CH', value: 1 },
-                { text: '2CH', value: 2 },
-              ],
-            } as { [manufacturer: string]: { text: string; value: number }[] }
+                HoymilesW: [
+                    { text: '1T', value: 1 },
+                    { text: '2T', value: 2 },
+                    { text: '4T', value: 3 },
+                ],
+                HiFlowBLE: [
+                    { text: 'HMS-800-1WB', value: 1 },
+                    { text: 'HF-800-WB', value: 2 },
+                    { text: 'HMS-800-2WB', value: 3 },
+                    { text: 'HMS-1600-4WB', value: 4 },
+                ],
+                DeyeSun: [
+                    { text: '1CH', value: 1 },
+                    { text: '2CH', value: 2 },
+                ],
+            } as { [manufacturer: string]: { text: string; value: number }[] },
         };
     },
     mounted() {
@@ -600,29 +729,29 @@ export default defineComponent({
         this.getInverters();
     },
     methods: {
-        inverterTypeChanged(){
-            let newData = {...this.newInverterData} as Inverter
-            newData.port = getInverterPortByManufacturer(newData.manufacturer,newData.deye_type)
+        inverterTypeChanged() {
+            const newData = { ...this.newInverterData } as Inverter;
+            newData.port = getInverterPortByManufacturer(newData.manufacturer, newData.deye_type);
             if (newData.manufacturer === 'HiFlowBLE') {
-                newData.password = '123456'
+                newData.password = '123456';
             } else if (newData.manufacturer === 'DeyeSun') {
-                newData.password = 'admin'
+                newData.password = 'admin';
             }
-            this.newInverterData = newData
+            this.newInverterData = newData;
         },
-        deyeInverterTypeChanged(){
-          let newData = {...this.newInverterData} as Inverter
-          newData.port = getInverterPortByManufacturer(newData.manufacturer,newData.deye_type)
-          this.newInverterData = newData
+        deyeInverterTypeChanged() {
+            const newData = { ...this.newInverterData } as Inverter;
+            newData.port = getInverterPortByManufacturer(newData.manufacturer, newData.deye_type);
+            this.newInverterData = newData;
         },
-        selectedDeyeInverterTypeChanged(){
-          let newData = {...this.selectedInverterData} as Inverter
-          newData.port = getInverterPortByManufacturer(newData.manufacturer,newData.deye_type)
-          this.selectedInverterData = newData
+        selectedDeyeInverterTypeChanged() {
+            const newData = { ...this.selectedInverterData } as Inverter;
+            newData.port = getInverterPortByManufacturer(newData.manufacturer, newData.deye_type);
+            this.selectedInverterData = newData;
         },
         getInverters() {
             this.dataLoading = true;
-            let newData = {...this.newInverterData} as Inverter
+            const newData = { ...this.newInverterData } as Inverter;
             fetch('/api/inverter/list', { headers: authHeader() })
                 .then((response) => handleResponse(response, this.$emitter, this.$router))
                 .then((data) => {
@@ -642,12 +771,12 @@ export default defineComponent({
                             draggable: 'tr',
                         });
                     });
-                    if(this.manufacturers.length > 0 && this.manufacturers.indexOf(newData.manufacturer)<0){
-                        // @ts-ignore
+                    if (this.manufacturers.length > 0 && this.manufacturers.indexOf(newData.manufacturer) < 0) {
+                        // @ts-expect-error fall back to first known manufacturer, types differ
                         newData.manufacturer = this.manufacturers.at(0);
-                        newData.port = getInverterPortByManufacturer(newData.manufacturer,newData.deye_type);
+                        newData.port = getInverterPortByManufacturer(newData.manufacturer, newData.deye_type);
                     }
-                    this.newInverterData = newData
+                    this.newInverterData = newData;
                 });
         },
         callInverterApiEndpoint(endpoint: string, jsonData: string) {
@@ -661,9 +790,19 @@ export default defineComponent({
             })
                 .then((response) => handleResponse(response, this.$emitter, this.$router))
                 .then((data) => {
-                    if(data.type === "success"){
-                        console.log("reset inverter dta")
-                        this.newInverterData = {serial: "",manufacturer:this.newInverterData.manufacturer,port:getInverterPortByManufacturer(this.newInverterData.manufacturer,this.newInverterData.deye_type),deye_type: this.newInverterData.deye_type,username:"admin",password:"admin"} as Inverter
+                    if (data.type === 'success') {
+                        console.log('reset inverter dta');
+                        this.newInverterData = {
+                            serial: '',
+                            manufacturer: this.newInverterData.manufacturer,
+                            port: getInverterPortByManufacturer(
+                                this.newInverterData.manufacturer,
+                                this.newInverterData.deye_type
+                            ),
+                            deye_type: this.newInverterData.deye_type,
+                            username: 'admin',
+                            password: 'admin',
+                        } as Inverter;
                     }
                     this.getInverters();
                     this.alert = data;
@@ -672,7 +811,7 @@ export default defineComponent({
                 });
         },
         onSubmit() {
-            this.callInverterApiEndpoint('add', JSON.stringify(this.newInverterData))
+            this.callInverterApiEndpoint('add', JSON.stringify(this.newInverterData));
         },
         onDelete() {
             this.callInverterApiEndpoint('del', JSON.stringify({ id: this.selectedInverterData.id }));

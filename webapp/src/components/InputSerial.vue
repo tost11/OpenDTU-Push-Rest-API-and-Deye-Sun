@@ -18,7 +18,7 @@ export default defineComponent({
         id: String,
         inputClass: String,
         required: Boolean,
-        type: String
+        type: String,
     },
     data() {
         return {
@@ -41,81 +41,84 @@ export default defineComponent({
     },
     watch: {
         modelValue: function (val) {
-          this.inputSerial = val
+            this.inputSerial = val;
         },
         inputSerial: {
-          immediate: true,
-          handler(val){
+            immediate: true,
+            handler(val) {
+                const serial = val.toString().toUpperCase(); // Convert to lowercase for case-insensitivity
 
-            const serial = val.toString().toUpperCase(); // Convert to lowercase for case-insensitivity
-
-            if (serial == '') {
-                this.formatHint = '';
-                this.model = '';
-                return;
-            }
-
-            this.formatShow = 'info';
-
-            if(this.type === 'Hoymiles') {
-              // Contains only numbers
-              if (/^1{1}[\dA-F]{11}$/.test(serial)) {
-                this.formatHint = this.$t('inputserial.format_hoymiles');
-              }
-
-              // Contains numbers and hex characters but at least one number
-              else if (/^(?=.*\d)[\dA-F]{12}$/.test(serial)) {
-                this.formatHint = this.$t('inputserial.format_converted');
-              }
-
-              // Has format: xxxxxxxxx-xxx
-              else if (/^((A01)|(A11)|(A21))[\dA-HJ-NR-YP]{6}-[\dA-HJ-NP-Z]{3}$/.test(serial)) {
-                if (this.checkHerfChecksum(serial)) {
-                  this.model = this.convertHerfToHoy(serial);
-                  this.$nextTick(() => {
-                    this.formatHint = this.$t('inputserial.format_herf_valid', {
-                      serial: this.model,
-                    });
-                  });
-                } else {
-                  this.formatHint = this.$t('inputserial.format_herf_invalid');
-                  this.formatShow = 'danger';
+                if (serial == '') {
+                    this.formatHint = '';
+                    this.model = '';
+                    return;
                 }
 
-                // Any other format
-              } else {
-                this.formatHint = this.$t('inputserial.format_unknown');
-                this.formatShow = 'danger';
-              }
-            }else if(this.type === 'DeyeSun'){
-              //TODO find out Deye Sun serial validation
-              // Contains only numbers
-              if (/^[0-9]{10}$/.test(serial)) {
-                this.formatHint = this.$t('inputserial.format_deye');
-              }else {
-                this.formatHint = this.$t('inputserial.format_unknown');
-                this.formatShow = 'danger';
-              }
-            }else if(this.type === 'HoymilesW'){
-              // Mirrors the C++ isValidSerial prefixes (HMS_W_1T/2T/4T): 4-hex prefix + 8-hex = 12 hex chars
-              if (/^(1125|1124|1123|1122|1403|1412|1410|2821|1144|1142|1141|1014|1164|1162|1151|1222)[0-9A-F]{8}$/.test(serial)) {
-                this.formatHint = this.$t('inputserial.format_hoymiles_w');
-              }else {
-                this.formatHint = this.$t('inputserial.format_unknown');
-                this.formatShow = 'danger';
-              }
-            }else if(this.type === 'HiFlowBLE'){
-              // HiFlow BLE serial: known 4-hex prefix + 8-hex (1610/4161 = 2CH, 1164 = 4CH, 1650 = HF-800-WB)
-              if (/^(1610|4161|1164|1650)[0-9A-F]{8}$/.test(serial)) {
-                this.formatHint = this.$t('inputserial.format_hiflow_ble');
-              }else {
-                this.formatHint = this.$t('inputserial.format_unknown');
-                this.formatShow = 'danger';
-              }
-            }
-            this.model = serial;
-        }
-      }
+                this.formatShow = 'info';
+
+                if (this.type === 'Hoymiles') {
+                    // Contains only numbers
+                    if (/^1{1}[\dA-F]{11}$/.test(serial)) {
+                        this.formatHint = this.$t('inputserial.format_hoymiles');
+                    }
+
+                    // Contains numbers and hex characters but at least one number
+                    else if (/^(?=.*\d)[\dA-F]{12}$/.test(serial)) {
+                        this.formatHint = this.$t('inputserial.format_converted');
+                    }
+
+                    // Has format: xxxxxxxxx-xxx
+                    else if (/^((A01)|(A11)|(A21))[\dA-HJ-NR-YP]{6}-[\dA-HJ-NP-Z]{3}$/.test(serial)) {
+                        if (this.checkHerfChecksum(serial)) {
+                            this.model = this.convertHerfToHoy(serial);
+                            this.$nextTick(() => {
+                                this.formatHint = this.$t('inputserial.format_herf_valid', {
+                                    serial: this.model,
+                                });
+                            });
+                        } else {
+                            this.formatHint = this.$t('inputserial.format_herf_invalid');
+                            this.formatShow = 'danger';
+                        }
+
+                        // Any other format
+                    } else {
+                        this.formatHint = this.$t('inputserial.format_unknown');
+                        this.formatShow = 'danger';
+                    }
+                } else if (this.type === 'DeyeSun') {
+                    //TODO find out Deye Sun serial validation
+                    // Contains only numbers
+                    if (/^[0-9]{10}$/.test(serial)) {
+                        this.formatHint = this.$t('inputserial.format_deye');
+                    } else {
+                        this.formatHint = this.$t('inputserial.format_unknown');
+                        this.formatShow = 'danger';
+                    }
+                } else if (this.type === 'HoymilesW') {
+                    // Mirrors the C++ isValidSerial prefixes (HMS_W_1T/2T/4T): 4-hex prefix + 8-hex = 12 hex chars
+                    if (
+                        /^(1125|1124|1123|1122|1403|1412|1410|2821|1144|1142|1141|1014|1164|1162|1151|1222)[0-9A-F]{8}$/.test(
+                            serial
+                        )
+                    ) {
+                        this.formatHint = this.$t('inputserial.format_hoymiles_w');
+                    } else {
+                        this.formatHint = this.$t('inputserial.format_unknown');
+                        this.formatShow = 'danger';
+                    }
+                } else if (this.type === 'HiFlowBLE') {
+                    // HiFlow BLE serial: known 4-hex prefix + 8-hex (1610/4161 = 2CH, 1164 = 4CH, 1650 = HF-800-WB)
+                    if (/^(1610|4161|1164|1650)[0-9A-F]{8}$/.test(serial)) {
+                        this.formatHint = this.$t('inputserial.format_hiflow_ble');
+                    } else {
+                        this.formatHint = this.$t('inputserial.format_unknown');
+                        this.formatShow = 'danger';
+                    }
+                }
+                this.model = serial;
+            },
+        },
     },
     methods: {
         checkHerfChecksum(sn: string) {
