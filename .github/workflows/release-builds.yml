@@ -34,7 +34,7 @@ jobs:
           for v in $variants; do
             IFS=_ read -r t m d <<<"$v"
             VITE_TOST=$t VITE_MQTT=$m VITE_MDNS=$d yarn build
-            cp -r webapp_dist "../webapp_dist_$v"
+            cp -r ../webapp_dist "../webapp_dist_$v"
           done
 
       - name: Upload webapp artifacts
