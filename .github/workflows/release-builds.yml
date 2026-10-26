@@ -66,10 +66,7 @@ jobs:
       - name: Compute matrix for the remaining rows
         id: rest
         run: |
-          rest=$(jq -R -s '
-            split("\n") | map(select(length > 0)) | .[2:] |
-            map(split("\t") | {name: .[0], wa: (.[2] + "_" + .[3] + "_" + .[4])})
-          ' scripts/release_matrix.tsv)
+          rest=$(tail -n +3 scripts/release_matrix.tsv | cut -f1 | jq -R . | jq -s .)
           {
             echo "rest<<RESTEOF"
             echo "$rest"
@@ -166,15 +163,21 @@ jobs:
           name: webapp-dist
           path: wa
 
-      - name: Build firmware ${{ matrix.firmware.name }}
+      - name: Identify webapp variant
+        id: row
+        run: |
+          line=$(grep -P "^\Q${{ matrix.firmware }}\E\t" scripts/release_matrix.tsv)
+          echo "wa=$(awk -F'\t' '{print $3"_"$4"_"$5}' <<<"$line")" >> "$GITHUB_OUTPUT"
+
+      - name: Build firmware ${{ matrix.firmware }}
         env:
-          RELEASE_WEBAPP_DIR: wa/webapp_dist_${{ matrix.firmware.wa }}
+          RELEASE_WEBAPP_DIR: wa/webapp_dist_${{ steps.row.outputs.wa }}
           RELEASE_NAME_PREFIX: ${{ startsWith(github.ref, 'refs/tags/') && format('opendtu-{0}-', github.ref_name) || '' }}
-        run: bash scripts/release_builds.sh "${{ matrix.firmware.name }}"
+        run: bash scripts/release_builds.sh "${{ matrix.firmware }}"
 
       - name: Upload firmware artifact
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: fw-${{ matrix.firmware.name }}
+          name: fw-${{ matrix.firmware }}
           path: release/
