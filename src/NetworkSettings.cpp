@@ -276,9 +276,9 @@ void NetworkSettingsClass::loop()
 
                 macBuff[17] = '\0';
                 for (int j = 0; j < 6; j++) {
-                    sprintf(macBuff + j * 3, "%02X", station.mac[j]);
+                    snprintf(macBuff + j * 3, sizeof(macBuff) - j * 3, "%02X", station.mac[j]);
                     if (j < 5) {
-                        sprintf(macBuff + 2 + j * 3, ":");
+                        snprintf(macBuff + 2 + j * 3, sizeof(macBuff) - (2 + j * 3), ":");
                     }
                 }
 

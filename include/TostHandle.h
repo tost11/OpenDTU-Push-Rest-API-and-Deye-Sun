@@ -42,11 +42,11 @@ private:
     int lastErrorStatusCode = 0;
     String lastErrorMessage;
 
-    unsigned long lastErrorTimestamp = 0;
-    unsigned long lastSuccessfullyTimestamp = 0;
+    uint32_t lastErrorTimestamp = 0;
+    uint32_t lastSuccessfullyTimestamp = 0;
     TimeoutHelper restTimeout;
 
-    const long TIMER_CLEANUP = 1000 * 60 * 5;
+    const uint32_t TIMER_CLEANUP = 1000 * 60 * 5;
 
     JsonDocument _jsonDoc;  // Reusable JSON document - internal pool stabilizes after first few uses
 
@@ -71,8 +71,8 @@ private:
 
     static bool parseKWHValues(BaseInverterClass *inv, JsonObject &doc, const ChannelType_t type, const ChannelNum_t channel) ;
 public:
-    unsigned long getLastErrorTimestamp()const{return lastErrorTimestamp;}
-    unsigned long getLastSuccessfullyTimestamp()const{return lastSuccessfullyTimestamp;}
+    uint32_t getLastErrorTimestamp()const{return lastErrorTimestamp;}
+    uint32_t getLastSuccessfullyTimestamp()const{return lastSuccessfullyTimestamp;}
     int getLastErrorStatusCode()const{return lastErrorStatusCode;}
     const String & getLastErrorMessage()const{return lastErrorMessage;}
     size_t getQueueSize() const { return requestsToSend.size(); }

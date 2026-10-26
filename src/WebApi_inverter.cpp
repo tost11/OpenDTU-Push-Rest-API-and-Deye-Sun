@@ -611,7 +611,7 @@ void WebApiInverterClass::onInverterDelete(AsyncWebServerRequest* request)
         return;
     }
 
-    //TODO refactor using of id not save when multiple users are editing list on same time
+    // TODO(tost11): refactor using of id not save when multiple users are editing list on same time
     uint8_t inverter_id = root["id"].as<uint8_t>();
     INVERTER_CONFIG_T const& inverter = Configuration.get().Inverter[inverter_id];
 

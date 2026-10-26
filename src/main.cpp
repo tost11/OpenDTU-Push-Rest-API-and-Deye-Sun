@@ -101,7 +101,8 @@ void setup()
         settimeofday(&now, NULL);
 
         time_t t = time(NULL);
-        struct tm tm = *localtime(&t);
+        struct tm tm;
+        localtime_r(&t, &tm);
         printf("Manual initial start date: %d-%02d-%02d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
     }
     // Load PinMapping

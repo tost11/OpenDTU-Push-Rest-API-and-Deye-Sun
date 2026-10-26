@@ -54,7 +54,7 @@ void MqttHandleInverterClass::loop()
 
 #if HOYMILES
         if(inv->getInverterType() == inverter_type::Inverter_Hoymiles) {
-            auto hoy = (InverterAbstract*)inv.get();
+            auto hoy = reinterpret_cast<InverterAbstract*>(inv.get());
             // Radio Statistics
             MqttSettings.publish(subtopic + "/radio/tx_request", String(hoy->RadioStats.TxRequestData));
             MqttSettings.publish(subtopic + "/radio/tx_re_request", String(hoy->RadioStats.TxReRequestFragment));
@@ -102,7 +102,7 @@ void MqttHandleInverterClass::loop()
             MqttSettings.publish(subtopic + "/status/last_update", String(0));
         }
 
-        //TODO find better way for deye chek
+        // TODO(tost11): find better way for deye chek
         const uint32_t lastUpdateInternal = inv->getStatistics()->getLastUpdateFromInternal();
         if (inv->getStatistics()->getLastUpdate() > 0 && ((inv->getInverterType() == Inverter_DeyeSun && inv->isReachable()) || lastUpdateInternal != _lastPublishStats[i])) {
             _lastPublishStats[i] = lastUpdateInternal;

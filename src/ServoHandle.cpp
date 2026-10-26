@@ -145,15 +145,15 @@ int ServoHandleClass::calculatePosition(){
     }
 
     int dif = Configuration.get().Servo.RangeMax - Configuration.get().Servo.RangeMin;
-    float percentage = value / (float)Configuration.get().Servo.Power;
-    setTo = (int)(percentage * (float)dif);
+    float percentage = value / static_cast<float>(Configuration.get().Servo.Power);
+    setTo = static_cast<int>(percentage * static_cast<float>(dif));
     setTo = Configuration.get().Servo.RangeMin + setTo;
     if(Configuration.get().Servo.RangeMax > Configuration.get().Servo.RangeMin){
-        setTo = std::min(setTo,(int)Configuration.get().Servo.RangeMax);
-        setTo = std::max(setTo,(int)Configuration.get().Servo.RangeMin);
+        setTo = std::min(setTo,static_cast<int>(Configuration.get().Servo.RangeMax));
+        setTo = std::max(setTo,static_cast<int>(Configuration.get().Servo.RangeMin));
     }else{
-        setTo = std::min(setTo,(int)Configuration.get().Servo.RangeMin);
-        setTo = std::max(setTo,(int)Configuration.get().Servo.RangeMax);
+        setTo = std::min(setTo,static_cast<int>(Configuration.get().Servo.RangeMin));
+        setTo = std::max(setTo,static_cast<int>(Configuration.get().Servo.RangeMax));
     }
 
     ESP_LOGD(TAG,"Watt is: %f so set to %d",value,setTo);

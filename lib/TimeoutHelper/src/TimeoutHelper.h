@@ -6,7 +6,7 @@
 class TimeoutHelper {
 public:
     TimeoutHelper();
-    TimeoutHelper(const uint32_t ms);
+    explicit TimeoutHelper(const uint32_t ms);
     void set(const uint32_t ms);
     void setTimeout(const uint32_t ms);
     uint32_t getTimeout();

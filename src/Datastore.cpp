@@ -6,7 +6,7 @@
 #include "Configuration.h"
 #include <InverterHandler.h>
 
-using namespace std;
+using std::max;
 
 DatastoreClass Datastore;
 

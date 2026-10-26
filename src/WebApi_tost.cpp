@@ -37,8 +37,8 @@ void WebApiTostClass::onTostStatus(AsyncWebServerRequest* request)
     JsonObject root = response->getRoot();
     const CONFIG_T& config = Configuration.get();
 
-    unsigned long errorStamp = TostHandle.getLastErrorTimestamp();
-    unsigned long successStamp = TostHandle.getLastSuccessfullyTimestamp();
+    uint32_t errorStamp = TostHandle.getLastErrorTimestamp();
+    uint32_t successStamp = TostHandle.getLastSuccessfullyTimestamp();
 
     root["tost_enabled"] = config.Tost.Enabled;
     root["tost_url"] = config.Tost.Url;

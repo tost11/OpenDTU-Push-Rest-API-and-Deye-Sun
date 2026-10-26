@@ -198,7 +198,7 @@ void TostHandleClass::loop()
 
         _jsonDoc.clear();
 
-        float duration = (float)diff / 1000;
+        float duration = static_cast<float>(diff) / 1000;
 
         if(duration > Configuration.get().Tost.Duration * 1.2){
             duration = Configuration.get().Tost.Duration * 1.2;
@@ -324,7 +324,7 @@ bool TostHandleClass::encryptBody(const String& plaintext,
 
     // Encode nonce as 24 hex chars for X-Nonce header
     for (int i = 0; i < 12; i++) {
-        snprintf(nonceHex + i * 2, 3, "%02x", nonce[i]);
+        snprintf(nonceHex + i * 2, 25 - i * 2, "%02x", nonce[i]);
     }
     nonceHex[24] = '\0';
 
@@ -332,7 +332,7 @@ bool TostHandleClass::encryptBody(const String& plaintext,
     size_t plainLen = plaintext.length();
     size_t cipherLen = plainLen + 16;  // 16-byte auth tag appended
 
-    uint8_t* buf = (uint8_t*)malloc(cipherLen);
+    uint8_t* buf = reinterpret_cast<uint8_t*>(malloc(cipherLen));
     if (!buf) {
         ESP_LOGE(TAG, "Failed to allocate ciphertext buffer (%u bytes)", (unsigned)cipherLen);
         return false;
@@ -371,7 +371,7 @@ bool TostHandleClass::encryptBody(const String& plaintext,
         return false;
     }
 
-    ciphertext = String((char*)buf, (unsigned int)cipherLen);
+    ciphertext = String(reinterpret_cast<char*>(buf), static_cast<unsigned int>(cipherLen));
     free(buf);
     return true;
 }
@@ -389,7 +389,7 @@ String TostHandleClass::buildUrl(const char* host, const char* path) {
 
 void TostHandleClass::handleResponse(const RestResponse& response, bool isSecondaryUrl)
 {
-    unsigned long lastTimestamp = millis();
+    uint32_t lastTimestamp = millis();
     int statusCode = response.httpCode;
 
     // ===== Connection failure (statusCode <= 0) =====
