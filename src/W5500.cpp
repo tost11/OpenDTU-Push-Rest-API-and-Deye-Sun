@@ -3,7 +3,7 @@
  * Copyright (C) 2024-2025 Thomas Basler and others
  */
 
-#if W5500
+#if ENABLE_W5500
 #include "W5500.h"
 
 #include <SpiManager.h>

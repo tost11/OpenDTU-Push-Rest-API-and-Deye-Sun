@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 
-#if W5500
+#if ENABLE_W5500
 #include "W5500.h"
 #endif
 #include <DNSServer.h>
@@ -94,7 +94,7 @@ private:
 #if ENABLE_MDNS
     bool _lastMdnsEnabled = false;
 #endif
-    #if W5500
+    #if ENABLE_W5500
     std::unique_ptr<W5500> _w5500;
 #endif
 

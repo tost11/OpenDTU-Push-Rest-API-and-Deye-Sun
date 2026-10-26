@@ -41,7 +41,7 @@ void NetworkSettingsClass::init(Scheduler& scheduler)
 
     WiFi.onEvent(std::bind(&NetworkSettingsClass::NetworkEvent, this, _1, _2));
 
-#if W5500
+#if ENABLE_W5500
     if (PinMapping.isValidW5500Config()) {
         const PinMapping_t& pin = PinMapping.get();
         _w5500 = W5500::setup(pin.w5500_mosi, pin.w5500_miso, pin.w5500_sclk, pin.w5500_cs, pin.w5500_int, pin.w5500_rst);
@@ -574,7 +574,7 @@ String NetworkSettingsClass::macAddress() const
 {
     switch (_networkMode) {
     case network_mode::Ethernet:
-#if W5500
+#if ENABLE_W5500
         if (_w5500) {
             return _w5500->macAddress();
         }
