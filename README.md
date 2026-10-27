@@ -1,5 +1,7 @@
 # OpenDTU
 
+🇬🇧 **English** | [🇩🇪 Deutsch](README_DE.md)
+
 [![cpplint](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/actions/workflows/cpplint.yml/badge.svg)](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/actions/workflows/cpplint.yml)
 [![Yarn Linting](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/actions/workflows/yarnlint.yml/badge.svg)](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/actions/workflows/yarnlint.yml)
 [![Yarn Prettier](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/actions/workflows/yarnprettier.yml/badge.svg)](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/actions/workflows/yarnprettier.yml)
@@ -24,11 +26,6 @@ It extends OpenDTU with several additional features, controlled via build flags 
 - **MQTT** — Publish inverter data to an MQTT broker
 - **Ethernet (W5500)** — Wired network support for DTU boxes with a W5500 chip
 - **mDNS** — LAN name resolution for inverter hostnames
-
-Every feature is controlled by a build flag. Being able to leave unused features
-out is what keeps the all-features firmware inside the ~2 MB app slot
-(1,966,080 B) of the 4 MB dual-slot partition table that the web-based OTA
-update feature requires.
 
 ## Build Flags
 
@@ -142,6 +139,7 @@ If you like to disconnect the inverter from the internet without blocking connec
 It is possible to set OpenDTU in continuous AP mode by setting time on the network page to zero and connecting your inverters directly to the OpenDTU AP.
 Please change the password therefor to something more complex. Then on the network settings for the inverters, the MAC address
 can be used for connection. The DTU will resolve them to the correct IP address. The connected device can be found on the network Info page of the DTU.
+A more detailed description of this setup is available in this [blog post](https://itgrufti.de/solar/monitoring/opendtu-als-gateway-zum-wechselrichter/) (in German).
 
 ### HiFlow BLE (HMS-\*-WB / HF-\*-WB Series)
 
@@ -174,7 +172,7 @@ If you want **both Hoymiles nRF24 RF and HiFlow BLE** in the same firmware, you 
 - Restart inverter
 - Restart DTU
 - BLE pairing (V0) and session handshake (V1) with AES encryption
-- PIN configuration via frontend (default: `123456`)
+- PIN configuration via frontend (default: `123456` — does not work on all devices; in that case the PIN must first be changed with the official Hoymiles app)
 
 #### Not Working / Limitations
 
@@ -199,6 +197,8 @@ Data is sent over plain HTTP — HTTPS is intentionally avoided due to the large
 
 If you are interested in the application or the Rest definition for your own application
 check out the [project](https://github.com/tost11/solar-monitoring).
+A public instance is available at [solar.pihost.org](https://solar.pihost.org),
+and a setup guide in German can be found [here](https://itgrufti.de/solar/monitoring/online-monitoring-fuer-opendtu-und-weitere-systeme/).
 
 > **Note:** This feature is disabled by default (`-DTOST=0`). When changing the `TOST` flag, the frontend must also be rebuilt — see the [Build Flags](#build-flags) section for details.
 
