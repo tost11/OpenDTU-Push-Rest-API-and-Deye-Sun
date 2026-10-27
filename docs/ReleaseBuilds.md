@@ -42,9 +42,12 @@ Each matrix row is:
    `create_factory_bin.py` already fails the build when the image exceeds the
    app slot of the partition table.
 4. **Stage** - copies the artifacts to
-   - `release/<prefix><name>.bin` - app image, for OTA updates
-   - `release/<prefix><name>.factory.bin` - full flash image
-     (bootloader + partitions + app), flash at offset 0
+    - `release/<prefix><name>.bin` - app image, for OTA updates
+    - `release/<prefix><name>.factory.bin` - full flash image
+      (bootloader + partitions + app), flash at offset 0
+
+    `no-ota` builds (name contains `no-ota`) only get the `factory.bin` -
+    the plain app image is useless without an OTA slot.
 
    `<prefix>` is `opendtu-` by default, or `RELEASE_NAME_PREFIX` (the CI
    workflow sets it to `opendtu-<tag>-` on tagged runs).

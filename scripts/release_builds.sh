@@ -87,8 +87,13 @@ ${NAME_PREFIX}${name}|SIZE-EXCEEDED|$bin > $limit"
             echo "[$name] firmware.bin=$bin EXCEEDS limit $limit"
             continue
         fi
-        cp ".pio/build/$envn/firmware.bin"         "$OUT/${NAME_PREFIX}${name}.bin"
-        cp ".pio/build/$envn/firmware.factory.bin" "$OUT/${NAME_PREFIX}${name}.factory.bin"
+        if [[ "$name" == *no-ota* ]]; then
+            # no OTA in these builds - only the factory image is useful
+            cp ".pio/build/$envn/firmware.factory.bin" "$OUT/${NAME_PREFIX}${name}.factory.bin"
+        else
+            cp ".pio/build/$envn/firmware.bin"         "$OUT/${NAME_PREFIX}${name}.bin"
+            cp ".pio/build/$envn/firmware.factory.bin" "$OUT/${NAME_PREFIX}${name}.factory.bin"
+        fi
         RESULTS="$RESULTS
 ${NAME_PREFIX}${name}|OK|$bin"
         echo "[$name] firmware.bin=$bin -> release/${NAME_PREFIX}${name}.{bin,factory.bin}"

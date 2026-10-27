@@ -40,7 +40,10 @@ jobs:
           got=$(ls artifacts/*.bin 2>/dev/null | wc -l)
           : > missing.txt
           while IFS=$'\t' read -r name _; do
-            if [ ! -f "artifacts/${prefix}${name}.bin" ] \
+            if [[ "$name" == *no-ota* ]]; then
+              # no-ota builds only ship the factory image
+              [ -f "artifacts/${prefix}${name}.factory.bin" ] || echo "$name" >> missing.txt
+            elif [ ! -f "artifacts/${prefix}${name}.bin" ] \
                || [ ! -f "artifacts/${prefix}${name}.factory.bin" ]; then
               echo "$name" >> missing.txt
             fi
