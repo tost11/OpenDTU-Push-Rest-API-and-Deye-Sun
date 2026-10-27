@@ -9,10 +9,22 @@
         </div>
 
         <CardElement
+            :text="$t('firmwareupgrade.OtaNotAvailable')"
+            textVariant="text-bg-light"
+            center-content
+            v-if="!otaEnabled"
+        >
+            <p class="h1 mb-2">
+                <BIconInfoCircleFill />
+            </p>
+            {{ $t('firmwareupgrade.OtaNotAvailableHint') }}
+        </CardElement>
+
+        <CardElement
             :text="$t('firmwareupgrade.OtaError')"
             textVariant="text-bg-danger"
             center-content
-            v-if="!loading && !uploading && OTAError != ''"
+            v-else-if="!loading && !uploading && OTAError != ''"
         >
             <p class="h1 mb-2">
                 <BIconExclamationCircleFill />
@@ -74,7 +86,13 @@
 import BasePage from '@/components/BasePage.vue';
 import CardElement from '@/components/CardElement.vue';
 import { authHeader, isLoggedIn } from '@/utils/authentication';
-import { BIconArrowLeft, BIconArrowRepeat, BIconCheckCircle, BIconExclamationCircleFill } from 'bootstrap-icons-vue';
+import {
+    BIconArrowLeft,
+    BIconArrowRepeat,
+    BIconCheckCircle,
+    BIconExclamationCircleFill,
+    BIconInfoCircleFill,
+} from 'bootstrap-icons-vue';
 import SparkMD5 from 'spark-md5';
 import { defineComponent } from 'vue';
 import { waitRestart } from '@/utils/waitRestart';
@@ -87,9 +105,11 @@ export default defineComponent({
         BIconArrowRepeat,
         BIconCheckCircle,
         BIconExclamationCircleFill,
+        BIconInfoCircleFill,
     },
     data() {
         return {
+            otaEnabled: __OTA_ENABLED__,
             loading: true,
             uploading: false,
             progress: 0,

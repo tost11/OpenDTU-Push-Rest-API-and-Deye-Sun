@@ -725,7 +725,9 @@
         "OtaStatus": "OTA-Status",
         "OtaSuccess": "Das Hochladen der Firmware war erfolgreich. Das Gerät wurde automatisch neu gestartet. Wenn das Gerät wieder erreichbar ist, wird die Oberfläche automatisch neu geladen.",
         "FirmwareUpload": "Firmware hochladen",
-        "UploadProgress": "Hochlade-Fortschritt"
+        "UploadProgress": "Hochlade-Fortschritt",
+        "OtaNotAvailable": "OTA-Aktualisierung nicht verfügbar",
+        "OtaNotAvailableHint": "Diese Firmware wurde mit einem Single-Partition-Layout ohne OTA-Slot gebaut, sodass die Firmware nicht über das Web-Interface aktualisiert werden kann. Zum Aktualisieren das Factory-Image (*.factory.bin) per USB-Serial flashen, z. B. mit dem OpenDTU-Web-Flasher oder esptool."
     },
     "about": {
         "AboutOpendtu": "Über OpenDTU",

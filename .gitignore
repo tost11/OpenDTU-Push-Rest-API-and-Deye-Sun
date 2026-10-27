@@ -22,3 +22,4 @@ CLAUDE.md
 
 # release build artifacts (scripts/release_builds.sh)
 release/
+release_descriptions

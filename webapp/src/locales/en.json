@@ -734,7 +734,9 @@
         "OtaStatus": "OTA Status",
         "OtaSuccess": "The firmware upload was successful. The device was restarted automatically. When the device is accessible again, the interface is automatically reloaded.",
         "FirmwareUpload": "Firmware Upload",
-        "UploadProgress": "Upload Progress"
+        "UploadProgress": "Upload Progress",
+        "OtaNotAvailable": "OTA Update Not Available",
+        "OtaNotAvailableHint": "This firmware was built with a single-partition layout without an OTA slot, so firmware can not be updated over the web interface. To update, flash the factory image (*.factory.bin) via USB serial, e.g. using the OpenDTU web flasher or esptool."
     },
     "about": {
         "AboutOpendtu": "About OpenDTU",

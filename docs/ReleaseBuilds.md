@@ -4,13 +4,14 @@ How `scripts/release_builds.sh` produces the release firmware matrix.
 
 ## What it does
 
-Builds all 14 release firmware variants (10x 4 MB, 2x 8 MB, 2x 16 MB) and
-stages the artifacts in `release/` for upload to a GitHub release.
+Builds all 16 release firmware variants (10x 4 MB with OTA, 2x 4 MB without
+OTA, 2x 8 MB, 2x 16 MB) and stages the artifacts in `release/` for upload to
+a GitHub release.
 
 ## Where the build matrix lives
 
 - The rows are in `scripts/release_matrix.tsv`:
-  `name  env  vite_tost  vite_mqtt  vite_mdns  firmware.bin size limit`
+  `name  env  vite_tost  vite_mqtt  vite_mdns  vite_ota  firmware.bin size limit`
   (tab-separated, one variant per line). This file is the single source of
   truth - the script and the GitHub Actions workflows both read it.
 - Each variant is a **predefined env** (`rel_*`) in the "RELEASE BUILDS"
@@ -24,19 +25,22 @@ stages the artifacts in `release/` for upload to a GitHub release.
 ## What the script does per build
 
 Each matrix row is:
-`name | env | VITE_TOST VITE_MQTT VITE_MDNS | firmware.bin size limit`
+`name | env | VITE_TOST VITE_MQTT VITE_MDNS VITE_OTA | firmware.bin size limit`
 
-1. **Webapp** - if the row's VITE variant (`VITE_TOST`/`VITE_MQTT`/`VITE_MDNS`,
-   must match the firmware flags) differs from the previous build, the webapp
-   is rebuilt first (`npm --prefix webapp run build`); the result in
-   `webapp_dist/` is embedded into the firmware. Only 3 distinct variants
-   exist, so the webapp is built a handful of times per run. With
-   `RELEASE_WEBAPP_DIR` set, a prebuilt dist from that directory is used
-   instead (GitHub Actions builds the variants once in a separate job).
+1. **Webapp** - if the row's VITE variant (`VITE_TOST`/`VITE_MQTT`/
+   `VITE_MDNS`/`VITE_OTA`, must match the firmware flags) differs from the
+   previous build, the webapp is rebuilt first (`npm --prefix webapp run
+   build`); the result in `webapp_dist/` is embedded into the firmware. Only
+   a handful of distinct variants exist, so the webapp is built a handful of
+   times per run. With `RELEASE_WEBAPP_DIR` set, a prebuilt dist from that
+   directory is used instead (GitHub Actions builds the variants once in a
+   separate job).
 2. **Firmware** - `platformio run -e <env>`.
-3. **Size check** - 4 MB builds fail hard if `firmware.bin` > 1,966,080 B.
-   8/16 MB builds have no extra check: `create_factory_bin.py` already fails
-   the build when the image exceeds the app slot of the partition table.
+3. **Size check** - builds fail hard if `firmware.bin` exceeds the row's
+   limit (4 MB dual-slot: 1,966,080 B; 4 MB single-partition no-OTA:
+   3,932,160 B). 8/16 MB builds have no extra check:
+   `create_factory_bin.py` already fails the build when the image exceeds the
+   app slot of the partition table.
 4. **Stage** - copies the artifacts to
    - `release/<prefix><name>.bin` - app image, for OTA updates
    - `release/<prefix><name>.factory.bin` - full flash image
@@ -57,7 +61,7 @@ unattended/in CI.
 ## Usage
 
 ```bash
-scripts/release_builds.sh            # all 14 variants, ~30-60 min cold
+scripts/release_builds.sh            # all 16 variants, ~40-80 min cold
 scripts/release_builds.sh <name>     # only one matrix row (name as in the TSV)
 ```
 
@@ -76,12 +80,12 @@ A single variant can also be built directly:
 
 Three workflows in `.github/workflows/`:
 
-- `release-builds.yml` (reusable) - `webapp` job builds the 3 webapp
+- `release-builds.yml` (reusable) - `webapp` job builds the 7 webapp
   variants once; `canary` job builds the first matrix row
-  (`all-no-eth-mqtt-mdns`); `firmware` job builds the remaining 12 rows in
+  (`all-no-eth-mqtt-mdns`); `firmware` job builds the remaining 14 rows in
   parallel (one job per row, `fail-fast: false`). Each firmware job uploads
   its bins + build log as a `fw-<name>` artifact. If the canary fails, the
-  12 are skipped - a broken toolchain wastes ~15 min instead of ~140.
+  14 are skipped - a broken toolchain wastes ~15 min instead of ~140.
   Like the original OpenDTU project, PlatformIO is pip-installed on a plain
   Ubuntu runner (`pip install platformio setuptools intelhex`), and
   `~/.platformio` (ESP32 toolchain) and pip are cached with `actions/cache`

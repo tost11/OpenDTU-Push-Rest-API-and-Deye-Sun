@@ -159,6 +159,17 @@ table - flashing the wrong size to a board bricks it.
 | `opendtu-no-nrf` | `rel_no_nrf` | D + W + BLE | MDNS W5500 (no TOST/SERVO) | 5 | 1,945,296 | 20,784 |
 | `opendtu-no-nrf-bt` | `rel_no_nrf_bt` | D + W | MDNS W5500 MQTT (no BLE) | 5 | 1,871,168 | 94,912 |
 
+### 4 MB flash boards (single partition, no OTA, app slot 3,932,160 B)
+
+`partitions_custom_4mb one_partition.csv` - one app slot, so no web OTA. All
+9 features fit. The firmware upgrade page shows a notice that OTA is
+disabled and points to flashing the `factory.bin` via USB serial.
+
+| Artifact | Env | Backend(s) | Add-ons | Log | Est. size (B) | Margin (B) |
+|---|---|---|---|---|---:|---:|
+| `opendtu-all-4mb-no-ota` | `rel_all_4mb_no_ota` | H + D + W + BLE | TOST SERVO MDNS W5500 MQTT (all 9 features) | 5 | 2,249,232 | 1,682,928 |
+| `opendtu-all-no-nrf-4mb-no-ota` | `rel_all_no_nrf_4mb_no_ota` | D + W + BLE | TOST SERVO MDNS W5500 MQTT (all except RF) | 5 | 2,179,936 | 1,752,224 |
+
 ### 8 MB flash boards (dual slot, web OTA, app slot 4,034,560 B)
 
 `partitions_custom_8mb.csv`, qio, **no PSRAM** - runs on both flash-only and

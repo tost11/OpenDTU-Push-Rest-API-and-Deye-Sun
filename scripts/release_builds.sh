@@ -35,8 +35,8 @@ command -v "$PIO" >/dev/null 2>&1 || PIO="$(command -v platformio || true)"
 mkdir -p "$OUT/logs"
 
 LAST_WA=""
-wa() { # <VITE_TOST> <VITE_MQTT> <VITE_MDNS>
-    local key="$1/$2/$3" safe
+wa() { # <VITE_TOST> <VITE_MQTT> <VITE_MDNS> <VITE_OTA>
+    local key="$1/$2/$3/$4" safe
     safe=$(echo "$key" | tr '/' '_')
     [ "$key" = "$LAST_WA" ] && return 0
     if [ -n "${RELEASE_WEBAPP_DIR:-}" ]; then
@@ -50,18 +50,18 @@ wa() { # <VITE_TOST> <VITE_MQTT> <VITE_MDNS>
         echo "[webapp] using prebuilt $RELEASE_WEBAPP_DIR ($key)"
     else
         command -v npm >/dev/null 2>&1 || { echo "ERROR: npm not found (webapp builds)"; return 1; }
-        if ! VITE_TOST=$1 VITE_MQTT=$2 VITE_MDNS=$3 npm --prefix webapp run build \
+        if ! VITE_TOST=$1 VITE_MQTT=$2 VITE_MDNS=$3 VITE_OTA=$4 npm --prefix webapp run build \
                 >"$OUT/logs/webapp_$safe.log" 2>&1; then
             echo "ERROR: webapp build failed ($key) - see $OUT/logs/webapp_$safe.log"
             return 1
         fi
-        echo "[webapp] VITE_TOST=$1 VITE_MQTT=$2 VITE_MDNS=$3"
+        echo "[webapp] VITE_TOST=$1 VITE_MQTT=$2 VITE_MDNS=$3 VITE_OTA=$4"
     fi
     LAST_WA=$key
     return 0
 }
 
-# header: name<TAB>env<TAB>vite_tost<TAB>vite_mqtt<TAB>vite_mdns<TAB>limit
+# header: name<TAB>env<TAB>vite_tost<TAB>vite_mqtt<TAB>vite_mdns<TAB>vite_ota<TAB>limit
 # limit: firmware.bin size limit (0 = no check, enforced by
 #        create_factory_bin.py against the partition table instead)
 ROWS="$(tail -n +2 "$MATRIX_FILE")"
@@ -72,11 +72,11 @@ RESULTS=""
 FAILURES=0
 
 echo "### OpenDTU release builds - $(date)"
-while IFS=$'\t' read -r name envn wt wm wd limit; do
+while IFS=$'\t' read -r name envn wt wm wd wo limit; do
     [ -z "$name" ] && continue
     echo "=================================================================="
     echo "BUILD ${NAME_PREFIX}${name} (env=$envn)"
-    wa "$wt" "$wm" "$wd" || exit 1
+    wa "$wt" "$wm" "$wd" "$wo" || exit 1
 
     if "$PIO" run -e "$envn" >"$OUT/logs/build_$name.log" 2>&1; then
         bin=$(stat -c %s ".pio/build/$envn/firmware.bin")

@@ -167,7 +167,7 @@ platformio run -e generic_esp32s3_hiflow
 
 Für **beides — Hoymiles-nRF24-Funk und HiFlow BLE — in einer Firmware** gibt es zwei Optionen:
 - Ein ESP32-S3-Board mit größerem Flash (8 MB/16 MB) und der passenden Partitionstabelle verwenden (z. B. `partitions_custom_16mb.csv`)
-- Oder die Ein-Partition-Konfiguration ohne OTA-Update-Unterstützung (`partitions_custom_4mb one_partition.csv`) auf einem Standard-4-MB-Board verwenden
+- Oder die Ein-Partition-Konfiguration ohne OTA-Update-Unterstützung (`partitions_custom_4mb one_partition.csv`) auf einem Standard-4-MB-Board verwenden - der fertige `all-4mb-no-ota`-Release-Build macht genau das mit allen Funktionen aktiviert
 
 #### Funktioniert
 
@@ -222,8 +222,20 @@ Ein Beispielprojekt (Solar-Leistungsanzeige für eine Kita, auf Deutsch) gibt es
 
 Vorkompilierte Firmware-Builds für alle unterstützten Funktionskombinationen gibt es als
 [GitHub Releases](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/releases)
-(siehe auch [builds](builds)). Es gibt 14 Varianten: 10 für 4-MB-Boards (Dual Slot,
-Web-OTA-Update), 2 für 8-MB-Boards und 2 für 16-MB-Boards.
+(siehe auch [builds](builds)). Es gibt 16 Varianten: 10 für 4-MB-Boards (Dual Slot,
+Web-OTA-Update), 2 für 4-MB-Boards ohne OTA (Single Partition, alle Funktionen),
+2 für 8-MB-Boards und 2 für 16-MB-Boards.
+
+Die 4-MB-Builds ohne OTA enthalten alle Funktionen in einer einzigen
+App-Partition, sodass die Firmware nur per Flashen des `factory.bin` über USB
+Serial aktualisiert werden kann - die Firmware-Aktualisierungsseite des
+Web-UIs zeigt einen Hinweis mit Anleitung an.
+
+**Flashen (ohne OTA):** DTU per USB-Serial verbinden und das `factory.bin`
+an Offset `0x0` flashen - z. B.
+`esptool.py --port /dev/ttyUSB0 write_flash 0x0 <name>.factory.bin` oder
+jeder Web-basierte esptool-Flasher. Das `.factory.bin` enthält immer
+Bootloader + Partitionstabelle + App; das einfache `.bin` nur für OTA-Updates.
 
 - Komplette Matrix mit Funktionen, Add-ons, Log-Level und gemessenen Größen:
   [docs/FeatureSizes.md](docs/FeatureSizes.md) (Abschnitt "Release build matrix")

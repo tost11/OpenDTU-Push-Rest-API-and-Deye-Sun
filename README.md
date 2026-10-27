@@ -161,7 +161,7 @@ platformio run -e generic_esp32s3_hiflow
 
 If you want **both Hoymiles nRF24 RF and HiFlow BLE** in the same firmware, you have two options:
 - Use an ESP32-S3 board with larger flash (8MB/16MB) and the corresponding partition table (e.g. `partitions_custom_16mb.csv`)
-- Or use the single-partition config without OTA update support (`partitions_custom_4mb one_partition.csv`) on a standard 4MB board
+- Or use the single-partition config without OTA update support (`partitions_custom_4mb one_partition.csv`) on a standard 4MB board - the ready-made `all-4mb-no-ota` release build does exactly this with all features enabled
 
 #### Working
 
@@ -213,8 +213,19 @@ An example project (solar power display for a kindergarten, in German) can be fo
 
 Precompiled firmware builds for all supported feature combinations are provided
 as [GitHub releases](https://github.com/tost11/OpenDTU-Push-Rest-API-and-Deye-Sun/releases)
-(see also [builds](builds)). There are 14 variants: 10 for 4 MB boards (dual slot,
-web OTA update), 2 for 8 MB boards and 2 for 16 MB boards.
+(see also [builds](builds)). There are 16 variants: 10 for 4 MB boards (dual slot,
+web OTA update), 2 for 4 MB boards without OTA (single partition, all features),
+2 for 8 MB boards and 2 for 16 MB boards.
+
+The 4 MB no-OTA builds contain all features in a single app partition, so the
+firmware can only be updated by flashing the `factory.bin` via USB serial -
+the firmware upgrade page of the web UI shows a notice with instructions.
+
+**Flashing (no OTA):** connect the DTU via USB serial and flash the
+`factory.bin` at offset `0x0` - e.g.
+`esptool.py --port /dev/ttyUSB0 write_flash 0x0 <name>.factory.bin` or any
+web-based esptool flasher. The `.factory.bin` always contains bootloader +
+partition table + app; use the plain `.bin` only for OTA updates.
 
 - Complete matrix with features, add-ons, log level and measured sizes:
   [docs/FeatureSizes.md](docs/FeatureSizes.md) (section "Release build matrix")

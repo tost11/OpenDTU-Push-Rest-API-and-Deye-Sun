@@ -24,6 +24,7 @@ export default defineConfig({
     __TOST_ENABLED__: process.env.VITE_TOST !== '0',
     __MQTT_ENABLED__: process.env.VITE_MQTT !== '0',
     __MDNS_ENABLED__: process.env.VITE_MDNS !== '0',
+    __OTA_ENABLED__: process.env.VITE_OTA !== '0',
   },
   plugins: [
     vue(),

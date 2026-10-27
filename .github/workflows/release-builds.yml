@@ -83,11 +83,11 @@ jobs:
         run: |
           set -e
           variants=$(tail -n +2 scripts/release_matrix.tsv \
-              | awk -F'\t' '{print $3"_"$4"_"$5}' | sort -u)
+              | awk -F'\t' '{print $3"_"$4"_"$5"_"$6}' | sort -u)
           cd webapp
           for v in $variants; do
-            IFS=_ read -r t m d <<<"$v"
-            VITE_TOST=$t VITE_MQTT=$m VITE_MDNS=$d yarn build
+            IFS=_ read -r t m d o <<<"$v"
+            VITE_TOST=$t VITE_MQTT=$m VITE_MDNS=$d VITE_OTA=$o yarn build
             cp -r ../webapp_dist "../webapp_dist_$v"
           done
 
@@ -114,7 +114,7 @@ jobs:
           line=$(tail -n +2 scripts/release_matrix.tsv | head -n 1)
           {
             echo "name=$(cut -f1 <<<"$line")"
-            echo "wa=$(awk -F'\t' '{print $3"_"$4"_"$5}' <<<"$line")"
+            echo "wa=$(awk -F'\t' '{print $3"_"$4"_"$5"_"$6}' <<<"$line")"
           } >> "$GITHUB_OUTPUT"
 
       - name: Compute matrix for the remaining rows
@@ -221,7 +221,7 @@ jobs:
         id: row
         run: |
           line=$(grep -P "^\Q${{ matrix.firmware }}\E\t" scripts/release_matrix.tsv)
-          echo "wa=$(awk -F'\t' '{print $3"_"$4"_"$5}' <<<"$line")" >> "$GITHUB_OUTPUT"
+          echo "wa=$(awk -F'\t' '{print $3"_"$4"_"$5"_"$6}' <<<"$line")" >> "$GITHUB_OUTPUT"
 
       - name: Build firmware ${{ matrix.firmware }}
         env:
